@@ -47,6 +47,16 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def seed_identity(app, stage):
+    directory = app / 'Contents/Resources/pipeline-seeds'
+    stage_seed = directory / (stage + '.db')
+    identity_seed = stage_seed if stage_seed.is_file() else directory / '__global__.db'
+    with sqlite3.connect(identity_seed.as_uri() + '?mode=ro', uri=True) as db:
+        renderer = db.execute('SELECT build_key FROM petari_cache_build').fetchone()[0]
+    return {'renderer_key': renderer, 'stage_seed_sha256': sha(stage_seed) if stage_seed.is_file() else None,
+            'stage_seed_missing': not stage_seed.is_file(), 'identity_seed': identity_seed.name}
+
+
 def write(path, value):
     Path(path).write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
@@ -137,16 +147,15 @@ def launch(args, stage, name, app=None, cold=False):
         env['PETARI_PIPELINE_RECORD_FIRST_USE'] = str(capture)
     executable = app / 'Contents/MacOS/Petari'
     before = sha(executable)
-    seed = app / 'Contents/Resources/pipeline-seeds' / (stage + '.db')
-    with sqlite3.connect(seed.as_uri() + '?mode=ro', uri=True) as db:
-        renderer = db.execute('SELECT build_key FROM petari_cache_build').fetchone()[0]
+    identity = seed_identity(app, stage)
+    renderer = identity['renderer_key']
     cmd = [str(executable), '--disc', str(args.disc), '--user', str(folder / 'user')]
     if not args.title:
         cmd += ['--stage', stage, '--scenario', '1']
     write(folder / 'launch.json', {'command': cmd, 'environment': {k: v for k, v in env.items()
           if k.startswith(('PETARI_', 'SDL_'))}, 'exe_sha256': before, 'script_sha256': None if args.title else sha(SCRIPT),
           'nice': os.getpriority(os.PRIO_PROCESS, 0), 'cold_namespace': cold, 'renderer_key': renderer,
-          'stage_seed_sha256': sha(seed),
+          **identity,
           'purpose': 'recording only; not performance acceptance', 'mode': 'no-input-title' if args.title else 'direct-stage',
           'load': os.getloadavg()})
     started = time.monotonic()
@@ -206,7 +215,7 @@ def launch(args, stage, name, app=None, cold=False):
               'name': name, 'folder': str(folder), 'process_exit': process.returncode, 'seconds': time.monotonic() - started,
               'capture_error': error, 'quit_error': quit_error, 'groups': groups, 'cold_confirmation': cold, 'no_pipeline_waits': no_wait,
               'no_pop_in': no_pop, 'recording_exe_sha256': before, 'launch_sha256': sha(folder / 'launch.json'),
-              'renderer_key': renderer, 'stage_seed_sha256': sha(seed),
+              **identity,
               'app_log_sha256': sha(folder / 'app.log'), 'capture_sha256': sha(capture) if capture.exists() else None}
     write(folder / 'RESULT.json', result)
     return result

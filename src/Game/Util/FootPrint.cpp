@@ -210,10 +210,14 @@ namespace {
 namespace MR {
     // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     FootPrint* createFootPrintHandle(LiveActor* actor) {
+        FootPrint* print;
+        u32 suffixLength;
+        u32 length;
+        char* name;
         ResTIMG* texture = MR::getTexFromArc(sFootPrintTexture, actor);
         JMapInfo* csv = MR::tryCreateCsvParser(actor, "%s.bcsv", sFootPrintControl);
         if (!csv) {
-            FootPrint* print = new FootPrint("ダミー足跡", 32);
+            print = new FootPrint("ダミー足跡", 32);
             print->setTexture(texture);
             return print;
         }
@@ -227,11 +231,11 @@ namespace MR {
         MR::getCsvDataF32(&sideSize, csv, "SideSize", 0);
         MR::getCsvDataF32(&frontSize, csv, "FrontSize", 0);
         MR::getCsvDataF32(&distanceMin, csv, "DistanceMin", 0);
-        u32 suffixLength = strlen(sFootPrintSuffix);
-        u32 length = strlen(actor->mName) + suffixLength + 1;
-        char* name = new char[length];
+        suffixLength = strlen(sFootPrintSuffix);
+        length = suffixLength + strlen(actor->mName) + 1;
+        name = new char[length];
         snprintf(name, length, "%s%s", actor->mName, sFootPrintSuffix);
-        FootPrint* print = new FootPrint(name, count);
+        print = new FootPrint(name, count);
         print->setTexture(texture);
         print->_2C = sideOffset;
         print->_30 = sideSize;

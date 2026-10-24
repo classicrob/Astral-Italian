@@ -631,16 +631,12 @@ void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 if (mIsPlayerFront && MR::isGreaterEqualStep(this, 0x32)) {
                     MR::fn_800515E0();
                 }
-                TVec3f push(dir);
-                push.scale(1.0f);
-                MR::pushPlayer(push);
+                MR::pushPlayer(dir * 1.0f);
             }
         } else if (isNerve(GET_BATTAN_NERVE(BattanNrvRise)) && MR::isGreaterEqualStep(this, sRisePushStartStep) && MR::isLessStep(this, 0x6E)) {
             TVec3f dir(0.0f);
             if (calcBattanPlayerPushDirection(&dir, &sVector5)) {
-                TVec3f push(dir);
-                push.scale(1.0f);
-                MR::pushPlayer(push);
+                MR::pushPlayer(dir * 1.0f);
             }
         } else {
             mIsPlayerFront = false;

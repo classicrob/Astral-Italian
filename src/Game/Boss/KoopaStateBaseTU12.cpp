@@ -165,7 +165,6 @@ void KoopaStateLastChase::exeRoll() {
     }
 }
 
-// NONMATCHING: GPR allocation only (target host/quat pointers r29/r30, ours r30/r29)
 void KoopaStateLastChase::exeMoveEnd() {
     if (MR::isFirstStep(this)) {
         MR::startKoopaBattleFaceCtrl(mHost, 30);

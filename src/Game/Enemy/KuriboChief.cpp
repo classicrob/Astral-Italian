@@ -322,7 +322,6 @@ bool KuriboChief::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
     return true;
 }
 
-// NONMATCHING: floating-point register allocation differs; instructions and field accesses agree.
 void KuriboChief::setPositionRotationVelocity(const TVec3f& position, const TQuat4f& rotation, const TVec3f& velocity) {
     MR::setPosition(this, position);
     mVelocity.set(velocity);

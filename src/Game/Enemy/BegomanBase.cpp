@@ -226,7 +226,6 @@ void BegomanBase::kill() {
     }
 }
 
-// NONMATCHING: stack slot order of upVec/yAxis temporaries and f31 load order
 void BegomanBase::control() {
     if (mScaleControler != nullptr) {
         mScaleControler->updateNerve();

@@ -441,7 +441,7 @@ void DinoPackun::updateCameraInfo() {
         TVec3f v6(0, 0, 0);
         TVec3f v5;
         mPoseQuat.getYDir(v5);
-        v6.scaleAdd(300.0f, v5, mPosition);
+        JMAVECScaleAdd(&v5, &mPosition, &v6, 300.0f);
 
         if (mTailCameraBlendRate > 0.0f) {
             TVec3f v4;

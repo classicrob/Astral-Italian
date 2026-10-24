@@ -386,8 +386,7 @@ bool Terebo::moveOnRailAndCheckNextPoint() {
     TVec3f dir(MR::getRailDirection(this));
     if (!MR::isSameDirection(dir, mGravity, 0.01f)) {
         f32 d = dir.dot(mGravity);
-        TVec3f proj(mGravity);
-        proj.scale(d);
+        TVec3f proj = mGravity * d;
         dir -= proj;
         MR::normalizeOrZero(&dir);
         MR::turnVecToVecDegree(&mFrontVec, mFrontVec, dir, 3.5f, mGravity);

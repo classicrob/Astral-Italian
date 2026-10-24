@@ -54,7 +54,7 @@ void PoltaGroundRock::start(LiveActor* pOwner, const TVec3f& rVec1) {
     setNerve(GET_NERVE(PoltaGroundRock, PoltaGroundRockNrvSign));
     _A4.set(rVec1);
     MR::calcGravity(this, rVec1);
-    mPosition.scaleAdd(500.0f, mGravity, _A4);
+    JMAVECScaleAdd(&mGravity, &_A4, &mPosition, 500.0f);
     TPos3f v9;
     MR::makeMtxUpNoSupportPos(&v9, -mGravity, mPosition);
     MR::rotateMtxLocalY(v9, MR::getRandom(0.0f, TWO_PI));

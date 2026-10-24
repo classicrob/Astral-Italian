@@ -149,6 +149,8 @@ namespace {
 
 // NONMATCHING: saved registers for the final BVA frame update differ.
 void StaffRollDemoObj::setAndShowPlayer() {
+    s32 index;
+    LiveActor* sky;
     char name[0x100];
     if (!findPlayerPosition(name, mStep98, mChildA, &mStep9C)) {
         mStep98 = 0;
@@ -160,8 +162,8 @@ void StaffRollDemoObj::setAndShowPlayer() {
         MR::showPlayer();
         MR::onPlayerControl(true);
     }
-    LiveActor* sky = mChildA;
-    s32 index = mStep9C;
+    sky = mChildA;
+    index = mStep9C;
     s32 frame = index % static_cast< s32 >(MR::getBvaFrameMax(sky));
     MR::setBvaFrameAndStop(sky, static_cast< f32 >(frame));
 }

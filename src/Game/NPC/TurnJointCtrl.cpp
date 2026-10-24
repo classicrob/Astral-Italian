@@ -157,9 +157,7 @@ bool TurnJointCtrl::updateJointMtxCallBack(TPos3f* pMtx, const Ctrl& rCtrl) {
 
     TPos3f result = *pMtx;
     TPos3f rotation;
-    TVec3f zeroTranslation;
-    zeroTranslation.x = 0.0f; zeroTranslation.y = 0.0f; zeroTranslation.z = 0.0f;
-    result.setTrans(zeroTranslation);
+    result.setTrans(TVec3f(0.0f, 0.0f, 0.0f));
 
     TVec3f verticalAxis;
     TVec3f horizontalAxis;

@@ -78,7 +78,6 @@ void StarPieceTrackingPiece::appearScattered(const TVec3f& position, const TVec3
     static_cast<LiveActor*>(this)->appear();
 }
 
-// NONMATCHING: distance multiplication uses swapped commutative operands.
 void StarPieceTrackingPiece::updateTrackingVelocity(bool) {
     TVec3f direction(0.0f);
     TVec3f playerPosition(*MR::getPlayerPos());

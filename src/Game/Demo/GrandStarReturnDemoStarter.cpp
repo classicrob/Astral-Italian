@@ -207,7 +207,6 @@ void GrandStarReturnDemoStarter::exeFlyWait() {
     }
 }
 
-// NONMATCHING: vector operation scheduling
 
 void GrandStarReturnDemoStarter::exeRushToCore() {
     TVec3f position;

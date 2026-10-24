@@ -111,7 +111,8 @@ bool CoinHolder::appearCoinPopToDirection(const NameObj* pObj, const TVec3f& rPo
 bool CoinHolder::appearCoinAgainstGravity(const NameObj* pObj, const TVec3f& rPosition, s32 count) {
     TVec3f gravity;
     MR::calcGravityVector(this, rPosition, &gravity, nullptr, 0);
-    TVec3f velocity(TVec3f(-gravity));
+    TVec3f velocity;
+    velocity.negate(gravity);
     velocity.scale(::sCoinVelVertical);
     return appearCoin(pObj, rPosition, velocity, count, -1, -1, 8.0f);
 }

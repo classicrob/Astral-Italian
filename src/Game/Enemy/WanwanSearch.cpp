@@ -188,8 +188,7 @@ void WanwanSearch::exeMove() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Move");
     }
-    TVec3f zero(0.0f, 0.0f, 0.0f);
-    if (MR::isInDeath(this, zero)) {
+    if (MR::isInDeath(this, TVec3f(0, 0, 0))) {
         if (mBreakOnDeath) {
             setNerve(&NrvWanwanSearch::WanwanSearchNrvBreak::sInstance);
         } else {
@@ -213,7 +212,8 @@ void WanwanSearch::exeMove() {
     }
     MR::attenuateVelocity(this, mAirCount >= 5 ? 0.99f : 0.9f);
     if (MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f) && MR::isBindedWall(this)) {
-        MR::startActionSound(this, "Collision", (s32)(mPosition - mLastPos).length(), -1, -1);
+        TVec3f displacement(mPosition - mLastPos);
+        MR::startActionSound(this, "Collision", (s32)displacement.length(), -1, -1);
         mLastPos = mPosition;
     }
     MR::sendMsgEnemyAttackTrampleDeathToGroundSensor(getSensor(nullptr));

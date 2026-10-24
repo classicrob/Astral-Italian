@@ -53,8 +53,7 @@ void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
 
     f32 dist = 100.0f;
     MR::getJMapInfoArg0NoInit(rIter, &dist);
-    TVec3f dir(0.0f, dist, 0.0f);
-    mMoveFunction->setMoveVec(dir);
+    mMoveFunction->setMoveVec(TVec3f(0.0f, dist, 0.0f));
 
     s32 returnStep = 1;
     MR::getJMapInfoArg1NoInit(rIter, &returnStep);

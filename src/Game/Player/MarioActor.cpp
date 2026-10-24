@@ -1160,11 +1160,11 @@ bool MarioActor::isRefuseTalk() const {
 
 u32 MarioActor::getSpecialMode() const {
     u32 mode = 0;
-    if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMario->getMovementStates().mLowWord >> 16) & 1U)) {
+    if (mMario->getMovementStates().mLowBits.mBit31 && mMario->getMovementStates().mLowBits.mBit16) {
         mode = 1;
     }
 
-    if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMario->getMovementStates().mLowWord >> 14) & 1U)) {
+    if (mMario->getMovementStates().mLowBits.mBit31 && mMario->getMovementStates().mLowBits.mBit14) {
         mode = 1;
     }
 
@@ -1541,7 +1541,7 @@ bool MarioActor::fn_803B9920() {
     if (((m)->mMovementStates.mLowWord >> 0x1F) == 1 && !m->isRising() && (((this->mMario)->mMovementStates.mLowWord >> 0xC) & 1)) {
         return true;
     }
-    return this->checkButtonType(mInputConfig->_8, false);
+    return checkButtonType(mInputConfig->_8, false);
 }
 
 void MarioActor::fn_803B9A10() {
@@ -1579,14 +1579,8 @@ f32 MarioActor::fn_803B9A90() {
 }
 
 bool MarioActor::fn_803B9AB0() {
-    YoshiHolder* p = mYoshiHolder;
-    if (p == nullptr) {
-        return false;
-    }
-    if (p->mRideModelActor == nullptr) {
-        return false;
-    }
-    return !MR::isDead(p->mRideModelActor);
+    if (mYoshiHolder == nullptr || mYoshiHolder->mRideModelActor == nullptr) return false;
+    return !MR::isDead(mYoshiHolder->mRideModelActor);
 }
 
 void MarioActor::calcHeadPos() {
@@ -2910,25 +2904,25 @@ s32 MarioActor::getFloorMaterialIndex(u32 flags) const {
     }
 
     if (mMario->isStatusActive(MarioStatus_Wall)) {
-        if (((mMario->mMovementStates.mLowWord >> 23) & 1U)) {
+        if (mMario->mMovementStates.mLowBits.mBit23) {
             floor = mMario->_964[0];
-        } else if (((mMario->mMovementStates.mLowWord >> 6) & 1U)) {
+        } else if (mMario->mMovementStates.mLowBits.mBit6) {
             floor = mMario->_964[1];
-        } else if (((mMario->mMovementStates.mLowWord >> 5) & 1U)) {
+        } else if (mMario->mMovementStates.mLowBits.mBit5) {
             floor = mMario->_964[2];
         }
     }
 
-    if (((mMario->mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13)) {
+    if (mMario->mDrawStates.mBits.mBit13) {
         floor = 0x17;
     }
 
-    if (((mMario->mDrawStates.mWord >> 12) & 1U)) {
+    if (mMario->mDrawStates.mBits.mBit12) {
         floor = 0x17;
     }
 
     if (flags & 0x2) {
-        if (((mMario->mDrawStates.mWord >> 2) & 1U)) {
+        if (mMario->mDrawStates.mBits.mBit2) {
             floor = 0x17;
         }
     }
@@ -2984,11 +2978,11 @@ s32 MarioActor::getFloorMaterialIndex(u32 flags) const {
         break;
     }
 
-    if (((mMario->mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13) || ((mMario->mDrawStates.mWord >> 12) & 1U)) {
+    if (mMario->mDrawStates.mBits.mBit13 || mMario->mDrawStates.mBits.mBit12) {
         materialIndex = 1;
     }
 
-    if (!((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
+    if (!mMario->mMovementStates.mLowBits.mBit30) {
         if (mMario->mSwim->_1B2 != 0) {
             if (mMario->mSwim->_1B8 < 400.0f) {
                 materialIndex = 1;
@@ -3376,7 +3370,7 @@ bool MarioActor::fn_803BDE10() {
     if (this->_935 != 0) {
         return false;
     }
-    return this->checkButtonType(mInputConfig->_0, false);
+    return checkButtonType(mInputConfig->_0, false);
 }
 
 bool MarioActor::isRequestRush() const {
@@ -4754,11 +4748,8 @@ void MarioActor::drawPreWipe() const {
         TVec3f position(0.0f, 0.0f, 0.0f);
         TVec3f size(width, height, 0.0f);
         u16 timer = mActorEffectState->mTimer;
-        u32 alpha = 0xE0;
-        if (timer <= 0x80) {
-            alpha = (timer >> 1) + (static_cast<s32>(timer) >> 2) + timer;
-        }
-        TDDraw::drawFillBox(position, size, alpha | 0x28282800);
+        TDDraw::drawFillBox(position, size,
+                            (timer <= 0x80 ? (timer >> 1) + (static_cast<s32>(timer) >> 2) + timer : 0xE0) | 0x28282800);
     }
     MR::loadViewMtx();
     MR::loadProjectionMtx();
@@ -5069,10 +5060,11 @@ void MarioActor::fn_803C1E80() {
 }
 
 bool MarioActor::fn_803C1F30() {
+    MtxPtr prev;
     Mario* m = this->mMario;
     bool r = false;
     if (((m->mMovementStates.mLowWord >> (0x1E)) & 1)) {
-        MtxPtr prev = m->_45C->getPrevBaseMtx()->mMtx;
+        prev = m->_45C->getPrevBaseMtx()->mMtx;
         if (!MR::isSameMtx((this->mMario)->_45C->getBaseMtx()->mMtx, prev)) {
             r = true;
         }
@@ -5289,7 +5281,7 @@ void MarioActor::fn_803C2610() {
 
 void MarioActor::fn_803C26A0() {
     if ((this->isInPunchTimerRange() || !this->mMario->isSwimming())) {
-        u32 t = (this->mMario)->mMovementStates.mLowWord;
+        u32 t = getMovementStates().mLowWord;
         if (((t >> 0x17) & 1) || ((t >> 5) & 1) || ((t >> 6) & 1)) {
             this->mMario->tryWallPunch();
         }
@@ -5830,10 +5822,11 @@ void MarioActor::fn_803C38D0() {
 }
 
 bool MarioActor::fn_803C3930() {
+    MtxPtr prev;
     Mario* m = this->mMario;
     bool r = false;
     if (((m->mMovementStates.mLowWord >> (0x1E)) & 1)) {
-        MtxPtr prev = m->_45C->getPrevBaseMtx()->mMtx;
+        prev = m->_45C->getPrevBaseMtx()->mMtx;
         if (!MR::isSameMtx((this->mMario)->_45C->getBaseMtx()->mMtx, prev)) {
             r = true;
         }
@@ -8690,18 +8683,24 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
     case 0:
         MR::startBtp(this, "ElementEnd");
         if (a) {
-            u16 prev = this->_3D6;
-            if ((u16)(prev - 4) <= 2) {
-                this->mMario->playSound("呪い解除", -1);
-            } else if (prev == 10) {
-            } else if (prev == 2) {
+            switch (static_cast<s32>(_3D6)) {
+            case 4:
+            case 5:
+            case 6:
+                mMario->playSound("呪い解除", -1);
+                break;
+            case 10:
+                break;
+            case 2:
                 if (MR::isSandyBossBGMPlaying()) {
-                    this->mMario->playSound("変身解除ＢＧＭ維持", -1);
+                    mMario->playSound("変身解除ＢＧＭ維持", -1);
                 } else {
-                    this->mMario->playSound("変身解除", -1);
+                    mMario->playSound("変身解除", -1);
                 }
-            } else {
-                this->mMario->playSound("変身解除", -1);
+                break;
+            default:
+                mMario->playSound("変身解除", -1);
+                break;
             }
         }
         this->_3DC = 0;
@@ -8769,7 +8768,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         mConst->changeTable(2);
         LiveActor* ya = mYoshiHolder->mYoshi;
         MR::setPlayerPos(ya->mPosition);
-        MtxPtr bm = ya->getBaseMtx();
+        MtxPtr bm = mYoshiHolder->mYoshi->getBaseMtx();
         TVec3f front(bm[0][2], bm[1][2], bm[2][2]);
         MR::setPlayerFrontVec(front, 1);
         mYoshiHolder->mTongueAction->fn_8041FCD0();
@@ -8777,9 +8776,11 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         this->mMarioAnim->fn_803DF8E0();
         this->rushDropThrowMemoSensor();
         if (mYoshiHolder->mYoshi->mMountedBySpin != 0) {
-            this->mMario->changeAnimation("ヨッシースピン乗車", "基本");
+            const char* lowerAnimation = "基本";
+            this->mMario->changeAnimation("ヨッシースピン乗車", lowerAnimation);
         } else {
-            this->mMario->changeAnimation("ヨッシー乗車", "基本");
+            const char* lowerAnimation = "基本";
+            this->mMario->changeAnimation("ヨッシー乗車", lowerAnimation);
         }
         this->mMario->stopWalk();
         this->_3DC = 0;
@@ -8874,8 +8875,9 @@ void MarioActor::fn_803CBC50() {
 // NONMATCHING: saved Mario receiver, stack frame size, and register allocation.
 void MarioActor::touchSensor(HitSensor* pSensor) {
     if (pSensor->mType == ATYPE_WATER_PRESSURE_BULLET_BIND) {
+        Mario* mario = mMario;
         const TVec3f collisionOffset = *MR::getSensorPos(pSensor) - _240;
-        if (mMario->fn_803B2880(_240, collisionOffset)) {
+        if (mario->fn_803B2880(_240, collisionOffset)) {
             return;
         }
         mMario->touchWater();
@@ -8891,11 +8893,11 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
     mMario->checkOnimasu(pSensor);
     bool pull = false;
     if (((getMovementStates().mLowWord >> 16) & 1U)) {
-        if (distance < radius + mSensorRadiusTornadoAttack && tryTornadoAttack(pSensor)) {
+        if (distance < mSensorRadiusTornadoAttack + radius && tryTornadoAttack(pSensor)) {
             return;
         }
 
-        if (distance < radius + mSensorRadiusTornadoStorm) {
+        if (distance < mSensorRadiusTornadoStorm + radius) {
             pSensor->receiveMessage(0x3B, getSensor("Body"));
             if (mMario->isSwimming()) {
                 if (distance < mSensorRadiusSpinPull) {
@@ -8907,7 +8909,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
         }
     } else {
         if (_3E5 && _945 < 15) {
-            if (distance < radius + mSensorRadiusSpinStorm) {
+            if (distance < mSensorRadiusSpinStorm + radius) {
                 if (mActionTable1080->selectAction("スピンアタック") < 4) {
                     pSensor->receiveMessage(ACTMES_SPIN_STORM_RANGE, getSensor("Body"));
                 }
@@ -8920,7 +8922,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
                     pull = true;
                 }
             }
-        } else if (mMario->isAnimationRun("ファイアスピン") && distance < radius + mSensorRadiusSpinStorm) {
+        } else if (mMario->isAnimationRun("ファイアスピン") && distance < mSensorRadiusSpinStorm + radius) {
             pSensor->receiveMessage(ACTMES_SPIN_STORM_RANGE, getSensor("Body"));
         }
     }
@@ -8930,7 +8932,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
     }
 
     if (((getMovementStates().mLowWord >> 20) & 1U) && !((getMovementStates().mLowWord >> 30) & 1U) &&
-        distance < radius + mSensorRadiusHipDropAttack + mMario->mJumpVec.dot(*mMario->getGravityVec())) {
+        distance < mSensorRadiusHipDropAttack + radius + mMario->mJumpVec.dot(*mMario->getGravityVec())) {
         if (tryHipDropAttack(pSensor)) {
             return;
         }
@@ -8942,7 +8944,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
         mMario->mFlags14.mHighWord &= 0xFEFFFFFFU;
     }
 
-    if (distance < radius + mSensorRadiusAttack) {
+    if (distance < mSensorRadiusAttack + radius) {
         if (_944 && tryPunchAirAfter(pSensor)) {
             return;
         }
@@ -9370,9 +9372,9 @@ bool MarioActor::fn_803CD1F0(HitSensor* s) {
 }
 
 f32 MarioActor::fn_803CD250(HitSensor* s) {
+    TVec3f b;
     TVec3f a((this->mMario)->mShadowPos);
     a -= (s)->mPosition;
-    TVec3f b;
     return MR::vecKillElement(a, *this->mMario->getGravityVec(), &b);
 }
 
@@ -9948,9 +9950,7 @@ void MarioActor::fn_803CEBC0() {
                 TVec3f t;
                 _494->mMtx.getTrans(t);
                 LiveActor* host = MR::getSensorHost(cs);
-                TVec3f p(t);
-                p += mVelocity;
-                host->mPosition = p;
+                host->mPosition = t + mVelocity;
                 _494->copyRotate(&MR::getSensorHost(cs)->mRotation);
             }
         } else {
@@ -9959,9 +9959,7 @@ void MarioActor::fn_803CEBC0() {
                 TVec3f t;
                 _494->mMtx.getTrans(t);
                 LiveActor* host = MR::getSensorHost(cs);
-                TVec3f p(t);
-                p += mVelocity;
-                host->mPosition = p;
+                host->mPosition = t + mVelocity;
                 _494->copyRotate(&MR::getSensorHost(cs)->mRotation);
                 return;
             }
@@ -9976,9 +9974,7 @@ void MarioActor::fn_803CEBC0() {
             lp.y += amp;
             MR::getSensorHost(cs)->mPosition = lp;
             LiveActor* host = MR::getSensorHost(cs);
-            TVec3f r(mThrowMemoRotations[0]);
-            r += mRotation;
-            host->mRotation = r;
+            host->mRotation = mThrowMemoRotations[0] + mRotation;
         }
     }
 }
@@ -10205,7 +10201,8 @@ bool MarioActor::isEnableSpinPunch() {
         return false;
     }
 
-    return !mMario->isPlayerModeYoshi() || YoshiParam::fn_8041BD50();
+    if (mMario->isPlayerModeYoshi() && !YoshiParam::fn_8041BD50()) return false;
+    return true;
 }
 
 // NONMATCHING: Mario receiver reloads and verified pooled literal addresses.
@@ -11445,8 +11442,9 @@ void MarioActor::calcViewSilhouetteModel() {
     TVec3f root;
     TVec3f translation;
     if (_EA4) {
+        const char* rootJoint = "All_Root";
         TPos3f rootMatrix;
-        getRealMtx(rootMatrix.toMtxPtr(), "All_Root");
+        getRealMtx(rootMatrix.toMtxPtr(), rootJoint);
         MR::extractMtxTrans(rootMatrix.toMtxPtr(), &root);
         translation = root - direction * getConst().getTable()->mSilhouetteZoffset;
     } else if (mMario->isPlayerModeYoshi()) {
@@ -11945,7 +11943,7 @@ void MarioActor::updateRandomTexture(f32 distance) {
                 alpha--;
             }
 
-            s32 clamped = alpha < 0 ? 0 : alpha > 15 ? 15 : alpha;
+            s32 clamped = MR::clamp(alpha, 0L, 15L);
             *pixel = (clamped * 16) & 0xF0;
             pixel++;
         }
@@ -13107,15 +13105,15 @@ void MarioActor::updateEffect() {
     s32 effectB = 0;
     s32 effectC = 0;
 
-    if (((mMario->mMovementStates.mLowWord >> 27) & 1U)) {
+    if (mMario->mMovementStates.mLowBits.mBit27) {
         effectA = 1;
     }
 
-    if (((mMario->mMovementStates.mLowWord >> 16) & 1U) && ((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
+    if (mMario->mMovementStates.mLowBits.mBit16 && mMario->mMovementStates.mLowBits.mBit30) {
         effectA = 1;
     }
 
-    if (((mMario->mMovementStates.mLowWord >> 30) & 1U) && mMario->_3F4 > 0.1f) {
+    if (mMario->mMovementStates.mLowBits.mBit30 && mMario->_3F4 > 0.1f) {
         effectA = 1;
     }
 
@@ -13123,7 +13121,7 @@ void MarioActor::updateEffect() {
         effectA = 1;
     }
 
-    if (((getMovementStates().mHighWord >> 11) & 1U) || ((getMovementStates().mHighWord >> 10) & 1U)) {
+    if (getMovementStates().mHighBits.mBit11 || getMovementStates().mHighBits.mBit10) {
         if (mMario->mWalkSpeed > 0.1f) {
             effectA = 1;
         }
@@ -13180,7 +13178,7 @@ void MarioActor::updateEffect() {
     mEffectFlags.mSpecialSmoke = specialSmoke;
 
     effectA = 0;
-    if (((getMovementStates().mHighWord >> 28) & 1U) && !((getMovementStates().mLowWord >> 7) & 1U) && ((getMovementStates().mLowWord >> 30) & 1U)) {
+    if (getMovementStates().mHighBits.mBit28 && !getMovementStates().mLowBits.mBit7 && getMovementStates().mLowBits.mBit30) {
         effectA = 1;
     }
 
@@ -13214,7 +13212,7 @@ void MarioActor::updateEffect() {
     mMarioEffect->doCubeEffect();
 
     effectC = 0;
-    if (((getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+    if (mMario->mMovementStates.mLowBits.mBit31) {
         if (mPlayerMode == 4 && mMario->checkLvlA() && mMario->_402 != 0 && ((_37C & 3) == 0)) {
             if (mMario->mVerticalSpeed < 300.0f) {
                 effectC = 1;

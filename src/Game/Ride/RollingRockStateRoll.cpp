@@ -453,16 +453,12 @@ void RollingRockStateRoll::updateEffect() {
         isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
         return;
     }
-    {
-        {
-            if (mAirStep > 5) {
-                if (MR::isEffectValid(mHost, "Move")) {
-                    MR::deleteEffect(mHost, "Move");
-                }
-            } else if (!MR::isEffectValid(mHost, "Move")) {
-                MR::emitEffect(mHost, "Move");
-            }
+    if (mAirStep > 5) {
+        if (MR::isEffectValid(mHost, "Move")) {
+            MR::deleteEffect(mHost, "Move");
         }
+    } else if (!MR::isEffectValid(mHost, "Move")) {
+        MR::emitEffect(mHost, "Move");
     }
 }
 

@@ -60,7 +60,6 @@ void TicoStateEatCoin::exeTurn() {
 
 #pragma dont_inline reset
 
-// NONMATCHING: the camera position and direction temporary stack slots are swapped.
 void TicoStateEatCoin::exeEat() {
     if (MR::isFirstStep(this)) { MR::decCoin(mRequiredCoins); mGrowthStage = 0; }
     if (MR::isStep(this, 20)) {

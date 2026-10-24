@@ -164,9 +164,10 @@ void DepthOfFieldBlur::drawFinal() const {
 
     GXSetTevIndirect(GX_TEVSTAGE1, GX_INDTEXSTAGE0, GX_ITF_8, GX_ITB_NONE, GX_ITM_0, GX_ITW_OFF, GX_ITW_OFF, GX_FALSE, GX_FALSE, GX_ITBA_OFF);
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD2, GX_TEXMAP2);
+    s32 minDist;
     s32 maxDist = 10000;
     if (mBlurMaxDist >= 0) maxDist = mBlurMaxDist;
-    s32 minDist = 8200;
+    minDist = 8200;
     if (mBlurMinDist >= 0) minDist = mBlurMinDist;
     f32 nearDepth, farDepth;
     if (maxDist > minDist) { nearDepth = minDist / 10000.0f; farDepth = maxDist / 10000.0f; }

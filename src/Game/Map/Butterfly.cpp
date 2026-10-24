@@ -100,11 +100,7 @@ void Butterfly::init(const JMapInfoIter& rIter) {
         mStarPieceAppeared = true;
     }
 
-    TVec3f starOffset;
-    starOffset.x = 0.0f;
-    starOffset.y = 0.0f;
-    starOffset.z = 0.0f;
-    MR::initStarPointerTarget(this, ::sDpdPointRadiusFast, starOffset);
+    MR::initStarPointerTarget(this, ::sDpdPointRadiusFast, TVec3f(0, 0, 0));
     MR::setClippingTypeSphere(this, ::sRadius);
     MR::setClippingFar50m(this);
     initNerve(GET_NERVE(Butterfly, HostTypeWait));

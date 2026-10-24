@@ -86,7 +86,6 @@ bool SandBirdParts::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRec
 
 void SandBirdParts::control() {}
 
-// NONMATCHING: 98%, psq_l/psq_st copy uses f5..f0 in reverse register order (regalloc only)
 void SandBirdParts::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     mConnector->connect();

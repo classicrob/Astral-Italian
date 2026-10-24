@@ -379,13 +379,15 @@ void KoopaJrRobotSeq::startRearLauncherShots() {
 
 // NONMATCHING: regalloc only (loop vars r28..r31 permuted)
 void KoopaJrRobotSeq::attackShootableKillers() {
+    HitSensor* pSensor;
+    KoopaJrRobotKillerLauncher** p;
     if (!MR::isDead(mMagnumLauncher) && mMagnumLauncher->isShootable()) {
-        HitSensor* pSensor = mHost->getSensor("Body");
+        pSensor = mHost->getSensor("Body");
         MR::sendMsgEnemyAttackExplosion(mMagnumLauncher->getKiller()->getSensor("Body"), pSensor);
     }
-    for (KoopaJrRobotKillerLauncher** p = mLaunchers; p != mLaunchers + 8; p++) {
+    for (p = mLaunchers; p != mLaunchers + 8; p++) {
         if (!MR::isDead(*p) && (*p)->isShootable()) {
-            HitSensor* pSensor = mHost->getSensor("Body");
+            pSensor = mHost->getSensor("Body");
             MR::sendMsgEnemyAttackExplosion((*p)->getKiller()->getSensor("Body"), pSensor);
         }
     }

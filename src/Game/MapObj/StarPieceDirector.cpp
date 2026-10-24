@@ -271,10 +271,11 @@ bool StarPieceDirector::appearPieceToDirectionRandom(const NameObj* host, const 
         StarPiece* piece = getDeadStarPiece();
         TVec3f direction(velocity);
         TVec3f axis(direction);
+        f32 tiltAngle;
         f32 speed = axis.length();
         if (!MR::normalizeOrZero(&axis)) {
             TQuat4f tilt;
-            f32 tiltAngle = MR::getRandom(0.0f, angle);
+            tiltAngle = MR::getRandom(0.0f, angle);
             tilt.setRotate(TVec3f(0.0f, 1.0f, 0.0f), tiltAngle);
             TQuat4f spin;
             f32 spinAngle = MR::getRandom(-3.1415927f, 3.1415927f);

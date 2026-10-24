@@ -101,6 +101,7 @@ PointPartsHolder::PointPartsHolder(WorldMapResultWorld* pWorld) : mWorld(pWorld)
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void PointPartsHolder::init() {
+    PointPart* pPart;
     JMapInfo* pCsv = mWorld->createParser(sPointPartsCsv);
     if (pCsv != nullptr) {
         mUnkC = WorldMapFunction::getGrandStarNum();
@@ -108,7 +109,6 @@ void PointPartsHolder::init() {
         s32 num = MR::getCsvDataElementNum(pCsv);
         mNum = num;
         mParts = new PointPart[num];
-        PointPart* pPart;
         for (s32 i = 0; i < mNum; i++) {
             pPart = &mParts[i];
             MR::getCsvDataStr(&pPart->mType, pCsv, "PartsTypeName", i);

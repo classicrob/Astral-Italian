@@ -47,11 +47,9 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mMaxTurnDegree);
     MR::getJMapInfoArg1NoInit(rIter, &mRadius);
     MR::getJMapInfoArg7NoInit(rIter, &mIsSensorOnly);
-    TVec3f v9;
-    TVec3f v8;
-    TVec3f v7;
     initSound(4, "StinkBugSmall", nullptr, TVec3f(0.0f));
     initHitSensor(3);
+    TVec3f v9;
     if (mIsSensorOnly) {
         v9.y = 10.0f * mScale.x;
         v9.x = 0.0f;
@@ -61,6 +59,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
         MR::addBodyMessageSensorEnemy(this);
     }
 
+    TVec3f v8;
     v8.y = -30.0f * mScale.x;
     v8.x = 0.0f;
     v8.z = 0.0f;
@@ -76,6 +75,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
         MR::declareCoin(this, 1);
     }
 
+    TVec3f v7;
     v7.y = 50.0f * mScale.x;
     v7.x = 0.0f;
     v7.z = 0.0f;
@@ -353,8 +353,8 @@ void StinkBugSmall::control() {
             mGravity.set(mGravity);
         }
 
-        const TVec3f& rVelocity = mVelocity;
         const TVec3f& rGravity = mGravity;
+        const TVec3f& rVelocity = mVelocity;
         mVelocity.killElement(rVelocity, rGravity);
         mVelocity.scaleAdd(2.0f, mGravity, mVelocity);
         TVec3f a;

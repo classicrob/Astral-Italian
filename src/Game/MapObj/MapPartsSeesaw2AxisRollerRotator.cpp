@@ -47,7 +47,6 @@ bool MapPartsSeesaw2AxisRollerRotator::isWorking() const {
     return !isNerve(&NrvMapPartsSeesaw2AxisRollerRotator::MapPartsSeesaw2AxisRollerRotatorNrvWait::sInstance);
 }
 bool MapPartsSeesaw2AxisRollerRotator::isMoving() const { return mSpeed > 0.1f; }
-// NONMATCHING: final fadds operands are commuted by the compiler.
 void MapPartsSeesaw2AxisRollerRotator::rotate() {
     TVec3f position(*MR::getPlayerPos());
     mBaseMtxInv.mult(position, position);

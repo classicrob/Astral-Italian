@@ -59,15 +59,16 @@ bool TwoLegsStateWalkNoDamage::isStampTiming(NerveExecutor* pState, TwoLegs* pHo
     }
     f32 frame = MR::getBckFrame(pHost);
     bool left = pHost->mIsLeft;
+    bool ret;
     if (60.0f <= frame && frame <= 76.0f) {
-        bool ret = false;
+        ret = false;
         if ((left && MR::isEqualSensor(pSender, pHost, "StampLeft")) || (!left && MR::isEqualSensor(pSender, pHost, "StampRight"))) {
             ret = true;
         }
         return ret;
     }
     if (150.0f <= frame && frame <= 166.0f) {
-        bool ret = false;
+        ret = false;
         if ((left && MR::isEqualSensor(pSender, pHost, "StampRight")) || (!left && MR::isEqualSensor(pSender, pHost, "StampLeft"))) {
             ret = true;
         }

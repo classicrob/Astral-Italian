@@ -211,7 +211,6 @@ void SandBird::exeStop() {
     }
 }
 
-// NONMATCHING: quaternion arithmetic FPR allocation differs.
 void SandBird::exeReturn() {
     if (MR::isFirstStep(this)) {
         MR::resetPosition(this, mHomePos);

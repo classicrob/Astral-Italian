@@ -750,10 +750,10 @@ void MarioSwim::fn_803F9350() {
     mVerticalAngle = mVerticalAngle * (1.0f - ratio) + angle * ratio;
     if (mIdleWaitTimer && !mDamage->mTimer && !mZSinkTimer && getStickY() > 0.0f && !isPlayerModeYoshi()) {
         f32 max = 3.1415927f / mActor->mConst->getTable()->mSwimTiltReal;
-        f32 contribution = getStickY();
+        f32 input = getStickY();
         f32 current = mVerticalAngle;
-        contribution *= max - 0.5235988f;
-        f32 target = 0.5235988f + contribution;
+        f32 target = 0.5235988f;
+        target += input * (max - target);
         if (current < target) {
             f32 blend = mActor->mConst->getTable()->mSwimTiltSpd;
             mVerticalAngle = current * blend + target * (1.0f - blend);
@@ -1572,10 +1572,11 @@ void MarioSwim::fn_803FBF20() {
 bool MarioSwim::fn_803FC020() {
     f32 threshold = 0.75f * (1.0f - 0.3f * MR::abs(getStickX()));
     if (mVerticalAngle < 1.5707964f && getStickY() > threshold && !mActionLockTimer && _1E) {
-        f32 input = (getStickY() - threshold) / (1.0f - threshold);
+        f32 input = getStickY() - threshold;
+        input /= 1.0f - threshold;
+        f32 lowerAngle = 1.0f - input;
         f32 upperAngle = input;
         upperAngle *= 2.6179938f;
-        f32 lowerAngle = 1.0f - input;
         lowerAngle *= 2.0943952f;
         lowerAngle += upperAngle;
         mVerticalAngle = lowerAngle;
@@ -3989,7 +3990,9 @@ void MarioSwimTilt::update() {
             if (cross.dot(mSwim->mUpVec) > 0.0f) {
                 targetTiltX = -targetTiltX;
             }
-            if (MR::abs(mTiltX) < MR::abs(targetTiltX)) {
+            f32 currentMagnitude = MR::abs(mTiltX);
+            f32 targetMagnitude = MR::abs(targetTiltX);
+            if (currentMagnitude < targetMagnitude) {
                 blendX = 0.1f;
             } else {
                 blendX = 0.03f;
@@ -3999,8 +4002,8 @@ void MarioSwimTilt::update() {
         targetTiltX = (mSwim->getStickX() * JGeometry::TUtil<f32>::PI()) / 5.0f;
     }
     if (mSwim->isSwimTurnAnimation()) {
-        targetTiltX = MR::clamp(mSwim->getStickX() / 0.7f, -1.0f, 1.0f) * JGeometry::TUtil<f32>::PI();
-        targetTiltX *= 0.125f;
+        f32 angle = MR::clamp(mSwim->getStickX() / 0.7f, -1.0f, 1.0f) * JGeometry::TUtil<f32>::PI();
+        targetTiltX = angle * 0.125f;
     }
     f32 targetTiltY = 0.0f;
     if (!mSwim->isOnWaterSurface()) {
@@ -4022,8 +4025,9 @@ void MarioSwimTilt::update() {
             targetTiltY -= recovery;
         }
     }
+    f32 previousTiltY = mTiltY;
     mTiltX = (blendX * targetTiltX) + ((1.0f - blendX) * mTiltX);
-    mTiltY = (0.1f * targetTiltY) + (0.9f * mTiltY);
+    mTiltY = (0.1f * targetTiltY) + (0.9f * previousTiltY);
     if (((mSwim->getPlayer()->mMovementStates.mHighWord >> 8) & 1U)) {
         mTiltX = 0.0f;
         mTiltY = 0.0f;

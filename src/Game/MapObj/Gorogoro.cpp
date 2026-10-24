@@ -60,8 +60,8 @@ void Gorogoro::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(Gorogoro, GorogoroNrvWait), 0);
     MR::calcGravity(this);
 
-    TVec3f shadowOffset;
     TVec3f front(0.0f);
+    TVec3f shadowOffset;
     MR::calcFrontVec(&front, this);
     TVec3f up = -mGravity;
     MR::makeMtxUpFrontPos(&mBaseTRMtx, up, front, mPosition);

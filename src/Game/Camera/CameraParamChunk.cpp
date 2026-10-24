@@ -144,7 +144,6 @@ void CameraParamChunk::copy(const CameraParamChunk* pOther) {
     *mGeneralParam = *pOther->mGeneralParam;
 }
 
-// NONMATCHING: native-width num1 staging and equivalent u16 truncation lowering.
 void CameraParamChunk::load(DotCamReader* pReader, CameraHolder* pHolder) {
     const char* camType = "";
     pReader->getValueString("camtype", &camType);
@@ -182,7 +181,7 @@ void CameraParamChunk::load(DotCamReader* pReader, CameraHolder* pHolder) {
         s32 flag;
 
         if (pReader->getValueInt(::sFlagName[i], &flag)) {
-            mExParam.mFlag |= flag << i;
+            mExParam.mFlag |= static_cast<u16>(flag << i);
         }
     }
 
@@ -196,8 +195,12 @@ void CameraParamChunk::load(DotCamReader* pReader, CameraHolder* pHolder) {
     }
 
     pReader->getValueFloat("angleB", &mGeneralParam->mAngleB);
+#ifdef GALAXY_NATIVE
     s32 num1 = static_cast<s32>(mGeneralParam->mNum1);
     if (pReader->getValueInt("num1", &num1)) mGeneralParam->mNum1 = num1;
+#else
+    pReader->getValueInt("num1", &mGeneralParam->mNum1);
+#endif
     pReader->getValueInt("num2", &mGeneralParam->mNum2);
 
     const char* stringParam = nullptr;

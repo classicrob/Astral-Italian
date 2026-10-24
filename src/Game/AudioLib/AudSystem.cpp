@@ -117,6 +117,7 @@ AudSystem* AudNewAudSystem(JKRHeap* pHeap, JKRSolidHeap* pSolidHeap, AudArchiveS
     int maxNumSeq = ::init_JAS_JAI_(pSolidHeap);
     JAUSectionHeap* newHeap = JAUNewSectionHeap(true);
     JKRHeap* prevHeap = MR::becomeCurrentHeap(newHeap->getHeap());
+    u32 maxSeqDataSize = 0;
 
     if (pArchives->mSmrRes == nullptr) {
         if (DVDConvertPathToEntrynum(sAudioResFile) >= 0) {
@@ -130,7 +131,6 @@ AudSystem* AudNewAudSystem(JKRHeap* pHeap, JKRSolidHeap* pSolidHeap, AudArchiveS
         newHeap->getHeap()->freeTail();
     }
 
-    u32 maxSeqDataSize = 0;
     if (pArchives->mSeqArchive == nullptr) {
         if (DVDConvertPathToEntrynum(sJaiSeqArc) >= 0) {
             JKRArchive* seqArc = JKRArchive::mount(sJaiSeqArc, JKRArchive::MOUNT_MODE_DVD, newHeap->getHeap(), JKRArchive::MOUNT_DIRECTION_1);

@@ -128,7 +128,8 @@ bool JumpBranch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
             mSwingReverse = false;
         }
 
-        TVec3f diff = *MR::getSensorPos(pSender) - *MR::getSensorPos(pReceiver);
+        TVec3f diff(*MR::getSensorPos(pSender));
+        diff -= *MR::getSensorPos(pReceiver);
 
         f32 dotUp = mUp.dot(diff);
         f32 dotFront = mFront.dot(diff);

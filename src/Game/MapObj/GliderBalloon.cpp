@@ -99,7 +99,7 @@ void GliderBalloon::appearStarPieceTracking() {
     MR::calcSideVec(&side, this);
     if (mUsePlayerVelocity) {
         front = *MR::getPlayerVelocity();
-        if (PSVECMag(&front) < 1.0f) { MR::calcFrontVec(&front, this); front = -front; }
+        if (PSVECMag(&front) < 1.0f) { MR::calcFrontVec(&front, this); const TVec3f& reverseFront = -front; front = reverseFront; }
         else { MR::normalizeOrZero(&front, front); PSVECCrossProduct(&front, &up, &side); PSVECCrossProduct(&front, &side, &up); }
     } else {
         TPos3f mtx;

@@ -78,11 +78,7 @@ void BasaBasa::init(const JMapInfoIter& rIter) {
     }
 
     MR::onCalcGravity(this);
-    TVec3f pointingOffset;
-    pointingOffset.x = 0.0f;
-    pointingOffset.y = 0.0f;
-    pointingOffset.z = 0.0f;
-    MR::initStarPointerTarget(this, 100.0f, pointingOffset);
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0, 0, 0));
     mScaleController = new AnimScaleController(nullptr);
     mStampController = new AnimStampController();
     mSpinHitController = new SpinHitController(this, 20, 5, 0.0f, 20.0f, 10.0f);

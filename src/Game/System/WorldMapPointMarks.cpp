@@ -89,8 +89,9 @@ void WorldMapResultMapData::load() {
 WorldMapPointMarks::WorldMapPointMarks(WorldMapResultWorld* pWorld) : mWorld(pWorld), mNum(0), mMarks(nullptr) {}
 
 void WorldMapPointMarks::init() {
+    s32 count;
     WorldMapResultWorld* pWorld = mWorld;
-    s32 count = 0;
+    count = 0;
     for (s32 i = 0; i < pWorld->getNodeNum(); i++) {
         if (pWorld->isNodeValid(i) && !pWorld->isNodeHidden(i)) {
             count++;

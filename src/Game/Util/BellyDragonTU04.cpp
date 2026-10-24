@@ -84,9 +84,9 @@ void BellyDragonUtil::syncToHead(BellyDragon* pHost) {
     TPos3f sp20;
     sp20.set(pBody->getBaseMtx());
     TVec3f sp14;
-    sp14.set< f32 >(sp20.mMtx[0][2], sp20.mMtx[1][2], sp20.mMtx[2][2]);
+    sp20.getZDir(sp14);
     TVec3f sp8;
-    sp8.set< f32 >(sp20.mMtx[0][1], sp20.mMtx[1][1], sp20.mMtx[2][1]);
+    sp20.getYDir(sp8);
     MR::makeMtxFrontUpPos(&sp20, sp14, sp8, pBody->mPosition);
     pHost->mBaseMtx.set(sp20.mMtx);
     pHost->mFront.set(sp14);

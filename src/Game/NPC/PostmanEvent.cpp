@@ -201,8 +201,9 @@ bool canReadImportantEvent(s32 id) {
 // NONMATCHING: equivalent event selection uses different registers and sentinel-store scheduling.
 bool PostmanEventSystem::selectEvent(s32* out) {
     using namespace PostmanEvent;
+    s32 i;
     s32 selected = 18;
-    for (s32 i = 0; i < 18; i++) {
+    for (i = 0; i < 18; i++) {
         if (isValidTaskEvent(i) && !MR::isPostmanTaskEventFinished(i) &&
             !GameDataFunction::isOnPostmanTaskLetterRead(i) && MR::isPostmanTaskEventAvailable(i))
             selected = i;

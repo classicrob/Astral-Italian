@@ -19,7 +19,6 @@ LogoFader::LogoFader(const char* pName) : LayoutActor(pName, true), mUnused2C(tr
     kill();
 }
 
-// NONMATCHING: zero RGB initialization uses a word store instead of three byte stores.
 void LogoFader::draw() const {
     if (mRate > RATE_MIN) {
         GXSetColorUpdate(GX_TRUE);

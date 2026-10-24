@@ -351,8 +351,12 @@ void TicoFatStarPiece::updateScale(f32 scale) {
     f32 fraction = (scale - minScale) / (maxScale - minScale);
     fraction = 1.0f >= fraction ? fraction : 1.0f;
     MR::setBrkFrameAndStop(this, fraction * MR::getBrkFrameMax(this));
-    MR::setSensorRadius(this, "Body", 100.0f * scale);
-    MR::setStarPointerTargetRadius3d(this, 110.0f * scale);
+    f32 radius = scale;
+    radius *= 100.0f;
+    MR::setSensorRadius(this, "Body", radius);
+    radius = scale;
+    radius *= 110.0f;
+    MR::setStarPointerTargetRadius3d(this, radius);
     MR::setDistanceToTalk(mMsgCtrl, 280.0f * (scale >= 1.5f ? 1.5f : scale));
     MR::setDistanceToTalk(mEatTalkCtrl, 280.0f * (scale >= 1.5f ? 1.5f : scale));
     MR::setMessageBalloonFollowOffset(mMsgCtrl, TVec3f(0.0f, 220.0f * scale, 0.0f));

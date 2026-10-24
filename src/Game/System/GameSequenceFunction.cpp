@@ -571,8 +571,9 @@ namespace GameSequenceFunction {
 
     // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
     bool isClearedVsKoopaLv3GalaxyFirstTime() {
+        bool result;
         PlayResultInStageHolder* pHolder = IN_STAGE_HOLDER;
-        bool result = false;
+        result = false;
         if (!GameDataFunction::hasPowerStar(pHolder->getStageName(), pHolder->getClearedPowerStarNum()) && isClearedGrandStarVsKoopaLv3GalaxyFirstTime()) {
             result = true;
         }

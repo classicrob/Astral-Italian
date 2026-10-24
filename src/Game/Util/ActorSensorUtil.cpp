@@ -1149,7 +1149,7 @@ namespace MR {
         TVec3f dir = pSensor2->mPosition - pSensor1->mPosition;
         normalizeOrZero(&dir);
 
-        f32 dist = pSensor1->mPosition.distance(pSensor2->mPosition);
+        f32 dist = PSVECDistance(&pSensor1->mPosition, &pSensor2->mPosition);
         f32 radius2 = pSensor2->mRadius;
         f32 radius1 = pSensor1->mRadius;
         f32 value = (radius1 + radius2 - dist) / 2.0f;

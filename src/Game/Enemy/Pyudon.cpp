@@ -172,8 +172,7 @@ void Pyudon::exeTrack() {
     updateTargetPos();
     updateVelocityToTarget(0.75f, 0.6f);
     dampVelocity(this, 0.97f, 0.98f);
-    TVec3f camera = MR::getCamZdir();
-    MR::vecBlendSphere(&mFront, mFront, -camera, 0.05f);
+    MR::vecBlendSphere(&mFront, mFront, -MR::getCamZdir(), 0.05f);
 }
 
 // exePyudonLockOn
@@ -389,10 +388,7 @@ void Pyudon::exeDamageAir() {
     if (MR::isFirstStep(this)) MR::validateHitSensor(this, "Damage");
     if (MR::updateActorState(this)) {
         MR::invalidateHitSensor(this, "Damage");
-        TVec3f upOffset = mGravity * 100.0f;
-        TVec3f ray = mGravity * 200.0f;
-        TVec3f start = mPosition - upOffset;
-        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, start, ray)) {
+        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, mPosition - mGravity * 100.0f, mGravity * 200.0f)) {
             setNerve(GET_NERVE(Pyudon, PyudonNrvRecoveryAir));
             return;
         }

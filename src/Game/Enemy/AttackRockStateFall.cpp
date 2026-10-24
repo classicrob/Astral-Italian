@@ -121,7 +121,6 @@ void AttackRockStateFall::updateLandSensorRadius() {
 }
 
 #pragma auto_inline off
-// NONMATCHING: Vector expression temporaries and inlining differ.
 void AttackRockStateFall::updateFallBezierVelocity() {
     TVec3f start(this->mHost->mPosition);
     f32 t = MR::calcNerveRate(this, 110);

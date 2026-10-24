@@ -162,7 +162,6 @@ void LavaProminence::moveOnRail() {
     setGravityAndMakeMtx();
 }
 
-// NONMATCHING: quaternion component store scheduling differs.
 void LavaProminence::setGravityAndMakeMtx() {
     MR::makeMtxUpNoSupportPos(&_18C, -mGravity, mPosition);
 

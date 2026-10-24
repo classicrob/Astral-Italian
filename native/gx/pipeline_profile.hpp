@@ -81,6 +81,14 @@ inline bool parallelCompleteScenes() {
     static const bool enabled = millisecondsSetting("PETARI_COMPLETE_SCENES_PARALLEL", 1, 1) != 0;
     return enabled;
 }
+// A demanded Generic fallback can satisfy many specialised draws. Keep one
+// worker available for specialised/unsupported draws, but let the other slots
+// finish those fallbacks instead of queueing them behind every specialised job.
+// The override retains the previous scheduler for controlled comparisons.
+inline bool demandFallbackPriority() {
+    static const bool enabled = millisecondsSetting("PETARI_PIPELINE_FALLBACK_PRIORITY", 1, 1) != 0;
+    return enabled;
+}
 // Upper bound of that frame wait; draws still pending after it are skipped (pop-in) rather than freezing on.
 inline Clock::duration completeSceneWaitBudget() {
     static const unsigned ms = millisecondsSetting("PETARI_COMPLETE_SCENES_WAIT_MS", 10000, 60000);

@@ -16,6 +16,7 @@
 namespace absl {
 template<class K, class V> using flat_hash_map = std::unordered_map<K, V>;
 }
+namespace aurora::gx { enum class PetariUberTier { Generic, Fast }; }
 namespace aurora::gfx {
 using PipelineRef = uint64_t;
 using HashType = uint64_t;
@@ -286,6 +287,46 @@ void boundedDrawTest() {
     g_pipelines.clear();
     petari_pipeline_frame_budget();
 }
+void demandedFallbackTest(unsigned worker, ShaderType type, gx::PetariUberTier tier) {
+    // Hold both specialised jobs until the selected job is observed. A demanded
+    // Generic must be able to run ahead of this queue on worker 1; worker 0,
+    // clears/UI and Fast upgrades retain specialised-draw priority.
+    petariActiveWorkers = 2;
+    petariNormalWorkers = 2;
+    petariUberTitleReleased = true;
+    std::promise<void> firstSelected, release, fallbackFinished;
+    auto releaseGate = release.get_future().share();
+    std::atomic<bool> first{true};
+    bool firstWasFallback = false;
+    const auto selected = [&](bool fallback) {
+        if (first.exchange(false)) { firstWasFallback = fallback; firstSelected.set_value(); }
+    };
+    for (const auto key : {101u, 102u}) {
+        enqueue(key, false, [&] { selected(false); releaseGate.wait(); return CompiledPipeline{true}; });
+    }
+    {
+        std::lock_guard lock(g_pipelineMutex);
+        for (const auto key : {101u, 102u}) {
+            petariPipelineSamples[key].drawBlocking = true;
+            petariPipelineSamples[key].type = type;
+        }
+        petariUberJobs.push_back({201, 1, [&] { selected(true); fallbackFinished.set_value(); }, tier, false, true});
+    }
+    std::vector<std::thread> workers;
+    workers.emplace_back(pipeline_worker, worker);
+    const bool entered = firstSelected.get_future().wait_for(std::chrono::seconds(5)) == std::future_status::ready;
+    release.set_value();
+    waitReady(2);
+    const bool finished = fallbackFinished.get_future().wait_for(std::chrono::seconds(5)) == std::future_status::ready;
+    stop(workers);
+    require(entered && finished, "demanded fallback or specialised work failed to make progress");
+    require(petariUberInFlight == 0 && petariUberJobs.empty(), "fallback completion accounting is unbalanced");
+    require(firstWasFallback == (PetariPipeline::demandFallbackPriority() && worker != 0 &&
+                type == ShaderType::GX && tier == gx::PetariUberTier::Generic),
+            "demanded Generic priority or specialised/clear reservation was lost");
+    petariUberTitleReleased = false;
+    petariNormalWorkers = 1;
+}
 void progressTest() {
     enqueue(31, true, [] { return CompiledPipeline{false}; });
     uint32_t total, pending, failed;
@@ -300,6 +341,9 @@ void progressTest() {
 }
 }
 int main(int argc, char** argv) {
+    // The first fixtures deliberately use one unrestricted worker. Do not let
+    // the host's topology silently turn it into a reserved demand-only worker.
+    aurora::gfx::petariNormalWorkers = 1;
     const bool expectAsync = argc == 2 && std::strcmp(argv[1], "async") == 0;
     aurora::gfx::require(PetariPipeline::asynchronous() == expectAsync, "pipeline policy is not opt-in");
     if (!std::getenv("PETARI_PIPELINE_GLOBAL_PRECOMPILE"))
@@ -357,5 +401,9 @@ int main(int argc, char** argv) {
     aurora::gfx::petariNormalWorkers = PetariPipeline::workerCount();
     aurora::gfx::burstWorkerTest();
     aurora::gfx::boundedDrawTest();
+    aurora::gfx::demandedFallbackTest(1, aurora::gfx::ShaderType::GX, aurora::gx::PetariUberTier::Generic);
+    aurora::gfx::demandedFallbackTest(0, aurora::gfx::ShaderType::GX, aurora::gx::PetariUberTier::Generic);
+    aurora::gfx::demandedFallbackTest(1, aurora::gfx::ShaderType::Clear, aurora::gx::PetariUberTier::Generic);
+    aurora::gfx::demandedFallbackTest(1, aurora::gfx::ShaderType::GX, aurora::gx::PetariUberTier::Fast);
     std::puts("Pipeline worker: requested priority, concurrent progress, isolated timing state, backlog cap, gameplay throttle, burst workers, bounded draw waits and shutdown pass");
 }

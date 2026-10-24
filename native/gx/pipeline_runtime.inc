@@ -78,6 +78,8 @@ struct PetariUberJob {
   unsigned tevStages = 0, texgenExtent = 0; // static module-cost proxy; not measured compile time
 };
 static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
+static unsigned petariUberInFlight = 0, petariUberMaxInFlight = 0; // g_pipelineMutex
+static uint64_t petariUberJobsStarted = 0, petariUberDemandSelections = 0;
 static bool petariUberTitleReleased = false; // g_pipelineMutex; reset each boot
 static bool petari_uber_job_eligible(const PetariUberJob& job) {
   return petariUberTitleReleased || !job.key ||
@@ -94,12 +96,33 @@ static bool petari_uber_worker_ready(unsigned workerIndex) {
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {
   if (!petari_uber_worker_ready(workerIndex)) return false;
-  // A real draw gets the next slot; fallback preparation precedes speculation.
+  auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
+  const auto demanded = PetariPipeline::demandFallbackPriority() && petariUberTitleReleased
+      ? std::find_if(petariUberJobs.begin(), petariUberJobs.end(), [](const auto& pending) {
+          return pending.key && pending.demand && pending.tier == gx::PetariUberTier::Generic &&
+              petari_uber_job_eligible(pending);
+        }) : petariUberJobs.end();
+  // A clear/UI draw still gets every available slot. For GX, reserve worker 0
+  // for specialised draws (including uncovered configurations). Other workers
+  // may finish a demanded Generic fallback first: one fallback can release many
+  // deferred draws, whereas compiling their specialised variants holds it back.
   if (!g_pipelineQueue.empty()) {
     const auto it = petariPipelineSamples.find(g_pipelineQueue.front().hash);
-    if (it != petariPipelineSamples.end() && it->second.drawBlocking) return false;
+    if (it != petariPipelineSamples.end() && it->second.drawBlocking &&
+        (workerIndex == 0 || it->second.type != ShaderType::GX || demanded == petariUberJobs.end()))
+      return false;
   }
-  const auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
+  if (demanded != petariUberJobs.end()) { at = demanded; ++petariUberDemandSelections; }
+  ++petariUberJobsStarted;
+  petariUberMaxInFlight = std::max(petariUberMaxInFlight, ++petariUberInFlight);
+  if (PetariPipeline::diagnostics()) {
+    std::fprintf(stderr, "[gx fallback dispatch] worker=%u key=%016llx tier=%s priority=%u demand=%u "
+                 "inflight=%u queued=%zu monotonic_ms=%.3f\n", workerIndex,
+                 static_cast<unsigned long long>(at->key),
+                 at->tier == gx::PetariUberTier::Generic ? "generic" : "fast", at->priority,
+                 at->demand, petariUberInFlight, petariUberJobs.size(),
+                 PetariPipeline::milliseconds(PetariPipeline::Clock::now().time_since_epoch()));
+  }
   job = std::move(at->run);
   petariUberJobs.erase(at);
   return true;
@@ -314,6 +337,10 @@ static void petari_pipeline_frame_budget() {
 }
 
 static void petari_pipeline_summary() {
+  std::fprintf(stderr, "[gx pipeline scheduling] demand_fallback_priority=%u fallback_jobs_started=%llu "
+               "demand_fallback_selections=%llu max_fallback_inflight=%u fallback_inflight=%u\n",
+               PetariPipeline::demandFallbackPriority(), static_cast<unsigned long long>(petariUberJobsStarted),
+               static_cast<unsigned long long>(petariUberDemandSelections), petariUberMaxInFlight, petariUberInFlight);
   uint64_t missedConfigs = 0, skipped = 0, unfinished = 0, failed = 0;
   double maxPendingMs = 0;
   const auto now = PetariPipeline::Clock::now();

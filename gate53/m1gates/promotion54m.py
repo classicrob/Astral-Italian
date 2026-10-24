@@ -1,7 +1,7 @@
 """Owned-session, source-bound GX gates; private evidence only."""
 import sys,argparse,atexit,csv,hashlib,json,math,os,re,signal,sqlite3,subprocess,time
 from pathlib import Path
-from common import ROOT, FROZEN, HERE, ID, native_lock, prep, trim, disk, wait_quiet
+from common import ROOT, FROZEN, HERE, ID, native_lock, campaign_build, trim, disk, wait_quiet
 
 def inspect_cache(path,key):
  with sqlite3.connect('file:'+str(path)+'?mode=ro',uri=True) as db:
@@ -76,11 +76,12 @@ def cappy_check(name,text):
  if name=='cappy-spin-after-throw':return text.count('[cappy] throw (air)')==1 and caught==1 and '[cappy] spin took the contact' in text and transitions==[('spin','0','1')]
  raise ValueError(name)
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('app',type=Path);parser.add_argument('sha256');parser.add_argument('label');parser.add_argument('--isolated-cache',action='store_true');parser.add_argument('--source',required=True);parser.add_argument('--renderer-key',required=True);parser.add_argument('--cases',default='all');parser.add_argument('--modes',default='fresh,warm,functional');args=parser.parse_args();SOURCE=args.source
+ parser=argparse.ArgumentParser();parser.add_argument('app',type=Path);parser.add_argument('sha256');parser.add_argument('label');parser.add_argument('--isolated-cache',action='store_true');parser.add_argument('--source',required=True);parser.add_argument('--renderer-key',required=True);parser.add_argument('--cases',default='all');parser.add_argument('--modes',default='fresh,warm,functional');parser.add_argument('--candidate-dir',type=Path);args=parser.parse_args();SOURCE=args.source
  assert os.environ.get('PORT53_WINDOW')=='PORT_APPROVED'
- assert json.loads((FROZEN/'BUILD.json').read_text())['source']==SOURCE
+ selected_app,selected_build=campaign_build(args.candidate_dir)
+ assert selected_build['source']==SOURCE
  assert args.isolated_cache, 'M1 gates always require private cache'
- assert args.app==prep()[0], 'only owned perfm1a frozen54 copy is allowed'
+ assert args.app==selected_app, 'only selected owned perfm1a copy is allowed'
  exe=args.app/'Contents/MacOS/Petari';assert digest(exe)==args.sha256
  root=ROOT/'runs'/args.label;root.mkdir(mode=0o700,parents=True)
  fixture_root=prepare_m1_fixture();fixture=fixture_root/'fixture';save=json.loads((fixture_root/'receipt.json').read_text())
@@ -92,7 +93,7 @@ def main():
  source_now=inventory(Path(save['source']))
  if source_now!={k:save[k] for k in ('files','xattrs')}:
   (root/'save-source-drift.json').write_text(json.dumps({'note':'live source inventory differs from the verified local fixture; drift is recorded; live source must remain unchanged','receipt':{k:save[k] for k in ('files','xattrs')},'now':source_now},indent=2)+'\n')
- key=json.loads((FROZEN/'BUILD.json').read_text())['renderer_key']
+ key=selected_build['renderer_key']
  assert key==args.renderer_key and re.fullmatch('[0-9a-f]{64}',key)
  real=HOME/'Library/Caches/AstralItalian'
  def foreign():
@@ -212,7 +213,7 @@ def main():
    audio_underruns=[int(x) for x in re.findall(r'underrun (\d+) frames',text)]
    if audio:checks['real_audio_zero_underruns']=len(audio_underruns)>=50 and sum(audio_underruns)==0 and 'SDL audio underrun:' not in text
    after=caches(cache);checks['matching_key_cache_written']=any(r['rows'] for r in after)
-   record={'case':name,'mode':mode,'passed':all(checks.values()),'checks':checks,'source':SOURCE,'binary_sha256':args.sha256,'renderer_key':key,'nice':os.getpriority(os.PRIO_PROCESS,0),'input_driver':'PETARI_INPUT_SCRIPT (worldmap pointer unavailable; fails closed)','cache':str(cache),'true_fresh_cache':mode=='fresh' and (cache!=real or first_real_fresh),'before_cache':before,'after_cache':after,'seconds':seconds,'exit':active.returncode,'frame_counts':phases,'valid_requested_rows':len(valid),'hook_lines':hooks,'input_rows':len(inputs),'faults':faults,'real_audio':audio,'audio_underrun_frames':sum(audio_underruns) if audio else None,'adapter':('ordinary normal-boot file-select UI on PRIVATE_COPY' if name=='normal-boot-ui' else 'direct --user PRIVATE_COPY --stage; normal-boot UI not driven') if copied else None,'visual_acceptance_pending':name.startswith('cappy-') or (name in ('normal-route','normal-boot-ui') and not checks.get('normal_route_visual_acceptance',False))}
+   record={'case':name,'mode':mode,'passed':all(checks.values()),'checks':checks,'source':SOURCE,'build_kind':'server-candidate' if args.candidate_dir else 'frozen54','binary_sha256':args.sha256,'renderer_key':key,'nice':os.getpriority(os.PRIO_PROCESS,0),'input_driver':'PETARI_INPUT_SCRIPT (worldmap pointer unavailable; fails closed)','cache':str(cache),'true_fresh_cache':mode=='fresh' and (cache!=real or first_real_fresh),'before_cache':before,'after_cache':after,'seconds':seconds,'exit':active.returncode,'frame_counts':phases,'valid_requested_rows':len(valid),'hook_lines':hooks,'input_rows':len(inputs),'faults':faults,'real_audio':audio,'audio_underrun_frames':sum(audio_underruns) if audio else None,'adapter':('ordinary normal-boot file-select UI on PRIVATE_COPY' if name=='normal-boot-ui' else 'direct --user PRIVATE_COPY --stage; normal-boot UI not driven') if copied else None,'visual_acceptance_pending':name.startswith('cappy-') or (name in ('normal-route','normal-boot-ui') and not checks.get('normal_route_visual_acceptance',False))}
    (out/'receipt.json').write_text(json.dumps(record,indent=2)+'\n');results.append(record);(root/'results.json').write_text(json.dumps(results,indent=2)+'\n')
    active=None;state('PROMOTION53_COMPLETE_'+name+'_'+mode,out)
    print(json.dumps({'case':name,'mode':mode,'passed':record['passed'],'failed_checks':[k for k,v in checks.items() if not v],'valid_rows':len(valid)}),flush=True)

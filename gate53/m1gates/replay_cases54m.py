@@ -21,16 +21,9 @@ def anchor_checks(report,required_play_stage=None):
  return checks
 
 def candidate(src,expected,source):
- src=src.resolve();assert src.is_relative_to(ROOT/'candidates'), 'use PORT server-built candidate under m1g/candidates'
- assert re.fullmatch('[0-9a-f]{40}',source)
- assert sha(src/'Contents/MacOS/Petari')==expected
- dest=ROOT/'apps'/('candidate-'+expected[:12]+'-perfm1a');app=dest/'Petari.app'
- if not dest.exists():
-  disk();dest.mkdir(parents=True);subprocess.run(['/usr/bin/ditto',str(src),str(app)],check=True)
-  subprocess.run(['/usr/libexec/PlistBuddy','-c',f'Set :CFBundleIdentifier {ID}',str(app/'Contents/Info.plist')],check=True)
-  subprocess.run(['codesign','--force','--deep','-s','-',str(app)],check=True,capture_output=True)
-  write(dest/'PREP.json',{'build_kind':'server-candidate','source':source,'source_app':str(src),'source_exe_sha256':expected,'perf_exe_sha256':sha(app/'Contents/MacOS/Petari'),'bundle_id':ID,'resources_identical':tree(app/'Contents/Resources')==tree(src/'Contents/Resources')})
- meta=json.loads((dest/'PREP.json').read_text());assert meta['source_exe_sha256']==expected and meta['source']==source and meta['resources_identical'] and sha(app/'Contents/MacOS/Petari')==meta['perf_exe_sha256']
+ src=src.resolve();assert src.is_relative_to(ROOT/'candidates')
+ app,meta=prep_candidate(src.parent)
+ assert Path(meta['source_app'])==src and meta['source']==source and meta['source_exe_sha256']==expected
  return app,meta
 
 def replay(app,out,tape,stage,allow_incomplete,warm=None):

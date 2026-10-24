@@ -1,0 +1,38 @@
+# Final server candidate gates
+
+PORT authorized the full gate set on server candidate c6203f5f after SOL B's
+three normal-tape acceptance runs. This is separate from the frozen54 campaign.
+
+Run at nice0, with the three completed normal receipt paths supplied explicitly:
+
+```sh
+bash gate53/m1gates/m1gates54.sh candidate-c6203f5f-full-r1 \
+  --server-candidate-dir ~/MacioGalaxy2-gamedata/port53/m1g/candidates/c6203f5f \
+  --normal-results /absolute/normal-r1/RESULT.json /absolute/normal-r2/RESULT.json /absolute/normal-r3/RESULT.json \
+  --allow-incomplete-tape
+```
+
+The campaign verifies each normal receipt, command, and SOL B's copy preparation
+record against the candidate's original executable hash and source. Each remaining
+GX run holds heavy then native.lock and checks both load averages plus compiler
+CPU deltas. No outer heavy lock is used. Candidate originals remain read only;
+SOL A runs a separate re-signed perfm1a copy.
+
+Promotion uses thirteen unchanged script cases plus the fresh/warm world-map
+pointer tape cases, per PORT's ruling. The composition preserves each original
+receipt and any failed verdict. Whole-session normal runs also prove normal-boot
+UI's title/FileSelect prefix. Intro twins use their original direct launch stage.
+All tape adapters retain interactive-and-play-ready-v1, exact play-ready state,
+RNG read-back, and actual game pointer buffer comparisons.
+
+`receipts54m.py` requires platform, seed pack, all fifteen promotion cases, normal
+route, normal-boot UI, intro twins, Cappy23, image comparison, warm pairs, audio,
+Wii source lineage, and input latency. The original 27 presses/two-frames-after-read
+latency criterion stays functional. Cold stall and cadence thresholds are separate
+M1 TIER rows under PORT/head's ruling. Their failed thresholds remain visible;
+missing measurements, process faults, or identity mismatches still refuse receipts.
+Frozen54 keeps its original all-gates-required behavior.
+
+The separate item3tier worker sweep is paused before workers8-r1 app launch;
+its three diagnostic arms and first cap2/cap4 runs remain intact. Resume remaining
+sweep work only after the candidate campaign, following PORT's priority order.

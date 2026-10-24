@@ -35,7 +35,19 @@ static void pipeline_worker(unsigned workerIndex = 0) {
         lock.unlock();
         PetariPipeline::compilationQoS(false);
         PetariPipelineAutoreleasePool pool;
+        const auto started = PetariPipeline::diagnostics() ? PetariPipeline::Clock::now() : PetariPipeline::Clock::time_point{};
         uberJob();
+        if (PetariPipeline::diagnostics()) {
+          const auto finished = PetariPipeline::Clock::now();
+          std::fprintf(stderr, "[gx fallback complete] worker=%u run_ms=%.3f monotonic_ms=%.3f\n", workerIndex,
+                       PetariPipeline::milliseconds(finished - started),
+                       PetariPipeline::milliseconds(finished.time_since_epoch()));
+        }
+        {
+          std::lock_guard guard{g_pipelineMutex};
+          --petariUberInFlight;
+        }
+        g_pipelineQueueCv.notify_all();
         continue;
       }
       auto* runnable = g_hasPipelineThread ? petari_runnable_queue(workerIndex) : nullptr;

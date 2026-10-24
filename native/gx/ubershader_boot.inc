@@ -9,6 +9,7 @@ struct PetariUberBootState {
   PetariPipeline::Clock::time_point startedAt{};
   std::set<PipelineRef> scheduled, completed, failed, titleKeys;
   std::map<std::string, std::set<PipelineRef>> stageKeys;
+  std::map<std::string, std::map<PipelineRef, size_t>> stageOrder;
   std::set<PipelineRef> genericKeys, fastKeys;
   std::string activeStage;
   size_t manifestErrors = 0, rejectedConfigs = 0, cancelled = 0;
@@ -61,12 +62,19 @@ static unsigned petari_uber_job_priority(const PetariUberJob& job) { // g_pipeli
 }
 static bool petari_uber_job_before(const PetariUberJob& a, const PetariUberJob& b) {
   if (a.priority != b.priority) return a.priority < b.priority;
-  // Only ACTIVE-STAGE Generic jobs use the measured static cost proxy.
-  // Equal costs and every other priority/tier retain the existing stable order.
-  if (a.priority != 1 || a.tier != gx::PetariUberTier::Generic || b.tier != gx::PetariUberTier::Generic) return false;
-  if (a.hasIndirect != b.hasIndirect) return a.hasIndirect;
-  if (a.tevStages != b.tevStages) return a.tevStages > b.tevStages;
-  return a.texgenExtent > b.texgenExtent;
+  // The stage manifest is already ordered by observed first use. Preserve
+  // the first occurrence of each shared Generic key instead of putting costly
+  // later draws ahead of the first visible frame's simple pipelines.
+  if (a.priority != 1) return false;
+  if (a.tier != b.tier) return a.tier == gx::PetariUberTier::Generic;
+  if (a.tier != gx::PetariUberTier::Generic) return false;
+  const auto stage = petariUberBoot.stageOrder.find(petariUberBoot.activeStage);
+  const auto rank = [&](PipelineRef key) -> size_t {
+    if (stage == petariUberBoot.stageOrder.end()) return SIZE_MAX;
+    const auto at = stage->second.find(key);
+    return at == stage->second.end() ? SIZE_MAX : at->second;
+  };
+  return rank(a.key) < rank(b.key);
 }
 static void petari_uber_push_job(PetariUberJob job) { // caller holds g_pipelineMutex
   job.priority = petari_uber_job_priority(job);
@@ -226,6 +234,9 @@ static void petari_uber_schedule_stage(const gx::PipelineConfig& config, const R
     for (const auto& layout : {scene, off}) {
       const auto pair = gx::petari_uber_keys(config, layout);
       keys.insert(pair.generic); keys.insert(pair.fast);
+      auto& order = petariUberBoot.stageOrder[stage];
+      for (const auto key : {pair.generic, pair.fast})
+        if (!order.contains(key)) order.emplace(key, order.size());
     }
   }
   petari_uber_queue_layouts(config, scene, off, title ? 1 : 2, title);

@@ -84,7 +84,7 @@ inline bool parallelCompleteScenes() {
 // A demanded Generic fallback can satisfy many specialised draws. Keep one
 // worker available for specialised/unsupported draws, but let the other slots
 // finish those fallbacks instead of queueing them behind every specialised job.
-// The override retains the previous scheduler for controlled comparisons.
+// The override disables this demand preference for controlled comparisons.
 inline bool demandFallbackPriority() {
     static const bool enabled = millisecondsSetting("PETARI_PIPELINE_FALLBACK_PRIORITY", 1, 1) != 0;
     return enabled;

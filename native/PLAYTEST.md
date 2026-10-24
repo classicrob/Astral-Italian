@@ -438,6 +438,23 @@ not the file select or a world map, held for 6 frames.
 frame that skipped draws; `[play ready] frame N wall_ms=...` marks the first
 frame of each return to play (launch-to-control timing).
 
+Fallback preparation follows each active stage manifest's observed first-use
+order, retaining the first occurrence of a shared Generic key. It does not put
+expensive later configurations ahead of that order. Missing ranks sort last;
+Generic precedes Fast when both appear in the same priority class. A demanded
+Generic fallback may also run ahead of queued specialized GX draws on workers
+other than worker 0. Clears/UI retain draw priority. These scheduling changes do
+not change coverage, pipeline configurations, frame classification or wait bounds.
+
+`PETARI_PIPELINE_DIAG=1` adds `[gx fallback dispatch]` and
+`[gx fallback complete]` records with worker IDs and monotonic timestamps. The
+`[gx pipeline scheduling]` summary records actual fallback concurrency and demand
+selections. `PETARI_PIPELINE_FALLBACK_PRIORITY=0` disables the demand preference
+for comparisons; it does not restore the former stage cost order. Diagnostic
+runs are separate from acceptance: the cold gate still requires zero gameplay
+frames over 100 ms in at least three alternating repeats of Yoshi, Fluffy and
+Starship, plus server regression checks.
+
 ## Recording a tape: a user session that replays exactly
 
 **Your tape, replayed (for the player).** Play as usual from the launcher (5.3 and later): every session saves a tape folder under

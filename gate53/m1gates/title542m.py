@@ -45,6 +45,12 @@ def arm(args):
     assert out.is_relative_to(common.ROOT.resolve()) and not out.exists() and out != common.ROOT.resolve()
     prep = json.loads(args.prep.read_text())
     assert prep['bundle_id'] == OWN_ID and Path(prep['app']).resolve() == app
+    assert prep['build_kind'] == 'server-candidate'
+    assert prep['build']['source'] == prep['source_commit']
+    assert prep['build']['binary_sha256'] == prep['original_exe_sha256']
+    if args.baseline:
+        assert prep['source_commit'] == '07223918c4f3cf2a648c77b70d66357f771cf7a1'
+        assert prep['original_exe_sha256'] == '2d17baf22e9ac52353989f9b078187047106f7dc2fab94a921c4aeb46a3fe3f6'
     executable = app / 'Contents/MacOS/Petari'
     before = common.sha(executable)
     assert before == prep['perf_sha256']

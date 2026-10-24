@@ -56,10 +56,17 @@ static void pipeline_worker(unsigned workerIndex = 0) {
       pending = std::move(source.front());
       source.pop_front();
       const auto sampleIt = petariPipelineSamples.find(pending.hash);
-      speculative = !background && (sampleIt == petariPipelineSamples.end() || !sampleIt->second.drawBlocking);
+      const bool drawBlocking = sampleIt != petariPipelineSamples.end() && sampleIt->second.drawBlocking;
+      speculative = !background && !drawBlocking;
       petariBackgroundInFlight += background;
       petariStageSpeculativeInFlight += speculative;
       petariPipelineSamples[pending.hash].started = PetariPipeline::Clock::now();
+      if (PetariPipeline::diagnostics())
+        std::fprintf(stderr, "[gx specialized dispatch] worker=%u key=%016llx background=%u speculative=%u "
+                     "draw_blocking=%u gameplay=%u monotonic_ms=%.3f\n", workerIndex,
+                     static_cast<unsigned long long>(pending.hash), background, speculative,
+                     drawBlocking, petariGameplay,
+                     PetariPipeline::milliseconds(PetariPipeline::Clock::now().time_since_epoch()));
     }
     if (g_hasPipelineThread) PetariPipeline::compilationQoS(background);
     PetariPipeline::stages = {.runtimeKey = pending.hash};

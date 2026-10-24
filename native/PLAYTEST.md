@@ -649,3 +649,36 @@ It runs all three signals, creates a dSYM with `dsymutil`, checks a synthetic
 .app's Info.plist, and asserts function names and source lines from both our
 report and a real macOS `.ips`. It copies its reports to receipts and removes
 only the `.ips` files it created from DiagnosticReports.
+
+## 5.4.2 cold title and frame-deadline evidence
+
+`PETARI_PIPELINE_RECORD_FIRST_USE=/new/owned/path.jsonl` records actual FIFO renderer frame IDs at the first GX pipeline lookup,
+before memoization. Each scene visit has its own origin; the JSONL normal-exit footer is required. This is a separate recording
+build, not a release performance run. The recording runner primes and records two warm captures for every scenario-1 stage;
+all explicit per-config frame groups must agree exactly. Raw captures and executable provenance stay outside the seed pack.
+The dedicated no-input title pair runs for at least 300 seconds, because a short direct-stage frontend visit misses later title
+configurations. A missing stage database is reported explicitly and does not abort the remaining recording batch.
+
+PFD1 sidecars bind their stage and explicit first-use frames to a fingerprint of the unchanged manifest rows. PSD2 carries those
+sidecars in seedpack v14; raw observations, paths and recording-executable hashes do not enter the pack. The GX configuration ABI
+stays at 13. The selected seed-pack bytes participate in the renderer identity, so v14 creates a new private pipeline cache identity.
+The builder enumerates the entire scenario-1 disc sweep and refuses to call a partial batch complete. A missing or invalid runtime
+sidecar must use the existing whole-stage first-use ordering with an explicit log; it cannot invent frame groups.
+
+Worker 0 remains available for specialised/clear/UI work rather than starting a fallback compile while the draw queue is empty.
+Other workers may prefer a demanded fallback over a specialised GX draw only during gameplay. The single-worker configuration
+retains progress. These scheduling changes must be measured together with frame deadlines: the M1 loses one fallback slot, so
+worker reservation alone is not a performance claim. Opt-in diagnostics include specialised dispatch worker IDs and gameplay state.
+
+The default-on `[graphics preparation]` state events describe the UI's actual specialised global preparation source. They record
+initial/shown/hidden/actual-global-100 states and the interval ID used by frames.csv; fallback-tier readiness is not global 100%.
+`PETARI_TITLE_OBSERVE=1` leaves the no-input title running until actual 100%, a further 30 seconds, and a minimum 315 seconds total.
+It fails at 900 seconds if that observation is unfinished. Quit is requested on a subsequent seam so the final CSV contains the
+complete post-100 interval. Baseline 07223918 has no state signal: its owned app is quit normally by an exact-PID AppleEvent after
+315 seconds, with flushed CSV and unchanged executable evidence.
+
+`gate53/m1gates/gate542m.py` leaves gate533 unchanged. From the first explicitly presented frame, every non-gameplay interval
+(including unfocused, intro, menu and loading rows) must be at most 250 ms. The no-input title arm additionally requires actual
+completion, at least 30 seconds of post-100 samples, menu p99 at most 33 ms while the pill is shown and at most 22 ms after 100%.
+Historical cohorts without state events are split-unscorable. Build comparison uses the same first 300 seconds of title menu
+samples, without a longer fast tail changing p99. The legacy focused startup/menu metric remains a separately named diagnostic.

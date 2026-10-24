@@ -7,7 +7,7 @@ from common import *
 STAGES=('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy')
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only',default='platform,promotion,intro,cappy,cold,image,warm,cadence,audio,tape');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only',default='platform,promotion,intro,cappy,cold,image,warm,cadence,audio,tape');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');a=p.parse_args()
  assert re.fullmatch(r'[A-Za-z0-9_-]+',a.label),'safe unique label required'
  assert os.getpriority(os.PRIO_PROCESS,0)==0,'run campaign at nice 0'
  app,meta=prep();base=ROOT/'campaigns'/a.label;base.mkdir(parents=True,exist_ok=False)
@@ -85,6 +85,10 @@ def main():
      if mode=='warm':trim(d);trim(ROOT/'runs'/(a.label+'-'+cold))
    elif gate=='tape':
     # Candidate replay receipts cannot satisfy frozen54 identity. SOL B owns its runner.
+    if a.candidate_app:
+     assert a.candidate_sha and a.candidate_source, 'candidate app requires explicit SHA and source'
+     command('candidate-normal-route',[sys.executable,'-B',HERE/'normal_tape_gate.py',a.candidate_app,a.candidate_sha,a.candidate_source,a.label+'-candidate-normal','--build-kind','server-candidate','--tape',a.tape]+(['--allow-incomplete'] if a.allow_incomplete_tape else []))
+     a.tape_result=ROOT/(a.label+'-candidate-normal')/'RESULT.json'
     write(base/'tape-status.json',{'passed':False,'reason':'Frozen54 lacks full-session replay. PORT approved separate server-built candidate tape runs; never merge candidate evidence into frozen54 receipts.','candidate_result':str(a.tape_result) if a.tape_result else None})
    else:raise ValueError('unknown gate '+gate)
   except Exception as e:

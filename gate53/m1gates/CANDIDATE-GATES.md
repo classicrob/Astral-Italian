@@ -57,5 +57,8 @@ boundary loops. Missing new-schema fields fail. Existing c620 failures retain
 their original reports and verdicts; their executable lacks this correction.
 
 The separate item3tier worker sweep is paused before workers8-r1 app launch;
-its three diagnostic arms and first cap2/cap4 runs remain intact. Resume remaining
-sweep work only after the candidate campaign, following PORT's priority order.
+its three diagnostic arms and first cap2/cap4 runs remain intact. After the
+candidate campaign, run a fresh complete alternating 2,4,8,2,4,8 sweep under
+a new label. Preserve the interrupted cohort as preliminary evidence. Record
+the actual pool policy: cap8 does not mean eight active workers; the frozen
+M1 logs show four total workers, including two reserved workers.

@@ -54,6 +54,9 @@ static std::condition_variable g_pipelineReadyCv, g_pipelineQueueCv;
 static std::atomic<bool> g_pipelineThreadEnd{false};
 static unsigned summaryCalls = 0;
 static unsigned petariActiveWorkers = 4;
+static unsigned petariNormalWorkers = 4;
+constexpr unsigned kPetariOnDemandWorkers = 2;
+static bool petariGameplay = false;
 static double petariCompileEwmaMs = 0;
 static void petari_pipeline_summary() { ++summaryCalls; }
 static std::deque<Pending> g_pipelineQueue, g_backgroundPipelineQueue;

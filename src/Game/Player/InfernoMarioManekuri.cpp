@@ -128,13 +128,13 @@ void InfernoMarioManekuri::exeJump() {
     mFrame++;
     if(MR::isGreaterStep(this,30)) setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvFollow::sInstance);
 }
-// NONMATCHING: temporary register choice and verified literal labels differ.
 void InfernoMarioManekuri::exeFollow() {
     if(MR::isFirstStep(this)) mModel->makeActorDead();
     MR::startActionSound(mHost,"BmLvGhostMarioAmbient",-1,-1,-1);mHost->readPacket(mFrame);
     mHost->mCurrentQuat.slerp(mHost->mTargetQuat,0.25f);mHost->mCurrentQuat.normalize();
-    if(mFrame>mHost->mFrameDelay) { if(MR::isGreaterStep(this,60)&&MR::isIntervalStep(this,4)) mFrame--; }
-    else if(mFrame<mHost->mFrameDelay) { if(MR::isIntervalStep(this,2)) mFrame++; }
+    s32 delay = mHost->mFrameDelay;
+    if(mFrame>delay) { if(MR::isGreaterStep(this,60)&&MR::isIntervalStep(this,4)) mFrame--; }
+    else if(mFrame<delay) { if(MR::isIntervalStep(this,2)) mFrame++; }
     if(MR::isPowerStarGetDemoActive()&&MR::isNearPlayer(mHost,500.0f)) kill();
 }
 void InfernoMarioManekuri::exeTrampleDown() {

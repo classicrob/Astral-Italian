@@ -222,20 +222,19 @@ void WipeRing::appearWithColor() {
     mIsCenterOnPlayerOnce = false;
 }
 
-// NONMATCHING: target sinks `green = false` to the join and branches on each call result; ours materializes the bool across the calls (register/branch-shape residue only).
 namespace {
     inline bool isRingGreenStar() {
-    if (MR::isStageMarioFaceShip()) {
-        if (GameSequenceFunction::hasStageResultSequence()) {
-            s32 starId = GameSequenceFunction::getClearedPowerStarId();
-            if (MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), starId))
+        if (MR::isStageMarioFaceShip()) {
+            if (GameSequenceFunction::hasStageResultSequence()) {
+                s32 starId = GameSequenceFunction::getClearedPowerStarId();
+                if (MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), starId))
+                    return true;
+            }
+        } else {
+            if (MR::isPowerStarGreenInCurrentStage())
                 return true;
         }
-    } else {
-        if (MR::isPowerStarGreenInCurrentStage())
-            return true;
-    }
-    return false;
+        return false;
     }
 }
 

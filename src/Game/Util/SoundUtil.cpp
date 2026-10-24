@@ -226,9 +226,13 @@ namespace MR {
         updateMapSoundCodeFoot(pActor);
 
         if (param3 != -1) {
-            return getActorSoundObject(pActor)->startSoundParam(id, param3, param4);
+            u32 soundId = id;
+            AudAnmSoundObject* object = getActorSoundObject(pActor);
+            return object->startSoundParam(JAISoundID(soundId), param3, param4);
         } else {
-            return getActorSoundObject(pActor)->startSound(id);
+            u32 soundId = id;
+            AudAnmSoundObject* object = getActorSoundObject(pActor);
+            return object->startSound(JAISoundID(soundId));
         }
     }
 
@@ -270,11 +274,15 @@ namespace MR {
 
     // NONMATCHING: regalloc and stack temporaries (FP order/grouping checked: no FP instructions).
     void stopSound(const LiveActor* pActor, JAISoundID id, u32 param3) {
-        getActorSoundObject(pActor)->stopSound(id, param3);
+        u32 soundId = id;
+        AudAnmSoundObject* object = getActorSoundObject(pActor);
+        object->stopSound(JAISoundID(soundId), param3);
 
         s32 count = getActorSoundObjectCount(pActor);
         for (s32 i = 0; i < count; i++) {
-            getActorSoundObjectAt(pActor, i)->stopSound(id, param3);
+            u32 childId = id;
+            AudSoundObject* child = getActorSoundObjectAt(pActor, i);
+            child->stopSound(JAISoundID(childId), param3);
         }
     }
 

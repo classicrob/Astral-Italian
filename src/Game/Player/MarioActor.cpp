@@ -1887,12 +1887,12 @@ void MarioActor::resetCondition() {
         mMario->closeStatus(nullptr);
     }
 
-    bool was1F = ((mMario->mMovementStates.mLowWord >> 0) & 1U);
+    bool was1F = mMario->mMovementStates.mLowBits.mBit0;
     mMario->mMovementStates.mLowWord = 0;
     mMario->mMovementStates.mHighWord = 0;
     mMario->mFlags14.mLowWord = 0;
     mMario->mFlags14.mHighWord = 0;
-    { const u32 flagValue = static_cast<u32>(was1F); u32& flags = mMario->mMovementStates.mLowWord; flags = (flags & 0xFFFFFFFEU) | ((flagValue & 1U) << 0); }
+    mMario->mMovementStates.mLowBits.mBit0 = was1F;
 
     resetPadSwing();
 

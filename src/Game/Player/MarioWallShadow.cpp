@@ -5,7 +5,6 @@
 #include <JSystem/JUtility/JUTTexture.hpp>
 #include <revolution/gx.h>
 
-// NONMATCHING: independent zero stores use the opposite component order.
 MarioWallShadow::MarioWallShadow() : mActive(0) {
     mPosition.x = 0.0f;
     mPosition.y = 0.0f;

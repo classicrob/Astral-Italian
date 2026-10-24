@@ -90,13 +90,14 @@ namespace db {
         }
     }
 
-    // NONMATCHING: target keeps allocation size across the group-ID call in an
-    // extra register; this compiler computes the same size immediately before allocation.
     template <typename CharT>
     void DbgPrintBase<CharT>::Register(int x, int y, int life, const CharT* string, int length) {
-        int alignment = -4;
+        int alignment;
+        u32 size;
+        size = sizeof(DbgText);
+        size += length;
+        alignment = -4;
         if (life == 1) alignment = 4;
-        u32 size = length + sizeof(DbgText);
         MEMSetGroupIDForExpHeap(mHeapHandle, 0);
         DbgText* text = static_cast<DbgText*>(MEMAllocFromExpHeapEx(mHeapHandle, size, alignment));
         if (text != NULL) {

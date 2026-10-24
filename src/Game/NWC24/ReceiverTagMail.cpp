@@ -16,7 +16,8 @@ ReceiverTagMail::ReceiverTagMail(const char* pTaskName, const char* pSenderID) :
     MR::zeroMemory(mMessage, 0x400);
 }
 void ReceiverTagMail::send(const char* pMessageId, const u8* pImage, u32 imageSize, bool backgroundEnabled) {
-    wchar_t timeStr[28];
+    // makeHoursMinuteSecondString formats with a capacity of 10 wchar_t.
+    wchar_t timeStr[10];
     MR::makeHoursMinuteSecondString(timeStr, GameDataFunction::getCumulativePlayTime());
 
     const wchar_t* pUserName;

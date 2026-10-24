@@ -109,12 +109,11 @@ bool MarioFrontStep::update() {
     }
 
     if (!(getStickP() < 0.1f)) {
+        TVec3f vec;
         TVec3f worldDir(getWorldPadDir());
         MR::vecKillElement(worldDir, getPlayer()->getAirGravityVec(), &worldDir);
 
         MR::normalizeOrZero(&worldDir);
-
-        TVec3f vec;
         f32 val = MR::vecKillElement(worldDir, -getPlayer()->mFrontVec, &vec);
         if (!(val < -0.866f) && val > 0.0f) {
             return false;

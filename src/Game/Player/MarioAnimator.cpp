@@ -327,7 +327,8 @@ void MarioAnimator::init() {
     mXanimePlayerExtra = new XanimePlayer(MR::getJ3DModel(mActor), rideResources);
     mXanimePlayerExtra->setDefaultAnimation("基本");
     mXanimePlayerExtra->changeAnimationBck("基本");
-    mXanimePlayerExtra->mCore->enableJointTransform(MR::getJ3DModelData(mActor));
+    XanimeCore* extraCore = mXanimePlayerExtra->mCore;
+    extraCore->enableJointTransform(MR::getJ3DModelData(mActor));
     PSMTXCopy(MR::tmpMtxRotYRad(PI), _DC.toMtxPtr());
 }
 

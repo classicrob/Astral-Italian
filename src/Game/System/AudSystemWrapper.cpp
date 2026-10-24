@@ -192,7 +192,6 @@ void AudSystemWrapper::finishStageResourceLoading() {
     mAudSystem->mInstListMgr->clearWaveRequests();
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
 bool AudSystemWrapper::isLoadDoneRequestedWaves() const {
     if (mAudSystem == nullptr) {
         return false;
@@ -201,7 +200,6 @@ bool AudSystemWrapper::isLoadDoneRequestedWaves() const {
     }
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
 bool AudSystemWrapper::isLoadDoneSystemWaves() const {
     if (mAudSystem == nullptr) {
         return false;
@@ -226,7 +224,6 @@ void AudSystemWrapper::loadSystemWaveData() {
     mAudSystem->mSceneMgr->loadSystemResource();
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
 void AudSystemWrapper::requestWaveResource() {
     if (mAudSystem) {
         if (mAudSystem->mSceneMgr)

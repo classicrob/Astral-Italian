@@ -29,13 +29,14 @@ namespace MR {
         f32 factor = getShiftRatio(shift);
         f32 x = input.x * factor, y = input.y * factor, z = input.z * factor;
         // Supported Wii/Mac integer narrowing retains the low16 bits after signed32 truncation.
-        s16 ix = static_cast<s16>(static_cast<s32>(x));
-        s16 iy = static_cast<s16>(static_cast<s32>(y));
-        s16 iz = static_cast<s16>(static_cast<s32>(z));
+        s32 iz;
+        s32 iy = static_cast<s32>(y);
+        s32 ix = static_cast<s32>(x);
+        iz = static_cast<s32>(z);
         output->x = ix;
         output->y = iy;
         output->z = iz;
-        if (ix != static_cast<s32>(x) || iy != static_cast<s32>(y) || iz != static_cast<s32>(z)) return true;
+        if (static_cast<s16>(ix) != static_cast<s32>(x) || static_cast<s16>(iy) != static_cast<s32>(y) || static_cast<s16>(iz) != static_cast<s32>(z)) return true;
         return false;
     }
     // NONMATCHING: register allocation and byte-extension scheduling.
@@ -54,13 +55,12 @@ namespace MR {
         if (static_cast<s8>(static_cast<u8>(ix)) != static_cast<s32>(x) || static_cast<s8>(static_cast<u8>(iy)) != static_cast<s32>(y) || static_cast<s8>(static_cast<u8>(iz)) != static_cast<s32>(z)) return true;
         return false;
     }
-    // NONMATCHING: integer register allocation and load/store scheduling after signed32 truncation.
     bool fn_8037F680(f32 input, s8 shift, s16* output) {
         f32 value = input * getShiftRatio(shift);
         // Supported Wii/Mac integer narrowing retains the low16 bits after signed32 truncation.
-        s16 result = static_cast<s16>(static_cast<s32>(value));
+        s32 result = static_cast<s32>(value);
         *output = result;
-        return result != static_cast<s32>(value);
+        return static_cast<s16>(result) != static_cast<s32>(value);
     }
     bool fn_8037F7D0(f32 input, s8 shift, s8* output) {
         f32 value = input * getShiftRatio(shift);

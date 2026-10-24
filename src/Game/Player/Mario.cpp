@@ -2818,7 +2818,7 @@ void Mario::fn_803886B0() {
     }
     if (mActor->mBinderDirection5DC.dot(_368) >= 0.707f) {
         return;
-    }
+    } else {
     if (MR::isNearZero(mActor->mBinderDirection5DC, 1.0f)) {
         return;
     }
@@ -2835,9 +2835,7 @@ void Mario::fn_803886B0() {
     f32 weight = 1.0f - MR::clamp(1.4285715f * (-dot - 0.3f), 0.0f, 1.0f);
     if (!(static_cast<u32>(mMovementStates.mLowBits.mBit23)) && weight < 0.1f) {
         if ((static_cast<u32>(mMovementStates.mLowBits.mBit5))) {
-            TVec3f correction(getSideWallNorm());
-            correction *= -component;
-            mVelocity += correction;
+            mVelocity += getSideWallNorm() * -component;
         } else {
             s32 count = mActor->mBinder->mPlaneNum;
             if (count != 0) {
@@ -2851,10 +2849,8 @@ void Mario::fn_803886B0() {
                     }
                 }
                 const TVec3f& contact = mActor->mBinder->getPlane(bestIndex)->mHitPos;
-                TVec3f delta(mPosHolder->mPos);
-                delta -= contact;
                 TVec3f correction;
-                MR::vecKillElement(delta, *getGravityVec(), &correction);
+                MR::vecKillElement(mPosHolder->mPos - contact, *getGravityVec(), &correction);
                 MR::vecKillElement(correction, direction, &correction);
                 if (!MR::isNearZero(correction)) {
                     correction.setLength(-component);
@@ -2865,6 +2861,7 @@ void Mario::fn_803886B0() {
     }
     mTargetWalkSpeedIndex = 0;
     mWalkSpeed *= weight;
+    }
 }
 
 // NONMATCHING: register/load scheduling.
@@ -4756,24 +4753,25 @@ void Mario::fn_8038E1A0(const HitInfo* hit, s32 inside) {
         this->mDrawStates.mBits.mBit22 = 1;
         return;
     }
-    const TVec3f* normal = tri->getNormal(0);
-    f32 alignment = normal->dot(this->_368);
+    const TVec3f& normal = *tri->getNormal(0);
+    f32 alignment = normal.dot(this->_368);
     if (!MR::isNearZero(alignment, 0.3f) || inside != 0) {
         TVec3f movement(this->_16C);
         MR::normalizeOrZero(&movement);
-        TVec3f inward = -*normal;
+        TVec3f inward = -normal;
         if (!(movement.dot(inward) < 0.707f)) {
-            f32 approach = this->_16C.dot(*normal);
-            f32 depth = hit->mDistance;
-            if (!(MR::abs(approach) < depth) && !MR::isNearZero(depth, 1.01f)) {
+            f32 approach = this->_16C.dot(normal);
+            if (!(MR::abs(approach) < hit->mDistance) && !MR::isNearZero(hit->mDistance, 1.01f)) {
+                const TVec3f& position = this->mPosHolder->mPos;
                 TVec3f offset(hit->mHitPos);
-                offset -= this->mPosHolder->mPos;
+                offset -= position;
                 if (!(offset.dot(this->mHeadVec) < 0.0f)) {
-                    TVec3f push(*normal);
-                    push *= depth - 1.0f;
+                    f32 pushDistance = hit->mDistance - 1.0f;
+                    TVec3f push(normal);
+                    push *= pushDistance;
                     this->addTrans(push);
                     u32 flags = this->mMovementStates.mLowWord;
-                    if (!((flags >> 30) & 1) && (flags >> 31) != 0 && !this->isRising() && normal->dot(*this->getGravityVec()) < -0.99f) {
+                    if (!((flags >> 30) & 1) && (flags >> 31) != 0 && !this->isRising() && normal.dot(*this->getGravityVec()) < -0.99f) {
                         this->addVelocity(this->mFrontVec, 5.0f);
                     }
                 }

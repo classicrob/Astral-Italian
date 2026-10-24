@@ -88,15 +88,15 @@ bool CoinHolder::hopCoin(const NameObj* pObj, const TVec3f& rPosition, const TVe
     return false;
 }
 
-// NONMATCHING: explicit initialization preserves the 4.0f value; target schedules the conditional loads differently.
+// NONMATCHING: vector-constructor argument setup order differs.
 bool CoinHolder::appearCoinPop(const NameObj* pObj, const TVec3f& rPosition, s32 count) {
     TVec3f gravity;
     MR::calcGravityVector(this, rPosition, &gravity, nullptr, 0);
     TVec3f velocity = -gravity * ::sCoinVelVertical;
 
-    f32 randomVelocity = ::sRandomizeVel;
-    if (count == 1) {
-        randomVelocity = 0.0f;
+    f32 randomVelocity = 0.0f;
+    if (count != 1) {
+        randomVelocity = ::sRandomizeVel;
     }
     return appearCoin(pObj, rPosition, velocity, count, -1, -1, randomVelocity);
 }
@@ -117,11 +117,10 @@ bool CoinHolder::appearCoinAgainstGravity(const NameObj* pObj, const TVec3f& rPo
     return appearCoin(pObj, rPosition, velocity, count, -1, -1, 8.0f);
 }
 
-// NONMATCHING: explicit initialization preserves the 4.0f value; target schedules the conditional loads differently.
 bool CoinHolder::appearCoinToVelocity(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity, s32 count) {
-    f32 randomVelocity = ::sRandomizeVel;
-    if (count == 1) {
-        randomVelocity = 0.0f;
+    f32 randomVelocity = 0.0f;
+    if (count != 1) {
+        randomVelocity = ::sRandomizeVel;
     }
     return appearCoin(pObj, rPosition, rVelocity, count, -1, -1, randomVelocity);
 }

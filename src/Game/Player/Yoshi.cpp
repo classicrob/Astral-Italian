@@ -1104,7 +1104,6 @@ void Yoshi::fn_8040EE30(const char* animation) {
     mUpperAnimationActive = true;
 }
 
-// NONMATCHING: cached player/core loads are scheduled differently.
 void Yoshi::fn_8040EE70(const char* animation) {
     if (mUpperAnimationActive && (animation == NULL || mXanimePlayerUpper->isRun(animation))) {
         u16 joint = MR::getJointIndex(this, "Head");
@@ -1618,22 +1617,10 @@ void Yoshi::fn_80410BA0() {
         if (mMovementVelocity.dot(mGravity) >= 0.0f) {
             Triangle triangle;
             if (mGroundChecker->isGrounded() && fallSpeed < 20.0f) {
-                TVec3f up(mGravity);
-                up.scale(10.0f);
-                TVec3f ahead(mPosition);
-                ahead.add(planar);
-                TVec3f origin(ahead);
-                origin.sub(up);
-                TVec3f ray(mGravity);
-                ray.scale(30.0f);
                 TVec3f hit;
-                if (MR::getFirstPolyOnLineToMap(&hit, &triangle, origin, ray)) {
-                    TVec3f displacement(hit);
-                    displacement.sub(mPosition);
-                    f32 down = mGravity.dot(displacement);
-                    TVec3f adjustment(mGravity);
-                    adjustment.scale(down);
-                    mAdditionalVelocity = adjustment;
+                const TVec3f& origin = mPosition + planar - mGravity * 10.0f;
+                if (MR::getFirstPolyOnLineToMap(&hit, &triangle, origin, mGravity * 30.0f)) {
+                    mAdditionalVelocity = mGravity * mGravity.dot(hit - mPosition);
                 }
             }
         }
@@ -1642,9 +1629,7 @@ void Yoshi::fn_80410BA0() {
     if (mMovementVelocity.dot(mGravity) > 50.0f) {
         const TVec3f* gravity = &mGravity;
         JMAVECScaleAdd(gravity, &mMovementVelocity, &mMovementVelocity, -gravity->dot(mMovementVelocity));
-        TVec3f terminal(*gravity);
-        terminal.scale(50.0f);
-        mMovementVelocity.add(terminal);
+        mMovementVelocity.add(*gravity * 50.0f);
     }
 }
 
@@ -1656,39 +1641,22 @@ void Yoshi::fn_80410D90() {
         mMovementVelocity.x *= 0.98f;
         mMovementVelocity.y *= 0.98f;
         mMovementVelocity.z *= 0.98f;
-        TVec3f gravity(mGravity);
-        gravity.scale(0.3f);
-        mMovementVelocity.add(gravity);
-        TVec3f up;
-        JGeometry::negateInternal(&mGravity.x, &up.x);
-        TVec3f lift(up);
-        lift.scale(depth);
-        TVec3f buoyancy(lift);
-        buoyancy.scale(0.007f);
-        mMovementVelocity.add(buoyancy);
-        TVec3f opposite;
-        JGeometry::negateInternal(&mGravity.x, &opposite.x);
-        f32 speed = mMovementVelocity.dot(opposite);
+        mMovementVelocity.add(mGravity * 0.3f);
+        mMovementVelocity.add(-mGravity * depth * 0.007f);
+        f32 speed = mMovementVelocity.dot(-mGravity);
         f32 maximum = mWaterInfo->mCamWaterDepth - 60.0f;
         if (maximum < speed) {
             f32 correctionSpeed = speed - maximum;
-            TVec3f correction(mGravity);
-            correction.scale(correctionSpeed);
-            mMovementVelocity.add(correction);
+            mMovementVelocity.add(mGravity * correctionSpeed);
         }
     } else {
         if (mMovementVelocity.dot(mGravity) < 0.0f) mMovementVelocity.zero();
-        TVec3f gravity(mGravity);
-        gravity.scale(0.3f);
-        mMovementVelocity.add(gravity);
+        mMovementVelocity.add(mGravity * 0.3f);
     }
     if (!mWaterInfo->isInWater() || (mWaterInfo->isInWater() && mWaterInfo->mCamWaterDepth < 200.0f)) {
         _145 = true;
-        TVec3f up;
-        JGeometry::negateInternal(&mGravity.x, &up.x);
-        TVec3f worldUp(0.0f, 1.0f, 0.0f);
         TQuat4f orientation;
-        orientation.setRotate(worldUp, up);
+        orientation.setRotate(TVec3f(0.0f, 1.0f, 0.0f), -mGravity);
         TVec3f side(1.0f, 0.0f, 0.0f);
         orientation.transform(side);
         TVec3f front(0.0f, 0.0f, 1.0f);
@@ -1702,21 +1670,9 @@ void Yoshi::fn_80410D90() {
             if (strength < 0.1f) strength = 0.1f;
         }
         f32 sway = MR::sin(0.1f + 0.09f * static_cast<f32>(getNerveStep()) + 0.01f * mPosition.x);
-        TVec3f sideGravity(mGravity);
-        sideGravity.scale(0.2f);
-        TVec3f sideSway(sideGravity);
-        sideSway.scale(sway);
-        TVec3f sideOffset(sideSway);
-        sideOffset.scale(strength);
-        side.add(sideOffset);
+        side.add(mGravity * 0.2f * sway * strength);
         f32 bob = MR::sin(0.2f + 0.09f * (1.2f * static_cast<f32>(getNerveStep())) + 0.01f * mPosition.y);
-        TVec3f frontGravity(mGravity);
-        frontGravity.scale(0.36f);
-        TVec3f frontSway(frontGravity);
-        frontSway.scale(bob);
-        TVec3f frontOffset(frontSway);
-        frontOffset.scale(strength);
-        front.add(frontOffset);
+        front.add(mGravity * 0.36f * bob * strength);
         TVec3f normal;
         PSVECCrossProduct(&front, &side, &normal);
         if (!MR::normalizeOrZero(&normal)) {
@@ -1724,12 +1680,12 @@ void Yoshi::fn_80410D90() {
             mBaseMtx.getXDir(oldSide);
             TVec3f oldUp;
             mBaseMtx.getYDir(oldUp);
+            TVec3f oldFront;
             TQuat4f tilt;
             tilt.setRotate(oldUp, normal);
             tilt.transform(oldSide);
             tilt.transform(oldUp);
             MR::normalize(&oldUp);
-            TVec3f oldFront;
             PSVECCrossProduct(&oldSide, &oldUp, &oldFront);
             MR::normalize(&oldFront);
             PSVECCrossProduct(&oldUp, &oldFront, &oldSide);

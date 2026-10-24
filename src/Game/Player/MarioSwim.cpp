@@ -806,34 +806,20 @@ void MarioSwim::fn_803F9750(const TVec3f& front, const TVec3f& side, bool immedi
         TVec3f desiredHead;
         PSVECCrossProduct(front, side, desiredHead);
         MR::normalizeOrZero(&desiredHead);
+        TQuat4f rotation;
         TVec3f projectedSide;
         JMAVECScaleAdd(mUpVec, oldSide, projectedSide, -mUpVec.dot(oldSide));
-        TQuat4f rotation;
         if (MR::normalizeOrZero(&projectedSide)) {
-            TVec3f axis;
-            PSVECCrossProduct(oldSide, side, axis);
-            f32 magnitude = PSVECMag(axis);
-            if (magnitude <= 0.0000038146973f) {
-                rotation.set<f32>(0.0f, 0.0f, 0.0f, 1.0f);
-            } else {
-                f32 angle = ratio * (0.5f * JMath::sAtanTable.atan2_(magnitude, oldSide.dot(side)));
-                f32 factor = static_cast<f32>(sin(angle)) / magnitude;
-                rotation.toTvec()->scale(factor, axis);
-                rotation.w = static_cast<f32>(cos(angle));
-            }
+            rotation.setRotate(oldSide, side, ratio);
         } else {
             TQuat4f alignSide;
-            f32 alignAngle = -MR::diffAngleSigned(oldSide, projectedSide, oldFront);
-            alignAngle *= ratio;
-            alignSide.setRotate(oldFront, alignAngle);
+            alignSide.setRotate(oldFront, ratio * -MR::diffAngleSigned(oldSide, projectedSide, oldFront));
             TQuat4f turn;
             if (getCamDirZ().dot(side) < 0.0f) turn.setRotate(mUpVec, ratio * -projectedSide.angle(side));
             else turn.setRotate(mUpVec, ratio * projectedSide.angle(side));
             f32 oldAngle = JMAAcosRadian(mUpVec.dot(head));
             TQuat4f tilt;
-            f32 tiltAngle = JMAAcosRadian(mUpVec.dot(desiredHead)) - oldAngle;
-            tiltAngle *= ratio;
-            tilt.setRotate(oldSide, tiltAngle);
+            tilt.setRotate(oldSide, ratio * (JMAAcosRadian(mUpVec.dot(desiredHead)) - oldAngle));
             PSQUATMultiply(&turn, &tilt, &rotation);
             PSQUATMultiply(&rotation, &alignSide, &rotation);
         }
@@ -2045,8 +2031,7 @@ bool MarioSwim::fn_803FD5E0(s32) {
             getPlayer()->_73C = mPreviousWaterInfo.mSurfaceNormal;
         }
         if (_200 > 0.0f) {
-            f32 height = getPlayer()->mVerticalSpeed;
-            height += mPreviousWaterInfo.mCamWaterDepth;
+            f32 height = getPlayer()->mVerticalSpeed + mPreviousWaterInfo.mCamWaterDepth;
             if (height < 120.0f) {
                 fn_80400FC0(getPlayer()->getShadowNorm());
                 mSwimState = 0;
@@ -2071,8 +2056,7 @@ bool MarioSwim::fn_803FD5E0(s32) {
         TVec3f ground;
         mActor->getGroundPos(&ground);
         if (PSVECDistance(ground, getTrans()) < 100.0f && _200 > 0.0f) {
-            f32 height = getPlayer()->mVerticalSpeed;
-            height += mPreviousWaterInfo.mCamWaterDepth;
+            f32 height = getPlayer()->mVerticalSpeed + mPreviousWaterInfo.mCamWaterDepth;
             if (height < 80.0f) {
                 mSwimState = 0;
                 mNextAction = 5;
@@ -2095,7 +2079,7 @@ bool MarioSwim::fn_803FD5E0(s32) {
         else mSwimState = 2;
         break;
     }
-    if (sPreviousSwimState != mSwimState) sPreviousSwimState = mSwimState;
+    if (mSwimState != sPreviousSwimState) sPreviousSwimState = mSwimState;
     mWaterInfo = mPreviousWaterInfo;
     mDistToFloor = mPreviousWaterInfo.mBottomDepth;
     mWaterDepth = -mPreviousWaterInfo.mCamWaterDepth;
@@ -2109,7 +2093,11 @@ bool MarioSwim::fn_803FD5E0(s32) {
     }
     if (mIsOnSurface) {
         f32 offset = mSurfaceOffset;
-        if (offset > 0.0f) mSurfaceOffset = 0.97f * offset + 0.03f * mPreviousWaterInfo.mWaveHeight;
+        if (offset > 0.0f) {
+            f32 retained = 0.97f * offset;
+            f32 wave = 0.03f * mPreviousWaterInfo.mWaveHeight;
+            mSurfaceOffset = retained + wave;
+        }
         else mSurfaceOffset = 0.99f * offset + 0.01f * (0.5f * mPreviousWaterInfo.mWaveHeight);
     } else {
         mSurfaceOffset *= 0.8f;
@@ -2122,11 +2110,7 @@ bool MarioSwim::fn_803FD5E0(s32) {
     weight = MR::clamp(weight, 0.0f, 1.0f);
     if (mIsOnSurface) weight = 0.0f;
     stream.scale(weight);
-    TVec3f streamStep(stream * 0.05f);
-    TVec3f old(mWaterStreamVel * 0.95f);
-    TVec3f next(old);
-    next.add(streamStep);
-    mWaterStreamVel = next;
+    mWaterStreamVel = mWaterStreamVel * 0.95f + stream * 0.05f;
     mWaterStreamDir = stream;
     return true;
 }

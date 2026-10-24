@@ -148,8 +148,9 @@ void CloudMarioHat::updateDynamics() {
         mSprings[i]->mAnchor = mPoints[0]->mPosition;
         mSprings[i]->mDirection = direction;
     }
+    const TVec3f& gravityDirection = mGravity;
     for (u32 i = 0; i < 4; ++i) {
-        TVec3f gravity(mGravity);
+        TVec3f gravity(gravityDirection);
         gravity.scale(0.05f);
         mSprings[i]->update(gravity);
     }
@@ -224,26 +225,22 @@ void CloudHatSpring::update(const TVec3f& acceleration) {
     TVec3f direction(difference);
     if (MR::normalizeOrZero(&direction)) direction = mPreviousDirection;
     else mPreviousDirection = direction;
-    TVec3f cross;
-    PSVECCrossProduct(&rest, &direction, &cross);
-    f32 crossLength = PSVECMag(&cross);
-    f32 angle = __fabs(JMath::sAtanTable.atan2_(crossLength, rest.dot(direction)));
+    f32 angle = rest.angle(direction);
     if (angle > 0.0f) {
         TVec3f axis;
         PSVECCrossProduct(&direction, &rest, &axis);
         MR::normalize(&axis);
         TVec3f correction;
         PSVECCrossProduct(&axis, &direction, &correction);
-        correction.scale(angle * 0.6f);
+        angle *= 0.6f;
+        correction.scale(angle);
         mEnd->mAcceleration.add(correction);
     }
     mEnd->mAcceleration.add(acceleration);
     mEnd->update();
     CloudHatPoint* velocityPoint = mEnd;
     f32 projection = direction.dot(velocityPoint->mVelocity);
-    TVec3f normalVelocity(direction);
-    normalVelocity.scale(projection);
-    velocityPoint->mVelocity.sub(normalVelocity);
+    velocityPoint->mVelocity.sub(direction * projection);
     CloudHatPoint* predictedPoint = mEnd;
     TVec3f predicted(predictedPoint->mPosition);
     predicted.add(predictedPoint->mVelocity);
@@ -251,9 +248,7 @@ void CloudHatSpring::update(const TVec3f& acceleration) {
     relative.sub(mAnchor);
     f32 planeDistance = mDirection.dot(relative);
     if (planeDistance < 0.0f) {
-        TVec3f correction(mDirection);
-        correction.scale(planeDistance);
-        mEnd->mVelocity.sub(correction);
+        mEnd->mVelocity.sub(mDirection * planeDistance);
     }
     mEnd->mPosition.add(mEnd->mVelocity);
     const TVec3f* offsetStart = &mStart->mPosition;
@@ -262,9 +257,7 @@ void CloudHatSpring::update(const TVec3f& acceleration) {
     MR::normalize(&offset);
     offset.scale(mLength);
     CloudHatPoint* finalPoint = mEnd;
-    TVec3f position(mStart->mPosition);
-    position.add(offset);
-    finalPoint->mPosition.set<f32>(position);
+    finalPoint->mPosition.set<f32>(mStart->mPosition + offset);
 }
 
 void CloudHatSpring::reset() {

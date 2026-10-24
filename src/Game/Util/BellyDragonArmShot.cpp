@@ -118,7 +118,9 @@ void BellyDragonArmShot::exeDown() {
     BellyDragonUtil::pushBindedByFront(mHost, mDownParam[0], mDownParam[2]);
     if (!MR::isNoBind(mHost) && MR::isBinded(mHost)) {
         MR::deleteEffect(mHost, "AttackDiveBlur");
-        MR::sendMsgEnemyAttackToBindedSensor(mHost, BellyDragonUtil::getBodySensor(mHost));
+        BellyDragon* host = mHost;
+        HitSensor* body = BellyDragonUtil::getBodySensor(host);
+        MR::sendMsgEnemyAttackToBindedSensor(host, body);
         MR::tryHitReaction(mHost, "ダイブ攻撃（接地）");
         MR::offBind(mHost);
         setNerve(&NrvBellyDragonArmShot::Underground::sInstance);

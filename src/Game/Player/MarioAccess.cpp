@@ -809,8 +809,14 @@ namespace MarioAccess {
         if (getPlayerActor()->_468) {
             HitSensor* sensor;
             MarioActor* actor = getPlayerActor();
-            if (!actor->_468) sensor = nullptr;
-            else sensor = actor->_428[0];
+            switch (actor->_468) {
+            case 0:
+                sensor = nullptr;
+                break;
+            default:
+                sensor = actor->_428[0];
+                break;
+            }
             getPlayerActor()->mMarioAnim->updateTakingAnimation(sensor);
         }
         getPlayerActor()->fn_803BEAC0();

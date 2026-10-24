@@ -161,7 +161,6 @@ bool YoshiModelCtrl::calcSpine(TPos3f* mtx,const JointControllerInfo&) {
     }
     TPos3f rot;rot.makeQuat(quat);mtx->concat(rot,*mtx);mtx->setTrans(trans);return true;
 }
-// NONMATCHING: vector stack slots, floating-point register allocation and scheduling differ.
 static inline void makeYoshiModelJointMtx(TPos3f& local, const TVec3f& scale, const TVec3f& angles, const TVec3f& trans) {
     f32 sx, sy, sz, cx, cy, cz;
     double sxResult=sin(angles.x);f32 syArg=angles.y;sx=sxResult;
@@ -177,6 +176,7 @@ static inline void makeYoshiModelJointMtx(TPos3f& local, const TVec3f& scale, co
     local.setTrans(trans);local.invert(local);
 }
 
+// NONMATCHING: floating-point register allocation and scheduling differ.
 void YoshiModelState::calcJoint(TPos3f* mtx,const JointControllerInfo& info) {
     const J3DTransformInfo& t=info.mJoint->getTransformInfo();TPos3f local;local.identity();
     makeYoshiModelJointMtx(local,

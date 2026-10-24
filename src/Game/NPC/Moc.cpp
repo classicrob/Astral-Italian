@@ -5,14 +5,17 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 namespace {
-    inline bool isAllCometComplete() {
-    ScenarioDataIter scenario=MR::makeBeginScenarioDataIter();
-    while(!scenario.isEnd()) {
-        GalaxyStatusAccessor accessor=scenario.makeAccessor();
-        if(accessor.getPowerStarNum()!=0 && accessor.hasCometScenario() && !accessor.hasPowerStar(accessor.getCometScenarioId()) && MR::getGalaxyStarTotalNum(accessor.getName())==0) return false;
-        scenario.goNext();
-    }
-    return true;
+    inline bool areAllCometsComplete() {
+        ScenarioDataIter scenario = MR::makeBeginScenarioDataIter();
+        while (!scenario.isEnd()) {
+            GalaxyStatusAccessor accessor = scenario.makeAccessor();
+            if (accessor.getPowerStarNum() != 0 && accessor.hasCometScenario() &&
+                !accessor.hasPowerStar(accessor.getCometScenarioId()) && MR::getGalaxyStarTotalNum(accessor.getName()) == 0) {
+                return false;
+            }
+            scenario.goNext();
+        }
+        return true;
     }
 }
 namespace NrvMoc {
@@ -25,7 +28,7 @@ namespace NrvMoc {
 }
 Moc::Moc(const char* name) : NPCActor(name),mTakeOutStar(nullptr),mAllCometsComplete(false),mFaceIndex(-1) {}
 Moc::~Moc() {}
-// NONMATCHING: callback evaluation and iterator-local lifetimes differ.
+// NONMATCHING: string-address registers differ.
 void Moc::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("Moc");
     caps.setDefault();
@@ -35,7 +38,7 @@ void Moc::init(const JMapInfoIter& iter) {
     mSpinAttackRange=450.0f;
     MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::branchFunc));
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::eventFunc));
-    mAllCometsComplete=isAllCometComplete();
+    mAllCometsComplete = areAllCometsComplete();
     mFaceIndex=0;
     MR::getJMapInfoArg0NoInit(iter,&mFaceIndex);
     char face[64]="FaceA";

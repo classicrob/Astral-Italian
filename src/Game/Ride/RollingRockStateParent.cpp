@@ -166,6 +166,21 @@ void RollingRock::endBindFlip(u32 msg, const TVec3f& rDir) {
     }
 }
 
+namespace {
+    inline bool isRollingPlanetCamera(const CameraParamChunk* camera) {
+        const char* names[5] = {"CAM_TYPE_WONDER_PLANET", "CAM_TYPE_TRIPOD_PLANET", "CAM_TYPE_CUBE_PLANET", "CAM_TYPE_MEDIAN_PLANET",
+                                "CAM_TYPE_FOO_FIGHTER_PLANET"};
+        for (u32 i = 0; i < 5; i++) {
+            CameraDirector* director = MR::getCameraDirector();
+            u8 current = camera->mCameraTypeIndex;
+            if (current == director->mHolder->getIndexOf(names[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
 bool RollingRock::isPlayerRolling() {
     LiveActor* pRush = MR::getCurrentRushActor();
     if (pRush == nullptr) {
@@ -182,17 +197,7 @@ bool RollingRock::isPlayerRolling() {
     if (pCam == nullptr) {
         isCamera = false;
     } else {
-        const char* names[5] = {"CAM_TYPE_WONDER_PLANET", "CAM_TYPE_TRIPOD_PLANET", "CAM_TYPE_CUBE_PLANET", "CAM_TYPE_MEDIAN_PLANET",
-                                "CAM_TYPE_FOO_FIGHTER_PLANET"};
-        isCamera = false;
-        for (u32 i = 0; i < 5; i++) {
-            CameraDirector* pDir = MR::getCameraDirector();
-            u8 cur = pCam->mCameraTypeIndex;
-            if (cur == pDir->mHolder->getIndexOf(names[i])) {
-                isCamera = true;
-                break;
-            }
-        }
+        isCamera = isRollingPlanetCamera(pCam);
     }
     if (isCamera) {
         return false;
@@ -345,7 +350,7 @@ void RollingRockStateParent::followPlayer() {
     off.z *= sHeightOffset;
     TVec3f sum(pos);
     sum.add(off);
-    mHost->mPosition = sum;
+    mHost->mPosition.set<f32>(sum);
 }
 
 bool RollingRockStateParent::tryEndRush() {

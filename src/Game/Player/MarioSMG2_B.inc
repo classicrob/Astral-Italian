@@ -1589,7 +1589,7 @@ void Mario::startStep(const TVec3f& rVec) {
         return;
     }
 
-    bool hitNear;
+    u32 hitNear;
     if (fn_803B2950()) {
         hitNear = Collision::checkStrikeBallToDashYoshiStepAndMap(checkPos, 20.0f, nullptr, nullptr);
     } else {
@@ -1599,7 +1599,7 @@ void Mario::startStep(const TVec3f& rVec) {
         return;
     }
 
-    bool hitFar;
+    u32 hitFar;
     if (fn_803B2950()) {
         hitFar = Collision::checkStrikeBallToDashYoshiStepAndMap(checkPos, 50.0f, nullptr, nullptr);
     } else {
@@ -3024,6 +3024,7 @@ void Mario::updateWalkSpeed() {
         Odyssey::Live::rollBoost = false;
     }
 #endif
+    s32 wasSquatting;
     f32 target = getTargetWalkSpeed();
     f32 ramp = 1.0f;
     MarioConst* constants;
@@ -3043,7 +3044,7 @@ void Mario::updateWalkSpeed() {
         constants = mActor->mConst;
         target *= constants->mTable[constants->mCurrentTable]->mTornadoMultiply;
     }
-    s32 wasSquatting = static_cast<u32>(mMovementStates.mLowBits.mBit21);
+    wasSquatting = static_cast<u32>(mMovementStates.mLowBits.mBit21);
     if (wasSquatting && (static_cast<u32>(mFlags20.mBits.mBit16))) {
         fn_803A6BE0();
     } else {
@@ -3132,7 +3133,11 @@ void Mario::updateWalkSpeed() {
         return;
     }
 #endif
-    mWalkSpeed = mWalkSpeed * inertia + target * static_cast<f32>(256 - mSinkTimer) * 0.00390625f * (1.0f - inertia);
+    f32 retainedSpeed = mWalkSpeed * inertia;
+    f32 targetSpeed = target * static_cast<f32>(256 - mSinkTimer);
+    targetSpeed *= 0.00390625f;
+    f32 responsiveness = 1.0f - inertia;
+    mWalkSpeed = retainedSpeed + targetSpeed * responsiveness;
 }
 
 void Mario::decideOnIceAnimation() {

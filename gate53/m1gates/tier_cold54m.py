@@ -4,7 +4,7 @@ import argparse,json,re,subprocess,sys
 from common import *
 
 def analyze(out):
- lines=(out/'app.log').read_text(errors='replace').splitlines();frames=rows(out/'frames.csv');compiles={};coverage={};stall_lines={};blocking=[];fallback_waits=[]
+ lines=(out/'app.log').read_text(errors='replace').splitlines();frames=rows(out/'frames.csv');compiles={};coverage={};stall_lines={};blocking=[];fallback_waits=[];wait_ends=[];dispatches=[];fallback_completions=[]
  for n,line in enumerate(lines):
   if line.startswith('[gx pipeline compile]'):
    info=dict(re.findall(r'(\w+)=([^\s]+)',line));compiles[info['key']]=info
@@ -16,6 +16,12 @@ def analyze(out):
    fields=dict(re.findall(r'(\w+)=([^\s]+)',line))
    fallback_waits.append({'line':n+1,'renderer_frame':int(fields['frame']),'fields':fields,
     'fallback_ready_at_wait':fields.get('fallback_ready')=='1','raw':line})
+  if line.startswith('[gx uber wait end]'):
+   fields=dict(re.findall(r'(\w+)=([^\s]+)',line));wait_ends.append({'line':n+1,'renderer_frame':int(fields['frame']),'fields':fields,'raw':line})
+  if line.startswith('[gx fallback dispatch]'):
+   dispatches.append({'line':n+1,'fields':dict(re.findall(r'(\w+)=([^\s]+)',line)),'raw':line})
+  if line.startswith('[gx fallback complete]'):
+   fallback_completions.append({'line':n+1,'fields':dict(re.findall(r'(\w+)=([^\s]+)',line)),'raw':line})
   match=re.match(r'\[stall\] frame (\d+) ',line)
   if match:stall_lines[int(match[1])]=n+1
  selected=[]
@@ -35,11 +41,18 @@ def analyze(out):
   fine=('pipeline_wait_ms','stage_prep_wait_ms','token_barrier_wait_ms','efb_capture_max_ms','efb_staging_wait_ms','efb_submit_wait_ms','texture_hash_ms','texture_upload_ms','frame_submit_ms','drawable_acquire_ms','present_call_ms')
   dominant=next((k for k in fine if lanes[k]>=.5*interval),largest);fraction=lanes[dominant]/interval
   exact_context=[w for w in fallback_waits if where and 0<where-w['line']<=40]
-  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':interval,'attribution':dominant if fraction>=.5 else 'unattributed_or_uninstrumented','attribution_lane_fraction':fraction,'largest_measured_lane':largest,'largest_lane_fraction':lanes[largest]/interval,'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'fallback_readiness_in_preceding_40_log_lines':exact_context,'raw_frame':row})
+  same_frame=[w for w in fallback_waits if w['renderer_frame']==int(row['frame'])]
+  missing={w['fields'].get('fallback_key') for w in same_frame if not w['fallback_ready_at_wait']}
+  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':interval,'attribution':dominant if fraction>=.5 else 'unattributed_or_uninstrumented','attribution_lane_fraction':fraction,'largest_measured_lane':largest,'largest_lane_fraction':lanes[largest]/interval,'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'fallback_readiness_in_preceding_40_log_lines':exact_context,'raw_frame':row,
+   'same_numeric_frame_fallback_waits':same_frame,'same_numeric_frame_wait_ends':[w for w in wait_ends if w['renderer_frame']==int(row['frame'])],
+   'readiness_known':bool(same_frame),'missing_unique_fallback_keys':sorted(missing),
+   'missing_fallback_dispatches':[d for d in dispatches if d['fields'].get('key') in missing]})
  return {'stall_frames_over100':selected,'gameplay_over100':sum(r['phase']=='gameplay' for r in selected),'max_gameplay_ms':max((float(r['interval_ms']) for r in frames if r['phase']=='gameplay'),default=None),
   'worker_policy_lines':[l for l in lines if l.startswith(('[gx pipeline] policy=','[gx pipeline pool]'))],
   'fallback_readiness_summary':[l for l in lines if l.startswith('[gx uber readiness]')],
   'fallback_readiness_at_each_complete_scene_wait':fallback_waits,
+  'complete_scene_wait_ends':wait_ends,'fallback_dispatches':dispatches,'fallback_completions':fallback_completions,
+  'scheduler_summary':[l for l in lines if l.startswith('[gx pipeline scheduling]')],
   'limitations':['Telemetry lanes overlap; do not sum them.','Nearby log lines provide key/config context, not a synchronized per-draw timestamp. Renderer-frame IDs are retained separately from game frame CSV IDs. Exact readiness is available only at logged complete-scene waits; other fallback readiness remains unknown.']}
 
 def main():

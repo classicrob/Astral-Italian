@@ -248,6 +248,19 @@ def locate_sidecar(arg):
     return Path(str(p) + ".tape.json")
 
 
+def tape_files(sidecar, meta):
+    """A copied tape is self-contained; recorder absolute paths are provenance.
+
+    Prefer adjacent files as GX replay does. Older non-directory callers retain
+    their metadata paths if the adjacent file is absent.
+    """
+    base = sidecar.parent / sidecar.name[: -len(".tape.json")]
+    def file(key, suffix):
+        local = Path(str(base) + suffix)
+        return local if local.is_file() else Path(meta.get(key, str(local)))
+    return file("kpd", ".kpd"), file("actions", ".actions"), file("route_csv", ".csv")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("tape")
@@ -262,6 +275,7 @@ def main(argv=None):
                          "(the opening flyover is part of it; its length differs between GX and headless, so this is a diagnostic, not a gate)")
     ap.add_argument("--allow-incomplete", action="store_true", help="replay a killed session up to its last checkpoint")
     ap.add_argument("--dry-run", action="store_true", help="write the replay inputs, print the command, do not run it")
+    ap.add_argument("--require-bit-exact", action="store_true", help="fail on any float32 bit difference, including differences below the legacy distance limit")
     a = ap.parse_args(argv)
 
     sidecar = locate_sidecar(a.tape)
@@ -271,8 +285,7 @@ def main(argv=None):
                          f"last checkpoint ({meta['seams']} loops); pass --allow-incomplete to replay that part")
     if meta["unencodable_samples"] or meta["lossy_samples"]:
         raise SystemExit(f"replay_tape: the recorder saw {meta['unencodable_samples']} unencodable / {meta['lossy_samples']} lossy KPAD samples: exact replay is not possible")
-    base = sidecar.parent / sidecar.name[: -len(".tape.json")]
-    kpd, actions, route = Path(meta.get("kpd", str(base) + ".kpd")), Path(meta.get("actions", str(base) + ".actions")), Path(meta["route_csv"])
+    kpd, actions, route = tape_files(sidecar, meta)
     for f in (kpd, actions, route):
         if not f.is_file():
             raise SystemExit(f"replay_tape: missing {f}")
@@ -326,6 +339,10 @@ def main(argv=None):
         results[i].update(replay_rng_seed=sync["rng_seed"], replay_natural_rng_seed=sync.get("rng_seed_before"), recorded_rng_seed=seg["rng_seed"],
                           rng_seed_matches=sync["rng_seed"] == seg["rng_seed"])
     summary = verdict(results, star_events(route_rows))
+    summary["bit_exact"] = all(r["rows_with_any_difference"] == 0 for r in results)
+    summary["bit_exact_required"] = a.require_bit_exact
+    if a.require_bit_exact:
+        summary["all_segments_matched"] &= summary["bit_exact"]
     summary.update(tape=str(sidecar), tape_frames=total, segments=results)
     (a.out / "first-divergence.json").write_text(json.dumps(summary, indent=2) + "\n")
     brief = {k: summary[k] for k in ("all_segments_matched", "first_divergence_segment", "first_divergence", "reached_star", "star_in_recording")}

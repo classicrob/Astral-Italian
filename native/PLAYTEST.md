@@ -462,6 +462,21 @@ partial block, closes the KPAD tape and writes `"complete": true` covering every
 a backup. Crash/forced exits retain the incomplete checkpoint: KPAD/CSV flush every60 loops, sidecar every300 loops (or scene seam).
 `replay_tape.py --allow-incomplete` uses the sidecar's declared prefix without changing the tape.
 
+The permanent real-player Flip-Swap mission gate is
+`gate53/m1gates/full_star_tape_gate.py APP SHA256 SOURCE LABEL --build-kind server-candidate --allow-incomplete`.
+It boots a fresh private user through the recorded RedBlueEx scenario1 launch, uses the strict
+`interactive-and-play-ready-v1` GX policy, requires the real zero-to-one star count transition, records its row and scene chain,
+and checks **every** play-ready state/RNG checkpoint, including pause resumes. For resumed checkpoints the recorder reads the
+actual naturally evolved game RNG after the replay seam; it must equal the tape without another seed restore. First per-scene
+checkpoints retain the native seed restore and immediate readback verification. The actual complete replay sidecar is preserved.
+The recording build and candidate executable hashes are evidence; equality is not required.
+
+`tools/port/tape_sweep.py --headless BIN --disc DIR --tapes DIR --out NEW` adds this tape to the headless gameplay-segment
+regression sweep. It requires float32 bit equality (`replay_tape.py --require-bit-exact`) and explicitly reports uncovered star
+events. This tape's star count first becomes one during the Starship arrival, outside the headless play-ready segments;
+headless segment success therefore cannot establish full-star mission acceptance. GX checks that transition and all checkpoints.
+Copied tapes use their adjacent CSV/KPAD/action files; absolute recording-host paths in sidecars remain provenance.
+
 The folder holds `route.csv` (every game loop; positions at `%.9g`, the float32 exactly), `route.kpd` (every KPADReadEx the game made:
 count, error, **every sample**, the connection it saw; the format `tools/headless.py pack` writes and `petari_headless --inputs`
 reads), `route.actions` (mod buttons: Cappy etc., by game loop) and `route.tape.json`: the *segments*, the enabled mods, the exe sha256,

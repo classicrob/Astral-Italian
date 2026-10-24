@@ -3,6 +3,7 @@
 import importlib.util
 import struct
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -31,6 +32,16 @@ def route_row(**kw):
 
 
 class TapeFiles(unittest.TestCase):
+    def test_copied_tape_uses_adjacent_files_before_recording_host_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory) / "route"
+            for suffix in (".csv", ".kpd", ".actions"):
+                Path(str(base) + suffix).touch()
+            paths = rt.tape_files(Path(str(base) + ".tape.json"),
+                                  dict(route_csv="/recording-host/route.csv", kpd="/recording-host/route.kpd",
+                                       actions="/recording-host/route.actions"))
+            self.assertEqual(paths, tuple(Path(str(base) + s) for s in (".kpd", ".actions", ".csv")))
+
     def test_kpd_round_trip(self):
         records = [rec(0, 0), rec(0, 1, 1, 1, 0), rec(1, 0, samples=3)]
         data = rt.pack_kpd(2, records)

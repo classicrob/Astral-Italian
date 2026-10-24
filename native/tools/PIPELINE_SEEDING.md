@@ -912,3 +912,58 @@ database holds the rows that stage drew, ranked hot-first (`first_frame_used`). 
 into `build/pipeline-seeds` and bundles it as `Resources/pipeline-seeds`, stamped with the build identity. With the
 stage-prep gate wired at `GameSystemSceneController::startScene`, a stage waits (bounded) only for its own hot rows,
 170-191 instead of the 2,419 a single bundled db gated. A frozen build no longer needs `-DPETARI_PIPELINE_SEED`.
+
+## 5.4.2 frame-deadline metadata (v14 candidate)
+
+GX config ABI remains 13. The v14 pack uses the PSD2 envelope to carry versioned
+PFD1 `<Stage>.first-use.bin` sidecars alongside stage config rows. Each sidecar
+binds its stage and explicit per-config frame groups to a fingerprint of the raw
+SQLite manifest rows. The raw recording build identity, captures, timestamps and
+paths remain in the external provenance receipts and never enter the pack.
+
+The native capture protocol is version 3. It reads the actual active FramePacket
+ID before the pipeline memo, queues scene requests, and gives each scene the next
+whole recording packet as its explicit origin. Requests cannot retag lookups in
+an already open packet. A footer proves clock advancement and complete boundary
+accounting. Earlier zero-clock and partial-packet smoke failures are preserved as
+failed evidence; their frame values are never repaired or admitted.
+
+Every scenario-1 direct-stage sweep stage gets a prime and two fully warm
+recordings. Two actual warm maps must agree exactly; the cold confirmation must
+also agree where requested. The separate long no-input title pair provides the
+frontend coverage omitted by a short direct-stage visit. A scene with mismatched
+or invalid metadata keeps the existing first-use ordering and logs the reason.
+
+Admission is additive when an observed stage config is missing from its stage
+manifest: only a hash present identically in both validated warm observations can
+copy the exact existing `__global__.db` row into that stage. Existing stage rows
+and ranks remain byte-identical, the global database stays unchanged, additions
+are counted per stage, and configs absent globally remain failures. The sidecar
+fingerprint binds the resulting manifest. `seedpack.py check`, an expansion and
+`seedpack.py verify` cover rows and sidecars together; repacking is deterministic.
+
+The runtime registers a complete stage batch and every scene/offscreen alias
+before any of that batch's fallback work can dispatch. Specialised/UI queues can
+still run during admission. Within active Generic work, recorded frame is the
+first ordering key, then the existing indirect/TEV/texgen cost proxy descending
+only within that exact frame, then the existing first-use rank. Unrecorded keys
+have no inferred frame and keep rank order after recorded groups. Shared runtime
+aliases inherit the earliest explicit frame for their scene. Boot precedes title;
+frontend jobs use the same frame-then-cost rule only with validated metadata.
+Missing ranks sort last, and mixed tiers have a consistent order, including in
+`stable_sort`. The production comparator tests include permutations, transitivity,
+missing metadata, tier mixtures and frontend fallback.
+
+The chosen tracked pack bytes are part of the renderer identity. Both the native
+scheduler change and v14 invalidate the private pipeline/Dawn cache identity;
+recording-executable hashes remain informational provenance rather than pack data.
+The combined candidate still needs the M1 true-cold gameplay and title/menu lines,
+the unchanged gate533 results, same-window 5.4.1 comparisons, and the M4 set.
+
+Protocol3's initial Unknown request arrives during an already-open bootstrap
+packet (request5 -> origin6 in the qualified smoke). The named-scene capture does
+not cover that preceding bootstrap packet. Therefore v14 does not admit an
+Unknown deadline sidecar, even when its later maps agree: Unknown keeps the
+existing first-use order and reports the unqualified bootstrap scope. FileSelect
+and galaxy admission remain independent. Full bootstrap metadata would require
+an explicit owner from the first recording packet; no frame values are inferred.

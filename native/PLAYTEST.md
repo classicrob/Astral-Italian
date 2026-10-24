@@ -689,3 +689,9 @@ complete post-100 interval. Baseline 07223918 has no state signal: its owned app
 completion, at least 30 seconds of post-100 samples, menu p99 at most 33 ms while the pill is shown and at most 22 ms after 100%.
 Historical cohorts without state events are split-unscorable. Build comparison uses the same first 300 seconds of title menu
 samples, without a longer fast tail changing p99. The legacy focused startup/menu metric remains a separately named diagnostic.
+
+Capture v3 qualifies named scenes from their explicit whole-packet boundaries.
+It does not qualify first-use deadlines for the preceding unnamed bootstrap
+packet. The v14 builder therefore omits Unknown metadata and records the reason,
+while retaining exact FileSelect/galaxy qualification. Runtime logs that missing
+sidecar as a whole-scene first-use-order fallback.

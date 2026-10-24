@@ -139,14 +139,17 @@ bool get_pipeline(PipelineRef ref, CompiledPipeline& pipeline) {''')
           'const auto petariReady = [=] { return petari_uber_or_specialized_ready(runtimeKey); };')
   replace('std::all_of(keys.begin(), keys.end(), [](auto key) { return g_pipelines.contains(key); });',
           'std::all_of(keys.begin(), keys.end(), [](auto key) { return petari_uber_or_specialized_ready(key); });')
-  # Stage manifests already provide validated configs on the recording side.
-  # Queue/promote their fallback jobs before submitting specialised stage work.
-  replace('    std::visit([&](const auto& config) { submit(item.type, config, hot); }, item.config);', '''    std::visit([&](const auto& config) {
-      if constexpr (std::is_same_v<std::decay_t<decltype(config)>, gx::PipelineConfig>) {
-        if (!overlay) petari_uber_schedule_stage(config, scene, offscreen, stageName);
-      }
-      submit(item.type, config, hot);
-    }, item.config);''')
+  # Admit every alias and frame before any fallback dispatch or specialised
+  # stage submission. Per-row notifications must not start an incomplete group.
+  replace('  absl::flat_hash_set<PipelineRef> targets, gateTargets;', '''  if (!overlay && gx::petari_uber_enabled()) {
+    std::vector<gx::PipelineConfig> fallbackConfigs;
+    for (const auto& item : manifest)
+      if (item.type == ShaderType::GX) fallbackConfigs.push_back(std::get<gx::PipelineConfig>(item.config));
+    petari_uber_admit_stage(fallbackConfigs, scene, offscreen, stageName, path);
+  }
+  absl::flat_hash_set<PipelineRef> targets, gateTargets;''')
+  replace('    if (stage.initialized && stage.layoutKey == scene.key) {', '''    if (stage.initialized && stage.layoutKey == scene.key) {
+      if (!overlay && gx::petari_uber_enabled()) petari_uber_activate_stage(stageName);''')
   replace('  size_t pending = 0, gatePending = 0;',
           '  if (!overlay) petari_uber_stage_report(stageName);\n  size_t pending = 0, gatePending = 0;')
   text+='\n#include <aurora/gfx.hpp>\n'+(here/'ubershader_boot.inc').read_text()

@@ -9,7 +9,7 @@ root = Path(__file__).resolve().parents[2]
 boot = (root / 'native/gx/ubershader_boot.inc').read_text()
 runtime = (root / 'native/gx/pipeline_runtime.inc').read_text()
 job = runtime[runtime.index('struct PetariUberJob {'):runtime.index('static std::deque<PetariUberJob>')]
-queue = boot[boot.index('static unsigned petari_uber_job_priority('):boot.index('static void petari_uber_queue_variant(')]
+queue = boot[boot.index('static unsigned petari_uber_job_priority('):boot.index('static void petari_uber_reorder_jobs(')]
 source = r'''
 #include <algorithm>
 #include <cstdint>
@@ -28,6 +28,7 @@ struct BootState {
   std::string activeStage;
   std::map<std::string, std::set<PipelineRef>> stageKeys;
   std::map<std::string, std::map<PipelineRef, size_t>> stageOrder;
+  std::map<std::string, std::map<PipelineRef, uint32_t>> stageFrames;
 } petariUberBoot;
 ''' + job + '\nstatic std::deque<PetariUberJob> petariUberJobs;\n' + queue + r'''
 static void check(bool ok, const char* message) { if (!ok) throw std::runtime_error(message); }
@@ -80,7 +81,58 @@ int main() {
   petariUberBoot.activeStage = "missing";
   for (const auto& a : domain) for (const auto& b : domain) for (const auto& c : domain)
     check(!(equivalent(a,b) && equivalent(b,c)) || equivalent(a,c), "missing stage breaks strict weak ordering");
-  std::puts("Fallback ordering: 120 mixed permutations, strict weak ordering, insertion and stage switches pass");
+  petariUberBoot.activeStage = "A";
+  petariUberBoot.stageFrames["A"] = {{201,7},{202,8},{203,8},{204,8},{206,7},{207,7}};
+  petariUberBoot.stageOrder["A"] = {{201,90},{202,1},{203,0},{204,99},{205,0}};
+  std::vector<PetariUberJob> framed{item(201),item(202),item(203),item(204),item(205),item(206,gx::PetariUberTier::Fast)};
+  for (auto& job : framed) job.priority = 1;
+  framed[0].tevStages=1;
+  framed[1].tevStages=16; // more TEV cannot outrank an indirect config in the SAME frame
+  framed[2].hasIndirect=true; framed[2].tevStages=1; framed[2].texgenExtent=9;
+  framed[3].hasIndirect=true; framed[3].tevStages=2; framed[3].texgenExtent=2;
+  framed[4].hasIndirect=true; framed[4].tevStages=99; // unknown frame: no guessed group or cost override
+  std::vector<unsigned> framePermutation{0,1,2,3,4,5};
+  const std::vector<PipelineRef> frameExpected{201,204,203,202,205,206};
+  do {
+    std::vector<PetariUberJob> jobs;
+    for (auto index : framePermutation) jobs.push_back(framed[index]);
+    std::stable_sort(jobs.begin(),jobs.end(),less);
+    for (size_t n=0;n<jobs.size();++n) check(jobs[n].key==frameExpected[n],"frame/cost/missing/tier order differs");
+  } while (std::next_permutation(framePermutation.begin(),framePermutation.end()));
+  auto texgenHigh=framed[3]; texgenHigh.key=209; texgenHigh.texgenExtent=5;
+  petariUberBoot.stageFrames["A"][209]=8;
+  check(less(texgenHigh,framed[3]),"texgen extent is not the final cost component");
+  auto missingRank=item(207); missingRank.priority=1;
+  auto missingBoth=item(208); missingBoth.priority=1;
+  domain.insert(domain.end(),framed.begin(),framed.end());
+  domain.push_back(texgenHigh); domain.push_back(missingRank); domain.push_back(missingBoth);
+  // Frontend scene ordinal is independent of missing metadata and shared aliases.
+  petariUberBoot.stageKeys["Unknown"]={301,302,303};
+  petariUberBoot.stageKeys["FileSelect"]={303,304,305};
+  petariUberBoot.stageFrames["Unknown"]={{301,20},{302,10},{303,30}};
+  petariUberBoot.stageFrames["FileSelect"]={{303,0},{304,0},{305,99}};
+  petariUberBoot.stageOrder["Unknown"]={{301,0},{302,1},{303,2}};
+  petariUberBoot.stageOrder["FileSelect"]={{303,0},{304,1},{305,2}};
+  std::vector<PetariUberJob> front;
+  for (auto key : {305u,303u,999u,301u,304u,302u}) { auto job=item(key); job.priority=3; front.push_back(job); }
+  std::stable_sort(front.begin(),front.end(),less);
+  const std::vector<PipelineRef> frontExpected{302,301,303,304,305,999};
+  for(size_t n=0;n<front.size();++n) check(front[n].key==frontExpected[n],"frontend/shared alias order differs");
+  domain.insert(domain.end(),front.begin(),front.end());
+  const auto validate = [&] {
+    for (const auto& a : domain) for (const auto& b : domain) for (const auto& c : domain) {
+      check(!less(a,a),"frame comparator is not irreflexive");
+      check(!(less(a,b)&&less(b,a)),"frame comparator is not asymmetric");
+      check(!(less(a,b)&&less(b,c))||less(a,c),"frame comparator is not transitive");
+      check(!(equivalent(a,b)&&equivalent(b,c))||equivalent(a,c),"frame incomparability is not transitive");
+    }
+  };
+  validate();
+  petariUberBoot.stageFrames["Unknown"].clear(); // whole frontend scene falls back to its existing ranks
+  std::stable_sort(front.begin(),front.end(),less);
+  check(front[0].key==301&&front[1].key==302&&front[2].key==303&&front[3].key==304,"missing frontend changed scene/rank order");
+  validate();
+  std::puts("Fallback ordering:120 legacy+720 frame permutations, cost components, frontend fallback, aliases and strict weak order PASS");
 }
 '''
 with tempfile.TemporaryDirectory() as directory:

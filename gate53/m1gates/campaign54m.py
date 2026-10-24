@@ -21,6 +21,11 @@ def main():
  manifest={'schema':1,'label':a.label,'host':platform.node(),'platform':platform.platform(),'nice':0,'build_kind':'server-candidate' if candidate_mode else 'frozen54','priority_reason':'Normal priority approved by PORT; server promotion/normal/intro/Cappy ran nice 19, a documented load-sensitive harness difference.',('candidate_build' if candidate_mode else 'frozen'):{k:v for k,v in meta.items() if k!='resource_tree'},'steps':[],'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'reference_root':str(HOME/'MacioGalaxy2-team/scratch-port/gate53/m1gates/srv-ref')}
  if candidate_mode:manifest.update(app=str(app),normal_results=[str(q.resolve()) for q in a.normal_results],tier_authority='PORT/head final candidate ruling: cold stall and Fifo cadence are M1 TIER rows; all functional gates required')
  write(base/'MANIFEST.json',manifest)
+ if candidate_mode:
+  from promotion54m import prepare_m1_fixture
+  from candidate_evidence54m import protected_inputs
+  prepare_m1_fixture();protection_before=protected_inputs(a.server_candidate_dir)
+  write(base/'protected-inputs-before.json',protection_before)
  def quiet(name):
   wait_quiet(base/(name+'-quiet.json'),seconds=a.quiet_seconds)
  def command(name,cmd):
@@ -122,6 +127,10 @@ def main():
       if child.is_dir() and (child.name in ('cache','user','captures','tmp','dump') or child.name.endswith('-cache')):shutil.rmtree(child)
      if owned.name.endswith('-dump'):shutil.rmtree(owned)
  manifest['finished_utc']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime());write(base/'MANIFEST.json',manifest)
+ if candidate_mode:
+  protection_after=protected_inputs(a.server_candidate_dir)
+  write(base/'protected-inputs-after.json',protection_after)
+  write(base/'protected-inputs.json',{'passed':protection_before==protection_after,'before':str(base/'protected-inputs-before.json'),'before_sha256':sha(base/'protected-inputs-before.json'),'after':str(base/'protected-inputs-after.json'),'after_sha256':sha(base/'protected-inputs-after.json')})
  command('receipts',[sys.executable,'-B',HERE/'receipts54m.py',base,base/'receipts'])
  print('CAMPAIGN EVIDENCE',base,flush=True)
  return manifest['steps'][-1]['exit']

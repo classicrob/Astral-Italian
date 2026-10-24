@@ -48,7 +48,7 @@ class CandidateEvidence(unittest.TestCase):
     write(root/'direct'/(name+'-'+mode)/'receipt.json',r);direct.append(r)
    write(root/'direct/results.json',direct);runs=[]
    for arm in ('fresh','warm'):
-    checks=dict.fromkeys(ce.POINTER_CHECKS,True)
+    checks=dict.fromkeys(ce.POINTER_CHECKS+('menu_frames','gameplay_frames','matching_key_cache_written','cache_arm_verified','real_audio_zero_underruns'),True)
     if arm=='warm':checks['no_divergence']=False
     r={'arm':arm,'app_sha256':meta['perf_exe_sha256'],'nice':0,'passed':all(checks.values()),'checks':checks,'limitation':'fixture'}
     write(root/'pointer'/arm/'RESULT.json',r);runs.append(r)
@@ -56,6 +56,9 @@ class CandidateEvidence(unittest.TestCase):
    combined=ce.combine_promotion(root/'direct/results.json',root/'pointer/RESULT.json',meta,root/'combined/results.json')
    self.assertEqual(len(combined),15);self.assertEqual(sum(r['passed'] for r in combined),14)
    self.assertFalse(next(r for r in combined if r['case']=='worldmap' and r['mode']=='warm')['checks']['no_divergence'])
+   missing=copy.deepcopy(pointer);del missing['runs'][1]['checks']['real_audio_zero_underruns'];write(root/'pointer/warm/RESULT.json',missing['runs'][1]);write(root/'pointer/RESULT.json',missing)
+   with self.assertRaises(AssertionError):ce.combine_promotion(root/'direct/results.json',root/'pointer/RESULT.json',meta,root/'missing-audio/results.json')
+   write(root/'pointer/warm/RESULT.json',pointer['runs'][1])
    pointer['build']['source']='f'*40;write(root/'pointer/RESULT.json',pointer)
    with self.assertRaises(AssertionError):ce.combine_promotion(root/'direct/results.json',root/'pointer/RESULT.json',{**meta,'source':'c'*40},root/'bad/results.json')
 

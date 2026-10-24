@@ -20,7 +20,10 @@ SOL A runs a separate re-signed perfm1a copy.
 
 Promotion uses thirteen unchanged script cases plus the fresh/warm world-map
 pointer tape cases, per PORT's ruling. The composition preserves each original
-receipt and any failed verdict. Whole-session normal runs also prove normal-boot
+receipt and any failed verdict. The pointer adapter retains matching-key cache
+checks, fresh/warm cache evidence, and the warm arm's fifty-report CoreAudio
+zero-underrun check. Replay private saves match all bytes and xattrs of the
+certified local fixture. Whole-session normal runs also prove normal-boot
 UI's title/FileSelect prefix. Intro twins use their original direct launch stage.
 All tape adapters retain interactive-and-play-ready-v1, exact play-ready state,
 RNG read-back, and actual game pointer buffer comparisons.
@@ -32,6 +35,11 @@ latency criterion stays functional. Cold stall and cadence thresholds are separa
 M1 TIER rows under PORT/head's ruling. Their failed thresholds remain visible;
 missing measurements, process faults, or identity mismatches still refuse receipts.
 Frozen54 keeps its original all-gates-required behavior.
+
+The campaign records protected-input inventories before and after all runs:
+candidate original, frozen executable, canonical and local fixtures, the live
+save, and the user's AstralItalian cache files. Candidate receipts verify these
+inventories remain identical and still match the current protected inputs.
 
 The separate item3tier worker sweep is paused before workers8-r1 app launch;
 its three diagnostic arms and first cap2/cap4 runs remain intact. Resume remaining

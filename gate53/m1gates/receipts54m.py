@@ -184,7 +184,14 @@ def main():
  gate('audio-thread-priority',[runpath('audio-'+mode)/'RESULT.json' for mode in ('cold','warm')]+[base/('thr-'+mode+'.tsv') for mode in ('cold','warm')],audiocheck,'real CoreAudio thread probe, zero underruns')
  gate('wii-proof',[platform,base/'platform/wii-source-diff.log'],lambda:pcheck(('wii-source-unchanged',)),'release source has no Wii changes relative to a23609ca',('Original Wii build/hash/oracle evidence belongs to release; this M1 run rechecks source lineage only.',))
  identity=sha(Path(meta['source_app'])/'Contents/MacOS/Petari')==frozen['binary_sha256'] and meta['source_exe_sha256']==frozen['binary_sha256'] and m['nice']==0
- if candidate_mode:identity &= sha(Path(m['app'])/'Contents/MacOS/Petari')==expected
+ if candidate_mode:
+  identity &= sha(Path(m['app'])/'Contents/MacOS/Petari')==expected
+  try:
+   from candidate_evidence54m import protected_inputs
+   protection=readj(base/'protected-inputs.json');before=Path(protection['before']);after=Path(protection['after'])
+   assert protection['passed'] is True and sha(before)==protection['before_sha256'] and sha(after)==protection['after_sha256']
+   assert readj(before)==readj(after)==protected_inputs(meta['candidate_directory'])
+  except Exception as e:identity=False;issues.append('protected inputs: '+repr(e))
  if not identity:issues.append('selected build identity/priority')
  validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','frozen54_acceptance':not candidate_mode,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if not g['required_for_functional_acceptance'] and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
  write(base/'VALIDATION.json',validation)

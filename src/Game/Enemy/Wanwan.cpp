@@ -799,6 +799,9 @@ void Wanwan::exeMoveLava() {
     startRollLevelSound(MR::isOnGround(this));
     startSoundWanwanVoice();
     if (!tryBreakReachedGoal()) {
+        TVec3f hit;
+        TVec3f a;
+        TVec3f up;
         s32 prevNo = mRailPointNo;
         MR::moveCoordAndFollowTrans(this, 15.0f);
         f32 neg = -mRadius;
@@ -809,18 +812,15 @@ void Wanwan::exeMoveLava() {
         mFront.set(MR::getRailDirection(this));
         if (mIsInLava) {
             Triangle tri;
-            TVec3f a;
             a.scale(1000.0f, mGravity);
             TVec3f from(mPosition);
             JMathInlineVEC::PSVECSubtract(&from, &a, &from);
             TVec3f dir(a);
             dir.scale(2.0f);
-            TVec3f hit;
             bool found = MR::getFirstPolyOnLineToMap(&hit, &tri, from, dir);
             if (!found) {
                 hit.set(mPosition);
             }
-            TVec3f up;
             up.negate(mGravity);
             MR::makeMtxUpFrontPos(&mLavaMtx, up, mFront, hit);
             MR::startActionSound(this, "AppearLava", -1, -1, -1);

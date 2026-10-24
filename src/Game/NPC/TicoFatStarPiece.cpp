@@ -60,8 +60,9 @@ void TicoFatStarPiece::init(const JMapInfoIter& iter) {
         mTicoFatId = GameSequenceFunction::getTicoFatStarPieceId();
         mStarPieceCount = GameSequenceFunction::getTicoFatStarPieceRequirement();
         s32 alreadyEaten = GameDataFunction::getTicoFatStarPieceAlms(mTicoFatId);
+        s32 remaining = mStarPieceCount - alreadyEaten;
         mPendingStarPieceCount = 0;
-        mRemainingStarPieceCount = (mStarPieceCount - alreadyEaten <= 0 ? 0 : mStarPieceCount - alreadyEaten);
+        mRemainingStarPieceCount = remaining <= 0 ? 0 : remaining;
         MR::declareStarPieceReceiver(this, mRemainingStarPieceCount);
     }
     TVec3f requestOffset;

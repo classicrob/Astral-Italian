@@ -131,9 +131,10 @@ void OtaRockTank::init(const JMapInfoIter& rIter) {
     MR::initActorCamera(this, rIter, &mActorCameraInfo);
     MR::declareCameraRegisterVec(this, 0, &mCameraRegisterPosition);
     mCocoNutBalls = new CocoNutBall[8];
+    TVec3f* ballScale;
     for (s32 i = 0; i < 8; i++) {
-        TVec3f& scale = mCocoNutBalls[i].mScale;
-        scale = TVec3f(1.1f, 1.1f, 1.1f);
+        ballScale = &mCocoNutBalls[i].mScale;
+        *ballScale = TVec3f(1.1f, 1.1f, 1.1f);
         mCocoNutBalls[i].initWithoutIter();
         mCocoNutBalls[i].mHost = this;
         mCocoNutBalls[i].mIsTankBall = true;
@@ -175,7 +176,8 @@ void OtaRockTank::init(const JMapInfoIter& rIter) {
     mFixedPositions[3] = new FixedPosition(this, sBattery05Name, sBatteryOffset, rot);
     mFixedPositions[4] = new FixedPosition(this, sBattery04Name, offs, sBatteryRotate);
     mFixedPositions[5] = new FixedPosition(this, sBattery06Name, offs, sBatteryRotate);
-    mFixedPositions[6] = new FixedPosition(mChief, sMouthName, sMouthOffset, TVec3f(0.0f, 90.0f, 0.0f));
+    FixedPosition* mouthFixedPosition = new FixedPosition(mChief, sMouthName, sMouthOffset, TVec3f(0.0f, 90.0f, 0.0f));
+    mFixedPositions[6] = mouthFixedPosition;
     mLeftWheelJointController = createTankJointController(sWheelLName, &OtaRockTank::calcTankLeftWheelJoint);
     mRightWheelJointController = createTankJointController(sWheelRName, &OtaRockTank::calcTankRightWheelJoint);
     mChiefJointController = createTankJointController(sOtaRockPosName, &OtaRockTank::calcTankChiefJoint);
@@ -914,8 +916,8 @@ void OtaRockTank::moveTankAlongRail() {
 // NONMATCHING: temporary stack slots and instruction scheduling differ
 void OtaRockTank::moveTankTowardRailDirection(const TVec3f& rDir, f32 scale) {
     if (mCurrentRailPointNo == MR::getCurrentRailPointNo(this)) {
-        TVec3f railPos;
         TVec3f railDir;
+        TVec3f railPos;
         MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, MR::getRailCoord(this));
         f32 angle = MR::diffAngleAbs(railDir, rDir) / (f32)(*(const volatile s32*)&sAngleDivisor);  // read through a pointer: the target loads it from .sdata2 instead of folding 25
         MR::turnDirection(this, &mRailDirection, rDir, JMath::sSinCosTable.cosRadian(angle));

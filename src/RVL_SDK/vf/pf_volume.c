@@ -416,7 +416,10 @@ PF_VOLUME* VFiPFVOL_GetVolumeFromDrvChar(s8 drv_char) {
     s16 vol_idx;
 
     vol_idx = VFipf_toupper(drv_char) - 'A';
-    if (vol_idx < 0 || vol_idx >= 26) {
+    if (vol_idx < 0) {
+        return 0;
+    }
+    if (vol_idx >= 26) {
         return 0;
     }
 

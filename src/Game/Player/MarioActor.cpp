@@ -272,6 +272,90 @@ namespace MarioAccess {
     }
 }
 
+static u8 sBlinkStates[] = {0, 1, 2, 2, 2, 2, 1, 1, 0, 0};
+
+struct MaterialEffectEntry {
+    struct Options {
+        u8 mSelectionOptions;
+        u8 mReserved1;
+        u8 mReserved2;
+        u8 mReserved3;
+    };
+
+    /* 0x00 */ const char* mName;
+    /* 0x04 */ Options mFlag;
+    /* 0x08 */ const char* mEffects[8];
+    /* 0x28 */ const char* mCurrent;
+    /* 0x2C */ MultiEmitter* mEmitter;
+};
+
+
+struct SmokeEffectEntry {
+    struct TypeCode {
+        u8 mCode;
+        u8 mReserved1;
+        u8 mReserved2;
+        u8 mReserved3;
+    };
+
+    struct Flags {
+        u8 mAttachment;
+        u8 mHostFollowFlags;
+        u8 mPlacementFlags;
+        u8 mReserved;
+    };
+
+    /* 0x00 */ const char* mName;
+    /* 0x04 */ TypeCode mType;
+    /* 0x08 */ f32 mScale;
+    /* 0x0C */ f32 mRate;
+    /* 0x10 */ Flags mFlags;
+    /* 0x14 */ u16 mInterval;
+    /* 0x16 */ u16 mTimer;
+    /* 0x18 */ u32 mHash;
+    /* 0x1C */ MultiEmitter* mEmitter;
+    /* 0x20 */ u8 mMaterial;
+    /* 0x21 */ u8 _21[3];
+};
+
+
+MaterialEffectEntry cMaterialEffectTable[] = {
+    {"属性尻ドロップ",
+     {0, 0, 0, 0},
+     {"HipDropSmoke", "HipDropWater", "HipDropFlower", "HipDropSand", "HipDropSnow", "MudCircle", "HoneyCircle", "MarioCloudLand"},
+     nullptr,
+     nullptr},
+    {"属性ハチ風", {3, 0, 0, 0}, {"Hovering", "HoveringWater", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering"}, nullptr, nullptr},
+    {"属性スピン", {0, 0, 0, 0}, {nullptr, "WaterSpin", "FlowerSpin", "SandSpin", "SnowSpin", "MudCircle", "HoneyCircle", nullptr}, nullptr, nullptr},
+    {"属性ステージイン",
+     {0, 0, 0, 0},
+     {"StageStartGroundSmoke", nullptr, nullptr, "StageStartGroundSand", nullptr, nullptr, nullptr, "MarioCloudLand"},
+     nullptr,
+     nullptr},
+    {nullptr, {0, 0, 0, 0}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, nullptr, nullptr}};
+
+
+SmokeEffectEntry cSmokeTable[] = {{"共通着地普通", {8, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通着地大", {3, 0, 0, 0}, 1.5f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁ジャンプ", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 3, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通砂煙レベル", {7, 0, 0, 0}, 0.65f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁手擦り", {1, 0, 0, 0}, 0.35f, 1.0f, {2, 1, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁上昇", {1, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 2, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通スリップ坂", {2, 0, 0, 0}, 0.35f, 1.0f, {0, 1, 0, 0}, 2, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通スリップ空転", {0, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通スリップ坂制動", {2, 0, 0, 0}, 0.5f, 1.0f, {0, 0, 0, 0}, 2, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁ヒット着地", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ダメージ着地", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通地上スピン", {3, 0, 0, 0}, 0.9f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ブレーキ", {2, 0, 0, 0}, 0.65f, 1.0f, {0, 1, 0, 0}, 15, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ハイジャンプ", {2, 0, 0, 0}, 0.65f, 1.0f, {0, 1, 0, 0}, 6, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ブラックホール", {1, 0, 0, 0}, 0.65f, 1.0f, {3, 3, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通引き戻し着地", {3, 0, 0, 0}, 1.2f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通跳躍", {8, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 12, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ひこうき雲", {3, 0, 0, 0}, 0.3f, 0.2f, {0, 1, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ひこうきブースト", {0, 0, 0, 0}, 2.0f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {nullptr, {0, 0, 0, 0}, 0.0f, 0.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}}};
+
 // NONMATCHING: compiler emits recursive empty anonymous-union constructors before the exact initialization body.
 MarioActor::MarioActor(const char* pName) : LiveActor(pName) {
     mYoshiHolder = nullptr;
@@ -499,11 +583,656 @@ void MarioActor::initAfterPlacement() {
 }
 
 
+namespace MR {
+    void showMaterial(J3DModel*, const char*);
+};
+  // namespace MR
+
+
+namespace {
+    inline void initExtraMtxBuffer(J3DModelX* pModel) {
+        for (u32 i = 0; i < pModel->_DD; i++) {
+            pModel->mExtraMtxBuffer[i] = new (0x20) Mtx[0xC00 / sizeof(Mtx)];
+        }
+    }
+};
+  // namespace
+
 void MarioActor::initAfterOpeningDemo() {
     mMario->changeAnimationNonStop("ウォークイン");
     _37C = 0;
 }
 
+void MarioActor::draw() const {
+    if (_B48 != nullptr) _B48->draw();
+    if (!is481or482On() && (mMario->isPlayerModeYoshi() || (!mActorEffectState->mActive && !_1C3))) {
+        mWallShadow574->draw(mMaskTextures[mRandomTextureIndex]);
+        drawMarioModel();
+        mMario->draw();
+    }
+}
+
+#pragma push
+#pragma global_optimizer off
+void MarioActor::resetFog() {
+    Color8 color(0, 0, 0, 0);
+    _1A8 = 0;
+    _1A4 = 0.0f;
+    _1AA = 0;
+}
+#pragma pop
+
+
+void MarioActor::exeWait() {
+    if (_FB8 != 0) {
+        _FB8--;
+        if (_FB8 == 0) {
+            setNerve(_FB4);
+            _FB4 = nullptr;
+        }
+    }
+}
+
+void MarioActor::exeGameOver() {
+    mVelocity.zero();
+    calcHeadPos();
+    updateRealMtx();
+
+    if (getNerveStep() == 32) {
+        _A6E = 0;
+    }
+
+    _46C = nullptr;
+
+    PSMTXIdentity(mMarioAnim->_7C);
+
+    damageDropThrowMemoSensor();
+
+    if (!MR::isFirstStep(this)) {
+        return;
+    }
+
+    MR::setCubeBgmChangeInvalid();
+    MR::clearBgmQueue();
+
+    if (MR::getPlayerLeft() == 0) {
+        MR::startPlayerEvent("ゲームオーバー");
+        changeGameOverAnimation();
+    } else {
+        switch (_39D) {
+        case 2:
+            MR::startPlayerEvent("ゴーストレース負け");
+            break;
+
+        case 1:
+            MR::startPlayerEvent("レース負け");
+            changeGameOverAnimation();
+            break;
+
+        case 5:
+            MR::startPlayerEvent("レース負け");
+            break;
+
+        default:
+            MR::startPlayerEvent("マリオダウン");
+        }
+    }
+
+    MR::startGlobalEventCameraNoTarget("昇天カメラ");
+    MR::startStarPointerModeDemoMarioDeath(this);
+}
+
+void MarioActor::exeGameOverAbyss() {
+    mVelocity = getLastMove() * 0.99f + mCameraBasisZ * 35.0f * 0.01f;
+    mLastMove = mVelocity;
+
+    if (!MR::isFirstStep(this)) {
+        return;
+    }
+
+    MR::setCubeBgmChangeInvalid();
+    MR::clearBgmQueue();
+    MR::startGlobalEventCameraNoTarget("奈落カメラ");
+
+    _F44 = false;
+
+    if (MR::getPlayerLeft() == 0) {
+        MR::startPlayerEvent("ゲームオーバー");
+    } else {
+        MR::startPlayerEvent("マリオ奈落");
+    }
+
+    MR::startStarPointerModeDemoMarioDeath(this);
+    mMario->changeAnimationNonStop("奈落ダウン");
+
+    _B90 = true;
+}
+
+void MarioActor::exeGameOverFire() {
+    mVelocity.zero();
+    calcHeadPos();
+    updateRealMtx();
+
+    if (getNerveStep() == 120) {
+        _A6E = 0;
+    }
+
+    if (!MR::isFirstStep(this)) {
+        return;
+    }
+
+    MR::setCubeBgmChangeInvalid();
+    MR::clearBgmQueue();
+
+    if (MR::getPlayerLeft() == 0) {
+        MR::startPlayerEvent("ゲームオーバー");
+        MR::startGlobalEventCameraNoTarget("昇天カメラ");
+    } else {
+        MR::startPlayerEvent("マリオ炎ダウン");
+        MR::startGlobalEventCameraNoTarget("奈落カメラ");
+    }
+
+    MR::startStarPointerModeDemoMarioDeath(this);
+}
+
+void MarioActor::exeGameOverNonStop() {
+    if (!MR::isFirstStep(this)) {
+        return;
+    }
+
+    MR::setCubeBgmChangeInvalid();
+    MR::clearBgmQueue();
+
+    if (MR::getPlayerLeft() == 0) {
+        MR::startPlayerEvent("ゲームオーバー");
+        MR::startGlobalEventCameraNoTarget("昇天カメラ");
+    } else {
+        MR::startPlayerEvent("マリオ炎ダウン");
+        MR::startGlobalEventCameraNoTarget("奈落カメラ");
+    }
+
+    MR::startStarPointerModeDemoMarioDeath(this);
+}
+
+void MarioActor::exeGameOverSink() {
+    mVelocity.zero();
+    calcHeadPos();
+    updateRealMtx();
+
+    if (getNerveStep() == 120) {
+        _A6E = 0;
+    }
+
+    if (MR::isFirstStep(this)) {
+        MR::setCubeBgmChangeInvalid();
+        MR::clearBgmQueue();
+        changeGameOverAnimation();
+
+        if (MR::getPlayerLeft() == 0) {
+            MR::startPlayerEvent("ゲームオーバー");
+            MR::startGlobalEventCameraNoTarget("昇天カメラ");
+        } else {
+            MR::startPlayerEvent("マリオダウン");
+            MR::startGlobalEventCameraNoTarget("奈落カメラ");
+        }
+
+        MR::startStarPointerModeDemoMarioDeath(this);
+
+        if (mMario->_960 == 25 || mMario->_960 == 17) {
+            playEffect("砂埋まり体");
+            playEffect("砂埋まり手");
+        }
+
+        if (mMario->_960 == 31) {
+            playEffect("泥埋まり体");
+            playEffect("泥埋まり手");
+        }
+    }
+
+    if (mMario->_960 == 31 || mMario->_960 == 18) {
+        playSound("沼死亡", -1);
+
+        if (getNerveStep() == 90) {
+            playSound("声沼沈み死亡", -1);
+        }
+    } else {
+        playSound("砂死亡", -1);
+
+        if (getNerveStep() == 90) {
+            playSound("声砂沈み死亡", -1);
+        }
+    }
+}
+
+void MarioActor::exeGameOverNoDemo() {
+    if (MR::isFirstStep(this)) {
+        MR::setCubeBgmChangeInvalid();
+        MR::clearBgmQueue();
+        if (MR::getPlayerLeft() == 0) {
+            MR::startPlayerEvent("ゲームオーバー");
+        } else {
+            MR::startPlayerEvent("演出なし死");
+            this->mHealth = 0;
+        }
+        MR::startStarPointerModeDemoMarioDeath(this);
+    }
+}
+
+void MarioActor::exeTimeWait() {
+    if (_FB8 != getNerveStep()) {
+        return;
+    }
+
+    setNerve(_FB4);
+    _FB4 = nullptr;
+}
+
+void MarioActor::setRasterScroll(s32 i1, s32 i2, s32 i3) {
+    mScreenStrip1084->fn_803DB9D0(i1, i2, i3);
+}
+
+void MarioActor::getGravityVector(TVec3f* pVec) const {
+    pVec->set(mMario->getAirGravityVec());
+}
+
+const TVec3f& MarioActor::getGravityVec() const {
+    return *mMario->getGravityVec();
+}
+
+const TVec3f& MarioActor::fn_803B8520() {
+    return this->mMario->getAirGravityVec();
+}
+
+void MarioActor::getGroundPos(TVec3f* pDst) const {
+    *pDst = mMario->mGroundPos;
+}
+
+TVec3f* MarioActor::getShadowPos() const {
+    return &mMario->mShadowPos;
+}
+
+void MarioActor::getUpVec(TVec3f* pVec) const {
+    *pVec = _270;
+}
+
+void MarioActor::getSideVec(TVec3f* pVec) const {
+    *pVec = mMario->mSideVec;
+}
+
+f32 MarioActor::getGravityRatio() const {
+    return mGravityRatio;
+}
+
+bool MarioActor::isInPunchTimerRange() const {
+    bool ret = false;
+    if (_3E6) {
+        ret = MR::isInRange(_945, 6.0f, 20.0f);
+    }
+
+    return ret;
+}
+
+void MarioActor::getThrowVec(TVec3f* pVec) const {
+    TVec3f rotate;
+    mSearchLightThrowPos->copyRotate(&rotate);
+
+    TVec3f dirZ(0.0f, 0.0f, 1.0f);
+
+    Mtx trMtx;
+    MR::makeMtxTR(trMtx, 0.0f, 0.0f, 0.0f, rotate.x, rotate.y, rotate.z);
+
+    PSMTXMultVec(trMtx, dirZ, pVec);
+}
+
+bool MarioActor::isTurning() const {
+    return ((getMovementStates().mLowWord & Mario::MovementStates::Turning) >> 28);
+}
+
+bool MarioActor::isJumping() const {
+    if (_934) {
+        return _938.dot(getGravityVec()) < -10.0f;
+    }
+
+    if (mPlayerMode == 6 && mMario->mVerticalSpeed < mConst->getTable()->mTeresaDropDownHeight) {
+        return false;
+    }
+
+    if (mMario->isWalling()) {
+        return true;
+    }
+
+    return ((mMario->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMario->mMovementStates.mLowWord >> 30) & 1U);
+}
+
+bool MarioActor::isJumpRising() const {
+    return ((mMario->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && mMario->isRising();
+}
+
+bool MarioActor::isPunching() const {
+    if (mMario->isStatusActive(MarioStatus_Magic)) {
+        return true;
+    }
+
+    if (mMario->mSwim->fn_803FE9F0()) {
+        return true;
+    }
+
+    if (_3E5) {
+        return true;
+    }
+
+    if (!mMario->isAnimationTerminate(nullptr) &&
+        (mMario->isAnimationRun("空中ひねり") || mMario->isAnimationRun("雲スピン空中") || mMario->isAnimationRun("アイスひねり") || mMario->isAnimationRun("アイスひねり空中") ||
+         mMario->isAnimationRun("アイスひねり静止") || mMario->isAnimationRun("アイスひねり移動"))) {
+        return true;
+    }
+
+    return false;
+}
+
+bool MarioActor::isItemSwinging() const {
+    if (mMario->isAnimationRun("テニスショット左") || mMario->isAnimationRun("テニスショット右") || mMario->isAnimationRun("テニスショット中")) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool MarioActor::isLongDrop() const {
+    if (((mMario->getMovementStates().mLowWord >> 29) & 1U) == 0) {
+        return true;
+    }
+
+    return mMario->mVerticalSpeed > 1000.0f;
+}
+
+u32 MarioActor::fn_803B89E0() {
+    return ((this->mMario)->mMovementStates.mLowWord >> 0x14) & 1;
+}
+
+bool MarioActor::isFastRise() const {
+    if (_934) {
+        if (_938.dot(getGravityVec()) < -60.0f) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool MarioActor::isDamaging() const {
+    return mMario->isDamaging() != false;
+}
+
+bool MarioActor::isFireDamageActive() {
+    return this->mMario->fn_80393C40();
+}
+
+bool MarioActor::isStaggering() const {
+    return mMario->isStatusActive(MarioStatus_Flip) != false;
+}
+
+bool MarioActor::isSleeping() const {
+    // No way that this is a real inline but only way I could make it match
+    bool out = true;
+    if (!IsMarioAnimationRun("特殊ウエイト1B") && !IsMarioAnimationRun("特殊ウエイト1A")) {
+        out = false;
+    }
+
+    return out;
+}
+
+bool MarioActor::isNeedDamageFog() const {
+    if (!isEnableNerveChange()) {
+        return false;
+    }
+
+    if (MR::isDemoActive()) {
+        return false;
+    }
+
+    if (_EA4) {
+        return false;
+    }
+
+    if (mMario->getDamageAfterTimer() != 0) {
+        return true;
+    }
+
+    return mBlinkRequested1067;
+}
+
+bool MarioActor::isRefuseTalk() const {
+    if (!isEnableNerveChange()) {
+        return true;
+    }
+
+    if (mMario->isStatusActive(MarioStatus_Wait)) {
+        return true;
+    }
+
+    if (mMario->isStatusActive(MarioStatus_Hang)) {
+        return true;
+    }
+
+    if (mMario->isStatusActive(MarioStatus_13)) {
+        return true;
+    }
+
+    if (mMario->isDamaging()) {
+        return true;
+    }
+
+    if (mMario->_420 != 0) {
+        return true;
+    }
+
+    bool isNormal = !mMario->isPlayerModeTeresa();
+    if (isNormal) {
+        if (_B94 != 0) {
+            return true;
+        }
+
+        if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+            return true;
+        }
+
+        if (!((mMario->getMovementStates().mLowWord >> 30) & 1U)) {
+            return true;
+        }
+
+        if (mMario->_3CE < 5) {
+            return true;
+        }
+
+        if (((mMario->getMovementStates().mHighWord >> 28) & 1U)) {
+            return true;
+        }
+
+        if (((mMario->getDrawStates().mWord >> 21) & 1U)) {
+            return true;
+        }
+
+        if (mMario->_3D2 != 0) {
+            return true;
+        }
+    }
+
+    if (_424 != nullptr) {
+        return true;
+    }
+
+    if (_480) {
+        return true;
+    }
+    return mMario->isPlayerModeYoshi() && !mYoshiHolder->mTongueAction->fn_8041FA30();
+}
+
+u32 MarioActor::getSpecialMode() const {
+    u32 mode = 0;
+    if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMario->getMovementStates().mLowWord >> 16) & 1U)) {
+        mode = 1;
+    }
+
+    if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMario->getMovementStates().mLowWord >> 14) & 1U)) {
+        mode = 1;
+    }
+
+    if (mode == 0) {
+        return mode;
+    }
+
+    if (mMario->mVerticalSpeed < 300.0f) {
+        mode = 2;
+    }
+
+    if (mMario->mVerticalSpeed > 800.0f) {
+        return 3;
+    }
+
+    return mode;
+}
+
+GravityInfo* MarioActor::getGravityInfo() const {
+    return mGravityInfo;
+}
+
+u8 MarioActor::getGravityLevel() const {
+    return MR::isLightGravity(*mGravityInfo);
+}
+
+bool MarioActor::isDebugMode() const {
+    return ((getMovementStates().mLowWord & Mario::MovementStates::DebugMode) >> 9);
+}
+
+MtxPtr MarioActor::getMapBaseMtx() const {
+    HitSensor* pSensor = mMario->_46C->mSensor;
+    if (pSensor == nullptr) {
+        return nullptr;
+    }
+
+    return MR::getSensorHost(pSensor)->getBaseMtx();
+}
+
+bool MarioActor::sendMsgToSensor(HitSensor* pSensor, u32 msg) {
+    return pSensor->receiveMessage(msg, getSensor("Body"));
+}
+
+bool MarioActor::sendMsgUpperPunch(HitSensor* pSensor) {
+    if (!mActionTable1080->isActionOk("アッパーパンチ")) {
+        return false;
+    }
+    if (pSensor && !MR::isDead(MR::getSensorHost(pSensor)) &&
+        pSensor->receiveMessage(5, getSensor("Body"))) {
+        if (mMario->isPlayerModeYoshi()) {
+            MR::startActionSound(mYoshiHolder->mYoshi, "Hit", -1, -1, -1);
+        } else {
+            mMario->playSound("声蹴り", -1);
+        }
+        if (!mMario->isSwimming()) {
+            mMario->changeAnimation("アッパーパンチ");
+        }
+        return true;
+    }
+    return false;
+}
+
+const TVec3f& MarioActor::getLastMove() const {
+    return mLastMove;
+}
+
+void MarioActor::getLastMove(TVec3f* pVec) const {
+    *pVec = mLastMove;
+}
+
+void MarioActor::getFrontVec(TVec3f* pVec) const {
+    *pVec = mMario->mFrontVec;
+}
+
+const TVec3f& MarioActor::getTransForCamera() const {
+    return mCameraTrans;
+}
+
+bool MarioActor::isCameraStateOn(SPECIAL_STATUS_FOR_CAMERA status) const {
+    switch (status) {
+    case CASE_0:
+        if (mMario->isStatusActive(MarioStatus_FireDance)) {
+            return true;
+        }
+
+        break;
+
+    case CASE_1:
+        if (isJumping() && mMario->_430 == 11) {
+            return true;
+        }
+
+        break;
+    }
+
+    return false;
+}
+
+void MarioActor::decLife(u16 amt) {
+    if (((getMovementStates().mLowWord >> 0) & 1U)) return;
+    if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
+        MR::decCometTimer(1200);
+        return;
+    }
+    if (amt && _92C > amt) _92C = amt;
+    if (_92C == 0) {
+        decreaseLifeByOne();
+        _92C = 0;
+        fn_803D9740();
+    }
+}
+
+void MarioActor::incLife(u32 amt) {
+    if (isEnableNerveChange() && !_B68) {
+        const u32 health = getHealth();
+        if (mHealth != mMaxHealth) {
+            mMario->playSound("ライフ回復");
+        }
+
+        mHealth += amt;
+        if (mHealth >= mMaxHealth) {
+            mHealth = mMaxHealth;
+        }
+
+        if (health == 1 && mMarioAnim->isAnimationStop()) {
+            mMarioAnim->changeTrackAnim(3, "ノーマルウエイト");
+            if (mMario->_970 && strcmp(mMario->_970, "DamageWait")) {
+                mMario->startBas(nullptr, false, 0.0f, 0.0f);
+                fn_803BBFD0(nullptr);
+            }
+        }
+    }
+}
+
+void MarioActor::decLifeLarge() {
+    decLife(0);
+}
+
+void MarioActor::decLifeMiddle() {
+    decLife(0);
+}
+
+void MarioActor::fn_803B9270() {
+    this->decLife(0);
+}
+
+void MarioActor::changeMaxLife(s32 max) {
+    mMaxHealth = max;
+    while (mHealth != max) {
+        if (mHealth > max) {
+            decLife(0);
+        } else if (mHealth < max) {
+            incLife(1);
+        } else {
+            break;
+        }
+    }
+}
 
 void MarioActor::calcBaseFrontVec(const TVec3f& rVec) {
     TVec3f cross, j(0.0f, 1.0f, 0.0f);
@@ -524,65 +1253,1161 @@ void MarioActor::calcBaseFrontVec(const TVec3f& rVec) {
     }
 }
 
-
-void MarioActor::playSound(const char* pName, s32 duration) {
-    mMario->playSound(pName, duration);
+bool MarioActor::fn_803B93E0() {
+    return MR::isNearZero(mPreviousGravityVec, 0.001f);
 }
 
-
-void MarioActor::getFrontHistoryVec(TVec3f* out) {
-    mFrontHistory->getFront(out);
+void MarioActor::setPlayerMode(u16 mode, bool a, bool b) {
+    if (mode != 3) {
+        (this->mMario)->mFlags14.mHighWord &= 0xFFBFFFFF;
+    }
+    if (!this->fn_803CB1A0(mode)) {
+        if (this->mMario->isStatusActive(0x18)) {
+            this->mMario->closeStatus(nullptr);
+        }
+        reinterpret_cast<s16&>(this->_3DC) = 0;
+        this->_A6E = 0;
+        this->fn_803CB2E0(mode);
+        this->fn_803CB510(mode, a);
+        if (mPlayerMode == 0) {
+            this->fn_803CBA90(a, b);
+        } else {
+            this->fn_803CBB30(b);
+        }
+        this->updateHandAtMorph();
+    }
 }
 
-
-
-
-void MarioActor::changeAnimationNonStop(const char* pName) {
-    mMario->changeAnimationNonStop(pName);
+void MarioActor::fn_803B94E0() {
+    Mario* m = this->mMario;
+    if (m->mCometHopperArea == 0) {
+        if (((m)->mMovementStates.mLowWord >> 0x10) & 1) {
+            m->forceStopTornado();
+        }
+        if (mActionTable1080->isActionOk("ダメージ解除")) {
+            this->setPlayerMode(0, true, true);
+        }
+    }
 }
 
+void MarioActor::fn_803B9560() {
+    if (mActionTable1080->isActionOk("ノーダメージ解除")) {
+        this->setPlayerMode(0, true, true);
+    }
+}
 
-void MarioActor::changeAnimationUpper(const char* pName) {
-    if (mMario->mTargetWalkSpeedIndex == 0 && isAnimationRun("基本")) {
-        mMario->changeAnimation(pName);
+void MarioActor::setPress(u8 myChar, s32 myInt) {
+    if (_390 != 0) {
         return;
     }
 
-    mMario->changeAnimationUpper(pName);
-}
-
-
-void MarioActor::stopAnimation(const char* pName) {
-    mMario->stopAnimation(pName);
-}
-
-
-bool MarioActor::isAnimationRun(const char* pName) const {
-    return mMario->isAnimationRun(pName);
-}
-
-
-void MarioActor::changeNullAnimation(const char* pName, s8 num) {
-    mNullAnimation->appear();
-    MR::startAction(mNullAnimation, pName);
-    _B92 = num;
-}
-
-
-void MarioActor::clearNullAnimation(s8 num) {
-    _B92 = num;
-    mNullAnimation->kill();
-}
-
-
-bool MarioActor::isStopNullAnimation() const {
-    if (!MR::isActionEnd(mNullAnimation)) {
-        return MR::isDead(mNullAnimation);
+    if (myChar == 0 && mMario->calcDistToCeil(false) >= 160.0f) {
+        return;
     }
 
+    if (((getMario()->mFlags14.mLowWord >> 2) & 1U)) {
+        return;
+    }
+
+    if (mCounter6C8 == 0 || mCounter6C8 == 2) {
+        // Missing instruction
+        *mMario->_480 = *mMario->mGroundPolygon;
+        *mMario->_484 = *mMario->_4C8;
+    }
+
+    if (mMario->isStatusActive(MarioStatus_Blown)) {
+        mMario->closeStatus(nullptr);
+    }
+
+    mMario->startPadVib("マリオ[つぶれ]");
+
+    MR::forceDeleteEffectAll(this);
+
+    mVelocity.zero();
+
+    if (myInt == 0) {
+        myInt = 240;
+    }
+
+    _390 = myInt;
+
+    mMario->mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    mMario->mMovementStates.mLowWord &= 0xFFFEFFFFU;
+
+    mMario->stopJump();
+
+    mMario->mMovementStates.mLowWord |= 0x40000000U;
+
+    mMario->_13C.zero();
+    mMario->_148.zero();
+    mMario->_154.zero();
+
+    mMario->mVerticalSpeed = 0.0f;
+
+    mMario->stopWalk();
+
+    mMarioAnim->setSpeed(0.0f);
+
+    _B90 = true;
+    mCounter6C8 = myChar;
+    _F44 = false;
+
+    mMario->playSound("プレスダメージ");
+    if (mMario->isPlayerModeYoshi()) {
+        MR::startActionSoundPlayer("DeathInstant", -1, -1);
+    } else {
+        mMario->playSound("声大ダメージ");
+    }
+
+    _FB4 = GET_NERVE(MarioActor, MarioActorNrvGameOver);
+    _FB8 = 60;
+
+    if (mCounter6C8 != 4) {
+        _390 = 1000;
+    }
+
+    for (u32 idx = 0; idx < 6; idx++) {
+        decLife(0);
+    }
+
+    MR::startStarPointerModeDemoMarioDeath(this);
+    mMario->mPosHolder->fn_804060C0();
+}
+
+Yoshi* MarioActor::getYoshi() {
+    return mYoshiHolder->mYoshi;
+}
+
+void* MarioActor::fn_803B9800() {
+    return mYoshiHolder->fn_8041B6F0();
+}
+
+YoshiTongueAction* MarioActor::fn_803B9810() {
+    return mYoshiHolder->mTongueAction;
+}
+
+void* MarioActor::fn_803B9820() {
+    return mYoshiHolder->_C;
+}
+
+YoshiHolder* MarioActor::fn_803B9830() {
+    return mYoshiHolder;
+}
+
+bool MarioActor::fn_803B9840() {
+    return mYoshiHolder != nullptr;
+}
+
+MtxPtr MarioActor::fn_803B9850() {
+    return mYoshiHolder->mYoshi->getBaseMtx();
+}
+
+void MarioActor::fn_803B9870() {
+    if (this->mMario->isPlayerModeYoshi()) {
+        mYoshiHolder->mYoshi->fn_8040CF20();
+    }
+}
+
+void MarioActor::fn_803B98C0() {
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->_3C = 1;
+    }
+}
+
+void MarioActor::fn_803B98E0() {
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->_3C = 0;
+    }
+}
+
+s32 MarioActor::fn_803B9900() {
+    YoshiHolder* p = mYoshiHolder;
+    if (p != nullptr) {
+        return p->_3C;
+    }
+    return 0;
+}
+
+bool MarioActor::fn_803B9920() {
+    if (!this->mMario->isPlayerModeYoshi()) {
+        return false;
+    }
+    if (_934 != 0 || this->_38C != 0) {
+        return false;
+    }
+    if (this->_935 != 0) {
+        return false;
+    }
+    Mario* m = this->mMario;
+    u32 r = (m)->mFlags14.mHighWord;
+    if ((r >> 0x14) & 1) {
+        return false;
+    }
+    if ((r >> 0x15) & 1) {
+        return false;
+    }
+    if (((m)->mMovementStates.mLowWord >> 0x1F) == 1 && !m->isRising() && (((this->mMario)->mMovementStates.mLowWord >> 0xC) & 1)) {
+        return true;
+    }
+    return this->checkButtonType(mInputConfig->_8, false);
+}
+
+void MarioActor::fn_803B9A10() {
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BAE0();
+    }
+}
+
+void MarioActor::fn_803B9A30() {
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BAF0();
+    }
+}
+
+void MarioActor::fn_803B9A50() {
+    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
+        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BB00();
+    }
+}
+
+s32 MarioActor::fn_803B9A70() {
+    YoshiHolder* p = mYoshiHolder;
+    if (p != nullptr) {
+        return p->fn_8041BB30();
+    }
+    return 0;
+}
+
+f32 MarioActor::fn_803B9A90() {
+    YoshiHolder* p = mYoshiHolder;
+    if (p != nullptr) {
+        return p->fn_8041BB50();
+    }
+    return 0.0f;
+}
+
+bool MarioActor::fn_803B9AB0() {
+    YoshiHolder* p = mYoshiHolder;
+    if (p == nullptr) {
+        return false;
+    }
+    if (p->mRideModelActor == nullptr) {
+        return false;
+    }
+    return !MR::isDead(p->mRideModelActor);
+}
+
+void MarioActor::calcHeadPos() {
+    TMtx34f mtx;
+    const char* pName = "CapPosition";
+    getRealMtx(mtx, pName);
+    MR::extractMtxTrans(mtx, &mCapPosition);
+}
+
+void MarioActor::setUpperRotateY(f32 angle) {
+    mMarioAnim->setUpperRotateY(angle);
+}
+
+void MarioActor::updateGravityVec(bool reset, bool usePosition) {
+    TVec3f gravity;
+    fn_803CA270(&gravity, usePosition);
+    bool resetGround = false;
+    if (!reset) {
+        if (_334) gravity = mPreviousGravityVec;
+        else resetGround = fn_803CA440(mPreviousGravityVec, gravity);
+        if (MR::isNearZero(gravity, 0.001f)) mMario->mFlags14.mLowWord |= 0x10000000;
+    } else {
+        _334 = 0;
+    }
+    fn_803CA710(mPreviousGravityVec, gravity);
+    mPreviousGravityVec = gravity;
+    fn_803CA860(gravity);
+    fn_803C9920(gravity);
+    applyGravityVec(gravity, resetGround);
+    fn_803CAA00();
+    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->mGravity.set<f32>(*mMario->getGravityVec());
+}
+
+bool MarioActor::tryJetAttack(HitSensor* pReceiver) {
+    return MR::sendArbitraryMsg(ACTMES_JET_TURTLE_ATTACK, pReceiver, getSensor("dummy"));
+}
+
+bool MarioActor::releaseThrowMemoSensor() {
+    // FIXME: missing class at 0x988 that has HitSensor* at 0xA4
+    if (_468 != 0) {
+        if (mMario->isStatusActive(MarioStatus_Wall) || mMario->isStatusActive(MarioStatus_SideStep)) {
+            return false;
+        }
+
+        if (mMario->isSwimming() && mSearchLight->_A4 != nullptr) {
+            _470 = mSearchLight->_A4;
+        }
+
+        s32 idx = _468 - 1;
+        if (_470 != nullptr) {
+            TVec3f diff = _470->mPosition - _240;
+
+            if (mMario->isSwimming()) {
+                TVec3f throwVec;
+                getThrowVec(&throwVec);
+                if (MR::diffAngleAbs(diff, throwVec) > PI / 3.0f) {
+                    _470 = nullptr;
+                }
+            } else if (MR::diffAngleAbs(diff, mMario->mFrontVec) > PI / 3.0f) {
+                _470 = nullptr;
+            }
+        }
+
+        if (_470 == nullptr || !mMario->isSwimming()) {
+            if (_F24 != nullptr) {
+                if (!_428[idx]->receiveMessage(ACTMES_THROW, _F24)) {
+                    return false;
+                }
+            } else if (!_428[idx]->receiveMessage(ACTMES_THROW, getSensor("Body"))) {
+                return false;
+            }
+
+            _474 = 0;
+        } else {
+            if (!_428[idx]->receiveMessage(ACTMES_THROW, _470)) {
+                return false;
+            }
+
+            _474 = _470;
+        }
+
+        _468--;
+
+        if (_468 == 0) {
+            _470 = nullptr;
+            _47C = 0;
+            _428[0] = nullptr;
+        }
+
+        clearNullAnimation(0);
+
+        _3AC = 60;
+
+        return true;
+    }
+
+    return false;
+}
+
+void MarioActor::fn_803B9F10() {
+    this->tryReleaseWithMsg(0x2F);
+    this->updateSearchLight();
+    if (_424 != nullptr) {
+        _424->receiveMessage(0x2F, this->getSensor("Body"));
+        _424 = nullptr;
+    }
+}
+
+void MarioActor::damageDropThrowMemoSensor() {
+    tryReleaseWithMsg(ACTMES_DAMAGEDROP);
+    updateSearchLight();
+    tryReleaseBombTeresa();
+
+    if (_424 != nullptr) {
+        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("Body"));
+        _424 = nullptr;
+    }
+}
+
+void MarioActor::rushDropThrowMemoSensor() {
+    tryReleaseWithMsg(ACTMES_RUSHDROP);
+    updateSearchLight();
+
+    if (_424 != nullptr) {
+        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("Body"));
+        _424 = nullptr;
+    }
+}
+
+void MarioActor::fn_803BA070() {
+    if (static_cast<s32>(_468) == 0) {
+        if (this->mMario->isAnimationRun("ひろいクイック")) {
+            this->mMario->stopAnimationUpperForce();
+            this->_B92 = 0;
+            mNullAnimation->kill();
+            this->_480 = 0;
+        }
+    } else {
+        for (u32 i = 0; i < (u32)static_cast<s32>(_468); i++) {
+            if (this->fn_803CEEE0(_428[i])) {
+                _428[i]->receiveMessage(0x2D, this->getSensor("Body"));
+                _428[i] = nullptr;
+                _468 -= 1;
+            } else if (_428[i] != nullptr) {
+                this->fn_803D5A00(i);
+            }
+        }
+        _474 = nullptr;
+        if (static_cast<s32>(_468) == 0) {
+            this->mMario->stopAnimationUpperForce();
+            this->mMario->mSwim->resetJet();
+        }
+        if (this->_480 != 0) {
+            this->mMario->stopAnimationUpperForce();
+            this->_480 = 0;
+        }
+        this->_B92 = 0;
+        mNullAnimation->kill();
+        this->tryReleaseWithMsg(0x2D);
+        this->updateSearchLight();
+        if (_424 != nullptr) {
+            _424->receiveMessage(0x2C, this->getSensor("Body"));
+            _424 = nullptr;
+        }
+    }
+}
+
+void MarioActor::fn_803BA220() {
+    this->_480 = 0;
+}
+
+void MarioActor::tryTornadoPull(HitSensor* pSensor) {
+    if (!mActionTable1080->isActionOk("コイン引っ張り")) {
+        return;
+    }
+
+    s32 type = pSensor->mType;
+    if (strcmp(MR::getSensorHost(pSensor)->mName, "カメックビーム用カメ") == 0) {
+        type = 5555;
+    }
+
+    switch (type) {
+    case 0x46: {
+        if (mPlayerMode == 7 || IsMarioSwimming()) {
+            TVec3f center(_240);
+            TVec3f ground;
+            ground = mMario->mGroundPos;
+            if (IsMarioSwimming()) {
+                ground = center - mBodyUpDirection * 600.0f;
+            }
+
+            center += mMario->mHeadVec * 200.0f;
+            TVec3f position(*MR::getSensorPos(pSensor));
+            TVec3f foot;
+            f32 projection = MR::getFootPoint(center, ground, position, &foot);
+            if (projection < -0.1f) {
+                return;
+            }
+
+            if (projection > 2.0f) {
+                return;
+            }
+
+            if (PSVECDistance(&foot, &position) > 600.0f) {
+                return;
+            }
+
+            TVec3f collisionOffset(*MR::getSensorPos(pSensor));
+            collisionOffset -= _240;
+            if (mMario->fn_803B2880(_240, collisionOffset)) {
+                return;
+            }
+
+            for (s32 i = 0; i < 128; i++) {
+                if (mPulledSensors7C0[i] == pSensor) {
+                    return;
+                }
+            }
+
+            pSensor->receiveMessage(0x85, getSensor("Body"));
+            if (pSensor->receiveMessage(0x85, getSensor("Body"))) {
+                for (s32 i = 0; i < 128; i++) {
+                    if (mPulledSensors7C0[i] == nullptr) {
+                        mPulledSensors7C0[i] = pSensor;
+                        return;
+                    }
+                }
+            }
+        }
+
+        break;
+    }
+
+    case 0x12:
+    case 0x13:
+        if (mActionTable1080->isActionOk("カメ持ち") && pSensor->receiveMessage(0x84, getSensor("Body"))) {
+            if (PSVECDistance(&mPosition, MR::getSensorPos(pSensor)) < 120.0f) {
+                mConditionGroup->tryGetItem(pSensor);
+                return;
+            }
+
+            LiveActor* host = MR::getSensorHost(pSensor);
+            tryPullTrans(&host->mVelocity, *MR::getSensorPos(pSensor));
+            pSensor->receiveMessage(0x85, getSensor("Body"));
+            _424 = pSensor;
+        }
+
+        break;
+    case 5555:
+        if (mActionTable1080->isActionOk("カメ持ち") && pSensor->receiveMessage(0x84, getSensor("Body"))) {
+            LiveActor* host = MR::getSensorHost(pSensor);
+            tryPullTrans(&host->mVelocity, *MR::getSensorPos(pSensor));
+            pSensor->receiveMessage(0x85, getSensor("Body"));
+        }
+
+        break;
+    }
+}
+
+void MarioActor::resetCondition() {
+    bool inWater = false;
+
+    if (_EA5) {
+        MR::extractMtxTrans(mRemoteDemoMtx4E4.mMtx, &mPosition);
+        mMario->mPosHolder->fn_80405F90(mPosition);
+    }
+
+    if (mMario->mSwim->fn_803FD5E0(1)) {
+        inWater = true;
+    }
+
+    mMario->stopAnimationUpper(nullptr, nullptr);
+
+    if (((mMario->mMovementStates.mLowWord >> 21) & 1U)) {
+        mMario->cancelSquatMode();
+    }
+
+    mMarioAnim->setAnimationPaused(true);
+    mMario->forceStopTornado();
+    updateTornado();
+
+    mMario->mSwim->mColdWaterDamageInterval = 0;
+    mMario->mFlags20.mWord &= 0xEFFFFFFFU;
+
+    if (mMario->isStatusActive(MarioStatus_Swim) && inWater) {
+        if (!_468) {
+            mMario->mSwim->resetJet();
+        }
+    } else if (mMario->isStatusActive(MarioStatus_Teresa) && mPlayerMode == 6) {
+        if (mMario->isStatusActive(MarioStatus_Wait)) {
+            mMario->closeStatus(mMario->mWait);
+        }
+
+        mMario->resetTeresaMode();
+    } else {
+        mMario->closeStatus(nullptr);
+    }
+
+    bool was1F = ((mMario->mMovementStates.mLowWord >> 0) & 1U);
+    mMario->mMovementStates.mLowWord = 0;
+    mMario->mMovementStates.mHighWord = 0;
+    mMario->mFlags14.mLowWord = 0;
+    mMario->mFlags14.mHighWord = 0;
+    { const u32 flagValue = static_cast<u32>(was1F); u32& flags = mMario->mMovementStates.mLowWord; flags = (flags & 0xFFFFFFFEU) | ((flagValue & 1U) << 0); }
+
+    resetPadSwing();
+
+    if (mMario->isStatusActive(MarioStatus_Swim) && inWater) {
+        if (_468) {
+            mMario->changeAnimation("水泳ジェット", "水泳ジェット");
+        } else {
+            mMario->changeAnimation(nullptr, "水泳基本");
+        }
+    } else {
+        mMario->changeAnimation(nullptr, "基本");
+
+        if (_468) {
+            mMarioAnim->waterToGround();
+        }
+    }
+
+    mMario->setFrontVecKeepUp(mMario->mFrontVec);
+    updateGravityVec(true, true);
+
+    if (!MR::isNearZero(mPreviousGravityVec)) {
+        mMario->setHeadVec(-mPreviousGravityVec);
+    }
+
+    mMario->_1FC = mMario->mHeadVec;
+    mMario->_13C.zero();
+    mMario->_148.zero();
+    mMario->_154.zero();
+    mMario->mVerticalSpeed = 0.0f;
+    mMario->_474->mIdx = -1;
+    stopEffect("いい汗");
+    stopEffect("雲尻落ルイージ");
+    stopEffect("雲尻落");
+    stopEffect("ホッパー尻落ルイージ");
+    stopEffect("ホッパー尻落");
+    stopEffect("尻落ルイージ");
+    stopEffect("尻落");
+
+    if (_9C4 != nullptr) {
+        _9C4->kill();
+        MR::offCalcAnim(_9C4);
+    }
+
+    for (u32 i = 0; i < 11; i++) {
+        mMario->_984[i] = nullptr;
+    }
+
+    if (_EA5) {
+        mMario->changeAnimationInterpoleFrame(0);
+        mBlendMtxTimer = 0;
+    }
+}
+
+bool MarioActor::sendPunch(HitSensor* pSensor, const Triangle* triangle, bool playSound) {
+    if (mMario->isDamaging()) {
+        _944 = false;
+        return false;
+    }
+    if (playSound && mPlayerMode == 3) {
+        bool hit = doFreezeAttack(pSensor);
+        if (hit && !mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "スピンヒット音")) MR::startSpinHitSound(this);
+        return hit;
+    }
+    if (fn_803CFCA0(pSensor)) return false;
+    _FCC = true;
+    mPunchTriangle106C = triangle;
+    bool hit = MR::sendMsgPlayerPunch(pSensor, getSensor("Body"));
+    _FCC = false;
+    mPunchTriangle106C = nullptr;
+    if (playSound && hit && !mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "スピンヒット音")) MR::startSpinHitSound(this);
+    return hit;
+}
+
+bool MarioActor::sendBodyAttack(HitSensor* pSensor) {
+    bool isStatus = true;
+    if (mMario->getCurrentStatus() != MarioStatus_None && (s32)mMario->getCurrentStatus() != (s32)MarioStatus_Skate) {
+        isStatus = false;
+    }
+
+    if (isStatus && !((getMovementStates().mLowWord >> 23) & 1U) && !mMario->isDamaging() && !((getMovementStates().mLowWord >> 20) & 1U)) {
+        TVec3f newPos(*MR::getSensorPos(pSensor) - getSensor("Body")->mPosition);
+        TVec3f* frontVec = &mMario->mFrontVec;
+        if (MR::diffAngleAbsHorizontal(newPos, *frontVec, *mMario->getGravityVec()) >= HALF_PI) {
+            return false;
+        }
+
+        if (MR::sendArbitraryMsg(0x35, pSensor, getSensor("Body"))) {
+            if (mMario->isPlayerModeYoshi()) {
+                MR::startActionSound(mYoshiHolder->mYoshi, "Hit", -1, -1, -1);
+            } else {
+                mMario->playSound("声ランニングキック", -1);
+            }
+            mMario->changeAnimation("ランニングキック", static_cast<const char*>(nullptr));
+            mMario->startPadVib(2);
+
+            if (!MR::sendArbitraryMsg(0x27, pSensor, getSensor("Body"))) {
+                printHitMark(pSensor);
+            }
+
+            return true;
+        }
+    }
+
+    if (mPlayerMode == 1 && MR::sendArbitraryMsg(0xE, pSensor, getSensor("Body"))) {
+        mMario->startPadVib(2);
+        printHitMark(pSensor);
+
+        return true;
+    }
+
+    return false;
+}
+
+void MarioActor::reactionPunch(HitSensor* pSensor) {
+    if (mPlayerMode == 1) {
+        return;
+    }
+
+    if (isJumping()) {
+        _38C = 5;
+    } else {
+        _38C = 5;
+        if (mMario->mWalkSpeed > 0.1f) {
+            mMario->mWalkSpeed = 0.1f;
+            mMario->mTargetWalkSpeedIndex = 1;
+        }
+    }
+
+    if (!((getMovementStates().mHighWord >> 20) & 1U)) {
+        jumpHop();
+    }
+
+    if (!MR::sendArbitraryMsg(ACTMES_HITMARK_EMIT, pSensor, getSensor("Body"))) {
+        printHitMark(pSensor);
+    }
+
+    mMario->startPadVib(2);
+
+    if (pSensor->isType(ATYPE_BEGOMAN)) {
+        mMario->stopWalk();
+
+        TVec3f reactDir(_240 - *MR::getSensorPos(pSensor));
+        MR::vecKillElement(reactDir, *mMario->getGravityVec(), &reactDir);
+        reactDir.setLength(20.0f);
+        mMario->addReaction(reactDir);
+    }
+
+    if (mMario->isSwimming()) {
+        TVec3f punchDir(_240 - *MR::getSensorPos(pSensor));
+        punchDir.setLength(5.0f);
+        mMario->mSwim->hitPunch(punchDir);
+    }
+}
+
+bool MarioActor::isEnableNerveChange() const {
+    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvWait))) {
+        return true;
+    }
+
+    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvNoRush))) {
+        return true;
+    }
+
+    return false;
+}
+
+bool MarioActor::isEnableMoveMario() const {
+    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvWait))) {
+        return true;
+    }
+
+    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvNoRush))) {
+        return true;
+    }
+
+    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverNonStop))) {
+        return true;
+    }
+
+    return false;
+}
+
+void MarioActor::forceGameOver() {
+    if (!isEnableNerveChange()) {
+        return;
+    }
+
+    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOver));
+}
+
+void MarioActor::forceGameOverAbyss() {
+    if (!isEnableNerveChange()) {
+        return;
+    }
+
+    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverAbyss));
+}
+
+void MarioActor::forceGameOverNonStop() {
+    if (!isEnableNerveChange()) {
+        return;
+    }
+
+    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverNonStop));
+}
+
+void MarioActor::fn_803BAFE0() {
+    if (this->isEnableNerveChange()) {
+        this->setNerve(&NrvMarioActor::MarioActorNrvGameOverSink::sInstance);
+    }
+}
+
+void MarioActor::forceGameOverSink() {
+    if (!isEnableNerveChange()) {
+        return;
+    }
+
+    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverNoDemo));
+}
+
+void MarioActor::forceKill(u32 type) {
+    if (((mMario->getMovementStates().mLowWord >> 0) & 1U) && !MR::isGalaxyRainbowCometAppearInCurrentStage()) {
+        return;
+    }
+
+    if (!isEnableNerveChange()) {
+        return;
+    }
+
+    _A6E = 0;
+
+    if (!MR::isDead(_994)) {
+        _994->kill();
+    }
+
+    if (mMario->isStatusActive(MarioStatus_FpView)) {
+        mMario->mFpView->forceClose();
+        mMario->closeStatus(nullptr);
+    }
+
+    fn_803BE6F0();
+    MR::endGalaxyCometEvent();
+
+    if (type == 0) {
+        mMario->doAbyssDamage();
+        return;
+    }
+
+    if (type == 3) {
+        mMario->startPadVib(3);
+    }
+
+    if (type == 4) {
+        mMario->startPadVib(3);
+        initDarkMask();
+        mMario->doDarkDamage();
+
+        return;
+    }
+
+    _39D = type;
+    mHealth = 0;
+    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOver));
+}
+
+HitSensor* MarioActor::getNearestJumpTarget() const {
+    if (_930 == 0) {
+        return nullptr;
+    }
+
+    if (mHealth == 0) {
+        return nullptr;
+    }
+
+    f32 nearestDistance = 100000.0f;
+    HitSensor* nearest = nullptr;
+    for (u32 i = 0; i < _930; i++) {
+        if (!isFixJumpRushSensor(_7E4[i])) {
+            continue;
+        }
+
+        if (_924 == _7E4[i]) {
+            continue;
+        }
+
+        TVec3f position(_7E4[i]->mPosition);
+        f32 centerDistance;
+        f32 distance = (position - mPosition).length();
+        centerDistance = (position - _240).length();
+        f32 headDistance = (position - mCapPosition).length();
+        if (distance > centerDistance) {
+            distance = centerDistance;
+        }
+
+        if (distance > headDistance) {
+            distance = headDistance;
+        }
+
+        if ((mRushTouchingDD4[i] || !(_7E4[i]->mRadius < distance)) && distance < nearestDistance) {
+            nearest = _7E4[i];
+            nearestDistance = distance;
+        }
+    }
+
+    return nearest;
+}
+
+HitSensor* MarioActor::getHighPriorityTarget() const {
+    if (_930 == 0) {
+        return nullptr;
+    }
+
+    for (s32 idx = 0; idx < _930; idx++) {
+        if (_7E4[idx]->isType(ATYPE_POWER_STAR_BIND)) {
+            return _7E4[idx];
+        }
+
+        if (mHealth == 0) {
+            continue;
+        }
+
+        if (_7E4[idx]->isType(ATYPE_QUESTION_COIN_BIND)) {
+            return _7E4[idx];
+        }
+
+        if (_7E4[idx]->isType(ATYPE_PRIOR_BINDER)) {
+            return _7E4[idx];
+        }
+
+        if (_7E4[idx]->isType(ATYPE_SCENARIO_STARTER_BIND)) {
+            return _7E4[idx];
+        }
+    }
+
+    return nullptr;
+}
+
+HitSensor* MarioActor::getRescueTarget() const {
+    if (_930 == 0) {
+        return nullptr;
+    }
+
+    if (mHealth == 0) {
+        return nullptr;
+    }
+
+    for (s32 idx = 0; idx < _930; idx++) {
+        if (_7E4[idx]->isType(0x62)) {
+            return _7E4[idx];
+        }
+
+        if (mActionTable1080->testEffect(MR::getSensorHost(_7E4[idx])->mName, "ダメージ中RUSH")) {
+            return _7E4[idx];
+        }
+    }
+
+    return nullptr;
+}
+
+void MarioActor::fn_803BB4F0() {
+    if (mPlayerMode == 6) {
+        MR::requestMovementOn(mTeresaModel->mActor);
+    }
+}
+
+void MarioActor::fn_803BB510(const TVec3f& a, const TVec3f& b) {
+    MR::emitEffectHit(mTeresaModel->mActor, a, b, "WallHit");
+}
+
+void MarioActor::showFreezeModel() {
+    _9C4->appear();
+    MR::onCalcAnim(_9C4);
+    MR::startBva(_9C4, "Nomal");
+}
+
+void MarioActor::hideFreezeModel() {
+    MR::startAction(_9C4, "Break");
+    MR::startBva(_9C4, "Break");
+
+    mMario->startFreezeEnd();
+}
+
+bool MarioActor::fn_803BB5F0() {
+    if (MR::isActionEnd(_9C4)) {
+        _9C4->kill();
+        MR::offCalcAnim(_9C4);
+        return false;
+    }
     return true;
 }
 
+void MarioActor::syncJumpBeeStickMode() {
+    if (mBeeWallWalk != 0 && selectQuickResetBeeWallGravity(MR::getSensorHost(mMario->_45C->mSensor)->mName)) {
+        mBeeWallWalk = 0;
+        _9F2 = 30;
+    }
+
+    if (!(MR::diffAngleAbs(_360, getGravityVec()) < MR::pi() / 36.0f)) {
+        return;
+    }
+
+    _33C = mPosition - mMario->mFrontVec * 2.0f;
+    _354 = mPosition - _33C;
+    _360 = _240 - _33C;
+    MR::normalize(&_360);
+}
+
+void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal) {
+    if (mBeeWallWalk) {
+        return;
+    }
+
+    if (!_9F2) {
+        mBeeWallWalk = 5;
+        TVec3f gravity(-normal);
+        mAppliedGravityVec = gravity;
+        mPosition = position;
+        mMario->setTrans(position);
+        mMario->stopJump();
+        mMario->stopAnimation(nullptr);
+        mMario->stopWalk();
+        TVec3f front(mMario->mHeadVec);
+        mMario->setGravityVec(gravity);
+        mMario->setHeadVec(-gravity);
+        mMario->setFrontVecKeepUp(front, 1UL);
+        setBlendMtxTimer(2);
+        _38C = 5;
+        mMario->mMovementStates.mHighWord &= 0xFFFFFF7FU;
+        mCollisionShadow580->_305 = true;
+    }
+}
+
+void MarioActor::showBeeFur() {
+    if (mMario->isPlayerModeBee()) {
+        _9E8->appear();
+        _9EC->onDraw(-1);
+    }
+
+    if (getCarrySensor() != nullptr) {
+        MR::showModel(getCarrySensor()->mHost);
+    }
+
+    if (mMario->isPlayerModeInvincible()) {
+        MR::showJoint(static_cast<J3DModelX*>(mAllModel->getJ3DModel()), "Face0");
+        _A6E = 2;
+        playEffect("無敵中");
+    }
+}
+
+const HitSensor* MarioActor::getCarrySensor() const {
+    if (_468 == 0) {
+        return nullptr;
+    }
+
+    return _428[0];
+}
+
+void MarioActor::hideBeeFur() {
+    if (mMario->isPlayerModeBee()) {
+        _9E8->kill();
+        _9EC->offDraw(-1);
+    }
+
+    if (getCarrySensor() != nullptr) {
+        MR::hideModel(getCarrySensor()->mHost);
+    }
+
+    if (mMario->isPlayerModeInvincible()) {
+        _A6E = 0;
+        stopEffect("無敵中");
+    }
+}
+
+void* MarioActor::fn_803BBA20() {
+    return mAllModel->getJ3DModel();
+}
+
+void MarioActor::changeDisplayMode() {
+    mMarioAnim->setAnimationModel(mAllModel->getJ3DModel());
+    mModelManager->mDisplayListMaker->mModel = mAllModel->getJ3DModel();
+    if (_494 != nullptr) {
+        _494->setBaseMtx(MR::getJointMtx(this, "HandR"));
+    }
+    mSearchLightThrowPos->setBaseMtx(MR::getJointMtx(this, "HandR"));
+}
+
+void MarioActor::fn_803BBAD0() {
+    mActorEffectState->mActive = 1;
+}
+
+void MarioActor::initBlur() {
+    mBlurJointCount = mAllModel->fn_803E7B30();
+    for (u32 i = 0; i < 2; ++i) {
+        for (u32 j = 0; j < 8; ++j) {
+            mBlurMatrices[i][j] = new (0x20) Mtx[mBlurJointCount];
+            for (u32 k = 0; k < mBlurJointCount; ++k) PSMTXIdentity(mBlurMatrices[i][j][k]);
+        }
+    }
+    _A6E = 0;
+    mBlurHistoryIndex = 0;
+    mBlurBufferIndex = 0;
+}
+
+void MarioActor::createIceFloor(const TVec3f& rVec) {
+    TPos3f mtx;
+    mtx.identity();
+
+    TVec3f upVec;
+    getUpVec(&upVec);
+
+    MR::makeMtxUpFront(&mtx, -getAirGravityVec(), mMario->mFrontVec);
+
+    TVec3f vec;
+    mtx.getEuler(vec);
+
+    vec *= 180.0f / PI;
+    createIceFloor(rVec, vec);
+}
+
+void MarioActor::createIceFloor(const TVec3f& rVec1, const TVec3f& rVec2) {
+    _B4C[_B50]->setOn(_B50, rVec1, rVec2);
+
+    _B50 = (_B50 + 1) % 20;
+
+    if (!MR::isDead(_B4C[_B50])) {
+        _B4C[_B50]->destroy();
+    }
+}
+
+void MarioActor::createIceWall(const TVec3f& rVec1, const TVec3f& rVec2) {
+    TPos3f mtx;
+    mtx.identity();
+    TVec3f upVec;
+    getUpVec(&upVec);
+
+    MR::makeMtxFrontUp(&mtx, getGravityVector(), rVec2);
+
+    TVec3f vec;
+    mtx.getEuler(vec);
+    vec *= 180.0f / PI;
+    _B4C[_B50]->setOn(_B50, rVec1, vec);
+
+    _B50 = (_B50 + 1) % 20;
+
+    if (!MR::isDead(_B4C[_B50])) {
+        _B4C[_B50]->destroy();
+    }
+}
+
+void MarioActor::fn_803BBDD0(const TVec3f& a, const TVec3f& b, const TVec3f& c) {
+    if (this->mMario->isPlayerModeYoshi()) {
+        mYoshiHolder->fn_8041BBF0(a, b, c);
+    }
+}
+
+void MarioActor::doFreezeAttack() {
+    if (isAnimationRun("アイスひねり空中")) {
+        return;
+    }
+
+    if (isJumping()) {
+        if (mMario->_430 != 13) {
+            mMario->changeAnimation("アイスひねり空中");
+            playSound("スピンジャンプ", -1);
+            playSound("声スピン", -1);
+
+            if (mMario->_42C == 0) {
+                jumpHop();
+                mMario->_42C++;
+            }
+        }
+
+        return;
+    }
+
+    if (mMario->isSkatableFloor()) {
+        mMario->doSkate();
+        return;
+    }
+
+    if (!isAnimationRun("アイスひねり")) {
+        playSound("スケートスピン", -1);
+        playSound("スピンジャンプ", -1);
+        playSound("声パンチ", -1);
+    }
+
+    mMario->changeAnimation("アイスひねり");
+}
+
+bool MarioActor::doFreezeAttack(HitSensor* pSensor) {
+    MR::getSensorHost(pSensor);
+    return MR::sendArbitraryMsg(ACTMES_FREEZE_ATTACK, pSensor, getSensor("Body"));
+}
+
+void MarioActor::fn_803BBFD0(const char* name) {
+    if (name == nullptr) {
+        mEyeRes = nullptr;
+        return;
+    }
+    char buf[0x80];
+    snprintf(buf, 0x80, "%s%s", this->mMario->isPlayerModeYoshi() ? "Yoshi" : "", name);
+    if (MR::getResourceHolder(this)->mBtpResTable->isExistRes(buf)) {
+        J3DAnmTexPattern* r = static_cast<J3DAnmTexPattern*>(MR::getResourceHolder(this)->mBtpResTable->getRes(buf));
+        mEyeRes = r;
+        r->setFrame(0.0f);
+        return;
+    }
+    mEyeRes = nullptr;
+}
 
 void MarioActor::changeGameOverAnimation() {
     int animation = 0;
@@ -732,10 +2557,1142 @@ void MarioActor::changeGameOverAnimation() {
     _A6E = 0;
 }
 
+void MarioActor::fn_803BC440(const char* name) {
+    mNullAnimation->appear();
+    MR::startAction(mNullAnimation, name);
+    this->_B92 = -2;
+}
 
+void MarioActor::clearNullAnimation(s8 num) {
+    _B92 = num;
+    mNullAnimation->kill();
+}
 
+bool MarioActor::isStopNullAnimation() const {
+    if (!MR::isActionEnd(mNullAnimation)) {
+        return MR::isDead(mNullAnimation);
+    }
 
-// NONMATCHING: verified pooled literal addresses only.
+    return true;
+}
+
+void MarioActor::changeSpecialModeAnimation(const char* pAnimName) {
+    switch (mPlayerMode) {
+    case 6:
+        if (!strcmp(pAnimName, "特殊ウエイト1A")) {
+            changeTeresaAnimation("SleepStart", -1);
+            return;
+        }
+
+        if (strcmp(pAnimName, "特殊ウエイト1B")) {
+            return;
+        }
+
+        changeTeresaAnimation("Sleep", 16);
+        MR::emitEffect(mTeresaModel->mActor, "Sleep");
+    }
+}
+
+void MarioActor::fn_803BC5C0() {
+    Mario* m = this->mMario;
+    if (!((m->mMovementStates.mLowWord >> (0x15)) & 1) && m->getCurrentStatus() == 0) {
+        Mario* m2 = this->mMario;
+        if (((m2->mMovementStates.mLowWord >> (0x1E)) & 1) && (m2)->_960 == 0x20 && this->mMarioAnim->isAnimationStop()) {
+            this->mMarioAnim->fn_803DF0F0();
+            this->_B96 = 2;
+        }
+    } else {
+        this->_B96 = 0;
+    }
+    switch (mPlayerMode) {
+    case 6:
+        this->updateTeresaAnimation();
+        break;
+    case 4:
+        if (this->mBeeWallWalk != 0 && !this->isJumping() && this->mMarioAnim->isAnimationStop()) {
+            this->mMarioAnim->fn_803DF1B0();
+        }
+        break;
+    default:
+        reinterpret_cast<s16&>(this->mMario->_418) = 0;
+        break;
+    }
+    u8 t = this->_B96;
+    if (t != 0) {
+        u8 n = t - 1;
+        this->_B96 = n;
+        if (n == 0 && ((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1) && this->mMarioAnim->isAnimationStop()) {
+            this->mMarioAnim->fn_803DF2D0();
+        }
+    }
+}
+
+void MarioActor::changeTeresaAnimation(const char* pAnimation, s32 interpolation) {
+    if (MR::isBckPlaying(mTeresaModel->mActor, "sleep")) {
+        MR::deleteEffect(mTeresaModel->mActor, "Sleep");
+    }
+
+    if (interpolation == -1) {
+        MR::startAction(mTeresaModel->mActor, pAnimation);
+    } else {
+        MR::startBckWithInterpole(mTeresaModel->mActor, pAnimation, interpolation);
+    }
+
+    if (MR::isEqualString(pAnimation, "wait") || MR::isEqualString(pAnimation, "run")) {
+        mTeresaModel->_10 = MR::getRandom(60L, 180L);
+        MR::stopBtp(mTeresaModel->mActor);
+        return;
+    }
+
+    mTeresaModel->_10 = 0;
+    if (MR::isExistBtp(mTeresaModel->mActor, pAnimation)) {
+        MR::startBtp(mTeresaModel->mActor, pAnimation);
+        return;
+    }
+
+    MR::startBtp(mTeresaModel->mActor, "blink");
+}
+
+void MarioActor::runTeresaBaseAnimation() {
+    if (!mMario->isStatusActive(MarioStatus_Wait) && !mTeresaModel->mPlayer->isRun("基本")) {
+        mTeresaModel->mPlayer->changeAnimationBck("基本");
+        mTeresaModel->_10 = MR::getRandom(60L, 180L);
+        MR::startBtp(mTeresaModel->mActor, "blink");
+    }
+}
+
+void MarioActor::updateTeresaAnimation() {
+    bool canChange = true;
+    if (MR::isBckPlaying(mTeresaModel->mActor, "sleep")) {
+        bool moving = false;
+        if (mMario->fn_803AC810()) {
+            moving = true;
+        }
+
+        if (mMario->getStickP() != 0.0f) {
+            moving = true;
+        }
+
+        if (mMario->mJumpVec.length() > 1.0f) {
+            moving = true;
+        }
+
+        if (moving) {
+            runTeresaBaseAnimation();
+            MR::deleteEffect(mTeresaModel->mActor, "Sleep");
+        }
+    }
+
+    if (MR::isBckOneTimeAndStopped(mTeresaModel->mActor)) {
+        runTeresaBaseAnimation();
+    }
+
+    if (MR::isBckPlaying(mTeresaModel->mActor, "hit")) {
+        canChange = false;
+    }
+
+    if (MR::isBckPlaying(mTeresaModel->mActor, "spin") && !mMario->fn_803AC810()) {
+        canChange = false;
+    }
+
+    if (canChange) {
+        if (mMario->fn_803AC810()) {
+            if (!MR::isBckPlaying(mTeresaModel->mActor, "fly") && !MR::isBckPlaying(mTeresaModel->mActor, "spin")) {
+                changeTeresaAnimation("fly", 16);
+            }
+        } else if (MR::isBckPlaying(mTeresaModel->mActor, "fly") || mTeresaModel->mPlayer->isRun("基本")) {
+            if (getLastMove().dot(*mMario->getGravityVec()) >= 1.0f) {
+                changeTeresaAnimation("fall", 16);
+            } else if (!((mMario->mDrawStates.mWord >> 3) & 1U)) {
+                if (MR::abs(getLastMove().dot(*mMario->getGravityVec())) < 1.0f) {
+                    runTeresaBaseAnimation();
+                }
+            }
+        } else if (MR::isBckPlaying(mTeresaModel->mActor, "fall")) {
+            if (getLastMove().dot(*mMario->getGravityVec()) < 1.0f) {
+                runTeresaBaseAnimation();
+            }
+        }
+
+        if (mTeresaModel->mPlayer->isRun("基本")) {
+            mTeresaModel->_C = MR::clamp(mMario->mJumpVec.length() / 10.0f, 0.0f, 1.0f);
+            mTeresaModel->mPlayer->changeTrackWeight(0, 1.0f - mTeresaModel->_C);
+            mTeresaModel->mPlayer->changeTrackWeight(1, mTeresaModel->_C);
+        }
+    }
+
+    if (mMario->_418) {
+        if (!MR::isBckPlaying(mTeresaModel->mActor, "spin")) {
+            if (mMario->_418 > getConst().getTable()->mTeresaWallThroughTime - 3) {
+                changeTeresaAnimation("spin", -1);
+            }
+        }
+
+        if (mTeresaModel->_4 < getConst().getTable()->mTeresaAlphaLevelMax) {
+            mTeresaModel->_4 += getConst().getTable()->mTeresaAlphaLevelInc;
+        }
+
+        mMario->_418--;
+        if (!mMario->_418) {
+            mMario->playSound("テレサ現れる", -1);
+        }
+    } else {
+        if (mTeresaModel->_4 > 0.0f) {
+            mTeresaModel->_4 -= getConst().getTable()->mTeresaAlphaLevelDec;
+            if (mMario->mTeresa->_46) {
+                mTeresaModel->_4 -= getConst().getTable()->mTeresaAlphaLevelDec;
+            }
+        }
+    }
+
+    MR::setBrkFrameAndStop(mTeresaModel->mActor, mTeresaModel->_4);
+    if (mTeresaModel->_10) {
+        mTeresaModel->_10--;
+        if (!mTeresaModel->_10) {
+            mTeresaModel->_10 = MR::getRandom(90L, 240L);
+            MR::startBtp(mTeresaModel->mActor, "blink");
+        }
+    }
+}
+
+void MarioActor::playSound(const char* pName, s32 duration) {
+    mMario->playSound(pName, duration);
+}
+
+MultiEmitter* MarioActor::playEffect(const char* pName) {
+    s32 isBlocked = 0;
+    if (_482 || _483) {
+        isBlocked = 1;
+    }
+
+    if (isBlocked) {
+        return nullptr;
+    }
+
+    if (isCommonEffect(pName)) {
+        return playCommonEffect(pName);
+    }
+
+    if (isMaterialEffect(pName)) {
+        return playMaterialEffect(pName);
+    }
+
+    if (mMario->isPlayerModeYoshi()) {
+        MultiEmitter* emitter = MR::tryEmitEffect(mYoshiHolder->mYoshi, pName);
+        if (emitter != nullptr) {
+            return emitter;
+        }
+    }
+
+    return MR::emitEffect(this, pName);
+}
+
+s32 MarioActor::getFloorMaterialIndex(u32 flags) const {
+    s32 materialIndex = 0;
+
+    if (mMarioEffect->_10 == 0) {
+        return 2;
+    }
+
+    if (_3A8 != 0) {
+        return 1;
+    }
+
+    s32 floor = mMario->_960;
+    if ((floor == 0x0D || floor == 0x1E) && !mMario->isCurrentFloorSand()) {
+        floor = mMario->_962;
+    }
+
+    if (mMario->isStatusActive(MarioStatus_Wall)) {
+        if (((mMario->mMovementStates.mLowWord >> 23) & 1U)) {
+            floor = mMario->_964[0];
+        } else if (((mMario->mMovementStates.mLowWord >> 6) & 1U)) {
+            floor = mMario->_964[1];
+        } else if (((mMario->mMovementStates.mLowWord >> 5) & 1U)) {
+            floor = mMario->_964[2];
+        }
+    }
+
+    if (((mMario->mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13)) {
+        floor = 0x17;
+    }
+
+    if (((mMario->mDrawStates.mWord >> 12) & 1U)) {
+        floor = 0x17;
+    }
+
+    if (flags & 0x2) {
+        if (((mMario->mDrawStates.mWord >> 2) & 1U)) {
+            floor = 0x17;
+        }
+    }
+
+    if (mMario->_2D0 != 0.0f) {
+        floor = 0x1A;
+    }
+
+    if (mMario->_A7F != 0) {
+        floor = 0x20;
+    }
+
+    if (mMario->isPlayerModeBee() && MR::isWallCodeNoAction(mMario->mGroundPolygon)) {
+        return -1;
+    }
+
+    switch (floor) {
+    case 0x14:
+    case 0x15:
+    case 0x16:
+    case 0x17:
+        materialIndex = 1;
+        break;
+    case 0x0E:
+    case 0x21:
+        return -1;
+    case 0x0D:
+    case 0x1E:
+        materialIndex = 3;
+        break;
+    case 0x1A:
+    case 0x2B:
+        materialIndex = 4;
+        break;
+    case 0x20:
+        materialIndex = 5;
+        if (strcmp(MR::getSoundCodeString(mMario->_45C), "Honey") == 0) {
+            materialIndex = 6;
+        }
+
+        break;
+    case 0x1B:
+    case 0x1C:
+        if (strcmp(MR::getSoundCodeString(mMario->_45C), "Sand") == 0) {
+            materialIndex = 3;
+        }
+
+        break;
+    case 0x26:
+        materialIndex = 7;
+        break;
+    default:
+        break;
+    }
+
+    if (((mMario->mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13) || ((mMario->mDrawStates.mWord >> 12) & 1U)) {
+        materialIndex = 1;
+    }
+
+    if (!((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
+        if (mMario->mSwim->_1B2 != 0) {
+            if (mMario->mSwim->_1B8 < 400.0f) {
+                materialIndex = 1;
+            }
+        }
+    }
+
+    return materialIndex;
+}
+
+void MarioActor::playEffectTrans(const char* pName, const TVec3f& rTrans) {
+    MultiEmitter* emitter = playEffect(pName);
+    if (emitter != nullptr) {
+        emitter->setGlobalTranslation(rTrans, -1);
+    }
+}
+
+void MarioActor::playEffectRT(const char* pName, const TVec3f& rDir, const TVec3f& rTrans) {
+    if (MR::isNearZero(rDir)) {
+        return;
+    }
+
+    TVec3f rot;
+    TPos3f mtx;
+    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
+
+    MultiEmitter* emitter = playEffect(pName);
+    if (emitter != nullptr) {
+        emitter->forceFollowOff();
+        emitter->setGlobalTranslation(rTrans, -1);
+        emitter->setGlobalRotationDegree(rot, -1);
+    }
+}
+
+void MarioActor::playEffectRTZ(const char* pName, const TVec3f& rDir, const TVec3f& rTrans) {
+    if (MR::isNearZero(rDir)) {
+        return;
+    }
+
+    TVec3f rot;
+    TPos3f mtx;
+    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
+
+    MultiEmitter* emitter = playEffect(pName);
+    if (emitter != nullptr) {
+        emitter->forceFollowOff();
+        emitter->setGlobalTranslation(rTrans, -1);
+        emitter->setGlobalRotationDegree(rot, -1);
+    }
+}
+
+void MarioActor::playEffectRTW(const char* pName, const TVec3f& rDir, const TVec3f& rTrans) {
+    if (MR::isNearZero(rDir)) {
+        return;
+    }
+
+    TVec3f rot;
+    TPos3f mtx;
+    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
+
+    mEffectRotationFDC = rot;
+    mEffectTranslationFD0 = rTrans;
+    playEffect(pName);
+}
+
+void MarioActor::playEffectSRT(const char* pName, f32 scale, const TVec3f& rDir, const TVec3f& rTrans) {
+    if (MR::isNearZero(rDir)) {
+        return;
+    }
+
+    TVec3f rot;
+    TPos3f mtx;
+    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
+
+    MultiEmitter* emitter = playEffect(pName);
+    if (emitter != nullptr) {
+        emitter->setGlobalScale(scale, -1);
+    }
+
+    if (emitter != nullptr) {
+        emitter->setGlobalTranslation(rTrans, -1);
+    }
+
+    if (emitter != nullptr) {
+        emitter->setGlobalRotationDegree(rot, -1);
+    }
+}
+
+void MarioActor::stopEffect(const char* pName) {
+    if (isCommonEffect(pName)) {
+        stopCommonEffect(pName);
+        return;
+    }
+
+    if (isMaterialEffect(pName)) {
+        stopMaterialEffect(pName);
+        return;
+    }
+
+    if (mMario->isPlayerModeYoshi() && MR::tryDeleteEffect(mYoshiHolder->mYoshi, pName)) {
+        return;
+    }
+
+    MR::deleteEffect(this, pName);
+}
+
+void MarioActor::stopEffectForce(const char* pName) {
+    if (isCommonEffect(pName)) {
+        stopCommonEffect(pName);
+        return;
+    }
+
+    if (isMaterialEffect(pName)) {
+        stopMaterialEffect(pName);
+        return;
+    }
+
+    if (mMario->isPlayerModeYoshi() && MR::tryForceDeleteEffect(mYoshiHolder->mYoshi, pName)) {
+        return;
+    }
+
+    MR::forceDeleteEffect(this, pName);
+}
+
+void MarioActor::emitEffectWaterColumn(const TVec3f& rDir, const TVec3f& rTrans) {
+    if (MR::isNearZero(rDir)) {
+        return;
+    }
+
+    mWaterColumn->appear();
+    MR::startAction(mWaterColumn, "Splash");
+
+    TVec3f rot;
+    TPos3f mtx;
+    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
+
+    mWaterColumn->mPosition = rTrans;
+    mWaterColumn->mRotation = rot;
+    mWaterColumn->calcAnim();
+
+    MR::emitEffect(mWaterColumn, "Splash");
+    Mario* player = mMario;
+    player->fn_80395400(2);
+}
+
+bool MarioActor::checkEffectWaterColumn() {
+    if (MR::isActionEnd(mWaterColumn)) {
+        mWaterColumn->kill();
+        return false;
+    }
+
+    return true;
+}
+
+void MarioActor::updateRealMtx() {
+    updateBaseScaleMtx();
+    getRealMtx(mHandLMatrix.toMtxPtr(), "HandL");
+    getRealMtx(mHandRMatrix.toMtxPtr(), "HandR");
+    PSMTXCopy(MR::getJointMtx(this, "HandL"), mHandLJointMatrix.toMtxPtr());
+    PSMTXCopy(MR::getJointMtx(this, "HandR"), mHandRJointMatrix.toMtxPtr());
+    PSMTXCopy(MR::getJointMtx(this, "Face0"), mFaceJointMatrix.toMtxPtr());
+    getRealMtx(mFootRMatrix.toMtxPtr(), "FootR");
+    getRealMtx(mSpine1Matrix.toMtxPtr(), "Spine1");
+    getRealMtx(mCapMatrix.toMtxPtr(), "CapPosition");
+    getRealMtx(mHipMatrix.toMtxPtr(), "Hip");
+    getRealMtx(mSpine2Matrix.toMtxPtr(), "Spine2");
+    TVec3f stack_50;
+    MR::extractMtxTrans(mSpine2Matrix.toMtxPtr(), &stack_50);
+    if (MR::isNan(stack_50)) {
+        MR::getJointMtx(this, "Spine2");
+        getBaseMtx();
+    }
+
+    bool notStatus12 = true;
+    if (mMario->isStatusActive(MarioStatus_FpView)) {
+        notStatus12 = false;
+    }
+
+    if (!notStatus12) {
+        return;
+    }
+
+    TVec3f stack_44, stack_38;
+    MR::extractMtxTrans(mCapMatrix.toMtxPtr(), &stack_44);
+    MR::extractMtxTrans(mHipMatrix.toMtxPtr(), &stack_38);
+    mBodyUpDirection = stack_44 - stack_38;
+    mBodyDownDirection = stack_38 - stack_44;
+    if (MR::normalizeOrZero(&mBodyUpDirection)) {
+        mBodyUpDirection = mMario->mHeadVec;
+    }
+
+    if (MR::normalizeOrZero(&mBodyDownDirection)) {
+        mBodyDownDirection = -mMario->mHeadVec;
+    }
+
+    if (((mMario->getMovementStates().mLowWord >> 21) & 1U) && ((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
+        mBodyDownDirection = -mMario->mHeadVec;
+    }
+
+    mCapPosition = stack_44;
+}
+
+void MarioActor::updateBaseScaleMtx() {
+    if (((mMario->mMovementStates.mHighWord >> 3) & 1U)) {
+        PSMTXScale(mJointTransform294.toMtxPtr(), mScale.x, mScale.y, mScale.z);
+    } else {
+        PSMTXIdentity(mJointTransform294.toMtxPtr());
+    }
+}
+
+void MarioActor::getRealMtx(MtxPtr pMtx, const char* pName) const {
+    MR::multMtx(pMtx, (MtxPtr)&mJointTransform294, MR::getJointMtx(this, pName));
+    TVec3f stack_8(mMario->_13C);
+    MR::addTransMtx(pMtx, stack_8);
+}
+
+void MarioActor::fn_803BDA20(MtxPtr dst, const char* joint) {
+    PSMTXConcat(MR::getJointMtx(this, joint), mJointTransform294.mMtx, dst);
+}
+
+void MarioActor::getRealPos(const char* pName, TVec3f* pVec) const {
+    Mtx mtx;
+    getRealMtx(mtx, pName);
+    MR::extractMtxTrans(mtx, pVec);
+}
+
+MtxPtr MarioActor::getGlobalJointMtx(const char* pName) {
+    u16 idx = MR::getJointIndex(this, pName);
+    getRealMtx(mJointMatrices2C4[idx], pName);
+    return mJointMatrices2C4[idx];
+}
+
+void MarioActor::setBlendMtxTimer(u16 a1) {
+    if (a1 == 0) {
+        _EA0 = 1.0f;
+    } else {
+        _EA0 = 0.0f;
+    }
+
+    mBlendMtxTimer = a1;
+}
+
+void MarioActor::forceSetBaseMtx(MtxPtr pMtx) {
+    _EA5 = true;
+    _1C0 = true;
+    PSMTXCopy(pMtx, mRemoteDemoMtx4E4.toMtxPtr());
+    MR::extractMtxTrans(pMtx, &mCameraTrans);
+    if (_482) {
+        MR::extractMtxTrans(pMtx, &mPosition);
+    }
+
+    ((TRot3f*)pMtx)->getZDir(_27C);
+    ((TRot3f*)pMtx)->getYDir(_270);
+    ((TRot3f*)pMtx)->getXDir(_288);
+    MR::updateHitSensorsAll(this);
+    mMario->invalidateRelativePosition();
+    mMario->_8F8.zero();
+    mMario->mMovementStates.mHighWord &= 0xEFFFFFFFU;
+}
+
+void MarioActor::getStickValue(f32* pStickX, f32* pStickY) {
+    *pStickX = 0.0f;
+    *pStickY = 0.0f;
+
+    if (mMario->isInputDisable()) {
+        return;
+    }
+
+    if (((mMario->getDrawStates().mWord >> 24) & 1U)) {
+        return;
+    }
+
+    if (pStickX != nullptr) {
+        *pStickX = MR::getPlayerStickX();
+    }
+
+    if (pStickY != nullptr) {
+        *pStickY = MR::getPlayerStickY();
+    }
+}
+
+bool MarioActor::checkButtonType(u16 type, bool isObeyDisable) const {
+    if (!isObeyDisable && mMario->isInputDisable()) {
+        return false;
+    }
+
+    if (_3C0) {
+        return false;
+    }
+
+    switch (type) {
+    case 2:
+        if (_F0C || _F00) {
+            return true;
+        }
+
+        break;
+
+    case 0:
+        if (_F0C) {
+            return true;
+        }
+
+        break;
+
+    case 1:
+        if (_F00) {
+            return true;
+        }
+
+        break;
+
+    case 3:
+        if (MR::getPlayerTriggerA()) {
+            return true;
+        }
+
+        break;
+
+    case 4:
+        if (MR::getPlayerTriggerB()) {
+            return true;
+        }
+
+        break;
+
+    case 7:
+        if (MR::getPlayerTriggerZ()) {
+            return true;
+        }
+
+        break;
+
+    case 8:
+        if (MR::getPlayerTriggerC()) {
+            return true;
+        }
+
+        break;
+
+    case 5:
+        if (MR::getPlayerLevelA()) {
+            return true;
+        }
+
+        break;
+
+    case 6:
+        if (MR::getPlayerLevelB()) {
+            return true;
+        }
+
+        break;
+
+    case 9:
+        if (MR::getPlayerLevelZ()) {
+            return true;
+        }
+
+        break;
+
+    case 10:
+        if (MR::getPlayerLevelC()) {
+            return true;
+        }
+
+        break;
+    }
+
+    return false;
+}
+
+bool MarioActor::fn_803BDE10() {
+    if (this->mMario->isPlayerModeYoshi() && YoshiParam::fn_8041BD40() == 0) {
+        return false;
+    }
+    if (_934 != 0 || this->_38C != 0) {
+        return false;
+    }
+    if (this->_935 != 0) {
+        return false;
+    }
+    return this->checkButtonType(mInputConfig->_0, false);
+}
+
+bool MarioActor::isRequestRush() const {
+    if (!_EEB) {
+        return false;
+    }
+
+    if (_946 != 0) {
+        return false;
+    }
+
+    if (_EF6 != 0) {
+        return false;
+    }
+
+    if (!mMario->isEnableRush()) {
+        return false;
+    }
+
+    if (_935) {
+        return false;
+    }
+
+    if (mPlayerMode == 5) {
+        return false;
+    }
+
+    if (!fn_803CB0B0()) {
+        return false;
+    }
+
+    bool out = checkButtonType(mInputConfig->_2, false);
+    if (((mMario->mFlags14.mLowWord >> 18) & 1U)) {
+        if (!out) {
+            mMario->mFlags14.mLowWord &= 0xFFFBFFFFU;
+        }
+
+        out = false;
+    }
+
+    return out;
+}
+
+bool MarioActor::isRequestThrow() const {
+    if (!_EEB) {
+        return false;
+    }
+
+    if (!mMario->isEnableRush()) {
+        return false;
+    }
+
+    bool out = checkButtonType(mInputConfig->_2, false);
+    if (((mMario->mFlags14.mLowWord >> 18) & 1U)) {
+        if (!out) {
+            mMario->mFlags14.mLowWord &= 0xFFFBFFFFU;
+        }
+
+        out = false;
+    }
+
+    return out;
+}
+
+bool MarioActor::isRequestSpin() const {
+    if (_935) {
+        return false;
+    }
+    return checkButtonType(mInputConfig->mSpinButton, false);
+}
+
+bool MarioActor::isRequestJump() const {
+    if (_934 || _38C != 0) {
+        return false;
+    }
+
+    if (_935) {
+        return false;
+    }
+
+    return checkButtonType(mInputConfig->_6, false);
+}
+
+void* MarioActor::fn_803BE0C0() const {
+    return nullptr;
+}
+
+bool MarioActor::fn_803BE0D0() {
+    return this->checkButtonType(5, false);
+}
+
+void* MarioActor::fn_803BE0E0() const {
+    return nullptr;
+}
+
+void MarioActor::resetPadSwing() {
+    _EF8 = 0;
+    _EFC = 0;
+    _F04 = 0;
+    _F08 = 0;
+    _F0C = false;
+    _F00 = 0;
+    _F1C = 10;
+    _F1E = 10;
+}
+
+bool MarioActor::binderFilter(const Triangle* pTriangle) {
+    if (_F48 != nullptr && pTriangle->mSensor == _F48) {
+        return true;
+    }
+
+    return false;
+}
+
+void MarioActor::initBlackHoleOut() {
+    mPosRelativeToBlackHole = mPosition - mBlackHolePosition528;
+
+    TVec3f normalisedRelativePos(mPosRelativeToBlackHole);
+    TVec3f normalisedRelativeCameraPos = mCameraPosition - mBlackHolePosition528;
+
+    MR::normalizeOrZero(&normalisedRelativeCameraPos);
+    MR::normalizeOrZero(&normalisedRelativePos);
+
+    Mtx rotation;
+    TVec3f rotateAxis;
+
+    rotateAxis.cross(normalisedRelativeCameraPos, normalisedRelativePos);
+
+    f32 mag = mPosRelativeToBlackHole.length();
+    TVec3f killed;
+    f32 flt = MR::vecKillElement(mCameraPosition - mPosition, mCameraBasisZ, &killed);
+    flt *= mConst->getTable()->mBlackHoleFirstRadius;
+
+    PSMTXRotAxisRad(rotation, &rotateAxis, atan(flt / mag));
+    PSMTXMultVec(rotation, &mPosRelativeToBlackHole, &mBlackHoleRotateAxis);
+    MR::normalizeOrZero(&mBlackHoleRotateAxis);
+
+    damageDropThrowMemoSensor();
+    MR::removeAllClingingKarikari();
+}
+
+void MarioActor::exeGameOverBlackHole2() {
+    if (MR::isFirstStep(this)) {
+        MR::setCubeBgmChangeInvalid();
+        MR::clearBgmQueue();
+
+        if (!(mBlackHole->tryStartDemoCamera()) && !((mMario->getMovementStates().mHighWord >> 8) & 1U)) {
+            MR::startBlackHoleCamera("ブラックホール", mBlackHolePosition528, mPosition);
+        }
+
+        _F44 = false;
+
+        changeAnimationNonStop("ブラックホール落下");
+        playEffect("共通ブラックホール");
+        playSound("ブラックホール吸い込まれ", -1);
+        playEffect(changeMorphString("DieBlackHole"));
+        initBlackHoleOut();
+
+        mMario->mMovementStates.mHighWord |= 0x00000008U;
+
+        MR::startStarPointerModeDemoMarioDeath(this);
+        MR::endGalaxyCometEvent();
+    }
+
+    if (getNerveStep() == 60) {
+        if (!MR::getPlayerLeft()) {
+            MR::startPlayerEvent("ゲームオーバー");
+        } else {
+            MR::startPlayerEvent("マリオ奈落");
+        }
+    }
+
+    if (getNerveStep() == mConst->getTable()->mBlackHoleHideTime) {
+        _482 = true;
+
+        MR::hidePlayerTryDeleteEffect();
+        MR::emitEffect(this, "ブラックホール消滅");
+    }
+
+    f32 nervestepfloat = getNerveStep();
+    f32 flt = 1.0f;
+
+    if (nervestepfloat < 180.0f) {
+        flt = MR::sqrt(nervestepfloat / 180.0f);
+    }
+
+    f32 angle = mConst->getTable()->mBlackHoleRotateSpeed;
+    angle = nervestepfloat * angle;
+    angle = flt * angle;
+
+    if (angle > mConst->getTable()->mBlackHoleRotateLimit) {
+        angle = mConst->getTable()->mBlackHoleRotateLimit;
+    }
+
+    Mtx rotationMatrix;
+    PSMTXRotAxisRad(rotationMatrix, &mBlackHoleRotateAxis, angle);
+    PSMTXMultVec(rotationMatrix, &mPosRelativeToBlackHole, &mPosRelativeToBlackHole);
+
+    MR::vecBlendSphere(mBlackHoleRotateAxis, -mCameraBasisZ, &mBlackHoleRotateAxis, 0.01f);
+
+    f32 distChangeFactor = 180 - getNerveStep();
+
+    if (distChangeFactor < 0.0f) {
+        distChangeFactor = 0.0f;
+    }
+
+    f32 newDistToBlackHole = mPosRelativeToBlackHole.length() * distChangeFactor / (1 + distChangeFactor);
+
+    mPosRelativeToBlackHole.setLength(newDistToBlackHole);
+
+    f32 scale = getNerveStep() * mConst->getTable()->mBlackHoleScaleSpeed;
+    scale = 1 - scale;
+
+    if (scale < mConst->getTable()->mBlackHoleScaleLimit) {
+        scale = mConst->getTable()->mBlackHoleScaleLimit;
+    }
+
+    mScale.set(scale);
+
+    mPosition = mBlackHolePosition528 + mPosRelativeToBlackHole;
+
+    mVelocity.zero();
+}
+
+const char* MarioActor::changeMorphString(const char* name) const {
+    const char* result = nullptr;
+    if (mActionHash->fn_803DB650(&result, name, gIsLuigi != 0, mPlayerMode)) {
+        return result;
+    }
+    return name;
+}
+
+XanimeResourceTable* MarioActor::getResourceTable() const {
+    return mMarioAnim->mResourceTable;
+}
+
+void MarioActor::getFrontHistoryVec(TVec3f* out) {
+    mFrontHistory->getFront(out);
+}
+
+void MarioActor::fn_803BE650(u32 a) {
+    if (a == 0xD) {
+        reinterpret_cast<s16&>(this->_948) = 0x13;
+    }
+}
+
+void MarioActor::requestMovementOn() {
+    MR::requestMovementOn(this);
+    if (this->mMario->isPlayerModeYoshi()) {
+        MR::requestMovementOn(mYoshiHolder->mYoshi);
+        mYoshiHolder->mTongueAction->fn_8041FF70();
+    }
+}
+
+void MarioActor::fn_803BE6D0() {
+    if (_B48 != nullptr) {
+        this->_B48->clearForce();
+    }
+}
+
+void MarioActor::fn_803BE6F0() {
+    if (_934 != 0) {
+        HitSensor* s = _924;
+        if (s != nullptr && s->isType(0x65)) {
+            this->_B91 = 1;
+            this->_B90 = 1;
+        }
+        if (_934 != 0) {
+            if (!_924->receiveMessage(0x95, this->getSensor("Body"))) {
+                _924->receiveMessage(0x96, this->getSensor("Body"));
+            }
+            if (_934 != 0) {
+                RushEndInfo info(nullptr, 4, TVec3f(0.0f, 0.0f, 0.0f), false, 0);
+                this->endRush(&info);
+            }
+        }
+        _934 = 0;
+        _7E2 = 0;
+    }
+}
+
+bool MarioActor::fn_803BE800() {
+    MarioAllModel* m = mAllModel;
+    J3DModel* c = m->mModels[0];
+    return m->getJ3DModel() == c;
+}
+
+void MarioActor::fn_803BE840(const TVec3f& a) {
+    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
+        this->mMario->fn_803B1100();
+        mYoshiHolder->mYoshi->fn_8040CD20(a);
+        this->setPlayerMode(0, true, true);
+    }
+}
+
+void MarioActor::fn_803BE8D0(const TVec3f& a) {
+    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
+        this->mMario->fn_803B1100();
+        mYoshiHolder->mYoshi->fn_8040CDD0(a);
+        this->setPlayerMode(0, true, true);
+    }
+}
+
+void MarioActor::fn_803BE960() {
+    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
+        this->mMario->fn_803B1100();
+        mYoshiHolder->mYoshi->fn_8040CE80();
+        this->setPlayerMode(0, true, true);
+    }
+}
+
+void MarioActor::fn_803BE9E0() {
+    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
+        this->mMario->fn_803B1100();
+        mYoshiHolder->mYoshi->fn_8040CED0();
+        this->setPlayerMode(0, true, true);
+    }
+}
+
+void MarioActor::fn_803BEA60(const char* a, const char* b) {
+    this->fn_803CAD10(a, b, nullptr);
+}
+
+void MarioActor::fn_803BEA70(const char* a, const BckCtrlData* b) {
+    this->fn_803CAD10(a, nullptr, b);
+}
+
+bool MarioActor::fn_803BEA80(const char* pName) {
+    if (mHairAndHat1090 != nullptr) {
+        return mHairAndHat1090->fn_803EC7F0(pName);
+    }
+    return false;
+}
+
+bool MarioActor::fn_803BEAA0(const char* pName, const BckCtrlData& rData) {
+    if (mHairAndHat1090 != nullptr) {
+        return mHairAndHat1090->fn_803EC8A0(pName, rData);
+    }
+    return false;
+}
+
+void MarioActor::fn_803BEAC0() {
+    if (mHairAndHat1090 != nullptr) {
+        mHairAndHat1090->fn_803EC780();
+    }
+    MR::startPlayerNormalBva();
+}
+
+void MarioActor::requestHairAndHatMovementOn() {
+    if (mHairAndHat1090 != nullptr) {
+        MR::requestMovementOn(mHairAndHat1090);
+    }
+}
+
+void MarioActor::fn_803BEB10(s32 a) {
+    TVec3f up(*this->mMario->getGravityVec());
+    up.scale(150.0f);
+    TVec3f from(this->_240);
+    from -= up;
+    TVec3f dir(*this->mMario->getGravityVec());
+    dir.scale(100.0f);
+    if (this->mMario->fn_803B2880(from, dir)) {
+        mPressNormal6D8 = -*this->mMario->getGravityVec();
+        this->setPress(4, a);
+    }
+}
+
+bool MarioActor::fn_803BEBE0() {
+    if (_934 == 0) {
+        return false;
+    }
+    if (_924 == nullptr) {
+        return false;
+    }
+    if (MR::getSensorHost(_924) == nullptr) {
+        return false;
+    }
+    const char* name = MR::getSensorHost(_924)->mName;
+    if (MR::isEqualString(name, "スピンドライバ")) {
+        return true;
+    }
+    if (MR::isEqualString(name, "スーパースピンドライバー")) {
+        return true;
+    }
+    if (MR::isEqualString(name, "ピンクスーパースピンドライバー")) {
+        return true;
+    }
+    return MR::isEqualString(name, "土管");
+}
+
+LiveActor* MarioActor::fn_803BECC0() {
+    if (this->mMario->isPlayerModeYoshi()) {
+        return mYoshiHolder->mYoshi;
+    }
+    return this;
+}
+
+bool MarioActor::fn_803BED10() {
+    return this->isNerve(&NrvMarioActor::MarioActorNrvGameOverSink::sInstance);
+}
+
+void MarioActor::changeAnimationNonStop(const char* pName) {
+    mMario->changeAnimationNonStop(pName);
+}
+
+void MarioActor::changeAnimationUpper(const char* pName) {
+    if (mMario->mTargetWalkSpeedIndex == 0 && isAnimationRun("基本")) {
+        mMario->changeAnimation(pName);
+        return;
+    }
+
+    mMario->changeAnimationUpper(pName);
+}
+
+void MarioActor::stopAnimation(const char* pName) {
+    mMario->stopAnimation(pName);
+}
+
+bool MarioActor::isAnimationRun(const char* pName) const {
+    return mMario->isAnimationRun(pName);
+}
+
 void MarioActor::updateRotationInfo() {
     TRot3f stack_44;
     MR::multMtx(stack_44, mMainJointMatrix4A8, getBaseMtx());
@@ -763,16 +3720,2364 @@ void MarioActor::updateRotationInfo() {
     }
 }
 
+void MarioActor::initMember() {
+    this->mInitializing90 = 0;
+    fn_803BF6F0();
+    this->_1B4 = 0;
+    this->mSwimFogDisabled = 0;
+    _1B8 = nullptr;
+    mMessenger568 = nullptr;
+    this->_1C0 = 0;
+    this->_A0C = 0;
+    this->_1C3 = 0;
+    this->_1C4 = 0;
+    mActionHash = nullptr;
+    mScreenBlur1074 = new MarioScreenBlur();
+    mScreenStrip1084 = new MarioScreenStrip();
+    mConditionGroup = new MarioActorConditionGroup(this);
+    mSensorSlots108C = new MarioSensorSlots();
+    mHairAndHat1090 = nullptr;
+    this->_1E0 = 0;
+    this->_1E1 = 0;
+    mWallShadow574 = nullptr;
+    mExtraWallArea578 = nullptr;
+    mExtraWallAreaKind57C = 0;
+    mCollisionShadow580 = nullptr;
+    fn_803CA1F0();
+    mMario = nullptr;
+    mMarioAnim = nullptr;
+    mMarioEffect = nullptr;
+    mConst = nullptr;
+    gIsLuigi = false;
+    this->mAppliedGravityVec.x = 0.0f;
+    this->mAppliedGravityVec.y = 1.0f;
+    this->mAppliedGravityVec.z = 0.0f;
+    this->mPreviousGravityVec.x = 0.0f;
+    this->mPreviousGravityVec.y = 1.0f;
+    this->mPreviousGravityVec.z = 0.0f;
+    mGravityInfo = nullptr;
+    mAxisRotationDisabled6A0 = 0;
+    this->mGravityRatio = 0.0f;
+    this->_334 = 0;
+    this->_legacy2AC.zero();
+    this->_258.x = 0.0f;
+    this->_258.y = 0.0f;
+    this->_258.z = 1.0f;
+    mLastMove.zero();
+    this->_1FC.zero();
+    mBinderMotion5D0.zero();
+    mBinderDirection5DC.zero();
+    mPreviousPosition.zero();
+    this->_240.zero();
+    this->mCapPosition.zero();
+    mVector60C.zero();
+    this->_3AA = 0;
+    this->_270.zero();
+    this->_27C.zero();
+    this->_288.zero();
+    mCameraTrans.zero();
+    this->_2A0.zero();
+    mCounter660 = 0;
+    mWaterSurfaceCameraTimer662 = 0;
+    this->_3C1 = 0;
+    this->mFirstTransformCameraLatch666 = 0;
+    this->_338 = 0;
+    this->_33C.zero();
+    this->_348.zero();
+    this->_354.zero();
+    this->_360.zero();
+    this->_378 = 0;
+    this->_37C = 0;
+    this->mMaxHealth = 0;
+    this->mHealth = 0;
+    this->_92C = 0;
+    this->_B68 = 0;
+    this->_39D = 0;
+    this->_38C = 0;
+    this->_390 = 0;
+    this->_394 = 0;
+    this->_398 = 0;
+    mCounter6C8 = 0;
+    this->_3B0 = 0.0f;
+    mPressNormal6D8.zero();
+    this->_3A8 = 0;
+    this->_3AC = 0;
+    this->_3C0 = 0;
+    this->mRushFront6E8.zero();
+    this->_3D0 = 0;
+    this->_3D2 = 0;
+    mPlayerMode = 0;
+    this->_3D6 = 0;
+    this->_3D8 = 0;
+    this->_3DA = 0;
+    this->_3DC = 0;
+    this->_3DE = 0;
+    this->_3DF = 0;
+    _4A4 = nullptr;
+    mSensor794 = nullptr;
+    this->mWasInMorphLimitArea1065 = 0;
+    this->_3E5 = 0;
+    this->_3E6 = 0;
+    this->_3E7 = 0;
+    this->_3E8 = 0;
+    _424 = nullptr;
+    _468 = 0;
+    for (s32 i = 0; i < 4; i++) {
+        _428[i] = nullptr;
+    }
+    _46C = nullptr;
+    _470 = nullptr;
+    _474 = nullptr;
+    this->_478 = 0.0f;
+    this->_47C = 0;
+    this->_480 = 0;
+    mThrowProbePosition76C.zero();
+    mCarryWobblePhase778 = 0.0f;
+    _494 = nullptr;
+    mCarryFixedPosition780 = nullptr;
+    mTurnipFixedPosition784 = nullptr;
+    mDrillFixedPosition788 = nullptr;
+    this->mRushAnimationDelay1054 = 0;
+    this->mCarryAnimationPosition1058.zero();
+    this->_481 = 0;
+    this->_482 = 0;
+    this->_483 = 0;
+    mSearchLight = nullptr;
+    mSearchLightTimer = 0;
+    mSearchLightThrowPos = nullptr;
+    mNearestUnderSensor798 = nullptr;
+    mNearestUnderAngle79C = 0.0f;
+    mBodyRadius7A0 = 0.0f;
+    mBodyHeight7A4 = 0.0f;
+    mBodyUpDirection.zero();
+    mBodyDownDirection.zero();
+    for (s32 i = 0; i < 128; i++) {
+        mPulledSensors7C0[i] = nullptr;
+    }
+    this->_6D0 = 0;
+    mSpinRadius = 0.0f;
+    mSpinHeight = 0.0f;
+    for (s32 i = 0; i < 128; i++) {
+        mSpinNoise[i] = 0.0f;
+    }
+    for (s32 i = 0; i < 64; i++) {
+        mTornadoSensors[i] = nullptr;
+    }
+    this->_7DC = 0;
+    this->_7DE = 0;
+    this->_7E0 = 0;
+    for (s32 i = 0; i < 64; i++) {
+        _7E4[i] = nullptr;
+    }
+    for (s32 i = 0; i < 64; i++) {
+        mRushTouchingDD4[i] = false;
+    }
+    _924 = nullptr;
+    _928 = nullptr;
+    mLastRushEndFrameE1C = 0;
+    this->_930 = 0;
+    _934 = 0;
+    _7E2 = 0;
+    this->mAnimationDelayE28 = 0;
+    this->_935 = 0;
+    this->_938.zero();
+    this->_944 = 0;
+    this->_945 = 0;
+    this->_946 = 0;
+    this->_94E = 0;
+    this->_948 = 0;
+    this->_94C = 0;
+    this->_950 = 0;
+    for (s32 i = 0; i < 8; i++) {
+        _954[i] = nullptr;
+    }
+    _974 = 0;
+    this->_978.zero();
+    this->_984 = 0.0f;
+    this->_988 = 0;
+    this->_989 = 0;
+    mTornadoMario = nullptr;
+    this->_990 = 0;
+    _994 = nullptr;
+    mJetTurtleShadowE94 = nullptr;
+    mTeresaModel = nullptr;
+    mModelE9C = nullptr;
+    _9C4 = nullptr;
+    _9C0 = nullptr;
+    this->_9CC = 0.0f;
+    this->_9D0 = 0.0f;
+    _9D4 = nullptr;
+    this->_9D8.zero();
+    _9E4 = nullptr;
+    _9E8 = nullptr;
+    _9EC = nullptr;
+    this->_9F0 = 0;
+    this->mBeeWallWalk = 0;
+    this->_9F2 = 0;
+    mGravityReferenceED0.zero();
+    mModelEDC = nullptr;
+    mModelEE0 = nullptr;
+    mModelEE8 = nullptr;
+    mModelEEC = nullptr;
+    mModelEF4 = nullptr;
+    this->mGroundReflectionAlphaEFD = 0;
+    mAllModel = new MarioAllModel(this);
+    mSimpleModelActorF04 = nullptr;
+    mSimpleModelF08 = nullptr;
+    this->_A18.zero();
+    this->mFlagF18 = 0;
+    this->mFlagF19 = 0;
+    mModelF1C = nullptr;
+    _A10 = nullptr;
+    mModelF24 = nullptr;
+    mModelF28 = nullptr;
+    mHandModelL = nullptr;
+    mHandModelR = nullptr;
+    this->mShadowHideHandsF34 = 0;
+    this->mHandFlagF35 = 0;
+    this->mHandFlagF36 = 0;
+    this->mFaceJointCountF37 = 0;
+    mModelF38 = nullptr;
+    this->mFaceJointIndexF3C = 0;
+    mActorEffectState = new MarioActorEffectState();
+    this->_A6E = 0;
+    for (s32 i = 0; i < 8; i++) {
+        mBlurMatrices[0][i] = nullptr;
+        mBlurMatrices[1][i] = nullptr;
+    }
+    PSMTXIdentity(mPreviousViewMatrix.toMtxPtr());
+    PSMTXIdentity(mCurrentViewMatrix.toMtxPtr());
+    mBlurBufferIndex = 0;
+    mBlurHistoryIndex = 0;
+    mBlurJointCount = 0;
+    this->mReflectionPositionF44.zero();
+    this->mScreenF50.y = 0.0f;
+    this->mScreenF50.x = 0.0f;
+    this->mScreenF58.y = 0.0f;
+    this->mScreenF58.x = 0.0f;
+    this->mScreenF60.y = 0.0f;
+    this->mScreenF60.x = 0.0f;
+    this->mScreenF68.y = 0.0f;
+    this->mScreenF68.x = 0.0f;
+    mScreenBuffer = nullptr;
+    _B48 = nullptr;
+    _B4C = nullptr;
+    this->_B50 = 0;
+    for (s32 i = 0; i < 5; i++) {
+        mFireBalls[i] = nullptr;
+    }
+    this->mFireBallDelay = 0;
+    this->mBlinkF98 = 0;
+    this->mEyeTextureFrameF9A = 0;
+    this->mBlinkF9C = 0;
+    this->mBlinkF9E = 0;
+    mEyeRes = nullptr;
+    _B7C = nullptr;
+    mMaskTextures[0] = nullptr;
+    mMaskTextures[1] = nullptr;
+    mRandomTextureIndex = 0;
+    mNullAnimation = nullptr;
+    this->_B90 = 0;
+    this->_B91 = 0;
+    reinterpret_cast<u8&>(this->_B92) = 0;
+    this->_B94 = 0;
+    this->_B96 = 0;
+    this->mCommonEffectCount = 0;
+    this->mTimedCommonEffectCount = 0;
+    mTimedCommonEffects = nullptr;
+    mMaterialEffectsFC8 = nullptr;
+    mWaterColumn = nullptr;
+    mEffectTranslationFD0.zero();
+    mEffectRotationFDC.zero();
+    this->_BC4 = 0;
+    PSMTXIdentity(mReflectionBaseMtx264.toMtxPtr());
+    PSMTXIdentity(mJointTransform294.toMtxPtr());
+    mJointMatrices2C4 = nullptr;
+    PSMTXIdentity(mHandLMatrix.toMtxPtr());
+    PSMTXIdentity(mHandRMatrix.toMtxPtr());
+    PSMTXIdentity(mHandLJointMatrix.toMtxPtr());
+    PSMTXIdentity(mHandRJointMatrix.toMtxPtr());
+    PSMTXIdentity(mFaceJointMatrix.toMtxPtr());
+    PSMTXIdentity(mFootRMatrix.toMtxPtr());
+    PSMTXIdentity(mSpine1Matrix.toMtxPtr());
+    PSMTXIdentity(mCapMatrix.toMtxPtr());
+    PSMTXIdentity(mHipMatrix.toMtxPtr());
+    PSMTXIdentity(mSpine2Matrix.toMtxPtr());
+    PSMTXIdentity(mMainJointMatrix4A8.toMtxPtr());
+    this->mBlendMtxTimer = 0;
+    this->_EA0 = 0.0f;
+    this->_EA4 = 0;
+    this->_EA5 = 0;
+    this->_EA6 = 0;
+    PSMTXIdentity(mRemoteDemoMtx4E4.toMtxPtr());
+    this->mSuperKinokoCollected = 0;
+    this->mPowerupCollected = 0;
+    this->mTransforming = 0;
+    this->_EEB = 0;
+    mActionButtonHeld = 0;
+    mActionTriggered = 0;
+    mJumpButtonHeld = 0;
+    this->_EF0 = 0;
+    this->_EF2 = 0;
+    this->_EF4 = 0;
+    this->_EF6 = 0;
+    this->_EF8 = 0;
+    this->_EFC = 0;
+    this->_F00 = 0;
+    this->_F04 = 0;
+    this->_F08 = 0;
+    this->_F0C = 0;
+    this->_F20 = 0;
+    mInputConfig = nullptr;
+    this->_F1C = 0;
+    this->_F1E = 0;
+    mFlag100E = 0;
+    mFlag100F = 0;
+    _F24 = nullptr;
+    this->_F28 = 0;
+    mFrontHistory = nullptr;
+    this->_F44 = 0;
+    _F48 = nullptr;
+    mBlackHole = nullptr;
+    mBlackHolePosition528.zero();
+    mBlackHoleRotateAxis.zero();
+    mPosRelativeToBlackHole.zero();
+    mSwimSurfaceState1010 = 0;
+    mCameraPosition.zero();
+    mCameraBasisX.zero();
+    mCameraBasisY.zero();
+    mCameraBasisZ.zero();
+    mPostureReference1044.zero();
+    _FB4 = nullptr;
+    this->_FB8 = 0;
+    mActionTable1080 = nullptr;
+    this->_FCC = 0;
+    this->_FCD = 0;
+    mFlag1052 = 0;
+    mPunchTriangle106C = nullptr;
+    mLifeDecreasedThisFrame = 0;
+    this->mFlag1064 = 0;
+    this->mReflectionSuppressed = 0;
+    this->mBlinkRequested1067 = 0;
+}
 
-void MarioActor::exeWait() {
-    if (_FB8 != 0) {
-        _FB8--;
-        if (_FB8 == 0) {
-            setNerve(_FB4);
-            _FB4 = nullptr;
+void MarioActor::fn_803BF6F0() {
+    mDLchanger = nullptr;
+    this->mFirstPersonDrawHidden1A5 = 0;
+    for (int i = 0; i < 0x40; i++) {
+        mBlurDisplayLists[i] = nullptr;
+    }
+    mDL[0] = nullptr;
+    mDL[1] = nullptr;
+    this->mCurrentDLSize1A0 = 0;
+    this->mCurrDL = 0;
+    this->_1A4 = 0.0f;
+    reinterpret_cast<s16&>(this->_1A8) = 0;
+    reinterpret_cast<s16&>(this->_1AA) = 0;
+    this->_1AC = 0.0f;
+    mSwimFogColor.set(0, 0, 0, 0);
+}
+
+void MarioActor::fn_803BF760(const JMapInfoIter& iter, s32* anim) {
+    MR::getJMapInfoTrans(iter, &this->mPosition);
+    MR::getJMapInfoRotate(iter, &this->mRotation);
+    this->mScale.x = 1.0f;
+    this->mScale.y = 1.0f;
+    this->mScale.z = 1.0f;
+    this->mRotation.x = MR::repeat(this->mRotation.x, 0.0f, 360.0f);
+    this->mRotation.y = MR::repeat(this->mRotation.y, 0.0f, 360.0f);
+    this->mRotation.z = MR::repeat(this->mRotation.z, 0.0f, 360.0f);
+    if (MR::isExistJMapInfoArg0(iter)) {
+        MR::getJMapInfoArg0NoInit(iter, anim);
+    }
+}
+
+void MarioActor::fn_803BF860() {
+    gIsLuigi = false;
+    if (MR::isPlayerLuigi()) {
+        gIsLuigi = true;
+    }
+}
+
+void MarioActor::fn_803BF8A0() {
+    this->mMario->setHeadAndFrontVecFromRotate(this->mRotation);
+    this->mMario->_290 = this->mMario->mSideVec;
+}
+
+void MarioActor::fn_803BF8F0() {
+    mConst = new MarioConst();
+    if (gIsLuigi) {
+        mConst->changeTable(1);
+    }
+}
+
+void MarioActor::fn_803BF950() {
+    mGravityInfo = new GravityInfo();
+    this->mGravityRatio = 1.0f;
+    this->mAppliedGravityVec.x = 0.0f;
+    this->mAppliedGravityVec.y = -1.0f;
+    this->mAppliedGravityVec.z = 0.0f;
+    mPreviousGravityVec = mAppliedGravityVec;
+    reinterpret_cast<s16&>(this->_334) = 0;
+}
+
+void MarioActor::fn_803BF9D0() {
+    this->initBinder(60.0f, 0.0f, 8);
+    this->mVector60C.x = 0.0f;
+    this->mVector60C.y = 70.0f;
+    this->mVector60C.z = 0.0f;
+    this->mBinder->_1EC._0 = false;
+    MR::setBinderOffsetVec(this, &this->mVector60C, false);
+    this->mBinder->setTriangleFilter(MR::createTriangleFilterDelegator(this, &MarioActor::binderFilter));
+    this->mBinder->_1EC._3 = true;
+    this->_F44 = 1;
+    this->_984 = 0.0f;
+    this->_978.zero();
+    mBinderMotion5D0.zero();
+    mBinderDirection5DC.zero();
+}
+
+void MarioActor::fn_803BFAE0() {
+    this->mFirstTransformCameraLatch666 = 0;
+    reinterpret_cast<s16&>(this->_338) = 0;
+    mActionHash = new MarioActionHash();
+}
+
+void MarioActor::fn_803BFB30() {
+    MR::declareGlobalEventCameraAbyss("奈落カメラ");
+    MR::declareBlackHoleCamera("ブラックホール");
+    MR::declareGlobalEventCameraDead("昇天カメラ", 0.35f, 120, 60);
+    MR::declareGlobalEventCamera("水中フォロー");
+    MR::declareGlobalEventCamera("水中プラネット");
+    MR::declareGlobalEventCamera("水上フォロー");
+    MR::declareGlobalEventCamera("引き戻し");
+    MR::declareEventCameraProgrammable("変身初出カメラ");
+}
+
+void MarioActor::fn_803BFBB0() {
+    this->_2A0 = (this->mMario)->mHeadVec;
+    this->_270 = this->_2A0;
+    mCounter660 = 0;
+    mWaterSurfaceCameraTimer662 = 0;
+    MR::setGameCameraTargetToPlayer();
+}
+
+void MarioActor::fn_803BFC10() {
+    FootPrint* fp = new FootPrint("足跡", 0x100, -1);
+    this->_B48 = fp;
+    this->_B48->setTexture(MR::getTexFromArc("Footprint.bti", this));
+}
+
+void MarioActor::fn_803BFC90(s32 a) {
+    switch (a) {
+    case 1:
+        this->mMario->changeAnimation("基本", (const char*)nullptr);
+        break;
+    case 2:
+        this->mMario->changeAnimationNonStop("ウォークイン");
+        break;
+    default:
+        this->mMario->changeAnimation("ステージインA", (const char*)nullptr);
+        break;
+    }
+}
+
+void MarioActor::fn_803BFCE0() {
+    mCarryFixedPosition780 = new FixedPosition(this, "HandR", TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
+    mTurnipFixedPosition784 = new FixedPosition(this, "HandR", TVec3f(1.8f, 52.51f, 39.58f), TVec3f(76.33f, 15.69f, 88.99f));
+    mDrillFixedPosition788 = new FixedPosition(this, "HandR", TVec3f(5.59f, 10.85f, -23.16f), TVec3f(90.45f, 19.45f, 67.7f));
+    _494 = nullptr;
+}
+
+void MarioActor::fn_803BFE50() {
+    mBodyRadius7A0 = 35.0f;
+    mBodyHeight7A4 = 60.0f;
+    mBodyUpDirection.x = 0.0f;
+    mBodyUpDirection.y = 1.0f;
+    mBodyUpDirection.z = 0.0f;
+    mBodyDownDirection = -mBodyUpDirection;
+}
+
+void MarioActor::initDrawAndModel() {
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawShadow), (MR::DrawType)0x2d);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawSilhouette), (MR::DrawType)0x2c);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawPreWipe), (MR::DrawType)0x49);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawScreenBlend), (MR::DrawType)0x34);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawIndirect), (MR::DrawType)0x27);
+
+    if (gIsLuigi) {
+        initModelManagerWithAnm("Luigi", "MarioAnime", true);
+    } else {
+        initModelManagerWithAnm("Mario", "MarioAnime", true);
+    }
+
+    mAllModel->registerModel(0, this, false, true);
+    _9E4 = nullptr;
+    mModelE9C = nullptr;
+    _B4C = nullptr;
+    _9C0 = nullptr;
+    mModelEDC = nullptr;
+    mModelEE0 = nullptr;
+    mTornadoMario = nullptr;
+    mModelEE8 = nullptr;
+    mModelEEC = nullptr;
+    mModelEF4 = nullptr;
+    mCloudMarioHatEF0 = nullptr;
+    initFireMario();
+
+    initBeeMario();
+    initIceMario();
+    initInvincibleMario();
+    initHopperMario();
+    initTeresaMario();
+    _3D2 |= 0x80;
+    initBoneMario();
+    initTornadoMario();
+    initYoshi();
+    initCloudMario();
+    initRockMario();
+    initBlur();
+
+    initShadow();
+    initHand();
+
+    initFace();
+
+    mDL[0] = new (0x20) u8[0x100];
+    mDL[1] = new (0x20) u8[0x100];
+    mCurrDL = 0;
+
+    mDLchanger = new DLchanger(2, 0x100);
+    _1A4 = 0.0f;
+
+    mAllModel->fn_803E7BB0(this);
+    initBlink();
+    createRainbowDL();
+
+    {
+        MR::CurrentHeapRestorer restorer(static_cast< JKRHeap* >(MR::getSceneHeapGDDR3()));
+        _B7C = new JUTTexture(0x80, 0x40, GX_TF_RGB565);
+
+        for (u32 i = 0; i < 2; i++) {
+            mMaskTextures[i] = new JUTTexture(8, 8, GX_TF_IA4);
+            mMaskTextures[i]->mWrapS = 1;
+            mMaskTextures[i]->mWrapT = 1;
+            mMaskTextures[i]->mMinType = 0;
+            mMaskTextures[i]->mMagType = 0;
+            mMaskTextures[i]->init();
+        }
+
+        mRandomTextureIndex = 0;
+        updateRandomTexture(1000.0f);
+        updateRandomTexture(1000.0f);
+    }
+
+    initScreenBox();
+    MR::startBtp(this, "ElementEnd");
+}
+
+void MarioActor::drawIndirect() const {
+    drawModelBlur();
+    drawIndirectModel();
+    if (((mMario->mFlags20.mWord >> 28) & 1U)) {
+        mScreenStrip1084->fn_803DBB10(_37C, mMario->mSwim->mColdWaterDamageInterval);
+    }
+    mScreenStrip1084->fn_803DBAA0(_37C);
+    drawSpinEffect();
+}
+
+void MarioActor::drawMarioModel() const {
+    if (isAllHidden()) {
+        return;
+    }
+
+    if (mTornadoMario != nullptr) {
+        if (((mMario->mMovementStates.mLowWord >> 16) & 1U)) {
+            if (mMario->_544 > 2) {
+                return;
+            }
+        }
+
+        if (!MR::isDead(mTornadoMario) &&
+            (MR::isBckPlaying(mTornadoMario, "MarioTornadoEnd") || MR::isBckPlaying(mTornadoMario, "MarioTornadoLoop"))) {
+            return;
+        }
+    }
+
+    switch (mAllModel->mCurrentModel) {
+    case 3:
+        return;
+    default:
+        break;
+    }
+
+    drawSphereMask();
+    bool res = drawDarkMask();
+
+    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+
+    if (res) {
+        model->mDisplayListMask |= (1U << 15);
+    }
+
+    if (!mFlags.mIsNoEntryDrawBuffer) {
+        model->mDisplayListMask &= ~(1U << 3);
+        if (mMario->isStatusActive(MarioStatus_FpView)) {
+            if (mFirstPersonDrawHidden1A5) {
+                return;
+            }
+
+            mDLchanger->addDL(model);
+
+            MR::showJoint(model, "HandR0");
+            MR::showJoint(model, "HandL0");
+            MR::showJoint(model, "Face0");
+        } else {
+            if (mAllModel->mCurrentModel == 4) {
+                model->setDynamicDL(nullptr, 0);
+            } else {
+                model->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
+            }
+        }
+
+        if (mBeeWallWalk != 0) {
+            GXSetAlphaUpdate(GX_TRUE);
+            GXSetDstAlpha(GX_TRUE, 0);
+        }
+
+        model->setDrawView(0);
+        model->directDraw(nullptr);
+        model->mDisplayListMask = 0;
+    }
+
+    if (mMario->isStatusActive(MarioStatus_FpView)) {
+        MR::hideJoint(model, "HandR0");
+        MR::hideJoint(model, "HandL0");
+        if (mAllModel->mCurrentModel >= 7) {
+            MR::hideJoint(model, "Face0");
+        } else {
+            MR::hideJoint(model, "Face0");
+        }
+    }
+
+    drawHand();
+
+    if (!MR::isHiddenModel(mModelF38)) {
+        J3DModelX* cool = static_cast< J3DModelX* >(MR::getJ3DModel(mModelF38));
+        cool->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
+        cool->directDraw(nullptr);
+    }
+
+    if (mBeeWallWalk != 0) {
+        GXSetAlphaUpdate(GX_FALSE);
+        GXSetDstAlpha(GX_FALSE, 0);
+    }
+}
+
+bool MarioActor::isAllHidden() const {
+    bool hidden = false;
+    if (_482 || _483 || _481) {
+        hidden = true;
+    }
+
+    return hidden;
+}
+
+void MarioActor::drawIndirectModel() const {
+    if (isAllHidden()) {
+        return;
+    }
+
+    drawReflectModel();
+
+    if (mTornadoMario != nullptr) {
+        if (((mMario->mMovementStates.mLowWord >> 16) & 1U)) {
+            if (mMario->_544 > 2) {
+                return;
+            }
+        }
+
+        if (!MR::isDead(mTornadoMario) &&
+            (MR::isBckPlaying(mTornadoMario, "MarioTornadoEnd") || MR::isBckPlaying(mTornadoMario, "MarioTornadoLoop"))) {
+            return;
+        }
+    }
+
+    switch (mAllModel->mCurrentModel) {
+    case 3:
+        break;
+    default:
+        return;
+    }
+
+    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+    if (!mFlags.mIsNoEntryDrawBuffer) {
+        model->mDisplayListMask &= ~(1U << 3);
+        if (mMario->isStatusActive(MarioStatus_FpView)) {
+            if (mFirstPersonDrawHidden1A5) {
+                return;
+            }
+
+            mDLchanger->addDL(model);
+        } else {
+            model->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
+        }
+
+        MR::showJoint(model, "Face0");
+        model->setDrawView(0);
+        model->directDraw(nullptr);
+        model->mDisplayListMask = 0;
+    }
+
+    drawIndirectHand();
+}
+
+void MarioActor::drawModelBlur() const {
+    if (isAllHidden()) {
+        return;
+    }
+
+    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+    if (!model->_1E4) {
+        model->_1E5 = true;
+        return;
+    }
+
+    model->_1E4 = false;
+    if (!_A6E) {
+        return;
+    }
+
+    model->mDisplayListMask |= (1U << 12);
+
+    Mtx inv;
+    PSMTXInverse(mPreviousViewMatrix.mMtx, inv);
+    MR::multMtx(inv, inv, MR::getCameraViewMtx());
+    for (u32 i = 1; i < 8; i++) {
+        const u32 idx = static_cast< u32 >(i + mBlurHistoryIndex) & 7;
+        model->setDrawViewBuffer(mBlurMatrices[mBlurBufferIndex][idx][0]);
+
+        if (!_A0C) {
+            for (u32 joint = 0; joint < mAllModel->getJ3DModel()->mModelData->getDrawMtxNum(); joint++) {
+                MR::multMtx(mBlurMatrices[mBlurBufferIndex][idx][joint], mBlurMatrices[1 - mBlurBufferIndex][idx][joint], inv);
+            }
+        }
+
+        DCStoreRange(mBlurMatrices[mBlurBufferIndex][idx], mAllModel->getJ3DModel()->mModelData->getDrawMtxNum() * sizeof(Mtx));
+
+        mBlurDisplayLists[idx + ((i - 1) << 3)]->addDL(model);
+        model->directDraw(nullptr);
+    }
+
+    model->mDisplayListMask &= ~(1U << 12);
+}
+
+void MarioActor::drawReflectModel() const {
+    if (isAllHidden()) {
+        return;
+    }
+
+    if (mReflectionSuppressed) return;
+    if (!mWaterReflectionEF8 && !mSphereReflectionEF9 && !mGroundReflectionEFC) return;
+    if (mSphereReflectionEF9 && mFlagF18 < 2) return;
+    if (mWaterReflectionEF8 && mFlagF19 < 2) return;
+
+    if (isUseScreenBox()) {
+        captureScreenBox();
+    }
+
+    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+
+    MR::showJoint(model, "HandR0");
+    MR::showJoint(model, "HandL0");
+    MR::showJoint(model, "Face0");
+
+    if (mAllModel->mCurrentModel != 1 && mAllModel->mCurrentModel != 6) {
+        MR::hideMaterial(model, "EyeLid_v");
+    }
+
+    if (getCarrySensor() != nullptr) {
+        if (isUseScreenBox()) {
+            mDLchanger->addDL(static_cast< J3DModelX* >(MR::getJ3DModel(mJetTurtleShadowE94)));
+        }
+
+        mJetTurtleShadowE94->drawType0();
+    }
+
+    model->mDisplayListMask = 0;
+
+    if (mGroundReflectionEFC) {
+        GXSetZScaleOffset(1.0f, 0.00001f);
+        model->mDisplayListMask |= (1U << 5);
+        model->setDrawView(3);
+        model->directDraw(nullptr);
+        model->mDisplayListMask &= ~(1U << 5);
+        model->mDisplayListMask |= (1U << 2);
+        mDLchanger->addDL(model);
+    } else {
+        if (isUseScreenBox()) {
+            mDLchanger->addDL(model);
+        }
+
+        model->mDisplayListMask |= (1U << 11);
+    }
+
+    GXSetZScaleOffset(1.0f, 0.0f);
+    model->setDrawView(3);
+    model->directDraw(nullptr);
+    model->mDisplayListMask = 0;
+
+    MR::hideJoint(model, "HandR0");
+    MR::hideJoint(model, "HandL0");
+
+    if (mAllModel->mCurrentModel != 4) {
+        MR::hideJoint(model, "Face0");
+    }
+
+    if (mAllModel->mCurrentModel != 1 && mAllModel->mCurrentModel != 6) {
+        MR::showMaterial(model, "EyeLid_v");
+    }
+
+    if (isUseScreenBox()) {
+        writeBackScreenBox();
+    }
+}
+
+void MarioActor::drawShadow() const {
+    bool hidden = _482 || _481;
+    if (hidden) {
+        return;
+    }
+
+    if (!mShadowEnabledEFA) {
+        return;
+    }
+
+    if (mPlayerMode == PlayerMode_Teresa) {
+        return;
+    }
+
+    if (mMario->isStatusActive(MarioStatus_FpView) && mFirstPersonDrawHidden1A5) {
+        return;
+    }
+
+    if (_924 != nullptr && mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, "影を消す")) {
+        return;
+    }
+
+    if (((mMario->mMovementStates.mLowWord >> 16) & 1U) && mMario->_544 > 1) {
+        return;
+    }
+
+    J3DModelX* pSimple = mSimpleModelF08;
+    TPos3f matrix;
+    PSMTXScale(matrix.toMtxPtr(), mScale.x, mScale.y, mScale.z);
+    PSMTXConcat(matrix.toMtxPtr(), mReflectionBaseMtx264.mMtx, matrix.toMtxPtr());
+    PSMTXConcat(mAllModel->getJ3DModel()->getBaseTRMtx(), matrix.toMtxPtr(), pSimple->getBaseTRMtx());
+    mCollisionShadow580->calcView(pSimple, 2, static_cast<J3DModelX*>(mAllModel->getJ3DModel()));
+    if (mMario->mSinkTimer > 180) {
+        return;
+    }
+
+    if (mMario->mSinkTimer > 128) {
+        MR::hideJointAndChildren(pSimple, "Hip");
+    }
+
+    if (mMario->mSinkTimer > 150) {
+        MR::hideJointAndChildren(pSimple, "ShoulderL");
+        MR::hideJointAndChildren(pSimple, "ShoulderR");
+    }
+
+    if (mShadowHideHandsF34 || mMario->mSinkTimer > 120) {
+        MR::hideJoint(pSimple, "HandL0");
+        MR::hideJoint(pSimple, "HandR0");
+    }
+
+    mCollisionShadow580->drawAndCaptureTex(pSimple, mPosition);
+    mCollisionShadow580->clearAlphaBuffer();
+    if (mBeeWallWalk) {
+        mCollisionShadow580->_307 = 0;
+    } else {
+        mCollisionShadow580->_307 = 1;
+    }
+
+    mCollisionShadow580->draw();
+    MR::showJointAndChildren(pSimple, "JointRoot");
+}
+
+void MarioActor::drawSilhouette() const {
+    if (this->isSilhouetteVisible()) {
+        J3DModelX* m = mSimpleModelF08;
+        m->setDrawView(1);
+        m->mDisplayListMask = 0;
+        m->mDisplayListMask |= (1U << 3);
+        m->directDraw(nullptr);
+        m->mDisplayListMask &= ~(1U << 3);
+        GXSetAlphaUpdate(GX_TRUE);
+        GXSetColorUpdate(GX_TRUE);
+        GXSetDstAlpha(GX_TRUE, 0);
+    }
+}
+
+void MarioActor::drawPreWipe() const {
+    if (mMario->isPlayerModeYoshi()) {
+        return;
+    }
+    if (!_1C3) {
+        if (!mActorEffectState->mActive) {
+            return;
+        }
+        f32 width = MR::getScreenWidth();
+        f32 height = MR::getScreenHeight();
+        TDDraw::setup(0, 1, 2);
+        TVec3f position(0.0f, 0.0f, 0.0f);
+        TVec3f size(width, height, 0.0f);
+        u16 timer = mActorEffectState->mTimer;
+        u32 alpha = 0xE0;
+        if (timer <= 0x80) {
+            alpha = (timer >> 1) + (static_cast<s32>(timer) >> 2) + timer;
+        }
+        TDDraw::drawFillBox(position, size, alpha | 0x28282800);
+    }
+    MR::loadViewMtx();
+    MR::loadProjectionMtx();
+    MR::loadActorLight(this);
+    drawMarioModel();
+    MR::drawInitFor2DModel();
+}
+
+void MarioActor::updateAlphaDL(u8 alpha) {
+    u8 buffer[256] ATTRIBUTE_ALIGN(32);
+    GDLObj displayList;
+    MR::ProhibitSchedulerAndInterrupts lock(false);
+    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
+    __GDCurrentDL = &displayList;
+    GXColor color = {0, 0, 0, 255};
+    color.a = alpha;
+    GDSetTevColor(GX_TEVREG2, color);
+    GDSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
+    GDSetGenMode2(1, 0, 1, 0, GX_CULL_BACK);
+    GDSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
+    GDSetChanCtrl(GX_COLOR1A1, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
+    GDSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_AND, GX_ALWAYS, 0);
+    GDSetTevAlphaCalcAndSwap(GX_TEVSTAGE0, GX_CA_A2, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV,
+                             GX_TEV_SWAP0, GX_TEV_SWAP0);
+    GDSetTevColorCalc(GX_TEVSTAGE0, GX_CC_TEXC, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+    GDSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR_NULL, GX_TEXCOORD1, GX_TEXMAP1, GX_COLOR_NULL);
+    GDPadCurr32();
+    u32 size = (displayList.ptr - displayList.start + 31) & ~31;
+    DLholder* holder = mDLchanger->swap();
+    holder->mSize = displayList.ptr - displayList.start;
+    MR::copyMemory(holder->mDL, buffer, size);
+    DCStoreRange(holder->mDL, size);
+}
+
+void MarioActor::updateSimpleAlphaDL(u8 alpha) {
+    u8 buffer[256] ATTRIBUTE_ALIGN(32);
+    GDLObj displayList;
+    MR::ProhibitSchedulerAndInterrupts lock(false);
+    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
+    __GDCurrentDL = &displayList;
+    GDSetDstAlpha(GX_TRUE, alpha);
+    GDPadCurr32();
+    u32 size = (displayList.ptr - displayList.start + 31) & ~31;
+    DLholder* holder = mDLchanger->swap();
+    holder->mSize = displayList.ptr - displayList.start;
+    MR::copyMemory(holder->mDL, buffer, size);
+    DCStoreRange(holder->mDL, size);
+}
+
+void MarioActor::createRainbowDL() {
+    DLholder* holder;
+    u8 buffer[256] ATTRIBUTE_ALIGN(32);
+    GDLObj displayList;
+    MR::ProhibitSchedulerAndInterrupts lock(false);
+
+    for (u32 alpha = 0; alpha < 8; alpha++) {
+        for (u32 index = 0; index < 8; index++) {
+            mBlurDisplayLists[alpha * 8 + index] = new DLchanger(1, 32);
+            GDInitGDLObj(&displayList, buffer, sizeof(buffer));
+            __GDCurrentDL = &displayList;
+            GXColor color = {0, 0, 0, 0};
+
+            if (index & 1) {
+                color.r = 255;
+            }
+
+            if (index & 2) {
+                color.g = 255;
+            }
+
+            if (index & 4) {
+                color.b = 255;
+            }
+
+            if (!index) {
+                color.r = 64;
+                color.g = 64;
+                color.b = 64;
+            }
+
+            color.a = 16 + (alpha + 1) * 24;
+            GDSetTevColor(GX_TEVREG0, color);
+            GDPadCurr32();
+            u32 length = displayList.ptr - displayList.start;
+            u32 size = (length + 31) & ~31;
+            DLchanger* changer = mBlurDisplayLists[alpha * 8 + index];
+            holder = &changer->mBuffers[changer->mCurrentBuffer];
+            holder->mSize = length;
+            MR::copyMemory(holder->mDL, buffer, size);
+            DCStoreRange(holder->mDL, size);
         }
     }
 }
+
+void MarioActor::updateReflectAlphaDL(u8 alpha) {
+    u8 buffer[256] ATTRIBUTE_ALIGN(32);
+    GDLObj displayList;
+    MR::ProhibitSchedulerAndInterrupts lock(false);
+    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
+    __GDCurrentDL = &displayList;
+    GXColor color = {0, 0, 0, 255};
+    color.a = alpha;
+    GDSetTevColor(GX_TEVREG2, color);
+    GDSetTevAlphaCalcAndSwap(GX_TEVSTAGE0, GX_CA_A2, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV,
+                             GX_TEV_SWAP0, GX_TEV_SWAP0);
+    GDPadCurr32();
+    u32 size = (displayList.ptr - displayList.start + 31) & ~31;
+    DLholder* holder = mDLchanger->swap();
+    holder->mSize = displayList.ptr - displayList.start;
+    MR::copyMemory(holder->mDL, buffer, size);
+    DCStoreRange(holder->mDL, size);
+}
+
+void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, const Color8& rFog, f32 strength) {
+    u8 buffer[512] ATTRIBUTE_ALIGN(32);
+    GDLObj displayList;
+    MR::ProhibitSchedulerAndInterrupts lock(false);
+    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
+    __GDCurrentDL = &displayList;
+    GXColor ambientColor = {rAmbient.r, rAmbient.g, rAmbient.b, rAmbient.a};
+    GDSetChanAmbColor(GX_COLOR0A0, ambientColor);
+    GXColor materialColor = {rMaterial.r, rMaterial.g, rMaterial.b, rMaterial.a};
+    GDSetChanMatColor(GX_COLOR0A0, materialColor);
+    GDSetChanCtrl(GX_COLOR1, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
+
+    if (!MR::isNearZero(strength)) {
+        f32 nearZ = MR::getNearZ();
+        f32 farZ = MR::getFarZ();
+        GXColor color = {rFog.r, rFog.g, rFog.b, rFog.a};
+        f32 start;
+        f32 end;
+        MR::calcFogStartEnd(mPosition, strength, &start, &end);
+        GDSetFog(GX_FOG_LIN, start, end, nearZ, farZ, color);
+    }
+
+    GDPadCurr32();
+    u32 length = displayList.ptr - displayList.start;
+    mCurrentDLSize1A0 = length;
+    mCurrDL = 1 - mCurrDL;
+    u32 size = (length + 31) & ~31;
+    MR::copyMemory(mDL[mCurrDL], buffer, size);
+    DCStoreRange(mDL[mCurrDL], size);
+}
+
+void MarioActor::movement() {
+    _46C = nullptr;
+    ++_378;
+    _1E1 = false;
+    mLifeDecreasedThisFrame = 0;
+    mNearestUnderAngle79C = 0.7853981852531433f;
+    mNearestUnderSensor798 = nullptr;
+    PSMTXCopy(mCurrentViewMatrix.toMtxPtr(), mPreviousViewMatrix.toMtxPtr());
+    PSMTXCopy(MR::getCameraViewMtx(), mCurrentViewMatrix.toMtxPtr());
+    updateCameraInfo();
+    mMarioAnim->fn_803DFAC0();
+    mMarioAnim->fn_803DFB70();
+    LiveActor::movement();
+    fn_803C1940();
+    if ((mMario->mDrawStates.mWord >> 5) & 1U) {
+        mMario->mDrawStates.mWord &= ~0x20;
+        mMarioAnim->update();
+    }
+    mMario->recordRelativePosition();
+    updateTransForCamera();
+    calcAnimInMovement();
+    _935 = false;
+    mMario->_2D0 = 0.0f;
+    mFrontHistory->update();
+    if (mMario->isPlayerModeYoshi()) {
+        if (isSilhouetteVisible()) {
+            mYoshiHolder->mYoshi->mRideModelVisible = true;
+        } else {
+            mYoshiHolder->mYoshi->mRideModelVisible = false;
+        }
+    }
+    mSensorSlots108C->fn_803DAB90();
+}
+
+void MarioActor::fn_803C1940() {
+    TVec3f a(this->mPosition);
+    a -= this->mPreviousPosition;
+    TVec3f b(a);
+    b -= mVelocity;
+    mBinderMotion5D0 = a;
+    TVec3f c(mBinderDirection5DC);
+    mBinderDirection5DC = b;
+    this->fn_803C1AF0(&mBinderDirection5DC, &c);
+    if (!(PSVECMag((Vec*)&b) <= 0.1f)) {
+        if (!((this->mMario->mMovementStates.mLowWord >> (0x15)) & 1) && !MR::isNearZero(mVelocity, 0.001f)) {
+            TVec3f d(this->mPreviousPosition);
+            d -= this->_1FC;
+            f32 m1 = PSVECMag((Vec*)&d);
+            f32 m2 = PSVECMag((Vec*)&mVelocity);
+            if (PSVECMag((Vec*)&b) > 2.0f * (m1 + m2)) {
+                this->mMario->stopWalk();
+            }
+        }
+        if (((this->mMario->mMovementStates.mHighWord >> (0x1C)) & 1)) {
+            this->fn_803D8BD0(&a, &b);
+        }
+        if (((this->mMario)->mMovementStates.mLowWord >> 0x1F) != 0 && this->mBeeWallWalk == 0) {
+            this->fn_803D8E30(&b);
+            return;
+        }
+        if (((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1)) {
+            this->fn_803D9170(&a);
+        }
+    }
+}
+
+void MarioActor::fn_803C1AF0(TVec3f* a, TVec3f* b) {
+    if (MR::isOppositeDirection(*a, *b, 0.01f)) {
+        f32 m1 = PSVECMag((Vec*)a);
+        f32 m2 = PSVECMag((Vec*)b);
+        if (!MR::isNearZero(m1, 0.001f) && !MR::isNearZero(m2, 0.001f) && MR::isNearZero(m1 - m2, 1.0f)) {
+            TVec3f t(*a);
+            t.scale(0.5f);
+            this->mPosition -= t;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const TVec3f& MarioActor::getGravityVector() const {
+    return *mMario->getGravityVec();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// NONMATCHING: verified pooled literal addresses only.
+
+
+
+
 
 
 
@@ -916,14 +6221,7 @@ void MarioActor::updateBindRatio() {
 }
 
 
-bool MarioActor::isInPunchTimerRange() const {
-    bool ret = false;
-    if (_3E6) {
-        ret = MR::isInRange(_945, 6.0f, 20.0f);
-    }
 
-    return ret;
-}
 
 
 void MarioActor::updatePunching() {
@@ -1222,83 +6520,19 @@ bool MarioActor::checkClapCatchStart() {
 }
 
 
-void MarioActor::updateRealMtx() {
-    updateBaseScaleMtx();
-    getRealMtx(mHandLMatrix.toMtxPtr(), "HandL");
-    getRealMtx(mHandRMatrix.toMtxPtr(), "HandR");
-    PSMTXCopy(MR::getJointMtx(this, "HandL"), mHandLJointMatrix.toMtxPtr());
-    PSMTXCopy(MR::getJointMtx(this, "HandR"), mHandRJointMatrix.toMtxPtr());
-    PSMTXCopy(MR::getJointMtx(this, "Face0"), mFaceJointMatrix.toMtxPtr());
-    getRealMtx(mFootRMatrix.toMtxPtr(), "FootR");
-    getRealMtx(mSpine1Matrix.toMtxPtr(), "Spine1");
-    getRealMtx(mCapMatrix.toMtxPtr(), "CapPosition");
-    getRealMtx(mHipMatrix.toMtxPtr(), "Hip");
-    getRealMtx(mSpine2Matrix.toMtxPtr(), "Spine2");
-    TVec3f stack_50;
-    MR::extractMtxTrans(mSpine2Matrix.toMtxPtr(), &stack_50);
-    if (MR::isNan(stack_50)) {
-        MR::getJointMtx(this, "Spine2");
-        getBaseMtx();
-    }
-
-    bool notStatus12 = true;
-    if (mMario->isStatusActive(MarioStatus_FpView)) {
-        notStatus12 = false;
-    }
-
-    if (!notStatus12) {
-        return;
-    }
-
-    TVec3f stack_44, stack_38;
-    MR::extractMtxTrans(mCapMatrix.toMtxPtr(), &stack_44);
-    MR::extractMtxTrans(mHipMatrix.toMtxPtr(), &stack_38);
-    mBodyUpDirection = stack_44 - stack_38;
-    mBodyDownDirection = stack_38 - stack_44;
-    if (MR::normalizeOrZero(&mBodyUpDirection)) {
-        mBodyUpDirection = mMario->mHeadVec;
-    }
-
-    if (MR::normalizeOrZero(&mBodyDownDirection)) {
-        mBodyDownDirection = -mMario->mHeadVec;
-    }
-
-    if (((mMario->getMovementStates().mLowWord >> 21) & 1U) && ((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
-        mBodyDownDirection = -mMario->mHeadVec;
-    }
-
-    mCapPosition = stack_44;
-}
 
 
-void MarioActor::setUpperRotateY(f32 angle) {
-    mMarioAnim->setUpperRotateY(angle);
-}
 
 
-void MarioActor::decLife(u16 amt) {
-    if (((getMovementStates().mLowWord >> 0) & 1U)) return;
-    if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
-        MR::decCometTimer(1200);
-        return;
-    }
-    if (amt && _92C > amt) _92C = amt;
-    if (_92C == 0) {
-        decreaseLifeByOne();
-        _92C = 0;
-        fn_803D9740();
-    }
-}
 
 
-void MarioActor::decLifeLarge() {
-    decLife(0);
-}
 
 
-void MarioActor::decLifeMiddle() {
-    decLife(0);
-}
+
+
+
+
+
 
 
 void MarioActor::decLifeSmall() {
@@ -1316,41 +6550,10 @@ const char* MarioActor_FORCE_MATCH_DATA() {
 }
 
 
-void MarioActor::incLife(u32 amt) {
-    if (isEnableNerveChange() && !_B68) {
-        const u32 health = getHealth();
-        if (mHealth != mMaxHealth) {
-            mMario->playSound("ライフ回復");
-        }
-
-        mHealth += amt;
-        if (mHealth >= mMaxHealth) {
-            mHealth = mMaxHealth;
-        }
-
-        if (health == 1 && mMarioAnim->isAnimationStop()) {
-            mMarioAnim->changeTrackAnim(3, "ノーマルウエイト");
-            if (mMario->_970 && strcmp(mMario->_970, "DamageWait")) {
-                mMario->startBas(nullptr, false, 0.0f, 0.0f);
-                fn_803BBFD0(nullptr);
-            }
-        }
-    }
-}
 
 
-void MarioActor::changeMaxLife(s32 max) {
-    mMaxHealth = max;
-    while (mHealth != max) {
-        if (mHealth > max) {
-            decLife(0);
-        } else if (mHealth < max) {
-            incLife(1);
-        } else {
-            break;
-        }
-    }
-}
+
+
 
 
 bool MarioActor::doPressing() {
@@ -1477,34 +6680,16 @@ void MarioActor::scaleMtx(MtxPtr pRawMtx) {
 }
 
 
-void MarioActor::updateBaseScaleMtx() {
-    if (((mMario->mMovementStates.mHighWord >> 3) & 1U)) {
-        PSMTXScale(mJointTransform294.toMtxPtr(), mScale.x, mScale.y, mScale.z);
-    } else {
-        PSMTXIdentity(mJointTransform294.toMtxPtr());
-    }
-}
 
 
-void MarioActor::getRealMtx(MtxPtr pMtx, const char* pName) const {
-    MR::multMtx(pMtx, (MtxPtr)&mJointTransform294, MR::getJointMtx(this, pName));
-    TVec3f stack_8(mMario->_13C);
-    MR::addTransMtx(pMtx, stack_8);
-}
 
 
-void MarioActor::getRealPos(const char* pName, TVec3f* pVec) const {
-    Mtx mtx;
-    getRealMtx(mtx, pName);
-    MR::extractMtxTrans(mtx, pVec);
-}
 
 
-MtxPtr MarioActor::getGlobalJointMtx(const char* pName) {
-    u16 idx = MR::getJointIndex(this, pName);
-    getRealMtx(mJointMatrices2C4[idx], pName);
-    return mJointMatrices2C4[idx];
-}
+
+
+
+
 
 
 void MarioActor::calcAnimInMovement() {
@@ -1530,23 +6715,7 @@ void MarioActor::calcAnimInMovement() {
 }
 
 
-void MarioActor::forceSetBaseMtx(MtxPtr pMtx) {
-    _EA5 = true;
-    _1C0 = true;
-    PSMTXCopy(pMtx, mRemoteDemoMtx4E4.toMtxPtr());
-    MR::extractMtxTrans(pMtx, &mCameraTrans);
-    if (_482) {
-        MR::extractMtxTrans(pMtx, &mPosition);
-    }
 
-    ((TRot3f*)pMtx)->getZDir(_27C);
-    ((TRot3f*)pMtx)->getYDir(_270);
-    ((TRot3f*)pMtx)->getXDir(_288);
-    MR::updateHitSensorsAll(this);
-    mMario->invalidateRelativePosition();
-    mMario->_8F8.zero();
-    mMario->mMovementStates.mHighWord &= 0xEFFFFFFFU;
-}
 
 
 // NONMATCHING: equivalent visibility guards, register allocation, and pooled literal offsets.
@@ -1762,199 +6931,47 @@ void MarioActor::calcAndSetBaseMtx() {
 }
 #pragma pop
 
-void MarioActor::setBlendMtxTimer(u16 a1) {
-    if (a1 == 0) {
-        _EA0 = 1.0f;
-    } else {
-        _EA0 = 0.0f;
-    }
-
-    mBlendMtxTimer = a1;
-}
 
 
-void MarioActor::getGroundPos(TVec3f* pDst) const {
-    *pDst = mMario->mGroundPos;
-}
 
 
-TVec3f* MarioActor::getShadowPos() const {
-    return &mMario->mShadowPos;
-}
 
 
-bool MarioActor::isTurning() const {
-    return ((getMovementStates().mLowWord & Mario::MovementStates::Turning) >> 28);
-}
 
 
-bool MarioActor::isJumping() const {
-    if (_934) {
-        return _938.dot(getGravityVec()) < -10.0f;
-    }
-
-    if (mPlayerMode == 6 && mMario->mVerticalSpeed < mConst->getTable()->mTeresaDropDownHeight) {
-        return false;
-    }
-
-    if (mMario->isWalling()) {
-        return true;
-    }
-
-    return ((mMario->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMario->mMovementStates.mLowWord >> 30) & 1U);
-}
 
 
-bool MarioActor::isJumpRising() const {
-    return ((mMario->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && mMario->isRising();
-}
 
 
-bool MarioActor::isPunching() const {
-    if (mMario->isStatusActive(MarioStatus_Magic)) {
-        return true;
-    }
-
-    if (mMario->mSwim->fn_803FE9F0()) {
-        return true;
-    }
-
-    if (_3E5) {
-        return true;
-    }
-
-    if (!mMario->isAnimationTerminate(nullptr) &&
-        (mMario->isAnimationRun("空中ひねり") || mMario->isAnimationRun("雲スピン空中") || mMario->isAnimationRun("アイスひねり") || mMario->isAnimationRun("アイスひねり空中") ||
-         mMario->isAnimationRun("アイスひねり静止") || mMario->isAnimationRun("アイスひねり移動"))) {
-        return true;
-    }
-
-    return false;
-}
 
 
-bool MarioActor::isItemSwinging() const {
-    if (mMario->isAnimationRun("テニスショット左") || mMario->isAnimationRun("テニスショット右") || mMario->isAnimationRun("テニスショット中")) {
-        return true;
-    } else {
-        return false;
-    }
-}
 
 
-bool MarioActor::isNeedDamageFog() const {
-    if (!isEnableNerveChange()) {
-        return false;
-    }
-
-    if (MR::isDemoActive()) {
-        return false;
-    }
-
-    if (_EA4) {
-        return false;
-    }
-
-    if (mMario->getDamageAfterTimer() != 0) {
-        return true;
-    }
-
-    return mBlinkRequested1067;
-}
 
 
-bool MarioActor::isDamaging() const {
-    return mMario->isDamaging() != false;
-}
 
 
-bool MarioActor::isStaggering() const {
-    return mMario->isStatusActive(MarioStatus_Flip) != false;
-}
 
 
-bool MarioActor::isSleeping() const {
-    // No way that this is a real inline but only way I could make it match
-    bool out = true;
-    if (!IsMarioAnimationRun("特殊ウエイト1B") && !IsMarioAnimationRun("特殊ウエイト1A")) {
-        out = false;
-    }
 
-    return out;
-}
+
+
+
+
+
+
+
+
+
+
+
 
 
 // NONMATCHING: equivalent short-circuit return normalization and saved register.
-bool MarioActor::isRefuseTalk() const {
-    if (!isEnableNerveChange()) {
-        return true;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Wait)) {
-        return true;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Hang)) {
-        return true;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_13)) {
-        return true;
-    }
-
-    if (mMario->isDamaging()) {
-        return true;
-    }
-
-    if (mMario->_420 != 0) {
-        return true;
-    }
-
-    bool isNormal = !mMario->isPlayerModeTeresa();
-    if (isNormal) {
-        if (_B94 != 0) {
-            return true;
-        }
-
-        if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
-            return true;
-        }
-
-        if (!((mMario->getMovementStates().mLowWord >> 30) & 1U)) {
-            return true;
-        }
-
-        if (mMario->_3CE < 5) {
-            return true;
-        }
-
-        if (((mMario->getMovementStates().mHighWord >> 28) & 1U)) {
-            return true;
-        }
-
-        if (((mMario->getDrawStates().mWord >> 21) & 1U)) {
-            return true;
-        }
-
-        if (mMario->_3D2 != 0) {
-            return true;
-        }
-    }
-
-    if (_424 != nullptr) {
-        return true;
-    }
-
-    if (_480) {
-        return true;
-    }
-    return mMario->isPlayerModeYoshi() && !mYoshiHolder->mTongueAction->fn_8041FA30();
-}
 
 
-bool MarioActor::isDebugMode() const {
-    return ((getMovementStates().mLowWord & Mario::MovementStates::DebugMode) >> 9);
-}
+
+
 
 
 // NONMATCHING: verified pooled literal addresses only.
@@ -2048,145 +7065,26 @@ void MarioActor::calcCenterPos() {
 }
 
 
-void MarioActor::calcHeadPos() {
-    TMtx34f mtx;
-    const char* pName = "CapPosition";
-    getRealMtx(mtx, pName);
-    MR::extractMtxTrans(mtx, &mCapPosition);
-}
+
 
 
 // NONMATCHING: verified pooled literal and nerve addresses.
-void MarioActor::setPress(u8 myChar, s32 myInt) {
-    if (_390 != 0) {
-        return;
-    }
-
-    if (myChar == 0 && mMario->calcDistToCeil(false) >= 160.0f) {
-        return;
-    }
-
-    if (((getMario()->mFlags14.mLowWord >> 2) & 1U)) {
-        return;
-    }
-
-    if (mCounter6C8 == 0 || mCounter6C8 == 2) {
-        // Missing instruction
-        *mMario->_480 = *mMario->mGroundPolygon;
-        *mMario->_484 = *mMario->_4C8;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Blown)) {
-        mMario->closeStatus(nullptr);
-    }
-
-    mMario->startPadVib("マリオ[つぶれ]");
-
-    MR::forceDeleteEffectAll(this);
-
-    mVelocity.zero();
-
-    if (myInt == 0) {
-        myInt = 240;
-    }
-
-    _390 = myInt;
-
-    mMario->mMovementStates.mLowWord &= 0xFFEFFFFFU;
-    mMario->mMovementStates.mLowWord &= 0xFFFEFFFFU;
-
-    mMario->stopJump();
-
-    mMario->mMovementStates.mLowWord |= 0x40000000U;
-
-    mMario->_13C.zero();
-    mMario->_148.zero();
-    mMario->_154.zero();
-
-    mMario->mVerticalSpeed = 0.0f;
-
-    mMario->stopWalk();
-
-    mMarioAnim->setSpeed(0.0f);
-
-    _B90 = true;
-    mCounter6C8 = myChar;
-    _F44 = false;
-
-    mMario->playSound("プレスダメージ");
-    if (mMario->isPlayerModeYoshi()) {
-        MR::startActionSoundPlayer("DeathInstant", -1, -1);
-    } else {
-        mMario->playSound("声大ダメージ");
-    }
-
-    _FB4 = GET_NERVE(MarioActor, MarioActorNrvGameOver);
-    _FB8 = 60;
-
-    if (mCounter6C8 != 4) {
-        _390 = 1000;
-    }
-
-    for (u32 idx = 0; idx < 6; idx++) {
-        decLife(0);
-    }
-
-    MR::startStarPointerModeDemoMarioDeath(this);
-    mMario->mPosHolder->fn_804060C0();
-}
 
 
-XanimeResourceTable* MarioActor::getResourceTable() const {
-    return mMarioAnim->mResourceTable;
-}
 
 
-bool MarioActor::isEnableMoveMario() const {
-    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvWait))) {
-        return true;
-    }
-
-    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvNoRush))) {
-        return true;
-    }
-
-    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverNonStop))) {
-        return true;
-    }
-
-    return false;
-}
 
 
-bool MarioActor::isEnableNerveChange() const {
-    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvWait))) {
-        return true;
-    }
-
-    if (isNerve(GET_NERVE(MarioActor, MarioActorNrvNoRush))) {
-        return true;
-    }
-
-    return false;
-}
 
 
-void MarioActor::forceGameOver() {
-    if (!isEnableNerveChange()) {
-        return;
-    }
-
-    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOver));
-}
 
 
-void MarioActor::forceGameOverAbyss() {
-    if (!isEnableNerveChange()) {
-        return;
-    }
 
-    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverAbyss));
-}
+
+
+
+
+
 
 
 void MarioActor::forceGameOverBlackHole() {
@@ -2198,22 +7096,10 @@ void MarioActor::forceGameOverBlackHole() {
 }
 
 
-void MarioActor::forceGameOverNonStop() {
-    if (!isEnableNerveChange()) {
-        return;
-    }
-
-    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverNonStop));
-}
 
 
-void MarioActor::forceGameOverSink() {
-    if (!isEnableNerveChange()) {
-        return;
-    }
 
-    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverNoDemo));
-}
+
 
 
 void MarioActor::updateCameraInfo() {
@@ -2241,13 +7127,7 @@ void MarioActor::updateCameraInfo() {
 }
 
 
-bool MarioActor::binderFilter(const Triangle* pTriangle) {
-    if (_F48 != nullptr && pTriangle->mSensor == _F48) {
-        return true;
-    }
 
-    return false;
-}
 
 
 // native: defined in DrawUtil.cpp (DOL split owner); misplaced copy
@@ -2271,147 +7151,20 @@ void MarioActor::setPunchHitTimer(u8 punchHitTime) {
 
 // ---- MarioActorBlackHole.cpp ----
 
-void MarioActor::initBlackHoleOut() {
-    mPosRelativeToBlackHole = mPosition - mBlackHolePosition528;
-
-    TVec3f normalisedRelativePos(mPosRelativeToBlackHole);
-    TVec3f normalisedRelativeCameraPos = mCameraPosition - mBlackHolePosition528;
-
-    MR::normalizeOrZero(&normalisedRelativeCameraPos);
-    MR::normalizeOrZero(&normalisedRelativePos);
-
-    Mtx rotation;
-    TVec3f rotateAxis;
-
-    rotateAxis.cross(normalisedRelativeCameraPos, normalisedRelativePos);
-
-    f32 mag = mPosRelativeToBlackHole.length();
-    TVec3f killed;
-    f32 flt = MR::vecKillElement(mCameraPosition - mPosition, mCameraBasisZ, &killed);
-    flt *= mConst->getTable()->mBlackHoleFirstRadius;
-
-    PSMTXRotAxisRad(rotation, &rotateAxis, atan(flt / mag));
-    PSMTXMultVec(rotation, &mPosRelativeToBlackHole, &mBlackHoleRotateAxis);
-    MR::normalizeOrZero(&mBlackHoleRotateAxis);
-
-    damageDropThrowMemoSensor();
-    MR::removeAllClingingKarikari();
-}
 
 
-void MarioActor::exeGameOverBlackHole2() {
-    if (MR::isFirstStep(this)) {
-        MR::setCubeBgmChangeInvalid();
-        MR::clearBgmQueue();
 
-        if (!(mBlackHole->tryStartDemoCamera()) && !((mMario->getMovementStates().mHighWord >> 8) & 1U)) {
-            MR::startBlackHoleCamera("ブラックホール", mBlackHolePosition528, mPosition);
-        }
 
-        _F44 = false;
-
-        changeAnimationNonStop("ブラックホール落下");
-        playEffect("共通ブラックホール");
-        playSound("ブラックホール吸い込まれ", -1);
-        playEffect(changeMorphString("DieBlackHole"));
-        initBlackHoleOut();
-
-        mMario->mMovementStates.mHighWord |= 0x00000008U;
-
-        MR::startStarPointerModeDemoMarioDeath(this);
-        MR::endGalaxyCometEvent();
-    }
-
-    if (getNerveStep() == 60) {
-        if (!MR::getPlayerLeft()) {
-            MR::startPlayerEvent("ゲームオーバー");
-        } else {
-            MR::startPlayerEvent("マリオ奈落");
-        }
-    }
-
-    if (getNerveStep() == mConst->getTable()->mBlackHoleHideTime) {
-        _482 = true;
-
-        MR::hidePlayerTryDeleteEffect();
-        MR::emitEffect(this, "ブラックホール消滅");
-    }
-
-    f32 nervestepfloat = getNerveStep();
-    f32 flt = 1.0f;
-
-    if (nervestepfloat < 180.0f) {
-        flt = MR::sqrt(nervestepfloat / 180.0f);
-    }
-
-    f32 angle = mConst->getTable()->mBlackHoleRotateSpeed;
-    angle = nervestepfloat * angle;
-    angle = flt * angle;
-
-    if (angle > mConst->getTable()->mBlackHoleRotateLimit) {
-        angle = mConst->getTable()->mBlackHoleRotateLimit;
-    }
-
-    Mtx rotationMatrix;
-    PSMTXRotAxisRad(rotationMatrix, &mBlackHoleRotateAxis, angle);
-    PSMTXMultVec(rotationMatrix, &mPosRelativeToBlackHole, &mPosRelativeToBlackHole);
-
-    MR::vecBlendSphere(mBlackHoleRotateAxis, -mCameraBasisZ, &mBlackHoleRotateAxis, 0.01f);
-
-    f32 distChangeFactor = 180 - getNerveStep();
-
-    if (distChangeFactor < 0.0f) {
-        distChangeFactor = 0.0f;
-    }
-
-    f32 newDistToBlackHole = mPosRelativeToBlackHole.length() * distChangeFactor / (1 + distChangeFactor);
-
-    mPosRelativeToBlackHole.setLength(newDistToBlackHole);
-
-    f32 scale = getNerveStep() * mConst->getTable()->mBlackHoleScaleSpeed;
-    scale = 1 - scale;
-
-    if (scale < mConst->getTable()->mBlackHoleScaleLimit) {
-        scale = mConst->getTable()->mBlackHoleScaleLimit;
-    }
-
-    mScale.set(scale);
-
-    mPosition = mBlackHolePosition528 + mPosRelativeToBlackHole;
-
-    mVelocity.zero();
-}
 
 // ---- MarioActorCamera.cpp ----
 
-MtxPtr MarioActor::getMapBaseMtx() const {
-    HitSensor* pSensor = mMario->_46C->mSensor;
-    if (pSensor == nullptr) {
-        return nullptr;
-    }
-
-    return MR::getSensorHost(pSensor)->getBaseMtx();
-}
 
 
-bool MarioActor::isFastRise() const {
-    if (_934) {
-        if (_938.dot(getGravityVec()) < -60.0f) {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 
-bool MarioActor::isLongDrop() const {
-    if (((mMario->getMovementStates().mLowWord >> 29) & 1U) == 0) {
-        return true;
-    }
 
-    return mMario->mVerticalSpeed > 1000.0f;
-}
+
+
 
 
 bool MarioActor::isFastDrop() const {
@@ -2419,81 +7172,28 @@ bool MarioActor::isFastDrop() const {
 }
 
 
-u32 MarioActor::getSpecialMode() const {
-    u32 mode = 0;
-    if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMario->getMovementStates().mLowWord >> 16) & 1U)) {
-        mode = 1;
-    }
-
-    if (((mMario->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMario->getMovementStates().mLowWord >> 14) & 1U)) {
-        mode = 1;
-    }
-
-    if (mode == 0) {
-        return mode;
-    }
-
-    if (mMario->mVerticalSpeed < 300.0f) {
-        mode = 2;
-    }
-
-    if (mMario->mVerticalSpeed > 800.0f) {
-        return 3;
-    }
-
-    return mode;
-}
 
 
-bool MarioActor::isCameraStateOn(SPECIAL_STATUS_FOR_CAMERA status) const {
-    switch (status) {
-    case CASE_0:
-        if (mMario->isStatusActive(MarioStatus_FireDance)) {
-            return true;
-        }
-
-        break;
-
-    case CASE_1:
-        if (isJumping() && mMario->_430 == 11) {
-            return true;
-        }
-
-        break;
-    }
-
-    return false;
-}
 
 
-void MarioActor::getFrontVec(TVec3f* pVec) const {
-    *pVec = mMario->mFrontVec;
-}
 
 
-void MarioActor::getSideVec(TVec3f* pVec) const {
-    *pVec = mMario->mSideVec;
-}
 
 
-void MarioActor::getUpVec(TVec3f* pVec) const {
-    *pVec = _270;
-}
 
 
-void MarioActor::getLastMove(TVec3f* pVec) const {
-    *pVec = mLastMove;
-}
 
 
-const TVec3f& MarioActor::getLastMove() const {
-    return mLastMove;
-}
 
 
-const TVec3f& MarioActor::getTransForCamera() const {
-    return mCameraTrans;
-}
+
+
+
+
+
+
+
+
 
 
 void MarioActor::updateTransForCamera() {
@@ -3148,98 +7848,7 @@ bool MarioActor::cylinderHitCheck(const HitSensor* pSensor, TVec3f* pPush) {
 
 // ---- MarioActorDraw.cpp ----
 
-namespace MR {
-    void showMaterial(J3DModel*, const char*);
-};
-  // namespace MR
 
-
-namespace {
-    inline void initExtraMtxBuffer(J3DModelX* pModel) {
-        for (u32 i = 0; i < pModel->_DD; i++) {
-            pModel->mExtraMtxBuffer[i] = new (0x20) Mtx[0xC00 / sizeof(Mtx)];
-        }
-    }
-};
-  // namespace
-
-void MarioActor::initDrawAndModel() {
-    new DrawAdaptor(MR::Functor(this, &MarioActor::drawShadow), (MR::DrawType)0x2d);
-    new DrawAdaptor(MR::Functor(this, &MarioActor::drawSilhouette), (MR::DrawType)0x2c);
-    new DrawAdaptor(MR::Functor(this, &MarioActor::drawPreWipe), (MR::DrawType)0x49);
-    new DrawAdaptor(MR::Functor(this, &MarioActor::drawScreenBlend), (MR::DrawType)0x34);
-    new DrawAdaptor(MR::Functor(this, &MarioActor::drawIndirect), (MR::DrawType)0x27);
-
-    if (gIsLuigi) {
-        initModelManagerWithAnm("Luigi", "MarioAnime", true);
-    } else {
-        initModelManagerWithAnm("Mario", "MarioAnime", true);
-    }
-
-    mAllModel->registerModel(0, this, false, true);
-    _9E4 = nullptr;
-    mModelE9C = nullptr;
-    _B4C = nullptr;
-    _9C0 = nullptr;
-    mModelEDC = nullptr;
-    mModelEE0 = nullptr;
-    mTornadoMario = nullptr;
-    mModelEE8 = nullptr;
-    mModelEEC = nullptr;
-    mModelEF4 = nullptr;
-    mCloudMarioHatEF0 = nullptr;
-    initFireMario();
-
-    initBeeMario();
-    initIceMario();
-    initInvincibleMario();
-    initHopperMario();
-    initTeresaMario();
-    _3D2 |= 0x80;
-    initBoneMario();
-    initTornadoMario();
-    initYoshi();
-    initCloudMario();
-    initRockMario();
-    initBlur();
-
-    initShadow();
-    initHand();
-
-    initFace();
-
-    mDL[0] = new (0x20) u8[0x100];
-    mDL[1] = new (0x20) u8[0x100];
-    mCurrDL = 0;
-
-    mDLchanger = new DLchanger(2, 0x100);
-    _1A4 = 0.0f;
-
-    mAllModel->fn_803E7BB0(this);
-    initBlink();
-    createRainbowDL();
-
-    {
-        MR::CurrentHeapRestorer restorer(static_cast< JKRHeap* >(MR::getSceneHeapGDDR3()));
-        _B7C = new JUTTexture(0x80, 0x40, GX_TF_RGB565);
-
-        for (u32 i = 0; i < 2; i++) {
-            mMaskTextures[i] = new JUTTexture(8, 8, GX_TF_IA4);
-            mMaskTextures[i]->mWrapS = 1;
-            mMaskTextures[i]->mWrapT = 1;
-            mMaskTextures[i]->mMinType = 0;
-            mMaskTextures[i]->mMagType = 0;
-            mMaskTextures[i]->init();
-        }
-
-        mRandomTextureIndex = 0;
-        updateRandomTexture(1000.0f);
-        updateRandomTexture(1000.0f);
-    }
-
-    initScreenBox();
-    MR::startBtp(this, "ElementEnd");
-}
 
 
 // NONMATCHING: verified pooled literal addresses only.
@@ -3401,14 +8010,7 @@ void MarioActor::initBoneMario() {
 }
 
 
-void MarioActor::changeDisplayMode() {
-    mMarioAnim->setAnimationModel(mAllModel->getJ3DModel());
-    mModelManager->mDisplayListMaker->mModel = mAllModel->getJ3DModel();
-    if (_494 != nullptr) {
-        _494->setBaseMtx(MR::getJointMtx(this, "HandR"));
-    }
-    mSearchLightThrowPos->setBaseMtx(MR::getJointMtx(this, "HandR"));
-}
+
 
 
 void MarioActor::calcViewAndEntry() {
@@ -3443,103 +8045,10 @@ void MarioActor::calcViewAndEntry() {
 
 
 // NONMATCHING: compiler merges equivalent Face0 branches; verified pooled string addresses.
-void MarioActor::drawMarioModel() const {
-    if (isAllHidden()) {
-        return;
-    }
-
-    if (mTornadoMario != nullptr) {
-        if (((mMario->mMovementStates.mLowWord >> 16) & 1U)) {
-            if (mMario->_544 > 2) {
-                return;
-            }
-        }
-
-        if (!MR::isDead(mTornadoMario) &&
-            (MR::isBckPlaying(mTornadoMario, "MarioTornadoEnd") || MR::isBckPlaying(mTornadoMario, "MarioTornadoLoop"))) {
-            return;
-        }
-    }
-
-    switch (mAllModel->mCurrentModel) {
-    case 3:
-        return;
-    default:
-        break;
-    }
-
-    drawSphereMask();
-    bool res = drawDarkMask();
-
-    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
-
-    if (res) {
-        model->mDisplayListMask |= (1U << 15);
-    }
-
-    if (!mFlags.mIsNoEntryDrawBuffer) {
-        model->mDisplayListMask &= ~(1U << 3);
-        if (mMario->isStatusActive(MarioStatus_FpView)) {
-            if (mFirstPersonDrawHidden1A5) {
-                return;
-            }
-
-            mDLchanger->addDL(model);
-
-            MR::showJoint(model, "HandR0");
-            MR::showJoint(model, "HandL0");
-            MR::showJoint(model, "Face0");
-        } else {
-            if (mAllModel->mCurrentModel == 4) {
-                model->setDynamicDL(nullptr, 0);
-            } else {
-                model->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
-            }
-        }
-
-        if (mBeeWallWalk != 0) {
-            GXSetAlphaUpdate(GX_TRUE);
-            GXSetDstAlpha(GX_TRUE, 0);
-        }
-
-        model->setDrawView(0);
-        model->directDraw(nullptr);
-        model->mDisplayListMask = 0;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_FpView)) {
-        MR::hideJoint(model, "HandR0");
-        MR::hideJoint(model, "HandL0");
-        if (mAllModel->mCurrentModel >= 7) {
-            MR::hideJoint(model, "Face0");
-        } else {
-            MR::hideJoint(model, "Face0");
-        }
-    }
-
-    drawHand();
-
-    if (!MR::isHiddenModel(mModelF38)) {
-        J3DModelX* cool = static_cast< J3DModelX* >(MR::getJ3DModel(mModelF38));
-        cool->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
-        cool->directDraw(nullptr);
-    }
-
-    if (mBeeWallWalk != 0) {
-        GXSetAlphaUpdate(GX_FALSE);
-        GXSetDstAlpha(GX_FALSE, 0);
-    }
-}
 
 
-bool MarioActor::isAllHidden() const {
-    bool hidden = false;
-    if (_482 || _483 || _481) {
-        hidden = true;
-    }
 
-    return hidden;
-}
+
 
 
 
@@ -3607,18 +8116,6 @@ void MarioActor::updateFace() {
 }
 
 
-void MarioActor::initBlur() {
-    mBlurJointCount = mAllModel->fn_803E7B30();
-    for (u32 i = 0; i < 2; ++i) {
-        for (u32 j = 0; j < 8; ++j) {
-            mBlurMatrices[i][j] = new (0x20) Mtx[mBlurJointCount];
-            for (u32 k = 0; k < mBlurJointCount; ++k) PSMTXIdentity(mBlurMatrices[i][j][k]);
-        }
-    }
-    _A6E = 0;
-    mBlurHistoryIndex = 0;
-    mBlurBufferIndex = 0;
-}
 
 
 
@@ -3633,189 +8130,21 @@ void MarioActor::initBlur() {
 
 
 
-void MarioActor::draw() const {
-    if (_B48 != nullptr) _B48->draw();
-    if (!is481or482On() && (mMario->isPlayerModeYoshi() || (!mActorEffectState->mActive && !_1C3))) {
-        mWallShadow574->draw(mMaskTextures[mRandomTextureIndex]);
-        drawMarioModel();
-        mMario->draw();
-    }
-}
 
 
-void MarioActor::drawIndirect() const {
-    drawModelBlur();
-    drawIndirectModel();
-    if (((mMario->mFlags20.mWord >> 28) & 1U)) {
-        mScreenStrip1084->fn_803DBB10(_37C, mMario->mSwim->mColdWaterDamageInterval);
-    }
-    mScreenStrip1084->fn_803DBAA0(_37C);
-    drawSpinEffect();
-}
 
 
-void MarioActor::drawIndirectModel() const {
-    if (isAllHidden()) {
-        return;
-    }
 
-    drawReflectModel();
 
-    if (mTornadoMario != nullptr) {
-        if (((mMario->mMovementStates.mLowWord >> 16) & 1U)) {
-            if (mMario->_544 > 2) {
-                return;
-            }
-        }
 
-        if (!MR::isDead(mTornadoMario) &&
-            (MR::isBckPlaying(mTornadoMario, "MarioTornadoEnd") || MR::isBckPlaying(mTornadoMario, "MarioTornadoLoop"))) {
-            return;
-        }
-    }
 
-    switch (mAllModel->mCurrentModel) {
-    case 3:
-        break;
-    default:
-        return;
-    }
-
-    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
-    if (!mFlags.mIsNoEntryDrawBuffer) {
-        model->mDisplayListMask &= ~(1U << 3);
-        if (mMario->isStatusActive(MarioStatus_FpView)) {
-            if (mFirstPersonDrawHidden1A5) {
-                return;
-            }
-
-            mDLchanger->addDL(model);
-        } else {
-            model->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
-        }
-
-        MR::showJoint(model, "Face0");
-        model->setDrawView(0);
-        model->directDraw(nullptr);
-        model->mDisplayListMask = 0;
-    }
-
-    drawIndirectHand();
-}
 
 
 // NONMATCHING: equivalent pooled literals and r29/r30 allocation.
-void MarioActor::drawReflectModel() const {
-    if (isAllHidden()) {
-        return;
-    }
-
-    if (mReflectionSuppressed) return;
-    if (!mWaterReflectionEF8 && !mSphereReflectionEF9 && !mGroundReflectionEFC) return;
-    if (mSphereReflectionEF9 && mFlagF18 < 2) return;
-    if (mWaterReflectionEF8 && mFlagF19 < 2) return;
-
-    if (isUseScreenBox()) {
-        captureScreenBox();
-    }
-
-    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
-
-    MR::showJoint(model, "HandR0");
-    MR::showJoint(model, "HandL0");
-    MR::showJoint(model, "Face0");
-
-    if (mAllModel->mCurrentModel != 1 && mAllModel->mCurrentModel != 6) {
-        MR::hideMaterial(model, "EyeLid_v");
-    }
-
-    if (getCarrySensor() != nullptr) {
-        if (isUseScreenBox()) {
-            mDLchanger->addDL(static_cast< J3DModelX* >(MR::getJ3DModel(mJetTurtleShadowE94)));
-        }
-
-        mJetTurtleShadowE94->drawType0();
-    }
-
-    model->mDisplayListMask = 0;
-
-    if (mGroundReflectionEFC) {
-        GXSetZScaleOffset(1.0f, 0.00001f);
-        model->mDisplayListMask |= (1U << 5);
-        model->setDrawView(3);
-        model->directDraw(nullptr);
-        model->mDisplayListMask &= ~(1U << 5);
-        model->mDisplayListMask |= (1U << 2);
-        mDLchanger->addDL(model);
-    } else {
-        if (isUseScreenBox()) {
-            mDLchanger->addDL(model);
-        }
-
-        model->mDisplayListMask |= (1U << 11);
-    }
-
-    GXSetZScaleOffset(1.0f, 0.0f);
-    model->setDrawView(3);
-    model->directDraw(nullptr);
-    model->mDisplayListMask = 0;
-
-    MR::hideJoint(model, "HandR0");
-    MR::hideJoint(model, "HandL0");
-
-    if (mAllModel->mCurrentModel != 4) {
-        MR::hideJoint(model, "Face0");
-    }
-
-    if (mAllModel->mCurrentModel != 1 && mAllModel->mCurrentModel != 6) {
-        MR::showMaterial(model, "EyeLid_v");
-    }
-
-    if (isUseScreenBox()) {
-        writeBackScreenBox();
-    }
-}
 
 
-void MarioActor::drawModelBlur() const {
-    if (isAllHidden()) {
-        return;
-    }
 
-    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
-    if (!model->_1E4) {
-        model->_1E5 = true;
-        return;
-    }
 
-    model->_1E4 = false;
-    if (!_A6E) {
-        return;
-    }
-
-    model->mDisplayListMask |= (1U << 12);
-
-    Mtx inv;
-    PSMTXInverse(mPreviousViewMatrix.mMtx, inv);
-    MR::multMtx(inv, inv, MR::getCameraViewMtx());
-    for (u32 i = 1; i < 8; i++) {
-        const u32 idx = static_cast< u32 >(i + mBlurHistoryIndex) & 7;
-        model->setDrawViewBuffer(mBlurMatrices[mBlurBufferIndex][idx][0]);
-
-        if (!_A0C) {
-            for (u32 joint = 0; joint < mAllModel->getJ3DModel()->mModelData->getDrawMtxNum(); joint++) {
-                MR::multMtx(mBlurMatrices[mBlurBufferIndex][idx][joint], mBlurMatrices[1 - mBlurBufferIndex][idx][joint], inv);
-            }
-        }
-
-        DCStoreRange(mBlurMatrices[mBlurBufferIndex][idx], mAllModel->getJ3DModel()->mModelData->getDrawMtxNum() * sizeof(Mtx));
-
-        mBlurDisplayLists[idx + ((i - 1) << 3)]->addDL(model);
-        model->directDraw(nullptr);
-    }
-
-    model->mDisplayListMask &= ~(1U << 12);
-}
 
 
 
@@ -3857,7 +8186,7 @@ void MarioActor::copyMaterial(J3DModel* pModel, u16 materialNo, s32 packetIndex)
 
 // ---- MarioActorEye.cpp ----
 
-static u8 sBlinkStates[] = {0, 1, 2, 2, 2, 2, 1, 1, 0, 0};
+
 
 
 void MarioActor::initBlink() {
@@ -3942,237 +8271,26 @@ void MarioActor::updateBlink() {
 
 // ---- MarioActorGameOver.cpp ----
 
-void MarioActor::forceKill(u32 type) {
-    if (((mMario->getMovementStates().mLowWord >> 0) & 1U) && !MR::isGalaxyRainbowCometAppearInCurrentStage()) {
-        return;
-    }
-
-    if (!isEnableNerveChange()) {
-        return;
-    }
-
-    _A6E = 0;
-
-    if (!MR::isDead(_994)) {
-        _994->kill();
-    }
-
-    if (mMario->isStatusActive(MarioStatus_FpView)) {
-        mMario->mFpView->forceClose();
-        mMario->closeStatus(nullptr);
-    }
-
-    fn_803BE6F0();
-    MR::endGalaxyCometEvent();
-
-    if (type == 0) {
-        mMario->doAbyssDamage();
-        return;
-    }
-
-    if (type == 3) {
-        mMario->startPadVib(3);
-    }
-
-    if (type == 4) {
-        mMario->startPadVib(3);
-        initDarkMask();
-        mMario->doDarkDamage();
-
-        return;
-    }
-
-    _39D = type;
-    mHealth = 0;
-    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOver));
-}
 
 
-void MarioActor::exeGameOver() {
-    mVelocity.zero();
-    calcHeadPos();
-    updateRealMtx();
 
-    if (getNerveStep() == 32) {
-        _A6E = 0;
-    }
 
-    _46C = nullptr;
-
-    PSMTXIdentity(mMarioAnim->_7C);
-
-    damageDropThrowMemoSensor();
-
-    if (!MR::isFirstStep(this)) {
-        return;
-    }
-
-    MR::setCubeBgmChangeInvalid();
-    MR::clearBgmQueue();
-
-    if (MR::getPlayerLeft() == 0) {
-        MR::startPlayerEvent("ゲームオーバー");
-        changeGameOverAnimation();
-    } else {
-        switch (_39D) {
-        case 2:
-            MR::startPlayerEvent("ゴーストレース負け");
-            break;
-
-        case 1:
-            MR::startPlayerEvent("レース負け");
-            changeGameOverAnimation();
-            break;
-
-        case 5:
-            MR::startPlayerEvent("レース負け");
-            break;
-
-        default:
-            MR::startPlayerEvent("マリオダウン");
-        }
-    }
-
-    MR::startGlobalEventCameraNoTarget("昇天カメラ");
-    MR::startStarPointerModeDemoMarioDeath(this);
-}
 
 
 // NONMATCHING: verified equal string-pool base offsets.
-void MarioActor::exeGameOverAbyss() {
-    mVelocity = getLastMove() * 0.99f + mCameraBasisZ * 35.0f * 0.01f;
-    mLastMove = mVelocity;
-
-    if (!MR::isFirstStep(this)) {
-        return;
-    }
-
-    MR::setCubeBgmChangeInvalid();
-    MR::clearBgmQueue();
-    MR::startGlobalEventCameraNoTarget("奈落カメラ");
-
-    _F44 = false;
-
-    if (MR::getPlayerLeft() == 0) {
-        MR::startPlayerEvent("ゲームオーバー");
-    } else {
-        MR::startPlayerEvent("マリオ奈落");
-    }
-
-    MR::startStarPointerModeDemoMarioDeath(this);
-    mMario->changeAnimationNonStop("奈落ダウン");
-
-    _B90 = true;
-}
 
 
-void MarioActor::exeGameOverFire() {
-    mVelocity.zero();
-    calcHeadPos();
-    updateRealMtx();
-
-    if (getNerveStep() == 120) {
-        _A6E = 0;
-    }
-
-    if (!MR::isFirstStep(this)) {
-        return;
-    }
-
-    MR::setCubeBgmChangeInvalid();
-    MR::clearBgmQueue();
-
-    if (MR::getPlayerLeft() == 0) {
-        MR::startPlayerEvent("ゲームオーバー");
-        MR::startGlobalEventCameraNoTarget("昇天カメラ");
-    } else {
-        MR::startPlayerEvent("マリオ炎ダウン");
-        MR::startGlobalEventCameraNoTarget("奈落カメラ");
-    }
-
-    MR::startStarPointerModeDemoMarioDeath(this);
-}
 
 
-void MarioActor::exeGameOverSink() {
-    mVelocity.zero();
-    calcHeadPos();
-    updateRealMtx();
-
-    if (getNerveStep() == 120) {
-        _A6E = 0;
-    }
-
-    if (MR::isFirstStep(this)) {
-        MR::setCubeBgmChangeInvalid();
-        MR::clearBgmQueue();
-        changeGameOverAnimation();
-
-        if (MR::getPlayerLeft() == 0) {
-            MR::startPlayerEvent("ゲームオーバー");
-            MR::startGlobalEventCameraNoTarget("昇天カメラ");
-        } else {
-            MR::startPlayerEvent("マリオダウン");
-            MR::startGlobalEventCameraNoTarget("奈落カメラ");
-        }
-
-        MR::startStarPointerModeDemoMarioDeath(this);
-
-        if (mMario->_960 == 25 || mMario->_960 == 17) {
-            playEffect("砂埋まり体");
-            playEffect("砂埋まり手");
-        }
-
-        if (mMario->_960 == 31) {
-            playEffect("泥埋まり体");
-            playEffect("泥埋まり手");
-        }
-    }
-
-    if (mMario->_960 == 31 || mMario->_960 == 18) {
-        playSound("沼死亡", -1);
-
-        if (getNerveStep() == 90) {
-            playSound("声沼沈み死亡", -1);
-        }
-    } else {
-        playSound("砂死亡", -1);
-
-        if (getNerveStep() == 90) {
-            playSound("声砂沈み死亡", -1);
-        }
-    }
-}
 
 
-void MarioActor::exeGameOverNonStop() {
-    if (!MR::isFirstStep(this)) {
-        return;
-    }
-
-    MR::setCubeBgmChangeInvalid();
-    MR::clearBgmQueue();
-
-    if (MR::getPlayerLeft() == 0) {
-        MR::startPlayerEvent("ゲームオーバー");
-        MR::startGlobalEventCameraNoTarget("昇天カメラ");
-    } else {
-        MR::startPlayerEvent("マリオ炎ダウン");
-        MR::startGlobalEventCameraNoTarget("奈落カメラ");
-    }
-
-    MR::startStarPointerModeDemoMarioDeath(this);
-}
 
 
-void MarioActor::exeTimeWait() {
-    if (_FB8 != getNerveStep()) {
-        return;
-    }
 
-    setNerve(_FB4);
-    _FB4 = nullptr;
-}
+
+
+
+
 
 // ---- MarioActorGravity.cpp ----
 
@@ -4208,14 +8326,10 @@ void MarioActorGravity_FORCE_MATCH_SDATA2() {
 }
 
 
-const TVec3f& MarioActor::getGravityVec() const {
-    return *mMario->getGravityVec();
-}
 
 
-const TVec3f& MarioActor::getGravityVector() const {
-    return *mMario->getGravityVec();
-}
+
+
 
 
 const TVec3f& MarioActor::getAirGravityVec() const {
@@ -4223,24 +8337,16 @@ const TVec3f& MarioActor::getAirGravityVec() const {
 }
 
 
-void MarioActor::getGravityVector(TVec3f* pVec) const {
-    pVec->set(mMario->getAirGravityVec());
-}
 
 
-f32 MarioActor::getGravityRatio() const {
-    return mGravityRatio;
-}
 
 
-GravityInfo* MarioActor::getGravityInfo() const {
-    return mGravityInfo;
-}
 
 
-u8 MarioActor::getGravityLevel() const {
-    return MR::isLightGravity(*mGravityInfo);
-}
+
+
+
+
 
 
 // NONMATCHING: equivalent Mario pointer reload and verified Fur string pool.
@@ -4287,21 +8393,7 @@ bool MarioActor::checkBeeFloorStick(TVec3f& rVec) {
 }
 
 
-void MarioActor::syncJumpBeeStickMode() {
-    if (mBeeWallWalk != 0 && selectQuickResetBeeWallGravity(MR::getSensorHost(mMario->_45C->mSensor)->mName)) {
-        mBeeWallWalk = 0;
-        _9F2 = 30;
-    }
 
-    if (!(MR::diffAngleAbs(_360, getGravityVec()) < MR::pi() / 36.0f)) {
-        return;
-    }
-
-    _33C = mPosition - mMario->mFrontVec * 2.0f;
-    _354 = mPosition - _33C;
-    _360 = _240 - _33C;
-    MR::normalize(&_360);
-}
 
 
 void MarioActor::updateBeeModeGravity(TVec3f& rVec) {
@@ -4334,25 +8426,7 @@ void MarioActor::updateBeeModeGravity(TVec3f& rVec) {
 
 
 // NONMATCHING: Equivalent normalization of the gravity helper boolean return.
-void MarioActor::updateGravityVec(bool reset, bool usePosition) {
-    TVec3f gravity;
-    fn_803CA270(&gravity, usePosition);
-    bool resetGround = false;
-    if (!reset) {
-        if (_334) gravity = mPreviousGravityVec;
-        else resetGround = fn_803CA440(mPreviousGravityVec, gravity);
-        if (MR::isNearZero(gravity, 0.001f)) mMario->mFlags14.mLowWord |= 0x10000000;
-    } else {
-        _334 = 0;
-    }
-    fn_803CA710(mPreviousGravityVec, gravity);
-    mPreviousGravityVec = gravity;
-    fn_803CA860(gravity);
-    fn_803C9920(gravity);
-    applyGravityVec(gravity, resetGround);
-    fn_803CAA00();
-    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->mGravity.set<f32>(*mMario->getGravityVec());
-}
+
 
 
 bool MarioActor::checkBeeCeilStick(TVec3f& rVec) {
@@ -5030,13 +9104,7 @@ void MarioActor::initMorphStringTable() {
 }
 
 
-const char* MarioActor::changeMorphString(const char* name) const {
-    const char* result = nullptr;
-    if (mActionHash->fn_803DB650(&result, name, gIsLuigi != 0, mPlayerMode)) {
-        return result;
-    }
-    return name;
-}
+
 
 // ---- MarioActorOffensiveMsg.cpp ----
 
@@ -5463,9 +9531,7 @@ bool MarioActor::cylinderHorizontalCheck(HitSensor* pSensor) {
 }
 
 
-bool MarioActor::tryJetAttack(HitSensor* pReceiver) {
-    return MR::sendArbitraryMsg(ACTMES_JET_TURTLE_ATTACK, pReceiver, getSensor("dummy"));
-}
+
 
 
 
@@ -5590,125 +9656,26 @@ void MarioActor::attackOrPushPolygons() {
 
 
 // NONMATCHING: verified pooled literal addresses only.
-bool MarioActor::sendMsgUpperPunch(HitSensor* pSensor) {
-    if (!mActionTable1080->isActionOk("アッパーパンチ")) {
-        return false;
-    }
-    if (pSensor && !MR::isDead(MR::getSensorHost(pSensor)) &&
-        pSensor->receiveMessage(5, getSensor("Body"))) {
-        if (mMario->isPlayerModeYoshi()) {
-            MR::startActionSound(mYoshiHolder->mYoshi, "Hit", -1, -1, -1);
-        } else {
-            mMario->playSound("声蹴り", -1);
-        }
-        if (!mMario->isSwimming()) {
-            mMario->changeAnimation("アッパーパンチ");
-        }
-        return true;
-    }
-    return false;
-}
+
 
 // ---- MarioActorPad.cpp ----
 
-void MarioActor::resetPadSwing() {
-    _EF8 = 0;
-    _EFC = 0;
-    _F04 = 0;
-    _F08 = 0;
-    _F0C = false;
-    _F00 = 0;
-    _F1C = 10;
-    _F1E = 10;
-}
 
 
 
 
 
-bool MarioActor::isRequestRush() const {
-    if (!_EEB) {
-        return false;
-    }
-
-    if (_946 != 0) {
-        return false;
-    }
-
-    if (_EF6 != 0) {
-        return false;
-    }
-
-    if (!mMario->isEnableRush()) {
-        return false;
-    }
-
-    if (_935) {
-        return false;
-    }
-
-    if (mPlayerMode == 5) {
-        return false;
-    }
-
-    if (!fn_803CB0B0()) {
-        return false;
-    }
-
-    bool out = checkButtonType(mInputConfig->_2, false);
-    if (((mMario->mFlags14.mLowWord >> 18) & 1U)) {
-        if (!out) {
-            mMario->mFlags14.mLowWord &= 0xFFFBFFFFU;
-        }
-
-        out = false;
-    }
-
-    return out;
-}
 
 
-bool MarioActor::isRequestThrow() const {
-    if (!_EEB) {
-        return false;
-    }
-
-    if (!mMario->isEnableRush()) {
-        return false;
-    }
-
-    bool out = checkButtonType(mInputConfig->_2, false);
-    if (((mMario->mFlags14.mLowWord >> 18) & 1U)) {
-        if (!out) {
-            mMario->mFlags14.mLowWord &= 0xFFFBFFFFU;
-        }
-
-        out = false;
-    }
-
-    return out;
-}
 
 
-bool MarioActor::isRequestSpin() const {
-    if (_935) {
-        return false;
-    }
-    return checkButtonType(mInputConfig->mSpinButton, false);
-}
 
 
-bool MarioActor::isRequestJump() const {
-    if (_934 || _38C != 0) {
-        return false;
-    }
 
-    if (_935) {
-        return false;
-    }
 
-    return checkButtonType(mInputConfig->_6, false);
-}
+
+
+
 
 
 bool MarioActor::isRequestJump2P() const {
@@ -5754,118 +9721,10 @@ bool MarioActor::isKeepJump2P() const {
 }
 
 
-bool MarioActor::checkButtonType(u16 type, bool isObeyDisable) const {
-    if (!isObeyDisable && mMario->isInputDisable()) {
-        return false;
-    }
-
-    if (_3C0) {
-        return false;
-    }
-
-    switch (type) {
-    case 2:
-        if (_F0C || _F00) {
-            return true;
-        }
-
-        break;
-
-    case 0:
-        if (_F0C) {
-            return true;
-        }
-
-        break;
-
-    case 1:
-        if (_F00) {
-            return true;
-        }
-
-        break;
-
-    case 3:
-        if (MR::getPlayerTriggerA()) {
-            return true;
-        }
-
-        break;
-
-    case 4:
-        if (MR::getPlayerTriggerB()) {
-            return true;
-        }
-
-        break;
-
-    case 7:
-        if (MR::getPlayerTriggerZ()) {
-            return true;
-        }
-
-        break;
-
-    case 8:
-        if (MR::getPlayerTriggerC()) {
-            return true;
-        }
-
-        break;
-
-    case 5:
-        if (MR::getPlayerLevelA()) {
-            return true;
-        }
-
-        break;
-
-    case 6:
-        if (MR::getPlayerLevelB()) {
-            return true;
-        }
-
-        break;
-
-    case 9:
-        if (MR::getPlayerLevelZ()) {
-            return true;
-        }
-
-        break;
-
-    case 10:
-        if (MR::getPlayerLevelC()) {
-            return true;
-        }
-
-        break;
-    }
-
-    return false;
-}
 
 
-void MarioActor::getStickValue(f32* pStickX, f32* pStickY) {
-    *pStickX = 0.0f;
-    *pStickY = 0.0f;
 
-    if (mMario->isInputDisable()) {
-        return;
-    }
 
-    if (((mMario->getDrawStates().mWord >> 24) & 1U)) {
-        return;
-    }
-
-    if (pStickX != nullptr) {
-        *pStickX = MR::getPlayerStickX();
-    }
-
-    if (pStickY != nullptr) {
-        *pStickY = MR::getPlayerStickY();
-    }
-}
 
 
 void MarioActor::updateActionTrigger() {
@@ -6131,31 +9990,10 @@ void MarioActor::updateTakingPosition() {
     }
 }
 
-const HitSensor* MarioActor::getCarrySensor() const {
-    if (_468 == 0) {
-        return nullptr;
-    }
-
-    return _428[0];
-}
 
 
-void MarioActor::changeSpecialModeAnimation(const char* pAnimName) {
-    switch (mPlayerMode) {
-    case 6:
-        if (!strcmp(pAnimName, "特殊ウエイト1A")) {
-            changeTeresaAnimation("SleepStart", -1);
-            return;
-        }
 
-        if (strcmp(pAnimName, "特殊ウエイト1B")) {
-            return;
-        }
 
-        changeTeresaAnimation("Sleep", 16);
-        MR::emitEffect(mTeresaModel->mActor, "Sleep");
-    }
-}
 
 
 void MarioActor::updateSpecialModeAnimation() {
@@ -6230,19 +10068,10 @@ void MarioActor::shootFireBall() {
 }
 
 
-void MarioActor::showFreezeModel() {
-    _9C4->appear();
-    MR::onCalcAnim(_9C4);
-    MR::startBva(_9C4, "Nomal");
-}
 
 
-void MarioActor::hideFreezeModel() {
-    MR::startAction(_9C4, "Break");
-    MR::startBva(_9C4, "Break");
 
-    mMario->startFreezeEnd();
-}
+
 
 
 void MarioActor::updateFairyStar() {
@@ -6330,53 +10159,13 @@ void MarioActor::updateThrowVector() {
 }
 
 
-void MarioActor::createIceFloor(const TVec3f& rVec) {
-    TPos3f mtx;
-    mtx.identity();
-
-    TVec3f upVec;
-    getUpVec(&upVec);
-
-    MR::makeMtxUpFront(&mtx, -getAirGravityVec(), mMario->mFrontVec);
-
-    TVec3f vec;
-    mtx.getEuler(vec);
-
-    vec *= 180.0f / PI;
-    createIceFloor(rVec, vec);
-}
 
 
-void MarioActor::createIceFloor(const TVec3f& rVec1, const TVec3f& rVec2) {
-    _B4C[_B50]->setOn(_B50, rVec1, rVec2);
-
-    _B50 = (_B50 + 1) % 20;
-
-    if (!MR::isDead(_B4C[_B50])) {
-        _B4C[_B50]->destroy();
-    }
-}
 
 
-void MarioActor::createIceWall(const TVec3f& rVec1, const TVec3f& rVec2) {
-    TPos3f mtx;
-    mtx.identity();
-    TVec3f upVec;
-    getUpVec(&upVec);
 
-    MR::makeMtxFrontUp(&mtx, getGravityVector(), rVec2);
 
-    TVec3f vec;
-    mtx.getEuler(vec);
-    vec *= 180.0f / PI;
-    _B4C[_B50]->setOn(_B50, rVec1, vec);
 
-    _B50 = (_B50 + 1) % 20;
-
-    if (!MR::isDead(_B4C[_B50])) {
-        _B4C[_B50]->destroy();
-    }
-}
 
 
 
@@ -6479,73 +10268,13 @@ void MarioActor::printHitMark(HitSensor* pSensor) {
 
 
 // NONMATCHING: verified pooled literal addresses only.
-void MarioActor::reactionPunch(HitSensor* pSensor) {
-    if (mPlayerMode == 1) {
-        return;
-    }
-
-    if (isJumping()) {
-        _38C = 5;
-    } else {
-        _38C = 5;
-        if (mMario->mWalkSpeed > 0.1f) {
-            mMario->mWalkSpeed = 0.1f;
-            mMario->mTargetWalkSpeedIndex = 1;
-        }
-    }
-
-    if (!((getMovementStates().mHighWord >> 20) & 1U)) {
-        jumpHop();
-    }
-
-    if (!MR::sendArbitraryMsg(ACTMES_HITMARK_EMIT, pSensor, getSensor("Body"))) {
-        printHitMark(pSensor);
-    }
-
-    mMario->startPadVib(2);
-
-    if (pSensor->isType(ATYPE_BEGOMAN)) {
-        mMario->stopWalk();
-
-        TVec3f reactDir(_240 - *MR::getSensorPos(pSensor));
-        MR::vecKillElement(reactDir, *mMario->getGravityVec(), &reactDir);
-        reactDir.setLength(20.0f);
-        mMario->addReaction(reactDir);
-    }
-
-    if (mMario->isSwimming()) {
-        TVec3f punchDir(_240 - *MR::getSensorPos(pSensor));
-        punchDir.setLength(5.0f);
-        mMario->mSwim->hitPunch(punchDir);
-    }
-}
 
 
-bool MarioActor::sendPunch(HitSensor* pSensor, const Triangle* triangle, bool playSound) {
-    if (mMario->isDamaging()) {
-        _944 = false;
-        return false;
-    }
-    if (playSound && mPlayerMode == 3) {
-        bool hit = doFreezeAttack(pSensor);
-        if (hit && !mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "スピンヒット音")) MR::startSpinHitSound(this);
-        return hit;
-    }
-    if (fn_803CFCA0(pSensor)) return false;
-    _FCC = true;
-    mPunchTriangle106C = triangle;
-    bool hit = MR::sendMsgPlayerPunch(pSensor, getSensor("Body"));
-    _FCC = false;
-    mPunchTriangle106C = nullptr;
-    if (playSound && hit && !mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "スピンヒット音")) MR::startSpinHitSound(this);
-    return hit;
-}
 
 
-bool MarioActor::doFreezeAttack(HitSensor* pSensor) {
-    MR::getSensorHost(pSensor);
-    return MR::sendArbitraryMsg(ACTMES_FREEZE_ATTACK, pSensor, getSensor("Body"));
-}
+
+
+
 
 
 bool MarioActor::tryPunchAirAfter(HitSensor* pSensor) {
@@ -6589,81 +10318,11 @@ bool MarioActor::tryPunchAirAfter(HitSensor* pSensor) {
 
 
 // NONMATCHING: saved-register allocation, load scheduling and verified pooled literals.
-bool MarioActor::sendBodyAttack(HitSensor* pSensor) {
-    bool isStatus = true;
-    if (mMario->getCurrentStatus() != MarioStatus_None && (s32)mMario->getCurrentStatus() != (s32)MarioStatus_Skate) {
-        isStatus = false;
-    }
 
-    if (isStatus && !((getMovementStates().mLowWord >> 23) & 1U) && !mMario->isDamaging() && !((getMovementStates().mLowWord >> 20) & 1U)) {
-        TVec3f newPos(*MR::getSensorPos(pSensor) - getSensor("Body")->mPosition);
-        TVec3f* frontVec = &mMario->mFrontVec;
-        if (MR::diffAngleAbsHorizontal(newPos, *frontVec, *mMario->getGravityVec()) >= HALF_PI) {
-            return false;
-        }
-
-        if (MR::sendArbitraryMsg(0x35, pSensor, getSensor("Body"))) {
-            if (mMario->isPlayerModeYoshi()) {
-                MR::startActionSound(mYoshiHolder->mYoshi, "Hit", -1, -1, -1);
-            } else {
-                mMario->playSound("声ランニングキック", -1);
-            }
-            mMario->changeAnimation("ランニングキック", static_cast<const char*>(nullptr));
-            mMario->startPadVib(2);
-
-            if (!MR::sendArbitraryMsg(0x27, pSensor, getSensor("Body"))) {
-                printHitMark(pSensor);
-            }
-
-            return true;
-        }
-    }
-
-    if (mPlayerMode == 1 && MR::sendArbitraryMsg(0xE, pSensor, getSensor("Body"))) {
-        mMario->startPadVib(2);
-        printHitMark(pSensor);
-
-        return true;
-    }
-
-    return false;
-}
 
 
 // NONMATCHING: verified pooled literal addresses only.
-void MarioActor::doFreezeAttack() {
-    if (isAnimationRun("アイスひねり空中")) {
-        return;
-    }
 
-    if (isJumping()) {
-        if (mMario->_430 != 13) {
-            mMario->changeAnimation("アイスひねり空中");
-            playSound("スピンジャンプ", -1);
-            playSound("声スピン", -1);
-
-            if (mMario->_42C == 0) {
-                jumpHop();
-                mMario->_42C++;
-            }
-        }
-
-        return;
-    }
-
-    if (mMario->isSkatableFloor()) {
-        mMario->doSkate();
-        return;
-    }
-
-    if (!isAnimationRun("アイスひねり")) {
-        playSound("スケートスピン", -1);
-        playSound("スピンジャンプ", -1);
-        playSound("声パンチ", -1);
-    }
-
-    mMario->changeAnimation("アイスひねり");
-}
 
 // ---- MarioActorRush.cpp ----
 
@@ -6708,103 +10367,7 @@ bool MarioActor::isLandEffectRushSensor(const HitSensor* pSensor) const {
 
 
 // NONMATCHING: verified equivalent pooled literal addresses.
-void MarioActor::resetCondition() {
-    bool inWater = false;
 
-    if (_EA5) {
-        MR::extractMtxTrans(mRemoteDemoMtx4E4.mMtx, &mPosition);
-        mMario->mPosHolder->fn_80405F90(mPosition);
-    }
-
-    if (mMario->mSwim->fn_803FD5E0(1)) {
-        inWater = true;
-    }
-
-    mMario->stopAnimationUpper(nullptr, nullptr);
-
-    if (((mMario->mMovementStates.mLowWord >> 21) & 1U)) {
-        mMario->cancelSquatMode();
-    }
-
-    mMarioAnim->setAnimationPaused(true);
-    mMario->forceStopTornado();
-    updateTornado();
-
-    mMario->mSwim->mColdWaterDamageInterval = 0;
-    mMario->mFlags20.mWord &= 0xEFFFFFFFU;
-
-    if (mMario->isStatusActive(MarioStatus_Swim) && inWater) {
-        if (!_468) {
-            mMario->mSwim->resetJet();
-        }
-    } else if (mMario->isStatusActive(MarioStatus_Teresa) && mPlayerMode == 6) {
-        if (mMario->isStatusActive(MarioStatus_Wait)) {
-            mMario->closeStatus(mMario->mWait);
-        }
-
-        mMario->resetTeresaMode();
-    } else {
-        mMario->closeStatus(nullptr);
-    }
-
-    bool was1F = ((mMario->mMovementStates.mLowWord >> 0) & 1U);
-    mMario->mMovementStates.mLowWord = 0;
-    mMario->mMovementStates.mHighWord = 0;
-    mMario->mFlags14.mLowWord = 0;
-    mMario->mFlags14.mHighWord = 0;
-    { const u32 flagValue = static_cast<u32>(was1F); u32& flags = mMario->mMovementStates.mLowWord; flags = (flags & 0xFFFFFFFEU) | ((flagValue & 1U) << 0); }
-
-    resetPadSwing();
-
-    if (mMario->isStatusActive(MarioStatus_Swim) && inWater) {
-        if (_468) {
-            mMario->changeAnimation("水泳ジェット", "水泳ジェット");
-        } else {
-            mMario->changeAnimation(nullptr, "水泳基本");
-        }
-    } else {
-        mMario->changeAnimation(nullptr, "基本");
-
-        if (_468) {
-            mMarioAnim->waterToGround();
-        }
-    }
-
-    mMario->setFrontVecKeepUp(mMario->mFrontVec);
-    updateGravityVec(true, true);
-
-    if (!MR::isNearZero(mPreviousGravityVec)) {
-        mMario->setHeadVec(-mPreviousGravityVec);
-    }
-
-    mMario->_1FC = mMario->mHeadVec;
-    mMario->_13C.zero();
-    mMario->_148.zero();
-    mMario->_154.zero();
-    mMario->mVerticalSpeed = 0.0f;
-    mMario->_474->mIdx = -1;
-    stopEffect("いい汗");
-    stopEffect("雲尻落ルイージ");
-    stopEffect("雲尻落");
-    stopEffect("ホッパー尻落ルイージ");
-    stopEffect("ホッパー尻落");
-    stopEffect("尻落ルイージ");
-    stopEffect("尻落");
-
-    if (_9C4 != nullptr) {
-        _9C4->kill();
-        MR::offCalcAnim(_9C4);
-    }
-
-    for (u32 i = 0; i < 11; i++) {
-        mMario->_984[i] = nullptr;
-    }
-
-    if (_EA5) {
-        mMario->changeAnimationInterpoleFrame(0);
-        mBlendMtxTimer = 0;
-    }
-}
 
 
 // NONMATCHING: saved registers and string-pool address hoisting.
@@ -7141,101 +10704,13 @@ void MarioActor::checkPriorRushTarget() {
 
 
 
-HitSensor* MarioActor::getNearestJumpTarget() const {
-    if (_930 == 0) {
-        return nullptr;
-    }
-
-    if (mHealth == 0) {
-        return nullptr;
-    }
-
-    f32 nearestDistance = 100000.0f;
-    HitSensor* nearest = nullptr;
-    for (u32 i = 0; i < _930; i++) {
-        if (!isFixJumpRushSensor(_7E4[i])) {
-            continue;
-        }
-
-        if (_924 == _7E4[i]) {
-            continue;
-        }
-
-        TVec3f position(_7E4[i]->mPosition);
-        f32 centerDistance;
-        f32 distance = (position - mPosition).length();
-        centerDistance = (position - _240).length();
-        f32 headDistance = (position - mCapPosition).length();
-        if (distance > centerDistance) {
-            distance = centerDistance;
-        }
-
-        if (distance > headDistance) {
-            distance = headDistance;
-        }
-
-        if ((mRushTouchingDD4[i] || !(_7E4[i]->mRadius < distance)) && distance < nearestDistance) {
-            nearest = _7E4[i];
-            nearestDistance = distance;
-        }
-    }
-
-    return nearest;
-}
 
 
-HitSensor* MarioActor::getHighPriorityTarget() const {
-    if (_930 == 0) {
-        return nullptr;
-    }
-
-    for (s32 idx = 0; idx < _930; idx++) {
-        if (_7E4[idx]->isType(ATYPE_POWER_STAR_BIND)) {
-            return _7E4[idx];
-        }
-
-        if (mHealth == 0) {
-            continue;
-        }
-
-        if (_7E4[idx]->isType(ATYPE_QUESTION_COIN_BIND)) {
-            return _7E4[idx];
-        }
-
-        if (_7E4[idx]->isType(ATYPE_PRIOR_BINDER)) {
-            return _7E4[idx];
-        }
-
-        if (_7E4[idx]->isType(ATYPE_SCENARIO_STARTER_BIND)) {
-            return _7E4[idx];
-        }
-    }
-
-    return nullptr;
-}
 
 
-HitSensor* MarioActor::getRescueTarget() const {
-    if (_930 == 0) {
-        return nullptr;
-    }
 
-    if (mHealth == 0) {
-        return nullptr;
-    }
 
-    for (s32 idx = 0; idx < _930; idx++) {
-        if (_7E4[idx]->isType(0x62)) {
-            return _7E4[idx];
-        }
 
-        if (mActionTable1080->testEffect(MR::getSensorHost(_7E4[idx])->mName, "ダメージ中RUSH")) {
-            return _7E4[idx];
-        }
-    }
-
-    return nullptr;
-}
 
 
 // NONMATCHING: saved registers, string-pool address hoisting, and stack frame size.
@@ -7512,9 +10987,7 @@ void MarioActor::attackSensor(HitSensor* pOwn, HitSensor* pOther) {
 }
 
 
-bool MarioActor::sendMsgToSensor(HitSensor* pSensor, u32 msg) {
-    return pSensor->receiveMessage(msg, getSensor("Body"));
-}
+
 
 
 void MarioActor::resetSensorCount() {
@@ -7812,67 +11285,7 @@ void MarioActor::calcViewReflectionModel() {
 
 
 // NONMATCHING: register allocation and verified pooled string address hoisting.
-void MarioActor::drawShadow() const {
-    bool hidden = _482 || _481;
-    if (hidden) {
-        return;
-    }
 
-    if (!mShadowEnabledEFA) {
-        return;
-    }
-
-    if (mPlayerMode == PlayerMode_Teresa) {
-        return;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_FpView) && mFirstPersonDrawHidden1A5) {
-        return;
-    }
-
-    if (_924 != nullptr && mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, "影を消す")) {
-        return;
-    }
-
-    if (((mMario->mMovementStates.mLowWord >> 16) & 1U) && mMario->_544 > 1) {
-        return;
-    }
-
-    J3DModelX* pSimple = mSimpleModelF08;
-    TPos3f matrix;
-    PSMTXScale(matrix.toMtxPtr(), mScale.x, mScale.y, mScale.z);
-    PSMTXConcat(matrix.toMtxPtr(), mReflectionBaseMtx264.mMtx, matrix.toMtxPtr());
-    PSMTXConcat(mAllModel->getJ3DModel()->getBaseTRMtx(), matrix.toMtxPtr(), pSimple->getBaseTRMtx());
-    mCollisionShadow580->calcView(pSimple, 2, static_cast<J3DModelX*>(mAllModel->getJ3DModel()));
-    if (mMario->mSinkTimer > 180) {
-        return;
-    }
-
-    if (mMario->mSinkTimer > 128) {
-        MR::hideJointAndChildren(pSimple, "Hip");
-    }
-
-    if (mMario->mSinkTimer > 150) {
-        MR::hideJointAndChildren(pSimple, "ShoulderL");
-        MR::hideJointAndChildren(pSimple, "ShoulderR");
-    }
-
-    if (mShadowHideHandsF34 || mMario->mSinkTimer > 120) {
-        MR::hideJoint(pSimple, "HandL0");
-        MR::hideJoint(pSimple, "HandR0");
-    }
-
-    mCollisionShadow580->drawAndCaptureTex(pSimple, mPosition);
-    mCollisionShadow580->clearAlphaBuffer();
-    if (mBeeWallWalk) {
-        mCollisionShadow580->_307 = 0;
-    } else {
-        mCollisionShadow580->_307 = 1;
-    }
-
-    mCollisionShadow580->draw();
-    MR::showJointAndChildren(pSimple, "JointRoot");
-}
 
 
 
@@ -8218,21 +11631,7 @@ void MarioActor::calc1stPersonView() {
 }
 
 
-void MarioActor::hideBeeFur() {
-    if (mMario->isPlayerModeBee()) {
-        _9E8->kill();
-        _9EC->offDraw(-1);
-    }
 
-    if (getCarrySensor() != nullptr) {
-        MR::hideModel(getCarrySensor()->mHost);
-    }
-
-    if (mMario->isPlayerModeInvincible()) {
-        _A6E = 0;
-        stopEffect("無敵中");
-    }
-}
 
 
 void MarioActor::calcFogLighting() {
@@ -8268,154 +11667,23 @@ void MarioActor::calcFogLighting() {
 }
 
 
-void MarioActor::resetFog() {
-    Color8 color(0, 0, 0, 0);
-    _1A8 = 0;
-    _1A4 = 0.0f;
-    _1AA = 0;
-}
 
 
-void MarioActor::updateAlphaDL(u8 alpha) {
-    u8 buffer[256] ATTRIBUTE_ALIGN(32);
-    GDLObj displayList;
-    MR::ProhibitSchedulerAndInterrupts lock(false);
-    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
-    __GDCurrentDL = &displayList;
-    GXColor color = {0, 0, 0, 255};
-    color.a = alpha;
-    GDSetTevColor(GX_TEVREG2, color);
-    GDSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-    GDSetGenMode2(1, 0, 1, 0, GX_CULL_BACK);
-    GDSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
-    GDSetChanCtrl(GX_COLOR1A1, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
-    GDSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_AND, GX_ALWAYS, 0);
-    GDSetTevAlphaCalcAndSwap(GX_TEVSTAGE0, GX_CA_A2, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV,
-                             GX_TEV_SWAP0, GX_TEV_SWAP0);
-    GDSetTevColorCalc(GX_TEVSTAGE0, GX_CC_TEXC, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GDSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR_NULL, GX_TEXCOORD1, GX_TEXMAP1, GX_COLOR_NULL);
-    GDPadCurr32();
-    u32 size = (displayList.ptr - displayList.start + 31) & ~31;
-    DLholder* holder = mDLchanger->swap();
-    holder->mSize = displayList.ptr - displayList.start;
-    MR::copyMemory(holder->mDL, buffer, size);
-    DCStoreRange(holder->mDL, size);
-}
 
 
-void MarioActor::updateSimpleAlphaDL(u8 alpha) {
-    u8 buffer[256] ATTRIBUTE_ALIGN(32);
-    GDLObj displayList;
-    MR::ProhibitSchedulerAndInterrupts lock(false);
-    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
-    __GDCurrentDL = &displayList;
-    GDSetDstAlpha(GX_TRUE, alpha);
-    GDPadCurr32();
-    u32 size = (displayList.ptr - displayList.start + 31) & ~31;
-    DLholder* holder = mDLchanger->swap();
-    holder->mSize = displayList.ptr - displayList.start;
-    MR::copyMemory(holder->mDL, buffer, size);
-    DCStoreRange(holder->mDL, size);
-}
 
 
-void MarioActor::updateReflectAlphaDL(u8 alpha) {
-    u8 buffer[256] ATTRIBUTE_ALIGN(32);
-    GDLObj displayList;
-    MR::ProhibitSchedulerAndInterrupts lock(false);
-    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
-    __GDCurrentDL = &displayList;
-    GXColor color = {0, 0, 0, 255};
-    color.a = alpha;
-    GDSetTevColor(GX_TEVREG2, color);
-    GDSetTevAlphaCalcAndSwap(GX_TEVSTAGE0, GX_CA_A2, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV,
-                             GX_TEV_SWAP0, GX_TEV_SWAP0);
-    GDPadCurr32();
-    u32 size = (displayList.ptr - displayList.start + 31) & ~31;
-    DLholder* holder = mDLchanger->swap();
-    holder->mSize = displayList.ptr - displayList.start;
-    MR::copyMemory(holder->mDL, buffer, size);
-    DCStoreRange(holder->mDL, size);
-}
+
+
+
+
 
 
 // NONMATCHING: register allocation and scheduling of display-list buffer bookkeeping.
-void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, const Color8& rFog, f32 strength) {
-    u8 buffer[512] ATTRIBUTE_ALIGN(32);
-    GDLObj displayList;
-    MR::ProhibitSchedulerAndInterrupts lock(false);
-    GDInitGDLObj(&displayList, buffer, sizeof(buffer));
-    __GDCurrentDL = &displayList;
-    GXColor ambientColor = {rAmbient.r, rAmbient.g, rAmbient.b, rAmbient.a};
-    GDSetChanAmbColor(GX_COLOR0A0, ambientColor);
-    GXColor materialColor = {rMaterial.r, rMaterial.g, rMaterial.b, rMaterial.a};
-    GDSetChanMatColor(GX_COLOR0A0, materialColor);
-    GDSetChanCtrl(GX_COLOR1, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
-
-    if (!MR::isNearZero(strength)) {
-        f32 nearZ = MR::getNearZ();
-        f32 farZ = MR::getFarZ();
-        GXColor color = {rFog.r, rFog.g, rFog.b, rFog.a};
-        f32 start;
-        f32 end;
-        MR::calcFogStartEnd(mPosition, strength, &start, &end);
-        GDSetFog(GX_FOG_LIN, start, end, nearZ, farZ, color);
-    }
-
-    GDPadCurr32();
-    u32 length = displayList.ptr - displayList.start;
-    mCurrentDLSize1A0 = length;
-    mCurrDL = 1 - mCurrDL;
-    u32 size = (length + 31) & ~31;
-    MR::copyMemory(mDL[mCurrDL], buffer, size);
-    DCStoreRange(mDL[mCurrDL], size);
-}
 
 
-void MarioActor::createRainbowDL() {
-    DLholder* holder;
-    u8 buffer[256] ATTRIBUTE_ALIGN(32);
-    GDLObj displayList;
-    MR::ProhibitSchedulerAndInterrupts lock(false);
 
-    for (u32 alpha = 0; alpha < 8; alpha++) {
-        for (u32 index = 0; index < 8; index++) {
-            mBlurDisplayLists[alpha * 8 + index] = new DLchanger(1, 32);
-            GDInitGDLObj(&displayList, buffer, sizeof(buffer));
-            __GDCurrentDL = &displayList;
-            GXColor color = {0, 0, 0, 0};
 
-            if (index & 1) {
-                color.r = 255;
-            }
-
-            if (index & 2) {
-                color.g = 255;
-            }
-
-            if (index & 4) {
-                color.b = 255;
-            }
-
-            if (!index) {
-                color.r = 64;
-                color.g = 64;
-                color.b = 64;
-            }
-
-            color.a = 16 + (alpha + 1) * 24;
-            GDSetTevColor(GX_TEVREG0, color);
-            GDPadCurr32();
-            u32 length = displayList.ptr - displayList.start;
-            u32 size = (length + 31) & ~31;
-            DLchanger* changer = mBlurDisplayLists[alpha * 8 + index];
-            holder = &changer->mBuffers[changer->mCurrentBuffer];
-            holder->mSize = length;
-            MR::copyMemory(holder->mDL, buffer, size);
-            DCStoreRange(holder->mDL, size);
-        }
-    }
-}
 
 
 void MarioActor::drawScreenBlend() const {
@@ -8515,18 +11783,13 @@ namespace {
     }
 };
   // namespace
-#pragma push
-#pragma global_optimizer off
-
-#pragma pop
 
 
 
 
 
-void MarioActor::setRasterScroll(s32 i1, s32 i2, s32 i3) {
-    mScreenStrip1084->fn_803DB9D0(i1, i2, i3);
-}
+
+
 
 
 
@@ -8764,22 +12027,7 @@ bool MarioActor::drawDarkMask() const {
 }
 
 
-void MarioActor::showBeeFur() {
-    if (mMario->isPlayerModeBee()) {
-        _9E8->appear();
-        _9EC->onDraw(-1);
-    }
 
-    if (getCarrySensor() != nullptr) {
-        MR::showModel(getCarrySensor()->mHost);
-    }
-
-    if (mMario->isPlayerModeInvincible()) {
-        MR::showJoint(static_cast<J3DModelX*>(mAllModel->getJ3DModel()), "Face0");
-        _A6E = 2;
-        playEffect("無敵中");
-    }
-}
 
 // ---- MarioActorTakeMsg.cpp ----
 
@@ -8901,27 +12149,10 @@ void MarioActor::tryReleaseDirect(const HitSensor* pSensor) {
 }
 
 
-void MarioActor::damageDropThrowMemoSensor() {
-    tryReleaseWithMsg(ACTMES_DAMAGEDROP);
-    updateSearchLight();
-    tryReleaseBombTeresa();
-
-    if (_424 != nullptr) {
-        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("Body"));
-        _424 = nullptr;
-    }
-}
 
 
-void MarioActor::rushDropThrowMemoSensor() {
-    tryReleaseWithMsg(ACTMES_RUSHDROP);
-    updateSearchLight();
 
-    if (_424 != nullptr) {
-        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("Body"));
-        _424 = nullptr;
-    }
-}
+
 
 
 void MarioActor::trySetLockOnTarget(HitSensor* pSensor) {
@@ -9075,67 +12306,7 @@ void MarioActor::tryPullTrans(TVec3f* pVelocity, const TVec3f& rPosition) {
 }
 
 
-bool MarioActor::releaseThrowMemoSensor() {
-    // FIXME: missing class at 0x988 that has HitSensor* at 0xA4
-    if (_468 != 0) {
-        if (mMario->isStatusActive(MarioStatus_Wall) || mMario->isStatusActive(MarioStatus_SideStep)) {
-            return false;
-        }
 
-        if (mMario->isSwimming() && mSearchLight->_A4 != nullptr) {
-            _470 = mSearchLight->_A4;
-        }
-
-        s32 idx = _468 - 1;
-        if (_470 != nullptr) {
-            TVec3f diff = _470->mPosition - _240;
-
-            if (mMario->isSwimming()) {
-                TVec3f throwVec;
-                getThrowVec(&throwVec);
-                if (MR::diffAngleAbs(diff, throwVec) > PI / 3.0f) {
-                    _470 = nullptr;
-                }
-            } else if (MR::diffAngleAbs(diff, mMario->mFrontVec) > PI / 3.0f) {
-                _470 = nullptr;
-            }
-        }
-
-        if (_470 == nullptr || !mMario->isSwimming()) {
-            if (_F24 != nullptr) {
-                if (!_428[idx]->receiveMessage(ACTMES_THROW, _F24)) {
-                    return false;
-                }
-            } else if (!_428[idx]->receiveMessage(ACTMES_THROW, getSensor("Body"))) {
-                return false;
-            }
-
-            _474 = 0;
-        } else {
-            if (!_428[idx]->receiveMessage(ACTMES_THROW, _470)) {
-                return false;
-            }
-
-            _474 = _470;
-        }
-
-        _468--;
-
-        if (_468 == 0) {
-            _470 = nullptr;
-            _47C = 0;
-            _428[0] = nullptr;
-        }
-
-        clearNullAnimation(0);
-
-        _3AC = 60;
-
-        return true;
-    }
-
-    return false;
-}
 
 
 // NONMATCHING: literal symbol identities; instruction words match after relocation masking.
@@ -9177,93 +12348,7 @@ void MarioActor::tryReleaseWithMsg(u32 msg) {
 
 
 // NONMATCHING: local vector stack slots, Mario receiver load scheduling, and literal offsets.
-void MarioActor::tryTornadoPull(HitSensor* pSensor) {
-    if (!mActionTable1080->isActionOk("コイン引っ張り")) {
-        return;
-    }
 
-    s32 type = pSensor->mType;
-    if (strcmp(MR::getSensorHost(pSensor)->mName, "カメックビーム用カメ") == 0) {
-        type = 5555;
-    }
-
-    switch (type) {
-    case 0x46: {
-        if (mPlayerMode == 7 || IsMarioSwimming()) {
-            TVec3f center(_240);
-            TVec3f ground;
-            ground = mMario->mGroundPos;
-            if (IsMarioSwimming()) {
-                ground = center - mBodyUpDirection * 600.0f;
-            }
-
-            center += mMario->mHeadVec * 200.0f;
-            TVec3f position(*MR::getSensorPos(pSensor));
-            TVec3f foot;
-            f32 projection = MR::getFootPoint(center, ground, position, &foot);
-            if (projection < -0.1f) {
-                return;
-            }
-
-            if (projection > 2.0f) {
-                return;
-            }
-
-            if (PSVECDistance(&foot, &position) > 600.0f) {
-                return;
-            }
-
-            TVec3f collisionOffset(*MR::getSensorPos(pSensor));
-            collisionOffset -= _240;
-            if (mMario->fn_803B2880(_240, collisionOffset)) {
-                return;
-            }
-
-            for (s32 i = 0; i < 128; i++) {
-                if (mPulledSensors7C0[i] == pSensor) {
-                    return;
-                }
-            }
-
-            pSensor->receiveMessage(0x85, getSensor("Body"));
-            if (pSensor->receiveMessage(0x85, getSensor("Body"))) {
-                for (s32 i = 0; i < 128; i++) {
-                    if (mPulledSensors7C0[i] == nullptr) {
-                        mPulledSensors7C0[i] = pSensor;
-                        return;
-                    }
-                }
-            }
-        }
-
-        break;
-    }
-
-    case 0x12:
-    case 0x13:
-        if (mActionTable1080->isActionOk("カメ持ち") && pSensor->receiveMessage(0x84, getSensor("Body"))) {
-            if (PSVECDistance(&mPosition, MR::getSensorPos(pSensor)) < 120.0f) {
-                mConditionGroup->tryGetItem(pSensor);
-                return;
-            }
-
-            LiveActor* host = MR::getSensorHost(pSensor);
-            tryPullTrans(&host->mVelocity, *MR::getSensorPos(pSensor));
-            pSensor->receiveMessage(0x85, getSensor("Body"));
-            _424 = pSensor;
-        }
-
-        break;
-    case 5555:
-        if (mActionTable1080->isActionOk("カメ持ち") && pSensor->receiveMessage(0x84, getSensor("Body"))) {
-            LiveActor* host = MR::getSensorHost(pSensor);
-            tryPullTrans(&host->mVelocity, *MR::getSensorPos(pSensor));
-            pSensor->receiveMessage(0x85, getSensor("Body"));
-        }
-
-        break;
-    }
-}
 
 
 // NONMATCHING: redundant Mario receiver reload and verified pooled literal addresses.
@@ -9349,92 +12434,10 @@ HitSensor* MarioActor::getLookTargetSensor() const {
 
 
 
-void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal) {
-    if (mBeeWallWalk) {
-        return;
-    }
 
-    if (!_9F2) {
-        mBeeWallWalk = 5;
-        TVec3f gravity(-normal);
-        mAppliedGravityVec = gravity;
-        mPosition = position;
-        mMario->setTrans(position);
-        mMario->stopJump();
-        mMario->stopAnimation(nullptr);
-        mMario->stopWalk();
-        TVec3f front(mMario->mHeadVec);
-        mMario->setGravityVec(gravity);
-        mMario->setHeadVec(-gravity);
-        mMario->setFrontVecKeepUp(front, 1UL);
-        setBlendMtxTimer(2);
-        _38C = 5;
-        mMario->mMovementStates.mHighWord &= 0xFFFFFF7FU;
-        mCollisionShadow580->_305 = true;
-    }
-}
 
 // ---- MarioEffect.cpp ----
 
-struct MaterialEffectEntry {
-    struct Options {
-        u8 mSelectionOptions;
-        u8 mReserved1;
-        u8 mReserved2;
-        u8 mReserved3;
-    };
-
-    /* 0x00 */ const char* mName;
-    /* 0x04 */ Options mFlag;
-    /* 0x08 */ const char* mEffects[8];
-    /* 0x28 */ const char* mCurrent;
-    /* 0x2C */ MultiEmitter* mEmitter;
-};
-
-
-struct SmokeEffectEntry {
-    struct TypeCode {
-        u8 mCode;
-        u8 mReserved1;
-        u8 mReserved2;
-        u8 mReserved3;
-    };
-
-    struct Flags {
-        u8 mAttachment;
-        u8 mHostFollowFlags;
-        u8 mPlacementFlags;
-        u8 mReserved;
-    };
-
-    /* 0x00 */ const char* mName;
-    /* 0x04 */ TypeCode mType;
-    /* 0x08 */ f32 mScale;
-    /* 0x0C */ f32 mRate;
-    /* 0x10 */ Flags mFlags;
-    /* 0x14 */ u16 mInterval;
-    /* 0x16 */ u16 mTimer;
-    /* 0x18 */ u32 mHash;
-    /* 0x1C */ MultiEmitter* mEmitter;
-    /* 0x20 */ u8 mMaterial;
-    /* 0x21 */ u8 _21[3];
-};
-
-
-MaterialEffectEntry cMaterialEffectTable[] = {
-    {"属性尻ドロップ",
-     {0, 0, 0, 0},
-     {"HipDropSmoke", "HipDropWater", "HipDropFlower", "HipDropSand", "HipDropSnow", "MudCircle", "HoneyCircle", "MarioCloudLand"},
-     nullptr,
-     nullptr},
-    {"属性ハチ風", {3, 0, 0, 0}, {"Hovering", "HoveringWater", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering"}, nullptr, nullptr},
-    {"属性スピン", {0, 0, 0, 0}, {nullptr, "WaterSpin", "FlowerSpin", "SandSpin", "SnowSpin", "MudCircle", "HoneyCircle", nullptr}, nullptr, nullptr},
-    {"属性ステージイン",
-     {0, 0, 0, 0},
-     {"StageStartGroundSmoke", nullptr, nullptr, "StageStartGroundSand", nullptr, nullptr, nullptr, "MarioCloudLand"},
-     nullptr,
-     nullptr},
-    {nullptr, {0, 0, 0, 0}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, nullptr, nullptr}};
 
 
 namespace {
@@ -9479,111 +12482,7 @@ void MarioActor::initMaterialEffect() {
 }
 
 
-s32 MarioActor::getFloorMaterialIndex(u32 flags) const {
-    s32 materialIndex = 0;
 
-    if (mMarioEffect->_10 == 0) {
-        return 2;
-    }
-
-    if (_3A8 != 0) {
-        return 1;
-    }
-
-    s32 floor = mMario->_960;
-    if ((floor == 0x0D || floor == 0x1E) && !mMario->isCurrentFloorSand()) {
-        floor = mMario->_962;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Wall)) {
-        if (((mMario->mMovementStates.mLowWord >> 23) & 1U)) {
-            floor = mMario->_964[0];
-        } else if (((mMario->mMovementStates.mLowWord >> 6) & 1U)) {
-            floor = mMario->_964[1];
-        } else if (((mMario->mMovementStates.mLowWord >> 5) & 1U)) {
-            floor = mMario->_964[2];
-        }
-    }
-
-    if (((mMario->mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13)) {
-        floor = 0x17;
-    }
-
-    if (((mMario->mDrawStates.mWord >> 12) & 1U)) {
-        floor = 0x17;
-    }
-
-    if (flags & 0x2) {
-        if (((mMario->mDrawStates.mWord >> 2) & 1U)) {
-            floor = 0x17;
-        }
-    }
-
-    if (mMario->_2D0 != 0.0f) {
-        floor = 0x1A;
-    }
-
-    if (mMario->_A7F != 0) {
-        floor = 0x20;
-    }
-
-    if (mMario->isPlayerModeBee() && MR::isWallCodeNoAction(mMario->mGroundPolygon)) {
-        return -1;
-    }
-
-    switch (floor) {
-    case 0x14:
-    case 0x15:
-    case 0x16:
-    case 0x17:
-        materialIndex = 1;
-        break;
-    case 0x0E:
-    case 0x21:
-        return -1;
-    case 0x0D:
-    case 0x1E:
-        materialIndex = 3;
-        break;
-    case 0x1A:
-    case 0x2B:
-        materialIndex = 4;
-        break;
-    case 0x20:
-        materialIndex = 5;
-        if (strcmp(MR::getSoundCodeString(mMario->_45C), "Honey") == 0) {
-            materialIndex = 6;
-        }
-
-        break;
-    case 0x1B:
-    case 0x1C:
-        if (strcmp(MR::getSoundCodeString(mMario->_45C), "Sand") == 0) {
-            materialIndex = 3;
-        }
-
-        break;
-    case 0x26:
-        materialIndex = 7;
-        break;
-    default:
-        break;
-    }
-
-    if (((mMario->mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13) || ((mMario->mDrawStates.mWord >> 12) & 1U)) {
-        materialIndex = 1;
-    }
-
-    if (!((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
-        if (mMario->mSwim->_1B2 != 0) {
-            if (mMario->mSwim->_1B8 < 400.0f) {
-                materialIndex = 1;
-            }
-        }
-    }
-
-    return materialIndex;
-}
 
 
 MultiEmitter* MarioActor::playMaterialEffect(const char* pName) {
@@ -9647,26 +12546,7 @@ void MarioActor::stopMaterialEffect(const char* pName) {
 }
 
 
-SmokeEffectEntry cSmokeTable[] = {{"共通着地普通", {8, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通着地大", {3, 0, 0, 0}, 1.5f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁ジャンプ", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 3, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通砂煙レベル", {7, 0, 0, 0}, 0.65f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁手擦り", {1, 0, 0, 0}, 0.35f, 1.0f, {2, 1, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁上昇", {1, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 2, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ坂", {2, 0, 0, 0}, 0.35f, 1.0f, {0, 1, 0, 0}, 2, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ空転", {0, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ坂制動", {2, 0, 0, 0}, 0.5f, 1.0f, {0, 0, 0, 0}, 2, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁ヒット着地", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ダメージ着地", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通地上スピン", {3, 0, 0, 0}, 0.9f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ブレーキ", {2, 0, 0, 0}, 0.65f, 1.0f, {0, 1, 0, 0}, 15, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ハイジャンプ", {2, 0, 0, 0}, 0.65f, 1.0f, {0, 1, 0, 0}, 6, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ブラックホール", {1, 0, 0, 0}, 0.65f, 1.0f, {3, 3, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通引き戻し着地", {3, 0, 0, 0}, 1.2f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通跳躍", {8, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 12, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ひこうき雲", {3, 0, 0, 0}, 0.3f, 0.2f, {0, 1, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ひこうきブースト", {0, 0, 0, 0}, 2.0f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {nullptr, {0, 0, 0, 0}, 0.0f, 0.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}}};
+
 
 
 // NONMATCHING: pooled literal offsets differ; instructions and material tables verified.
@@ -10188,27 +13068,7 @@ void MarioActor::initEffect() {
 }
 
 
-void MarioActor::emitEffectWaterColumn(const TVec3f& rDir, const TVec3f& rTrans) {
-    if (MR::isNearZero(rDir)) {
-        return;
-    }
 
-    mWaterColumn->appear();
-    MR::startAction(mWaterColumn, "Splash");
-
-    TVec3f rot;
-    TPos3f mtx;
-    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
-
-    mWaterColumn->mPosition = rTrans;
-    mWaterColumn->mRotation = rot;
-    mWaterColumn->calcAnim();
-
-    MR::emitEffect(mWaterColumn, "Splash");
-    Mario* player = mMario;
-    player->fn_80395400(2);
-}
 
 
 bool MarioActor::isCommonEffect(const char* pName) const {
@@ -10233,120 +13093,22 @@ bool MarioActor::isMaterialEffect(const char* pName) const {
 }
 
 
-MultiEmitter* MarioActor::playEffect(const char* pName) {
-    s32 isBlocked = 0;
-    if (_482 || _483) {
-        isBlocked = 1;
-    }
-
-    if (isBlocked) {
-        return nullptr;
-    }
-
-    if (isCommonEffect(pName)) {
-        return playCommonEffect(pName);
-    }
-
-    if (isMaterialEffect(pName)) {
-        return playMaterialEffect(pName);
-    }
-
-    if (mMario->isPlayerModeYoshi()) {
-        MultiEmitter* emitter = MR::tryEmitEffect(mYoshiHolder->mYoshi, pName);
-        if (emitter != nullptr) {
-            return emitter;
-        }
-    }
-
-    return MR::emitEffect(this, pName);
-}
 
 
-void MarioActor::playEffectTrans(const char* pName, const TVec3f& rTrans) {
-    MultiEmitter* emitter = playEffect(pName);
-    if (emitter != nullptr) {
-        emitter->setGlobalTranslation(rTrans, -1);
-    }
-}
 
 
-void MarioActor::playEffectRT(const char* pName, const TVec3f& rDir, const TVec3f& rTrans) {
-    if (MR::isNearZero(rDir)) {
-        return;
-    }
-
-    TVec3f rot;
-    TPos3f mtx;
-    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
-
-    MultiEmitter* emitter = playEffect(pName);
-    if (emitter != nullptr) {
-        emitter->forceFollowOff();
-        emitter->setGlobalTranslation(rTrans, -1);
-        emitter->setGlobalRotationDegree(rot, -1);
-    }
-}
 
 
-void MarioActor::playEffectRTZ(const char* pName, const TVec3f& rDir, const TVec3f& rTrans) {
-    if (MR::isNearZero(rDir)) {
-        return;
-    }
-
-    TVec3f rot;
-    TPos3f mtx;
-    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
-
-    MultiEmitter* emitter = playEffect(pName);
-    if (emitter != nullptr) {
-        emitter->forceFollowOff();
-        emitter->setGlobalTranslation(rTrans, -1);
-        emitter->setGlobalRotationDegree(rot, -1);
-    }
-}
 
 
-void MarioActor::playEffectRTW(const char* pName, const TVec3f& rDir, const TVec3f& rTrans) {
-    if (MR::isNearZero(rDir)) {
-        return;
-    }
-
-    TVec3f rot;
-    TPos3f mtx;
-    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
-
-    mEffectRotationFDC = rot;
-    mEffectTranslationFD0 = rTrans;
-    playEffect(pName);
-}
 
 
-void MarioActor::playEffectSRT(const char* pName, f32 scale, const TVec3f& rDir, const TVec3f& rTrans) {
-    if (MR::isNearZero(rDir)) {
-        return;
-    }
 
-    TVec3f rot;
-    TPos3f mtx;
-    MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
 
-    MultiEmitter* emitter = playEffect(pName);
-    if (emitter != nullptr) {
-        emitter->setGlobalScale(scale, -1);
-    }
 
-    if (emitter != nullptr) {
-        emitter->setGlobalTranslation(rTrans, -1);
-    }
 
-    if (emitter != nullptr) {
-        emitter->setGlobalRotationDegree(rot, -1);
-    }
-}
+
+
 
 
 void MarioActor::stopCommonEffect(const char* pName) {
@@ -10363,42 +13125,10 @@ void MarioActor::stopCommonEffect(const char* pName) {
 }
 
 
-void MarioActor::stopEffect(const char* pName) {
-    if (isCommonEffect(pName)) {
-        stopCommonEffect(pName);
-        return;
-    }
-
-    if (isMaterialEffect(pName)) {
-        stopMaterialEffect(pName);
-        return;
-    }
-
-    if (mMario->isPlayerModeYoshi() && MR::tryDeleteEffect(mYoshiHolder->mYoshi, pName)) {
-        return;
-    }
-
-    MR::deleteEffect(this, pName);
-}
 
 
-void MarioActor::stopEffectForce(const char* pName) {
-    if (isCommonEffect(pName)) {
-        stopCommonEffect(pName);
-        return;
-    }
 
-    if (isMaterialEffect(pName)) {
-        stopMaterialEffect(pName);
-        return;
-    }
 
-    if (mMario->isPlayerModeYoshi() && MR::tryForceDeleteEffect(mYoshiHolder->mYoshi, pName)) {
-        return;
-    }
-
-    MR::forceDeleteEffect(this, pName);
-}
 
 
 // NONMATCHING: redundant Mario pointer reload before checkLvlA and pooled literal offsets.
@@ -10552,14 +13282,7 @@ void MarioActor::updateEffect() {
 }
 
 
-bool MarioActor::checkEffectWaterColumn() {
-    if (MR::isActionEnd(mWaterColumn)) {
-        mWaterColumn->kill();
-        return false;
-    }
 
-    return true;
-}
 
 
 void MarioActor::stopSpinTicoEffect(bool force) {
@@ -10681,17 +13404,7 @@ void MarioActor::calcViewSearchLight() {
 
 
 
-void MarioActor::getThrowVec(TVec3f* pVec) const {
-    TVec3f rotate;
-    mSearchLightThrowPos->copyRotate(&rotate);
 
-    TVec3f dirZ(0.0f, 0.0f, 1.0f);
-
-    Mtx trMtx;
-    MR::makeMtxTR(trMtx, 0.0f, 0.0f, 0.0f, rotate.x, rotate.y, rotate.z);
-
-    PSMTXMultVec(trMtx, dirZ, pVec);
-}
 
 // ---- MarioTeresa.cpp ----
 
@@ -10730,136 +13443,14 @@ void MarioTeresa_FORCE_MATCH_SDATA2() {
 #endif
 
 
-void MarioActor::runTeresaBaseAnimation() {
-    if (!mMario->isStatusActive(MarioStatus_Wait) && !mTeresaModel->mPlayer->isRun("基本")) {
-        mTeresaModel->mPlayer->changeAnimationBck("基本");
-        mTeresaModel->_10 = MR::getRandom(60L, 180L);
-        MR::startBtp(mTeresaModel->mActor, "blink");
-    }
-}
 
 
-void MarioActor::changeTeresaAnimation(const char* pAnimation, s32 interpolation) {
-    if (MR::isBckPlaying(mTeresaModel->mActor, "sleep")) {
-        MR::deleteEffect(mTeresaModel->mActor, "Sleep");
-    }
 
-    if (interpolation == -1) {
-        MR::startAction(mTeresaModel->mActor, pAnimation);
-    } else {
-        MR::startBckWithInterpole(mTeresaModel->mActor, pAnimation, interpolation);
-    }
 
-    if (MR::isEqualString(pAnimation, "wait") || MR::isEqualString(pAnimation, "run")) {
-        mTeresaModel->_10 = MR::getRandom(60L, 180L);
-        MR::stopBtp(mTeresaModel->mActor);
-        return;
-    }
-
-    mTeresaModel->_10 = 0;
-    if (MR::isExistBtp(mTeresaModel->mActor, pAnimation)) {
-        MR::startBtp(mTeresaModel->mActor, pAnimation);
-        return;
-    }
-
-    MR::startBtp(mTeresaModel->mActor, "blink");
-}
 
 
 // NONMATCHING: model/constant register allocation, load scheduling and verified string-pool offsets.
-void MarioActor::updateTeresaAnimation() {
-    bool canChange = true;
-    if (MR::isBckPlaying(mTeresaModel->mActor, "sleep")) {
-        bool moving = false;
-        if (mMario->fn_803AC810()) {
-            moving = true;
-        }
 
-        if (mMario->getStickP() != 0.0f) {
-            moving = true;
-        }
-
-        if (mMario->mJumpVec.length() > 1.0f) {
-            moving = true;
-        }
-
-        if (moving) {
-            runTeresaBaseAnimation();
-            MR::deleteEffect(mTeresaModel->mActor, "Sleep");
-        }
-    }
-
-    if (MR::isBckOneTimeAndStopped(mTeresaModel->mActor)) {
-        runTeresaBaseAnimation();
-    }
-
-    if (MR::isBckPlaying(mTeresaModel->mActor, "hit")) {
-        canChange = false;
-    }
-
-    if (MR::isBckPlaying(mTeresaModel->mActor, "spin") && !mMario->fn_803AC810()) {
-        canChange = false;
-    }
-
-    if (canChange) {
-        if (mMario->fn_803AC810()) {
-            if (!MR::isBckPlaying(mTeresaModel->mActor, "fly") && !MR::isBckPlaying(mTeresaModel->mActor, "spin")) {
-                changeTeresaAnimation("fly", 16);
-            }
-        } else if (MR::isBckPlaying(mTeresaModel->mActor, "fly") || mTeresaModel->mPlayer->isRun("基本")) {
-            if (getLastMove().dot(*mMario->getGravityVec()) >= 1.0f) {
-                changeTeresaAnimation("fall", 16);
-            } else if (!((mMario->mDrawStates.mWord >> 3) & 1U)) {
-                if (MR::abs(getLastMove().dot(*mMario->getGravityVec())) < 1.0f) {
-                    runTeresaBaseAnimation();
-                }
-            }
-        } else if (MR::isBckPlaying(mTeresaModel->mActor, "fall")) {
-            if (getLastMove().dot(*mMario->getGravityVec()) < 1.0f) {
-                runTeresaBaseAnimation();
-            }
-        }
-
-        if (mTeresaModel->mPlayer->isRun("基本")) {
-            mTeresaModel->_C = MR::clamp(mMario->mJumpVec.length() / 10.0f, 0.0f, 1.0f);
-            mTeresaModel->mPlayer->changeTrackWeight(0, 1.0f - mTeresaModel->_C);
-            mTeresaModel->mPlayer->changeTrackWeight(1, mTeresaModel->_C);
-        }
-    }
-
-    if (mMario->_418) {
-        if (!MR::isBckPlaying(mTeresaModel->mActor, "spin")) {
-            if (mMario->_418 > getConst().getTable()->mTeresaWallThroughTime - 3) {
-                changeTeresaAnimation("spin", -1);
-            }
-        }
-
-        if (mTeresaModel->_4 < getConst().getTable()->mTeresaAlphaLevelMax) {
-            mTeresaModel->_4 += getConst().getTable()->mTeresaAlphaLevelInc;
-        }
-
-        mMario->_418--;
-        if (!mMario->_418) {
-            mMario->playSound("テレサ現れる", -1);
-        }
-    } else {
-        if (mTeresaModel->_4 > 0.0f) {
-            mTeresaModel->_4 -= getConst().getTable()->mTeresaAlphaLevelDec;
-            if (mMario->mTeresa->_46) {
-                mTeresaModel->_4 -= getConst().getTable()->mTeresaAlphaLevelDec;
-            }
-        }
-    }
-
-    MR::setBrkFrameAndStop(mTeresaModel->mActor, mTeresaModel->_4);
-    if (mTeresaModel->_10) {
-        mTeresaModel->_10--;
-        if (!mTeresaModel->_10) {
-            mTeresaModel->_10 = MR::getRandom(90L, 240L);
-            MR::startBtp(mTeresaModel->mActor, "blink");
-        }
-    }
-}
 
 
 #include "../src/Game/Player/MarioActorSMG2_A.inc"
@@ -10923,4 +13514,11 @@ namespace {
     TVec3f sInitialVector0(0.0f);
     TVec3f sInitialVector1(0.0f);
     TVec3f sInitialVector2(100.0f);
+}
+
+
+void MarioActor::changeNullAnimation(const char* pName, s8 num) {
+    mNullAnimation->appear();
+    MR::startAction(mNullAnimation, pName);
+    _B92 = num;
 }

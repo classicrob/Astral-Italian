@@ -711,7 +711,7 @@ void __a1_20_status_report(u8 chan, u8* data, WPADStatus* p_status) {
         p_cb->infoBuf = NULL;
     }
     p_copy = _wpdcb[chan];
-    memcpy(p_status, p_copy->rxBuf + !p_copy->rxBufIndex * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
+    memcpy(p_status, p_copy->rxBuf + (u32)(p_copy->rxBufIndex == 0) * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
     p_status->button = ((data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
     if (p_status->dev != p_cb->devType) {
         p_status->dev = p_cb->devType;
@@ -786,7 +786,7 @@ void __a1_21_user_data(u8 chan, u8* data, WPADStatus* p_status) {
         }
     }
     p_copy = _wpdcb[chan];
-    memcpy(p_status, p_copy->rxBuf + !p_copy->rxBufIndex * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
+    memcpy(p_status, p_copy->rxBuf + (u32)(p_copy->rxBufIndex == 0) * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
     p_status->button = ((data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
     if (p_status->dev != p_cb->devType) {
         p_status->dev = p_cb->devType;
@@ -801,15 +801,18 @@ void __a1_22_ack(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_copy;
     BOOL enabled = OSDisableInterrupts();
     s32 result;
+    u16 buttons;
     p_copy = _wpdcb[chan];
-    memcpy(p_status, p_copy->rxBuf + !p_copy->rxBufIndex * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
-    p_status->button = ((data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
+    memcpy(p_status, p_copy->rxBuf + (u32)(p_copy->rxBufIndex == 0) * WPAD_RX_DATASIZE, WPAD_RX_DATASIZE);
+    buttons = (u16)(data[2] << 8);
+    buttons |= data[1];
+    p_status->button = (buttons & HID_WPAD_BUTTON_MASK) | (p_status->button & 0x6000);
     if (p_status->dev != p_cb->devType) {
         p_status->dev = p_cb->devType;
         p_status->err = WPAD_ERR_INVALID;
     }
     result = data[4] == 0 ? WPAD_ERR_NONE : WPAD_ERR_TRANSFER;
-    if (p_cb->cmdId == data[3]) {
+    if (data[3] == p_cb->cmdId) {
         if (p_cb->resultCallback) {
             p_cb->resultCallback(chan, result);
             p_cb->resultCallback = NULL;
@@ -1104,7 +1107,7 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
             (*p_status)->err = WPAD_ERR_CORRUPTED;
         }
     } else if (mode == 5 || mode == 7) {
-        previous = (WPADMPStatus*)(p_cb->rxBuf + (!p_cb->rxBufIndex) * WPAD_RX_DATASIZE);
+        previous = (WPADMPStatus*)(p_cb->rxBuf + (u8)(p_cb->rxBufIndex == 0) * WPAD_RX_DATASIZE);
         if (data[5] & 1) {
             MP_REPORT->status = 0;
             (*p_status)->err = WPAD_ERR_CORRUPTED;

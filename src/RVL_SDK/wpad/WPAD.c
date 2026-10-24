@@ -1585,13 +1585,12 @@ NO_INLINE u32 __wpadGetReportSize(u32 format) {
     }
 }
 
-// NONMATCHING: compiler register allocation and temporary lifetimes differ.
 void WPADRead(s32 chan, void* status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADStatus* data;
     BOOL enabled = OSDisableInterrupts();
     u32 size;
-    data = (WPADStatus*)(p_cb->rxBuf + (p_cb->rxBufIndex == 0) * WPAD_RX_DATASIZE);
+    data = (WPADStatus*)(p_cb->rxBuf + (u8)(p_cb->rxBufIndex == 0) * WPAD_RX_DATASIZE);
     size = __wpadGetReportSize(p_cb->dataFormat);
     if (data->err != WPAD_ERR_NONE) size = sizeof(WPADStatus);
     memcpy(status, data, size);
@@ -1603,11 +1602,11 @@ void WPADSetAutoSamplingBuf(s32 chan, void* buf, u32 length) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     BOOL enabled = OSDisableInterrupts();
     s8 err = p_cb->status == WPAD_ERR_NO_CONTROLLER ? WPAD_ERR_NO_CONTROLLER : WPAD_ERR_INVALID;
-    u32 size = __wpadGetReportSize(p_cb->dataFormat);
-    u32 i;
+    int size = __wpadGetReportSize(p_cb->dataFormat);
+    int i;
     if (buf) {
         memset(buf, 0, size * length);
-        for (i = 0; i != length; i++) ((WPADStatus*)((u8*)buf + i * size))->err = err;
+        for (i = 0; i < length; i++) ((WPADStatus*)((u8*)buf + i * size))->err = err;
         p_cb->bufLatestIndex = 0xFFFFFFFF;
         p_cb->bufLength = length;
     }
@@ -1657,15 +1656,17 @@ void WPADiExcludeButton(s32 chan) {
 void WPADiCopyOut(s32 chan) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADStatus* data;
+    void* output;
     u32 size;
     BOOL enabled = OSDisableInterrupts();
-    data = (WPADStatus*)(p_cb->rxBuf + (p_cb->rxBufIndex == 0) * WPAD_RX_DATASIZE);
+    data = (WPADStatus*)(p_cb->rxBuf + (u8)(p_cb->rxBufIndex == 0) * WPAD_RX_DATASIZE);
     size = __wpadGetReportSize(p_cb->dataFormat);
     if (p_cb->samplingBufs_ptr) {
         p_cb->bufLatestIndex++;
         if (p_cb->bufLatestIndex >= p_cb->bufLength) p_cb->bufLatestIndex = 0;
-        if (data->err != WPAD_ERR_NONE) memcpy((u8*)p_cb->samplingBufs_ptr + p_cb->bufLatestIndex * size, data, sizeof(WPADStatus));
-        else memcpy((u8*)p_cb->samplingBufs_ptr + p_cb->bufLatestIndex * size, data, size);
+        output = (u8*)p_cb->samplingBufs_ptr + p_cb->bufLatestIndex * size;
+        if (data->err != WPAD_ERR_NONE) size = sizeof(WPADStatus);
+        memcpy(output, data, size);
     }
     if (p_cb->sampleCallback) p_cb->sampleCallback(chan);
     p_cb->packetCnt++;

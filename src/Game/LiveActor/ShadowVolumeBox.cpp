@@ -30,11 +30,26 @@ void ShadowVolumeBox::makeVertexBuffer() const {
     ShadowController* controller = getController();
     controller->calcBaseMtx(&base);
     TVec3f side;
-    side.set<f32>(base.mMtx[0][0], base.mMtx[1][0], base.mMtx[2][0]);
+    {
+        f32 z = base.mMtx[2][0];
+        f32 y = base.mMtx[1][0];
+        f32 x = base.mMtx[0][0];
+        side.set<f32>(x, y, z);
+    }
     TVec3f up;
-    up.set<f32>(base.mMtx[0][1], base.mMtx[1][1], base.mMtx[2][1]);
+    {
+        f32 z = base.mMtx[2][1];
+        f32 y = base.mMtx[1][1];
+        f32 x = base.mMtx[0][1];
+        up.set<f32>(x, y, z);
+    }
     TVec3f front;
-    front.set<f32>(base.mMtx[0][2], base.mMtx[1][2], base.mMtx[2][2]);
+    {
+        f32 z = base.mMtx[2][2];
+        f32 y = base.mMtx[1][2];
+        f32 x = base.mMtx[0][2];
+        front.set<f32>(x, y, z);
+    }
 
     TVec3f pos, dir;
     calcBaseDropPosition(&pos);

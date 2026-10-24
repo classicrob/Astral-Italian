@@ -2,987 +2,161 @@
 // SMG2-only MarioActor functions (part A), written from the asm. Included at the end of MarioActor.cpp (unity TU).
 
 
-void MarioActor::exeGameOverNoDemo() {
-    if (MR::isFirstStep(this)) {
-        MR::setCubeBgmChangeInvalid();
-        MR::clearBgmQueue();
-        if (MR::getPlayerLeft() == 0) {
-            MR::startPlayerEvent("ゲームオーバー");
-        } else {
-            MR::startPlayerEvent("演出なし死");
-            this->mHealth = 0;
-        }
-        MR::startStarPointerModeDemoMarioDeath(this);
-    }
-}
-
-const TVec3f& MarioActor::fn_803B8520() {
-    return this->mMario->getAirGravityVec();
-}
-
-u32 MarioActor::fn_803B89E0() {
-    return ((this->mMario)->mMovementStates.mLowWord >> 0x14) & 1;
-}
-
-bool MarioActor::isFireDamageActive() {
-    return this->mMario->fn_80393C40();
-}
-
-void MarioActor::fn_803B9270() {
-    this->decLife(0);
-}
-
-bool MarioActor::fn_803B93E0() {
-    return MR::isNearZero(mPreviousGravityVec, 0.001f);
-}
-
-void MarioActor::fn_803B94E0() {
-    Mario* m = this->mMario;
-    if (m->mCometHopperArea == 0) {
-        if (((m)->mMovementStates.mLowWord >> 0x10) & 1) {
-            m->forceStopTornado();
-        }
-        if (mActionTable1080->isActionOk("ダメージ解除")) {
-            this->setPlayerMode(0, true, true);
-        }
-    }
-}
-
-void MarioActor::fn_803B9560() {
-    if (mActionTable1080->isActionOk("ノーダメージ解除")) {
-        this->setPlayerMode(0, true, true);
-    }
-}
-
-Yoshi* MarioActor::getYoshi() {
-    return mYoshiHolder->mYoshi;
-}
-
-void* MarioActor::fn_803B9800() {
-    return mYoshiHolder->fn_8041B6F0();
-}
-
-YoshiTongueAction* MarioActor::fn_803B9810() {
-    return mYoshiHolder->mTongueAction;
-}
-
-void* MarioActor::fn_803B9820() {
-    return mYoshiHolder->_C;
-}
-
-YoshiHolder* MarioActor::fn_803B9830() {
-    return mYoshiHolder;
-}
-
-bool MarioActor::fn_803B9840() {
-    return mYoshiHolder != nullptr;
-}
-
-MtxPtr MarioActor::fn_803B9850() {
-    return mYoshiHolder->mYoshi->getBaseMtx();
-}
-
-void MarioActor::fn_803B9870() {
-    if (this->mMario->isPlayerModeYoshi()) {
-        mYoshiHolder->mYoshi->fn_8040CF20();
-    }
-}
-
-void MarioActor::fn_803B98C0() {
-    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
-        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->_3C = 1;
-    }
-}
-
-void MarioActor::fn_803B98E0() {
-    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
-        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->_3C = 0;
-    }
-}
-
-s32 MarioActor::fn_803B9900() {
-    YoshiHolder* p = mYoshiHolder;
-    if (p != nullptr) {
-        return p->_3C;
-    }
-    return 0;
-}
-
-bool MarioActor::fn_803B9920() {
-    if (!this->mMario->isPlayerModeYoshi()) {
-        return false;
-    }
-    if (_934 != 0 || this->_38C != 0) {
-        return false;
-    }
-    if (this->_935 != 0) {
-        return false;
-    }
-    Mario* m = this->mMario;
-    u32 r = (m)->mFlags14.mHighWord;
-    if ((r >> 0x14) & 1) {
-        return false;
-    }
-    if ((r >> 0x15) & 1) {
-        return false;
-    }
-    if (((m)->mMovementStates.mLowWord >> 0x1F) == 1 && !m->isRising() && (((this->mMario)->mMovementStates.mLowWord >> 0xC) & 1)) {
-        return true;
-    }
-    return this->checkButtonType(mInputConfig->_8, false);
-}
-
-void MarioActor::fn_803B9A10() {
-    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
-        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BAE0();
-    }
-}
-
-void MarioActor::fn_803B9A30() {
-    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
-        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BAF0();
-    }
-}
-
-void MarioActor::fn_803B9A50() {
-    if (static_cast<YoshiHolder* volatile&>(mYoshiHolder) != nullptr) {
-        static_cast<YoshiHolder* volatile&>(mYoshiHolder)->fn_8041BB00();
-    }
-}
-
-s32 MarioActor::fn_803B9A70() {
-    YoshiHolder* p = mYoshiHolder;
-    if (p != nullptr) {
-        return p->fn_8041BB30();
-    }
-    return 0;
-}
-
-f32 MarioActor::fn_803B9A90() {
-    YoshiHolder* p = mYoshiHolder;
-    if (p != nullptr) {
-        return p->fn_8041BB50();
-    }
-    return 0.0f;
-}
-
-bool MarioActor::fn_803B9AB0() {
-    YoshiHolder* p = mYoshiHolder;
-    if (p == nullptr) {
-        return false;
-    }
-    if (p->mRideModelActor == nullptr) {
-        return false;
-    }
-    return !MR::isDead(p->mRideModelActor);
-}
-
-void MarioActor::fn_803B9F10() {
-    this->tryReleaseWithMsg(0x2F);
-    this->updateSearchLight();
-    if (_424 != nullptr) {
-        _424->receiveMessage(0x2F, this->getSensor("Body"));
-        _424 = nullptr;
-    }
-}
-
-void MarioActor::fn_803BA070() {
-    if (static_cast<s32>(_468) == 0) {
-        if (this->mMario->isAnimationRun("ひろいクイック")) {
-            this->mMario->stopAnimationUpperForce();
-            this->_B92 = 0;
-            mNullAnimation->kill();
-            this->_480 = 0;
-        }
-    } else {
-        for (u32 i = 0; i < (u32)static_cast<s32>(_468); i++) {
-            if (this->fn_803CEEE0(_428[i])) {
-                _428[i]->receiveMessage(0x2D, this->getSensor("Body"));
-                _428[i] = nullptr;
-                _468 -= 1;
-            } else if (_428[i] != nullptr) {
-                this->fn_803D5A00(i);
-            }
-        }
-        _474 = nullptr;
-        if (static_cast<s32>(_468) == 0) {
-            this->mMario->stopAnimationUpperForce();
-            this->mMario->mSwim->resetJet();
-        }
-        if (this->_480 != 0) {
-            this->mMario->stopAnimationUpperForce();
-            this->_480 = 0;
-        }
-        this->_B92 = 0;
-        mNullAnimation->kill();
-        this->tryReleaseWithMsg(0x2D);
-        this->updateSearchLight();
-        if (_424 != nullptr) {
-            _424->receiveMessage(0x2C, this->getSensor("Body"));
-            _424 = nullptr;
-        }
-    }
-}
-
-void MarioActor::fn_803BA220() {
-    this->_480 = 0;
-}
-
-void MarioActor::fn_803BAFE0() {
-    if (this->isEnableNerveChange()) {
-        this->setNerve(&NrvMarioActor::MarioActorNrvGameOverSink::sInstance);
-    }
-}
-
-void MarioActor::fn_803BB4F0() {
-    if (mPlayerMode == 6) {
-        MR::requestMovementOn(mTeresaModel->mActor);
-    }
-}
-
-void MarioActor::fn_803BB510(const TVec3f& a, const TVec3f& b) {
-    MR::emitEffectHit(mTeresaModel->mActor, a, b, "WallHit");
-}
-
-void MarioActor::fn_803BE6D0() {
-    if (_B48 != nullptr) {
-        this->_B48->clearForce();
-    }
-}
-
-void MarioActor::fn_803BE650(u32 a) {
-    if (a == 0xD) {
-        reinterpret_cast<s16&>(this->_948) = 0x13;
-    }
-}
-
-void MarioActor::requestMovementOn() {
-    MR::requestMovementOn(this);
-    if (this->mMario->isPlayerModeYoshi()) {
-        MR::requestMovementOn(mYoshiHolder->mYoshi);
-        mYoshiHolder->mTongueAction->fn_8041FF70();
-    }
-}
-
-void MarioActor::fn_803BE6F0() {
-    if (_934 != 0) {
-        HitSensor* s = _924;
-        if (s != nullptr && s->isType(0x65)) {
-            this->_B91 = 1;
-            this->_B90 = 1;
-        }
-        if (_934 != 0) {
-            if (!_924->receiveMessage(0x95, this->getSensor("Body"))) {
-                _924->receiveMessage(0x96, this->getSensor("Body"));
-            }
-            if (_934 != 0) {
-                RushEndInfo info(nullptr, 4, TVec3f(0.0f, 0.0f, 0.0f), false, 0);
-                this->endRush(&info);
-            }
-        }
-        _934 = 0;
-        _7E2 = 0;
-    }
-}
 
 
-bool MarioActor::fn_803BE800() {
-    MarioAllModel* m = mAllModel;
-    J3DModel* c = m->mModels[0];
-    return m->getJ3DModel() == c;
-}
 
 
-void MarioActor::fn_803BE840(const TVec3f& a) {
-    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
-        this->mMario->fn_803B1100();
-        mYoshiHolder->mYoshi->fn_8040CD20(a);
-        this->setPlayerMode(0, true, true);
-    }
-}
-
-void MarioActor::fn_803BE8D0(const TVec3f& a) {
-    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
-        this->mMario->fn_803B1100();
-        mYoshiHolder->mYoshi->fn_8040CDD0(a);
-        this->setPlayerMode(0, true, true);
-    }
-}
-
-void MarioActor::fn_803BE960() {
-    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
-        this->mMario->fn_803B1100();
-        mYoshiHolder->mYoshi->fn_8040CE80();
-        this->setPlayerMode(0, true, true);
-    }
-}
-
-void MarioActor::fn_803BE9E0() {
-    if (this->mMario->isPlayerModeYoshi() && mYoshiHolder->mYoshi->fn_8040CF40()) {
-        this->mMario->fn_803B1100();
-        mYoshiHolder->mYoshi->fn_8040CED0();
-        this->setPlayerMode(0, true, true);
-    }
-}
 
 
-void MarioActor::fn_803BEA60(const char* a, const char* b) {
-    this->fn_803CAD10(a, b, nullptr);
-}
-
-void MarioActor::fn_803BEA70(const char* a, const BckCtrlData* b) {
-    this->fn_803CAD10(a, nullptr, b);
-}
 
 
-bool MarioActor::fn_803BEA80(const char* pName) {
-    if (mHairAndHat1090 != nullptr) {
-        return mHairAndHat1090->fn_803EC7F0(pName);
-    }
-    return false;
-}
-
-bool MarioActor::fn_803BEAA0(const char* pName, const BckCtrlData& rData) {
-    if (mHairAndHat1090 != nullptr) {
-        return mHairAndHat1090->fn_803EC8A0(pName, rData);
-    }
-    return false;
-}
-
-void MarioActor::fn_803BEAC0() {
-    if (mHairAndHat1090 != nullptr) {
-        mHairAndHat1090->fn_803EC780();
-    }
-    MR::startPlayerNormalBva();
-}
-
-void MarioActor::requestHairAndHatMovementOn() {
-    if (mHairAndHat1090 != nullptr) {
-        MR::requestMovementOn(mHairAndHat1090);
-    }
-}
 
 
-void MarioActor::fn_803BEB10(s32 a) {
-    TVec3f up(*this->mMario->getGravityVec());
-    up.scale(150.0f);
-    TVec3f from(this->_240);
-    from -= up;
-    TVec3f dir(*this->mMario->getGravityVec());
-    dir.scale(100.0f);
-    if (this->mMario->fn_803B2880(from, dir)) {
-        mPressNormal6D8 = -*this->mMario->getGravityVec();
-        this->setPress(4, a);
-    }
-}
 
-bool MarioActor::fn_803BEBE0() {
-    if (_934 == 0) {
-        return false;
-    }
-    if (_924 == nullptr) {
-        return false;
-    }
-    if (MR::getSensorHost(_924) == nullptr) {
-        return false;
-    }
-    const char* name = MR::getSensorHost(_924)->mName;
-    if (MR::isEqualString(name, "スピンドライバ")) {
-        return true;
-    }
-    if (MR::isEqualString(name, "スーパースピンドライバー")) {
-        return true;
-    }
-    if (MR::isEqualString(name, "ピンクスーパースピンドライバー")) {
-        return true;
-    }
-    return MR::isEqualString(name, "土管");
-}
 
-LiveActor* MarioActor::fn_803BECC0() {
-    if (this->mMario->isPlayerModeYoshi()) {
-        return mYoshiHolder->mYoshi;
-    }
-    return this;
-}
 
-bool MarioActor::fn_803BED10() {
-    return this->isNerve(&NrvMarioActor::MarioActorNrvGameOverSink::sInstance);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // NONMATCHING: typed count/pointer clears replace redundant vector type-pun; loop registers and scheduling differ.
-void MarioActor::initMember() {
-    this->mInitializing90 = 0;
-    fn_803BF6F0();
-    this->_1B4 = 0;
-    this->mSwimFogDisabled = 0;
-    _1B8 = nullptr;
-    mMessenger568 = nullptr;
-    this->_1C0 = 0;
-    this->_A0C = 0;
-    this->_1C3 = 0;
-    this->_1C4 = 0;
-    mActionHash = nullptr;
-    mScreenBlur1074 = new MarioScreenBlur();
-    mScreenStrip1084 = new MarioScreenStrip();
-    mConditionGroup = new MarioActorConditionGroup(this);
-    mSensorSlots108C = new MarioSensorSlots();
-    mHairAndHat1090 = nullptr;
-    this->_1E0 = 0;
-    this->_1E1 = 0;
-    mWallShadow574 = nullptr;
-    mExtraWallArea578 = nullptr;
-    mExtraWallAreaKind57C = 0;
-    mCollisionShadow580 = nullptr;
-    fn_803CA1F0();
-    mMario = nullptr;
-    mMarioAnim = nullptr;
-    mMarioEffect = nullptr;
-    mConst = nullptr;
-    gIsLuigi = false;
-    this->mAppliedGravityVec.x = 0.0f;
-    this->mAppliedGravityVec.y = 1.0f;
-    this->mAppliedGravityVec.z = 0.0f;
-    this->mPreviousGravityVec.x = 0.0f;
-    this->mPreviousGravityVec.y = 1.0f;
-    this->mPreviousGravityVec.z = 0.0f;
-    mGravityInfo = nullptr;
-    mAxisRotationDisabled6A0 = 0;
-    this->mGravityRatio = 0.0f;
-    this->_334 = 0;
-    this->_legacy2AC.zero();
-    this->_258.x = 0.0f;
-    this->_258.y = 0.0f;
-    this->_258.z = 1.0f;
-    mLastMove.zero();
-    this->_1FC.zero();
-    mBinderMotion5D0.zero();
-    mBinderDirection5DC.zero();
-    mPreviousPosition.zero();
-    this->_240.zero();
-    this->mCapPosition.zero();
-    mVector60C.zero();
-    this->_3AA = 0;
-    this->_270.zero();
-    this->_27C.zero();
-    this->_288.zero();
-    mCameraTrans.zero();
-    this->_2A0.zero();
-    mCounter660 = 0;
-    mWaterSurfaceCameraTimer662 = 0;
-    this->_3C1 = 0;
-    this->mFirstTransformCameraLatch666 = 0;
-    this->_338 = 0;
-    this->_33C.zero();
-    this->_348.zero();
-    this->_354.zero();
-    this->_360.zero();
-    this->_378 = 0;
-    this->_37C = 0;
-    this->mMaxHealth = 0;
-    this->mHealth = 0;
-    this->_92C = 0;
-    this->_B68 = 0;
-    this->_39D = 0;
-    this->_38C = 0;
-    this->_390 = 0;
-    this->_394 = 0;
-    this->_398 = 0;
-    mCounter6C8 = 0;
-    this->_3B0 = 0.0f;
-    mPressNormal6D8.zero();
-    this->_3A8 = 0;
-    this->_3AC = 0;
-    this->_3C0 = 0;
-    this->mRushFront6E8.zero();
-    this->_3D0 = 0;
-    this->_3D2 = 0;
-    mPlayerMode = 0;
-    this->_3D6 = 0;
-    this->_3D8 = 0;
-    this->_3DA = 0;
-    this->_3DC = 0;
-    this->_3DE = 0;
-    this->_3DF = 0;
-    _4A4 = nullptr;
-    mSensor794 = nullptr;
-    this->mWasInMorphLimitArea1065 = 0;
-    this->_3E5 = 0;
-    this->_3E6 = 0;
-    this->_3E7 = 0;
-    this->_3E8 = 0;
-    _424 = nullptr;
-    _468 = 0;
-    for (s32 i = 0; i < 4; i++) {
-        _428[i] = nullptr;
-    }
-    _46C = nullptr;
-    _470 = nullptr;
-    _474 = nullptr;
-    this->_478 = 0.0f;
-    this->_47C = 0;
-    this->_480 = 0;
-    mThrowProbePosition76C.zero();
-    mCarryWobblePhase778 = 0.0f;
-    _494 = nullptr;
-    mCarryFixedPosition780 = nullptr;
-    mTurnipFixedPosition784 = nullptr;
-    mDrillFixedPosition788 = nullptr;
-    this->mRushAnimationDelay1054 = 0;
-    this->mCarryAnimationPosition1058.zero();
-    this->_481 = 0;
-    this->_482 = 0;
-    this->_483 = 0;
-    mSearchLight = nullptr;
-    mSearchLightTimer = 0;
-    mSearchLightThrowPos = nullptr;
-    mNearestUnderSensor798 = nullptr;
-    mNearestUnderAngle79C = 0.0f;
-    mBodyRadius7A0 = 0.0f;
-    mBodyHeight7A4 = 0.0f;
-    mBodyUpDirection.zero();
-    mBodyDownDirection.zero();
-    for (s32 i = 0; i < 128; i++) {
-        mPulledSensors7C0[i] = nullptr;
-    }
-    this->_6D0 = 0;
-    mSpinRadius = 0.0f;
-    mSpinHeight = 0.0f;
-    for (s32 i = 0; i < 128; i++) {
-        mSpinNoise[i] = 0.0f;
-    }
-    for (s32 i = 0; i < 64; i++) {
-        mTornadoSensors[i] = nullptr;
-    }
-    this->_7DC = 0;
-    this->_7DE = 0;
-    this->_7E0 = 0;
-    for (s32 i = 0; i < 64; i++) {
-        _7E4[i] = nullptr;
-    }
-    for (s32 i = 0; i < 64; i++) {
-        mRushTouchingDD4[i] = false;
-    }
-    _924 = nullptr;
-    _928 = nullptr;
-    mLastRushEndFrameE1C = 0;
-    this->_930 = 0;
-    _934 = 0;
-    _7E2 = 0;
-    this->mAnimationDelayE28 = 0;
-    this->_935 = 0;
-    this->_938.zero();
-    this->_944 = 0;
-    this->_945 = 0;
-    this->_946 = 0;
-    this->_94E = 0;
-    this->_948 = 0;
-    this->_94C = 0;
-    this->_950 = 0;
-    for (s32 i = 0; i < 8; i++) {
-        _954[i] = nullptr;
-    }
-    _974 = 0;
-    this->_978.zero();
-    this->_984 = 0.0f;
-    this->_988 = 0;
-    this->_989 = 0;
-    mTornadoMario = nullptr;
-    this->_990 = 0;
-    _994 = nullptr;
-    mJetTurtleShadowE94 = nullptr;
-    mTeresaModel = nullptr;
-    mModelE9C = nullptr;
-    _9C4 = nullptr;
-    _9C0 = nullptr;
-    this->_9CC = 0.0f;
-    this->_9D0 = 0.0f;
-    _9D4 = nullptr;
-    this->_9D8.zero();
-    _9E4 = nullptr;
-    _9E8 = nullptr;
-    _9EC = nullptr;
-    this->_9F0 = 0;
-    this->mBeeWallWalk = 0;
-    this->_9F2 = 0;
-    mGravityReferenceED0.zero();
-    mModelEDC = nullptr;
-    mModelEE0 = nullptr;
-    mModelEE8 = nullptr;
-    mModelEEC = nullptr;
-    mModelEF4 = nullptr;
-    this->mGroundReflectionAlphaEFD = 0;
-    mAllModel = new MarioAllModel(this);
-    mSimpleModelActorF04 = nullptr;
-    mSimpleModelF08 = nullptr;
-    this->_A18.zero();
-    this->mFlagF18 = 0;
-    this->mFlagF19 = 0;
-    mModelF1C = nullptr;
-    _A10 = nullptr;
-    mModelF24 = nullptr;
-    mModelF28 = nullptr;
-    mHandModelL = nullptr;
-    mHandModelR = nullptr;
-    this->mShadowHideHandsF34 = 0;
-    this->mHandFlagF35 = 0;
-    this->mHandFlagF36 = 0;
-    this->mFaceJointCountF37 = 0;
-    mModelF38 = nullptr;
-    this->mFaceJointIndexF3C = 0;
-    mActorEffectState = new MarioActorEffectState();
-    this->_A6E = 0;
-    for (s32 i = 0; i < 8; i++) {
-        mBlurMatrices[0][i] = nullptr;
-        mBlurMatrices[1][i] = nullptr;
-    }
-    PSMTXIdentity(mPreviousViewMatrix.toMtxPtr());
-    PSMTXIdentity(mCurrentViewMatrix.toMtxPtr());
-    mBlurBufferIndex = 0;
-    mBlurHistoryIndex = 0;
-    mBlurJointCount = 0;
-    this->mReflectionPositionF44.zero();
-    this->mScreenF50.y = 0.0f;
-    this->mScreenF50.x = 0.0f;
-    this->mScreenF58.y = 0.0f;
-    this->mScreenF58.x = 0.0f;
-    this->mScreenF60.y = 0.0f;
-    this->mScreenF60.x = 0.0f;
-    this->mScreenF68.y = 0.0f;
-    this->mScreenF68.x = 0.0f;
-    mScreenBuffer = nullptr;
-    _B48 = nullptr;
-    _B4C = nullptr;
-    this->_B50 = 0;
-    for (s32 i = 0; i < 5; i++) {
-        mFireBalls[i] = nullptr;
-    }
-    this->mFireBallDelay = 0;
-    this->mBlinkF98 = 0;
-    this->mEyeTextureFrameF9A = 0;
-    this->mBlinkF9C = 0;
-    this->mBlinkF9E = 0;
-    mEyeRes = nullptr;
-    _B7C = nullptr;
-    mMaskTextures[0] = nullptr;
-    mMaskTextures[1] = nullptr;
-    mRandomTextureIndex = 0;
-    mNullAnimation = nullptr;
-    this->_B90 = 0;
-    this->_B91 = 0;
-    reinterpret_cast<u8&>(this->_B92) = 0;
-    this->_B94 = 0;
-    this->_B96 = 0;
-    this->mCommonEffectCount = 0;
-    this->mTimedCommonEffectCount = 0;
-    mTimedCommonEffects = nullptr;
-    mMaterialEffectsFC8 = nullptr;
-    mWaterColumn = nullptr;
-    mEffectTranslationFD0.zero();
-    mEffectRotationFDC.zero();
-    this->_BC4 = 0;
-    PSMTXIdentity(mReflectionBaseMtx264.toMtxPtr());
-    PSMTXIdentity(mJointTransform294.toMtxPtr());
-    mJointMatrices2C4 = nullptr;
-    PSMTXIdentity(mHandLMatrix.toMtxPtr());
-    PSMTXIdentity(mHandRMatrix.toMtxPtr());
-    PSMTXIdentity(mHandLJointMatrix.toMtxPtr());
-    PSMTXIdentity(mHandRJointMatrix.toMtxPtr());
-    PSMTXIdentity(mFaceJointMatrix.toMtxPtr());
-    PSMTXIdentity(mFootRMatrix.toMtxPtr());
-    PSMTXIdentity(mSpine1Matrix.toMtxPtr());
-    PSMTXIdentity(mCapMatrix.toMtxPtr());
-    PSMTXIdentity(mHipMatrix.toMtxPtr());
-    PSMTXIdentity(mSpine2Matrix.toMtxPtr());
-    PSMTXIdentity(mMainJointMatrix4A8.toMtxPtr());
-    this->mBlendMtxTimer = 0;
-    this->_EA0 = 0.0f;
-    this->_EA4 = 0;
-    this->_EA5 = 0;
-    this->_EA6 = 0;
-    PSMTXIdentity(mRemoteDemoMtx4E4.toMtxPtr());
-    this->mSuperKinokoCollected = 0;
-    this->mPowerupCollected = 0;
-    this->mTransforming = 0;
-    this->_EEB = 0;
-    mActionButtonHeld = 0;
-    mActionTriggered = 0;
-    mJumpButtonHeld = 0;
-    this->_EF0 = 0;
-    this->_EF2 = 0;
-    this->_EF4 = 0;
-    this->_EF6 = 0;
-    this->_EF8 = 0;
-    this->_EFC = 0;
-    this->_F00 = 0;
-    this->_F04 = 0;
-    this->_F08 = 0;
-    this->_F0C = 0;
-    this->_F20 = 0;
-    mInputConfig = nullptr;
-    this->_F1C = 0;
-    this->_F1E = 0;
-    mFlag100E = 0;
-    mFlag100F = 0;
-    _F24 = nullptr;
-    this->_F28 = 0;
-    mFrontHistory = nullptr;
-    this->_F44 = 0;
-    _F48 = nullptr;
-    mBlackHole = nullptr;
-    mBlackHolePosition528.zero();
-    mBlackHoleRotateAxis.zero();
-    mPosRelativeToBlackHole.zero();
-    mSwimSurfaceState1010 = 0;
-    mCameraPosition.zero();
-    mCameraBasisX.zero();
-    mCameraBasisY.zero();
-    mCameraBasisZ.zero();
-    mPostureReference1044.zero();
-    _FB4 = nullptr;
-    this->_FB8 = 0;
-    mActionTable1080 = nullptr;
-    this->_FCC = 0;
-    this->_FCD = 0;
-    mFlag1052 = 0;
-    mPunchTriangle106C = nullptr;
-    mLifeDecreasedThisFrame = 0;
-    this->mFlag1064 = 0;
-    this->mReflectionSuppressed = 0;
-    this->mBlinkRequested1067 = 0;
-}
 
-void MarioActor::fn_803BF6F0() {
-    mDLchanger = nullptr;
-    this->mFirstPersonDrawHidden1A5 = 0;
-    for (int i = 0; i < 0x40; i++) {
-        mBlurDisplayLists[i] = nullptr;
-    }
-    mDL[0] = nullptr;
-    mDL[1] = nullptr;
-    this->mCurrentDLSize1A0 = 0;
-    this->mCurrDL = 0;
-    this->_1A4 = 0.0f;
-    reinterpret_cast<s16&>(this->_1A8) = 0;
-    reinterpret_cast<s16&>(this->_1AA) = 0;
-    this->_1AC = 0.0f;
-    mSwimFogColor.set(0, 0, 0, 0);
-}
 
-void MarioActor::fn_803BF760(const JMapInfoIter& iter, s32* anim) {
-    MR::getJMapInfoTrans(iter, &this->mPosition);
-    MR::getJMapInfoRotate(iter, &this->mRotation);
-    this->mScale.x = 1.0f;
-    this->mScale.y = 1.0f;
-    this->mScale.z = 1.0f;
-    this->mRotation.x = MR::repeat(this->mRotation.x, 0.0f, 360.0f);
-    this->mRotation.y = MR::repeat(this->mRotation.y, 0.0f, 360.0f);
-    this->mRotation.z = MR::repeat(this->mRotation.z, 0.0f, 360.0f);
-    if (MR::isExistJMapInfoArg0(iter)) {
-        MR::getJMapInfoArg0NoInit(iter, anim);
-    }
-}
 
-void MarioActor::fn_803BF860() {
-    gIsLuigi = false;
-    if (MR::isPlayerLuigi()) {
-        gIsLuigi = true;
-    }
-}
 
-void MarioActor::fn_803BF8A0() {
-    this->mMario->setHeadAndFrontVecFromRotate(this->mRotation);
-    this->mMario->_290 = this->mMario->mSideVec;
-}
 
-void MarioActor::fn_803BF8F0() {
-    mConst = new MarioConst();
-    if (gIsLuigi) {
-        mConst->changeTable(1);
-    }
-}
 
-void MarioActor::fn_803BF950() {
-    mGravityInfo = new GravityInfo();
-    this->mGravityRatio = 1.0f;
-    this->mAppliedGravityVec.x = 0.0f;
-    this->mAppliedGravityVec.y = -1.0f;
-    this->mAppliedGravityVec.z = 0.0f;
-    mPreviousGravityVec = mAppliedGravityVec;
-    reinterpret_cast<s16&>(this->_334) = 0;
-}
 
-void MarioActor::fn_803BF9D0() {
-    this->initBinder(60.0f, 0.0f, 8);
-    this->mVector60C.x = 0.0f;
-    this->mVector60C.y = 70.0f;
-    this->mVector60C.z = 0.0f;
-    this->mBinder->_1EC._0 = false;
-    MR::setBinderOffsetVec(this, &this->mVector60C, false);
-    this->mBinder->setTriangleFilter(MR::createTriangleFilterDelegator(this, &MarioActor::binderFilter));
-    this->mBinder->_1EC._3 = true;
-    this->_F44 = 1;
-    this->_984 = 0.0f;
-    this->_978.zero();
-    mBinderMotion5D0.zero();
-    mBinderDirection5DC.zero();
-}
 
-void MarioActor::fn_803BFAE0() {
-    this->mFirstTransformCameraLatch666 = 0;
-    reinterpret_cast<s16&>(this->_338) = 0;
-    mActionHash = new MarioActionHash();
-}
 
-void MarioActor::fn_803BFB30() {
-    MR::declareGlobalEventCameraAbyss("奈落カメラ");
-    MR::declareBlackHoleCamera("ブラックホール");
-    MR::declareGlobalEventCameraDead("昇天カメラ", 0.35f, 120, 60);
-    MR::declareGlobalEventCamera("水中フォロー");
-    MR::declareGlobalEventCamera("水中プラネット");
-    MR::declareGlobalEventCamera("水上フォロー");
-    MR::declareGlobalEventCamera("引き戻し");
-    MR::declareEventCameraProgrammable("変身初出カメラ");
-}
 
-void MarioActor::fn_803BFBB0() {
-    this->_2A0 = (this->mMario)->mHeadVec;
-    this->_270 = this->_2A0;
-    mCounter660 = 0;
-    mWaterSurfaceCameraTimer662 = 0;
-    MR::setGameCameraTargetToPlayer();
-}
 
-void MarioActor::fn_803BFC10() {
-    FootPrint* fp = new FootPrint("足跡", 0x100, -1);
-    this->_B48 = fp;
-    this->_B48->setTexture(MR::getTexFromArc("Footprint.bti", this));
-}
 
-void MarioActor::fn_803BFC90(s32 a) {
-    switch (a) {
-    case 1:
-        this->mMario->changeAnimation("基本", (const char*)nullptr);
-        break;
-    case 2:
-        this->mMario->changeAnimationNonStop("ウォークイン");
-        break;
-    default:
-        this->mMario->changeAnimation("ステージインA", (const char*)nullptr);
-        break;
-    }
-}
 
-void MarioActor::fn_803BFCE0() {
-    mCarryFixedPosition780 = new FixedPosition(this, "HandR", TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
-    mTurnipFixedPosition784 = new FixedPosition(this, "HandR", TVec3f(1.8f, 52.51f, 39.58f), TVec3f(76.33f, 15.69f, 88.99f));
-    mDrillFixedPosition788 = new FixedPosition(this, "HandR", TVec3f(5.59f, 10.85f, -23.16f), TVec3f(90.45f, 19.45f, 67.7f));
-    _494 = nullptr;
-}
 
-void MarioActor::fn_803BFE50() {
-    mBodyRadius7A0 = 35.0f;
-    mBodyHeight7A4 = 60.0f;
-    mBodyUpDirection.x = 0.0f;
-    mBodyUpDirection.y = 1.0f;
-    mBodyUpDirection.z = 0.0f;
-    mBodyDownDirection = -mBodyUpDirection;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void DLchanger::addDL(J3DModelX* m) {
     m->setDynamicDL(mBuffers[mCurrentBuffer].mDL, mBuffers[mCurrentBuffer].mSize);
 }
 
 
-void MarioActor::drawSilhouette() const {
-    if (this->isSilhouetteVisible()) {
-        J3DModelX* m = mSimpleModelF08;
-        m->setDrawView(1);
-        m->mDisplayListMask = 0;
-        m->mDisplayListMask |= (1U << 3);
-        m->directDraw(nullptr);
-        m->mDisplayListMask &= ~(1U << 3);
-        GXSetAlphaUpdate(GX_TRUE);
-        GXSetColorUpdate(GX_TRUE);
-        GXSetDstAlpha(GX_TRUE, 0);
-    }
-}
+
 
 
 
 // NONMATCHING: equivalent nonnegative timer shifts and argument-address scheduling.
-void MarioActor::drawPreWipe() const {
-    if (mMario->isPlayerModeYoshi()) {
-        return;
-    }
-    if (!_1C3) {
-        if (!mActorEffectState->mActive) {
-            return;
-        }
-        f32 width = MR::getScreenWidth();
-        f32 height = MR::getScreenHeight();
-        TDDraw::setup(0, 1, 2);
-        TVec3f position(0.0f, 0.0f, 0.0f);
-        TVec3f size(width, height, 0.0f);
-        u16 timer = mActorEffectState->mTimer;
-        u32 alpha = 0xE0;
-        if (timer <= 0x80) {
-            alpha = (timer >> 1) + (static_cast<s32>(timer) >> 2) + timer;
-        }
-        TDDraw::drawFillBox(position, size, alpha | 0x28282800);
-    }
-    MR::loadViewMtx();
-    MR::loadProjectionMtx();
-    MR::loadActorLight(this);
-    drawMarioModel();
-    MR::drawInitFor2DModel();
-}
+
 
 // NONMATCHING: Equivalent typed-member address reuse and saved-register allocation.
-void MarioActor::fn_803C1940() {
-    TVec3f a(this->mPosition);
-    a -= this->mPreviousPosition;
-    TVec3f b(a);
-    b -= mVelocity;
-    mBinderMotion5D0 = a;
-    TVec3f c(mBinderDirection5DC);
-    mBinderDirection5DC = b;
-    this->fn_803C1AF0(&mBinderDirection5DC, &c);
-    if (!(PSVECMag((Vec*)&b) <= 0.1f)) {
-        if (!((this->mMario->mMovementStates.mLowWord >> (0x15)) & 1) && !MR::isNearZero(mVelocity, 0.001f)) {
-            TVec3f d(this->mPreviousPosition);
-            d -= this->_1FC;
-            f32 m1 = PSVECMag((Vec*)&d);
-            f32 m2 = PSVECMag((Vec*)&mVelocity);
-            if (PSVECMag((Vec*)&b) > 2.0f * (m1 + m2)) {
-                this->mMario->stopWalk();
-            }
-        }
-        if (((this->mMario->mMovementStates.mHighWord >> (0x1C)) & 1)) {
-            this->fn_803D8BD0(&a, &b);
-        }
-        if (((this->mMario)->mMovementStates.mLowWord >> 0x1F) != 0 && this->mBeeWallWalk == 0) {
-            this->fn_803D8E30(&b);
-            return;
-        }
-        if (((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1)) {
-            this->fn_803D9170(&a);
-        }
-    }
-}
 
-void MarioActor::fn_803C1AF0(TVec3f* a, TVec3f* b) {
-    if (MR::isOppositeDirection(*a, *b, 0.01f)) {
-        f32 m1 = PSVECMag((Vec*)a);
-        f32 m2 = PSVECMag((Vec*)b);
-        if (!MR::isNearZero(m1, 0.001f) && !MR::isNearZero(m2, 0.001f) && MR::isNearZero(m1 - m2, 1.0f)) {
-            TVec3f t(*a);
-            t.scale(0.5f);
-            this->mPosition -= t;
-        }
-    }
-}
+
+
 
 bool MarioActor::fn_803C1C60() {
     if (this->mSuperKinokoCollected == 0) {
@@ -1940,118 +1114,34 @@ namespace MR {
     bool isCreatePlayerResourceRock();
 }
 
-bool MarioActor::fn_803BB5F0() {
-    if (MR::isActionEnd(_9C4)) {
-        _9C4->kill();
-        MR::offCalcAnim(_9C4);
-        return false;
-    }
-    return true;
-}
 
-void* MarioActor::fn_803BBA20() {
-    return mAllModel->getJ3DModel();
-}
 
-void MarioActor::fn_803BBAD0() {
-    mActorEffectState->mActive = 1;
-}
 
-void MarioActor::fn_803BBDD0(const TVec3f& a, const TVec3f& b, const TVec3f& c) {
-    if (this->mMario->isPlayerModeYoshi()) {
-        mYoshiHolder->fn_8041BBF0(a, b, c);
-    }
-}
 
-void MarioActor::fn_803BBFD0(const char* name) {
-    if (name == nullptr) {
-        mEyeRes = nullptr;
-        return;
-    }
-    char buf[0x80];
-    snprintf(buf, 0x80, "%s%s", this->mMario->isPlayerModeYoshi() ? "Yoshi" : "", name);
-    if (MR::getResourceHolder(this)->mBtpResTable->isExistRes(buf)) {
-        J3DAnmTexPattern* r = static_cast<J3DAnmTexPattern*>(MR::getResourceHolder(this)->mBtpResTable->getRes(buf));
-        mEyeRes = r;
-        r->setFrame(0.0f);
-        return;
-    }
-    mEyeRes = nullptr;
-}
 
-void MarioActor::fn_803BC440(const char* name) {
-    mNullAnimation->appear();
-    MR::startAction(mNullAnimation, name);
-    this->_B92 = -2;
-}
 
-void MarioActor::fn_803BC5C0() {
-    Mario* m = this->mMario;
-    if (!((m->mMovementStates.mLowWord >> (0x15)) & 1) && m->getCurrentStatus() == 0) {
-        Mario* m2 = this->mMario;
-        if (((m2->mMovementStates.mLowWord >> (0x1E)) & 1) && (m2)->_960 == 0x20 && this->mMarioAnim->isAnimationStop()) {
-            this->mMarioAnim->fn_803DF0F0();
-            this->_B96 = 2;
-        }
-    } else {
-        this->_B96 = 0;
-    }
-    switch (mPlayerMode) {
-    case 6:
-        this->updateTeresaAnimation();
-        break;
-    case 4:
-        if (this->mBeeWallWalk != 0 && !this->isJumping() && this->mMarioAnim->isAnimationStop()) {
-            this->mMarioAnim->fn_803DF1B0();
-        }
-        break;
-    default:
-        reinterpret_cast<s16&>(this->mMario->_418) = 0;
-        break;
-    }
-    u8 t = this->_B96;
-    if (t != 0) {
-        u8 n = t - 1;
-        this->_B96 = n;
-        if (n == 0 && ((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1) && this->mMarioAnim->isAnimationStop()) {
-            this->mMarioAnim->fn_803DF2D0();
-        }
-    }
-}
+
+
+
+
+
+
+
 
 void MultiEmitter::setGlobalScale(f32 scale, s32 n) {
     TVec3f v(scale, scale, scale);
     this->setGlobalScale(v, n);
 }
 
-void MarioActor::fn_803BDA20(MtxPtr dst, const char* joint) {
-    PSMTXConcat(MR::getJointMtx(this, joint), mJointTransform294.mMtx, dst);
-}
 
-bool MarioActor::fn_803BDE10() {
-    if (this->mMario->isPlayerModeYoshi() && YoshiParam::fn_8041BD40() == 0) {
-        return false;
-    }
-    if (_934 != 0 || this->_38C != 0) {
-        return false;
-    }
-    if (this->_935 != 0) {
-        return false;
-    }
-    return this->checkButtonType(mInputConfig->_0, false);
-}
 
-void* MarioActor::fn_803BE0C0() const {
-    return nullptr;
-}
 
-bool MarioActor::fn_803BE0D0() {
-    return this->checkButtonType(5, false);
-}
 
-void* MarioActor::fn_803BE0E0() const {
-    return nullptr;
-}
+
+
+
+
+
 
 void MarioActor::initFireMario() {
     if (MR::isCreatePlayerResourceFire()) {
@@ -2185,26 +1275,7 @@ void MarioActor::fn_803C9920(TVec3f& vec) {
 }
 
 
-void MarioActor::setPlayerMode(u16 mode, bool a, bool b) {
-    if (mode != 3) {
-        (this->mMario)->mFlags14.mHighWord &= 0xFFBFFFFF;
-    }
-    if (!this->fn_803CB1A0(mode)) {
-        if (this->mMario->isStatusActive(0x18)) {
-            this->mMario->closeStatus(nullptr);
-        }
-        reinterpret_cast<s16&>(this->_3DC) = 0;
-        this->_A6E = 0;
-        this->fn_803CB2E0(mode);
-        this->fn_803CB510(mode, a);
-        if (mPlayerMode == 0) {
-            this->fn_803CBA90(a, b);
-        } else {
-            this->fn_803CBB30(b);
-        }
-        this->updateHandAtMorph();
-    }
-}
+
 
 void J3DModelX::setDynamicDL(u8* dl, u32 size) {
     if (dl == nullptr) {
@@ -2216,36 +1287,4 @@ void J3DModelX::setDynamicDL(u8* dl, u32 size) {
 
 // NONMATCHING: Matrix-address reuse, equivalent bit tests, and boolean-store scheduling.
 // NONMATCHING: initial zero-register reuse, load scheduling and literal identities.
-void MarioActor::movement() {
-    _46C = nullptr;
-    ++_378;
-    _1E1 = false;
-    mLifeDecreasedThisFrame = 0;
-    mNearestUnderAngle79C = 0.7853981852531433f;
-    mNearestUnderSensor798 = nullptr;
-    PSMTXCopy(mCurrentViewMatrix.toMtxPtr(), mPreviousViewMatrix.toMtxPtr());
-    PSMTXCopy(MR::getCameraViewMtx(), mCurrentViewMatrix.toMtxPtr());
-    updateCameraInfo();
-    mMarioAnim->fn_803DFAC0();
-    mMarioAnim->fn_803DFB70();
-    LiveActor::movement();
-    fn_803C1940();
-    if ((mMario->mDrawStates.mWord >> 5) & 1U) {
-        mMario->mDrawStates.mWord &= ~0x20;
-        mMarioAnim->update();
-    }
-    mMario->recordRelativePosition();
-    updateTransForCamera();
-    calcAnimInMovement();
-    _935 = false;
-    mMario->_2D0 = 0.0f;
-    mFrontHistory->update();
-    if (mMario->isPlayerModeYoshi()) {
-        if (isSilhouetteVisible()) {
-            mYoshiHolder->mYoshi->mRideModelVisible = true;
-        } else {
-            mYoshiHolder->mYoshi->mRideModelVisible = false;
-        }
-    }
-    mSensorSlots108C->fn_803DAB90();
-}
+

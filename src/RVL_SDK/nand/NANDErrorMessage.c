@@ -189,7 +189,7 @@ static void __NANDShowErrorMessage(ISFSError error) {
     }
 
     region = SCGetProductGameRegion();
-    if (region != 4 && region != 5) {
+    if ((u32)(region - 4) > 1) {
         if (region != 2) {
             messages = getErrorMessages(error, 0);
         } else {

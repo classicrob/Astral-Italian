@@ -1270,7 +1270,8 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
     Triangle tri;
     TVec3f hit;
     TVec3f start = rPos - getAirGravityVec() * 200.0f + mFrontVec * 20.0f;
-    if (!fn_803B2B50(start, getAirGravityVec() * 210.0f, &hit, &tri)) {
+    TVec3f direction(getAirGravityVec() * 210.0f);
+    if (!fn_803B2B50(start, direction, &hit, &tri)) {
         this->_4E0 = 400.0f;
         return;
     }

@@ -386,9 +386,7 @@ void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         !strcmp(MR::getSensorHost(pReceiver)->mName, "パンチングキノコ")) {
         f32 temp = MR::getSensorRadius(pSender) + MR::getSensorRadius(pReceiver);
         temp = MR::getSensorRadius(pReceiver) / temp;
-        TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * (1.0f - temp);
-        TVec3f senderWeighted = *MR::getSensorPos(pSender) * temp;
-        TVec3f hitMtx = senderWeighted + receiverWeighted;
+        TVec3f hitMtx = *MR::getSensorPos(pSender) * temp + *MR::getSensorPos(pReceiver) * (1.0f - temp);
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         MR::emitEffectHit(this, hitMtx, nullptr);
         MR::stopScene(8);
@@ -439,17 +437,13 @@ bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
         if (MR::isMsgRockAttack(msg)) {
             MR::invalidateHitSensors(this);
             MR::sendMsgIsRushEnable(pSender, pReceiver);
-            TVec3f senderWeighted = *MR::getSensorPos(pSender) * (1.0f - temp);
-            TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * temp;
-            TVec3f hitMtx = receiverWeighted + senderWeighted;
+            TVec3f hitMtx = *MR::getSensorPos(pReceiver) * temp + *MR::getSensorPos(pSender) * (1.0f - temp);
             MR::tryRumblePadMiddle(this, WPAD_CHAN0);
             MR::emitEffectHit(this, hitMtx, nullptr);
             MR::stopScene(8);
             setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock));
         } else {
-            TVec3f senderWeighted = *MR::getSensorPos(pSender) * (1.0f - temp);
-            TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * temp;
-            TVec3f hitMtx = receiverWeighted + senderWeighted;
+            const TVec3f& hitMtx = *MR::getSensorPos(pReceiver) * temp + *MR::getSensorPos(pSender) * (1.0f - temp);
             MR::tryRumblePadMiddle(this, WPAD_CHAN0);
             MR::emitEffectHit(this, hitMtx, nullptr);
             MR::stopScene(8);

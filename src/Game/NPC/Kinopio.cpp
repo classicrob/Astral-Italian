@@ -73,7 +73,6 @@ Kinopio::Kinopio(const char* pName)
 }
 
 void Kinopio::init(const JMapInfoIter& rIter) {
-    const TVec3f* targetOffset;
     MR::initDefaultPosAndQuat(this, rIter);
 
     TVec3f rotation(mRotation);
@@ -108,8 +107,7 @@ void Kinopio::init(const JMapInfoIter& rIter) {
         MR::onCalcShadow(this, nullptr);
     }
 
-    targetOffset = &MR::getStarPointerTargetOffset(this);
-    mYoshiTarget=MR::createYoshiLockOnTarget(this,getBaseMtx(),*targetOffset);
+    mYoshiTarget=MR::createYoshiLockOnTarget(this,getBaseMtx(),MR::getStarPointerTargetOffset(this));
     MR::addToAttributeGroupSearchTurtle(this);
     MR::addEffect(this,"YoshiTongueHit");
     s32 isStrictLodDistances = -1;

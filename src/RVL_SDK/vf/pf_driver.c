@@ -35,8 +35,8 @@ int VFiPFDRV_GetBPBInformation(unsigned char* p_buf, PF_BPB* p_bpb) {
 }
 
 static void VFiPFDRV_notifyExecuteFormatAfterMount(PF_VOLUME* p_vol, const u8* format_param) {
-    p_vol->flags |= 0x10u;
     p_vol->format_param = format_param;
+    p_vol->flags |= 0x10u;
 }
 
 static void VFiPFDRV_notifyNoExecuteLogicalFormat(PF_VOLUME* p_vol) {

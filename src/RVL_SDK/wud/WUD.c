@@ -18,12 +18,13 @@
 #define BT_VSC_NINTENDO_WRITE_PATCH 0xFC4C
 
 void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData);
-void WUDSearchCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData);
-void WUDVendorSpecificCallback(UINT8 len, UINT8* pData);
-void WUDDeviceStatusCallback(tBTM_DEV_STATUS status);
-void WUDStoredLinkKeyCallback(void* p1);
-void WUDPowerManagerCallback(BD_ADDR addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hciStatus);
+void __wudSearchEventStackCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData);
+void __wudVendorSpecificEventStackCallback(UINT8 len, UINT8* pData);
+void __wudDeviceStatusEventStackCallback(tBTM_DEV_STATUS status);
+void __wudLinkKeyEventStackCallback(void* p1);
+void __wudPowerMangeEventStackCallback(BD_ADDR addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hciStatus);
 
+void __wudInitSub(void);
 static void ClearControlBlock(void);
 void WUDiResetAuthFailCount(void);
 
@@ -205,7 +206,6 @@ BOOL WUDIsLinkedWBC(void) {
 }
 
 void* App_MEMalloc(u32 size) {
-    DEBUGPrint("App_MEMalloc\n");
     return _wcb.allocFunc(size);
 }
 
@@ -213,7 +213,6 @@ u8 App_MEMfree(void* ptr) {
     WUDCB* p_wcb = &_wcb;
     u8 ret;
 
-    WUD_DEBUGPrint("App_MEMfree\n");
     ret = p_wcb->freeFunc(ptr);
 
     return ret;
@@ -232,10 +231,9 @@ static void ReverseAddr(BD_ADDR_PTR pDst, BD_ADDR src) {
     OSRestoreInterrupts(enabled);
 }
 
-static void SyncFlushCallback(u32 status) {
+static void __wudSyncFlushCallback(u32 status) {
     WUDCB* p = &_wcb;
 
-    DEBUGPrint("SyncFlushCallback() : %d, Sync: %d\n", status, _wcb.syncState);
 
     if (p->syncState == WUD_STATE_SYNC_START) {
         return;
@@ -251,7 +249,6 @@ static void SyncFlushCallback(u32 status) {
 static void DeleteFlushCallback(u32 status) {
     WUDCB* p = &_wcb;
 
-    DEBUGPrint("DeleteFlushCallback() : %d, Delete: %d\n", status, _wcb.deleteState);
 
     if (p->deleteState == WUD_STATE_DELETE_START) {
         return;
@@ -264,10 +261,9 @@ static void DeleteFlushCallback(u32 status) {
     }
 }
 
-static void ShutFlushCallback(u32 result) {
+static void __wudShutdownFlushCallback(u32 result) {
     WUDCB* p_wcb = &_wcb;
 
-    WUD_DEBUGPrint("ShutFlushCallback() : %d, Shutdown: %d\n", result, p_wcb->shutdownState);
 
     p_wcb->shutdownState = 3;
 }
@@ -410,14 +406,13 @@ static u8 WUDiStartSearch(void) {
     }
 
     ClearDiscoverResult();
-    BTA_DmSearch(&dm_inq, 0, &WUDSearchCallback);
+    BTA_DmSearch(&dm_inq, 0, &__wudSearchEventStackCallback);
 
     return WUD_STATE_SYNC_WAIT_FOR_SEARCH_RESULT;
 }
 
 static u8 WUDiWaitForSearchResult(void) {
     if (WUDiGetLinkNum() == WUD_MAX_CHANNELS && WUDiGetConnNumber() == WUD_MAX_CHANNELS) {
-        DEBUGPrint("Cancel searching because 4 connections exist.\n");
         BTA_DmSearchCancel();
 
         return WUD_STATE_SYNC_CANCEL_SEARCH;
@@ -512,15 +507,39 @@ static u8 WUDiUnknownDevice(void) {
     return WUD_STATE_SYNC_TRY_CONNECT;
 }
 
-static u8 WUDiTryConnecting(void) {
+static u8 __wudSyncTryConnect(void) {
     WUDSyncState nextState = WUD_STATE_SYNC_ERROR;
+    WUDDevInfo* board;
+    WUDDevInfoList* node;
+    BOOL enabled;
 
     if (WUD_DEV_NAME_IS_CNT(_discResp.devName)) {
         _work.status = 2;
         BTA_HhOpen(_work.devAddr, BTA_HH_PROTO_RPT_MODE, BTA_SEC_AUTHENTICATE);
         nextState = WUD_STATE_SYNC_6;
     }
-
+    if (_linkedWBC && WUD_DEV_NAME_IS_WBC(_discResp.devName)) {
+        board = NULL;
+        enabled = OSDisableInterrupts();
+        for (node = _wcb.stdListHead; node != NULL; node = node->next) {
+            if (WUD_DEV_NAME_IS_WBC(node->devInfo->conf.devName)) {
+                board = node->devInfo;
+            }
+        }
+        OSRestoreInterrupts(enabled);
+        if (board != NULL) {
+            if (board->status > 1) {
+                return nextState;
+            }
+            if (WUD_BDCMP(_discResp.devAddr, board->devAddr) != 0) {
+                WUDiMoveBottomStdDevInfoPtr(board);
+                WUDiRemoveDevice(board->devAddr);
+            }
+        }
+        _work.status = 2;
+        BTA_HhOpen(_work.devAddr, BTA_HH_PROTO_RPT_MODE, BTA_SEC_AUTHENTICATE);
+        nextState = WUD_STATE_SYNC_6;
+    }
     return nextState;
 }
 
@@ -551,7 +570,7 @@ static BOOL WUDiIsFinishScCmd(void) {
     return SCCheckStatus() != SC_STATUS_BUSY ? TRUE : FALSE;
 }
 
-static u8 WUDiSaveDeviceToNand(void) {
+static u8 __wudSyncStoredDevInfoToNand(void) {
     WUDSyncState nextState = WUD_STATE_SYNC_COMPLETE;
     u8 i;
     WUDDevInfoList* pIt;
@@ -570,7 +589,6 @@ static u8 WUDiSaveDeviceToNand(void) {
         memcpy(&_scArray.info[i].bd_name, &pIt->devInfo->conf, sizeof(SCDevInfo));
     }
 
-    DEBUGPrint("%d devices is stored into SC.\n", i);
 
     if (!SCSetBtDeviceInfoArray(&_scArray)) {
         nextState = WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND;
@@ -589,7 +607,7 @@ static void WUDiSaveFlush(void) {
     p->syncState = WUD_STATE_SYNC_13;
     OSRestoreInterrupts(enabled);
 
-    SCFlushAsync(SyncFlushCallback);
+    SCFlushAsync(__wudSyncFlushCallback);
 }
 
 static u8 WUDiVirginSimpleSync(void) {
@@ -617,7 +635,7 @@ static u8 WUDiVirginSimpleSync(void) {
     return WUD_STATE_SYNC_COMPLETE;
 }
 
-static u8 WUDiVirginStandardSync(void) {
+static u8 __wudSyncVirginStandard(void) {
     WUDCB* p = &_wcb;
     WUDDevInfo* pInfo;
 
@@ -646,7 +664,7 @@ static u8 WUDiVirginStandardSync(void) {
 static u8 WUDiChangeSimpleToStandard(void) {
     WUDiMoveBottomSmpDevInfoPtr(&_work);
     WUDiRemoveDevice(_wcb.smpListTail->devInfo->devAddr);
-    return WUDiVirginStandardSync();
+    return __wudSyncVirginStandard();
 }
 
 static u8 WUDiRegisterSyncDevice(void) {
@@ -703,22 +721,13 @@ static u8 WUDiStoredLinkKey(void) {
     pInfo = WUDiGetDevInfo(_work.devAddr);
 
     // clang-format off
-    DEBUGPrint("write stored link key\n");
 
-    DEBUGPrint("addr : %02x:%02x:%02x:%02x:%02x:%02x\n",
-               pInfo->devAddr[0], pInfo->devAddr[1], pInfo->devAddr[2],
-               pInfo->devAddr[3], pInfo->devAddr[4], pInfo->devAddr[5]);
 
-    DEBUGPrint("key  : %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-               pInfo->linkKey[0],  pInfo->linkKey[1],  pInfo->linkKey[2],  pInfo->linkKey[3],
-               pInfo->linkKey[4],  pInfo->linkKey[5],  pInfo->linkKey[6],  pInfo->linkKey[7],
-               pInfo->linkKey[8],  pInfo->linkKey[9],  pInfo->linkKey[10], pInfo->linkKey[11],
-               pInfo->linkKey[12], pInfo->linkKey[13], pInfo->linkKey[14], pInfo->linkKey[15]);
     // clang-format on
 
     p->linkKeyState = WUD_STATE_LINK_KEY_WRITING;
 
-    BTM_WriteStoredLinkKey(1, &pInfo->devAddr, &pInfo->linkKey, WUDStoredLinkKeyCallback);
+    BTM_WriteStoredLinkKey(1, &pInfo->devAddr, &pInfo->linkKey, __wudLinkKeyEventStackCallback);
 
     return WUD_STATE_SYNC_WAIT_FOR_STORING;
 }
@@ -781,7 +790,6 @@ static u8 WUDiSyncDone(void) {
         pSyncCallback(WUD_RESULT_SYNC_DONE, p->syncedNum);
     }
 
-    DEBUGPrint("Pairing Done\n");
     return WUD_STATE_SYNC_START;
 }
 
@@ -825,7 +833,7 @@ static void SyncHandler(void) {
     }
 
     case WUD_STATE_SYNC_TRY_CONNECT: {
-        p->syncState = WUDiTryConnecting();
+        p->syncState = __wudSyncTryConnect();
         break;
     }
 
@@ -840,7 +848,7 @@ static void SyncHandler(void) {
     }
 
     case WUD_STATE_SYNC_VIRGIN_STANDARD: {
-        p->syncState = WUDiVirginStandardSync();
+        p->syncState = __wudSyncVirginStandard();
         break;
     }
 
@@ -860,7 +868,7 @@ static void SyncHandler(void) {
     }
 
     case WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND: {
-        p->syncState = WUDiSaveDeviceToNand();
+        p->syncState = __wudSyncStoredDevInfoToNand();
         break;
     }
 
@@ -908,7 +916,6 @@ static void SyncHandler(void) {
     case WUD_STATE_SYNC_11:
     case WUD_STATE_SYNC_12:
     default: {
-        DEBUGPrint("WARNING: Illigal status\n");
         break;
     }
     }
@@ -975,7 +982,7 @@ static WUDDeleteState WUDiDeleteDevice(void) {
     return WUD_STATE_DELETE_CLEANUP_SETTING;
 }
 
-static void WUDiCleanUp() {
+static void __wudDeleteCleanupDatabase() {
     WUDCB* p_wcb = &_wcb;
 
     BOOL result = FALSE;
@@ -1036,7 +1043,7 @@ static void DeleteAllHandler(void) {
     }
 
     case WUD_STATE_DELETE_CLEANUP_SETTING: {
-        WUDiCleanUp();
+        __wudDeleteCleanupDatabase();
         break;
     }
 
@@ -1061,7 +1068,7 @@ static WUDStackState WUDiCheckRegisteredDeviceInfo(void) {
     // Set by BTA_HH_ENABLE_EVT
     if (p->hhFlags == 1) {
         p->linkKeyState = WUD_STATE_LINK_KEY_READING;
-        BTM_ReadStoredLinkKey(NULL, WUDStoredLinkKeyCallback);
+        BTM_ReadStoredLinkKey(NULL, __wudLinkKeyEventStackCallback);
     }
 
     return WUD_STATE_STACK_CHECK_DEVICE_INFO;
@@ -1081,7 +1088,7 @@ static WUDStackState WUDiClearUnregisteredDevice(void) {
 
             if (pInfo->UNK_0x5C == 1) {
                 p->linkKeyState = WUD_STATE_LINK_KEY_DELETING;
-                BTM_DeleteStoredLinkKey(pInfo->devAddr, WUDStoredLinkKeyCallback);
+                BTM_DeleteStoredLinkKey(pInfo->devAddr, __wudLinkKeyEventStackCallback);
 
                 pInfo->UNK_0x5C = 0;
                 return WUD_STATE_STACK_CHECK_DEVICE_INFO;
@@ -1357,7 +1364,7 @@ static void WUDiContMapTableFlush() {
         result &= SCSetBtCmpDevInfoArray(&_spArray);
         if (result) {
             _wcb.shutdownState = 2;
-            SCFlushAsync(ShutFlushCallback);
+            SCFlushAsync(__wudShutdownFlushCallback);
         } else {
             _wcb.shutdownState = 3;
         }
@@ -1510,7 +1517,6 @@ void WUDShutdown(BOOL exec) {
     int i;
     WUDDevInfoList* ptr;
 
-    WUD_DEBUGPrint("WUDShutdown()\n");
 
     enable = OSDisableInterrupts();
 
@@ -1599,7 +1605,6 @@ WUDSyncDeviceCallback WUDSetSyncSimpleCallback(WUDSyncDeviceCallback pCallback) 
     BOOL enabled;
     WUDSyncDeviceCallback pOldCallback;
 
-    DEBUGPrint("WUDSetSyncDeviceCallback\n");
 
     enabled = OSDisableInterrupts();
 
@@ -1615,7 +1620,6 @@ WUDClearDeviceCallback WUDSetClearDeviceCallback(WUDClearDeviceCallback pCallbac
     BOOL enabled;
     WUDClearDeviceCallback pOldCallback;
 
-    DEBUGPrint("WUDSetClearDeviceCallback\n");
 
     enabled = OSDisableInterrupts();
 
@@ -1659,7 +1663,6 @@ static BOOL StartSyncDevice(u8 syncType, s8 syncLoopNum, u8 target, BOOL fast) {
 }
 
 static BOOL StartSyncStandard(BOOL fast) {
-    WUD_DEBUGPrint("WUDStartSyncDevice()\n");
 
     return StartSyncDevice(0, 3, 0, fast);
 }
@@ -1678,7 +1681,6 @@ BOOL WUDStartFastSyncSimple(void) {
     BOOL enabled;
     WUDSyncDeviceCallback pSyncCallback;
 
-    DEBUGPrint("WUDStartSyncSimple()\n");
     success = StartSyncSimple(FALSE);
     return success;
 }
@@ -1689,7 +1691,6 @@ BOOL WUDStartSyncSimple(void) {
     BOOL enabled;
     WUDSyncDeviceCallback pSyncCallback;
 
-    DEBUGPrint("WUDStartSyncSimple()\n");
     success = StartSyncSimple(FALSE);
 
     enabled = OSDisableInterrupts();
@@ -1709,7 +1710,6 @@ BOOL WUDStartSyncSpDevice(u8 type) {
     BOOL enable;
     BOOL busy;
 
-    WUD_DEBUGPrint("WUDStartSyncSpDevice()\n");
     busy = StartSyncDevice(1, -1, type, FALSE);
 
     enable = OSDisableInterrupts();
@@ -1749,7 +1749,6 @@ static BOOL StopSync(void) {
 }
 
 BOOL WUDCancelSyncDevice() {
-    WUD_DEBUGPrint("WUDCancelSyncDevice()\n");
 
     _abortSync = TRUE;
 
@@ -1757,7 +1756,6 @@ BOOL WUDCancelSyncDevice() {
 }
 
 BOOL WUDStopSyncSimple(void) {
-    DEBUGPrint("WUDStopSyncSimple()\n");
     return StopSync();
 }
 
@@ -1768,7 +1766,6 @@ BOOL WUDStartClearDevice(void) {
     u32 libStatus;
 
     success = FALSE;
-    DEBUGPrint("WUDStartClearDevice()\n");
 
     enabled = OSDisableInterrupts();
     libStatus = p->libStatus;
@@ -1800,7 +1797,6 @@ BOOL WUDSetDisableChannel(s8 afhChannel) {
     u32 libStatus;
     tBTM_STATUS status;
 
-    DEBUGPrint("WUDSetDisableChannel()\n");
 
     if (afhChannel < 0 || 13 < afhChannel) {
         return FALSE;
@@ -1828,7 +1824,6 @@ BOOL WUDSetDisableChannel(s8 afhChannel) {
         }
 
         status = BTM_SetAfhChannels(first, last);
-        DEBUGPrint("BTM_SetAfhChannels() : %d\n", status);
 
         success = TRUE;
     }
@@ -1841,7 +1836,6 @@ WUDHidRecvCallback WUDSetHidRecvCallback(WUDHidRecvCallback pCallback) {
     BOOL enabled;
     WUDHidRecvCallback pOldCallback;
 
-    DEBUGPrint("WUDSetHidRecvCallback()\n");
 
     enabled = OSDisableInterrupts();
 
@@ -1857,7 +1851,6 @@ WUDHidConnCallback WUDSetHidConnCallback(WUDHidConnCallback pCallback) {
     BOOL enabled;
     WUDHidConnCallback pOldCallback;
 
-    DEBUGPrint("WUDSetHidConnCallback()\n");
 
     enabled = OSDisableInterrupts();
 
@@ -1890,14 +1883,14 @@ u8 WUDGetConnectable(void) {
     return connectable;
 }
 
-void reset_again_cb(void* p1) {
+void __wudModuleRebootCallback(void* p1) {
 #pragma unused(p1)
 
-    WUDiInitSub();
+    __wudInitSub();
 }
 
 void reset_again(void) {
-    BTM_DeviceReset(reset_again_cb);
+    BTM_DeviceReset(__wudModuleRebootCallback);
 }
 
 // clang-format off
@@ -1978,7 +1971,7 @@ static u32 addr = 0;
 static s32 offset = 0;
 static u32 size = 0;
 
-static void remove_patch_cb(tBTM_VSC_CMPL* p1) {
+static void __wudRemovePatchCallback(tBTM_VSC_CMPL* p1) {
     if (p1 == NULL) {
         reset_again();
     } else {
@@ -1988,10 +1981,10 @@ static void remove_patch_cb(tBTM_VSC_CMPL* p1) {
 }
 
 static void WUDiRemovePatch(void) {
-    BTM_VendorSpecificCommand(BT_VSC_NINTENDO_INSTALL_PATCH, sizeof(remove_patch), remove_patch, remove_patch_cb);
+    BTM_VendorSpecificCommand(BT_VSC_NINTENDO_INSTALL_PATCH, sizeof(remove_patch), remove_patch, __wudRemovePatchCallback);
 }
 
-static void write_patch_cb(tBTM_VSC_CMPL* p1) {
+static void __wudWritePatchCallback(tBTM_VSC_CMPL* p1) {
     if (p1 != NULL) {
         if (size == (u32)offset) {
             install_num = 0;
@@ -2021,10 +2014,10 @@ static void WUDiWritePatch(void) {
     }
 
     offset += length;
-    BTM_VendorSpecificCommand(BT_VSC_NINTENDO_WRITE_PATCH, (s32)sizeof(u32) + length, buf, write_patch_cb);
+    BTM_VendorSpecificCommand(BT_VSC_NINTENDO_WRITE_PATCH, (s32)sizeof(u32) + length, buf, __wudWritePatchCallback);
 }
 
-static void install_patch_cb(tBTM_VSC_CMPL* p1) {
+static void __wudInstallPatchCallback(tBTM_VSC_CMPL* p1) {
     if (p1 != NULL) {
         if (patch_num == install_num) {
             reset_again();
@@ -2046,13 +2039,12 @@ static void WUDiInstallPatch(void) {
     memcpy(&buf[offsetof(WUDPatchList, cmds)], patch_install.cmds[install_num].data, num * sizeof(WUDPatchCmd));
 
     install_num += num;
-    BTM_VendorSpecificCommand(BT_VSC_NINTENDO_INSTALL_PATCH, sizeof(num) + num * sizeof(WUDPatchCmd), buf, install_patch_cb);
+    BTM_VendorSpecificCommand(BT_VSC_NINTENDO_INSTALL_PATCH, sizeof(num) + num * sizeof(WUDPatchCmd), buf, __wudInstallPatchCallback);
 }
 
 static void WUDiAppendRuntimePatch(void) {
     int i;
 
-    DEBUGPrint("WUDiAppendRuntimePatch()\n");
 
     size = 0;
     addr = 0;
@@ -2072,24 +2064,18 @@ void WUDiGetFirmwareVersion(void) {
     tBTM_VERSION_INFO version;
     BTM_ReadLocalVersion(&version);
 
-    DEBUGPrint("hci_version   : %02x\n", version.hci_version);
-    DEBUGPrint("hci_revision  : %04x\n", version.hci_revision);
 
-    DEBUGPrint("lmp_version   : %02x\n", version.lmp_version);
-    DEBUGPrint("lmp_subversion: %04x\n", version.lmp_subversion);
 
-    DEBUGPrint("manufacturer  : %04x\n", version.manufacturer);
 
-    DEBUGPrint(" ==> 2045 firmware ver.002.003.014.%d\n", version.hci_revision & 0xFFF);
 
     if ((version.hci_revision & 0xFFF) == 167) {
         WUDiAppendRuntimePatch();
     } else {
-        WUDiInitSub();
+        __wudInitSub();
     }
 }
 
-void WUDiInitSub() {
+void __wudInitSub() {
     WUDCB* p_wcb = &_wcb;
     const char RVL_DEV_NAME[] = "Wii";
     const DEV_CLASS RVL_DEV_CLASS = {0x00, 0x04, 0x48};
@@ -2097,17 +2083,16 @@ void WUDiInitSub() {
     int i;
     BOOL enable;
 
-    WUD_DEBUGPrint("start WUDiInitSub()\n");
 
     BTA_DmSetDeviceName((char*)RVL_DEV_NAME);
 
     BTM_SetDeviceClass((u8*)RVL_DEV_CLASS);
 
-    BTM_RegisterForVSEvents(&WUDVendorSpecificCallback);
+    BTM_RegisterForVSEvents(&__wudVendorSpecificEventStackCallback);
 
-    BTM_RegisterForDeviceStatusNotif(&WUDDeviceStatusCallback);
+    BTM_RegisterForDeviceStatusNotif(&__wudDeviceStatusEventStackCallback);
 
-    BTM_PmRegister(BTM_PM_REG_SET | BTM_PM_REG_NOTIF, &p_wcb->pmID, &WUDPowerManagerCallback);
+    BTM_PmRegister(BTM_PM_REG_SET | BTM_PM_REG_NOTIF, &p_wcb->pmID, &__wudPowerMangeEventStackCallback);
 
     BTM_WritePageTimeout(32768);
 
@@ -2151,7 +2136,6 @@ void WUDiAutoSync() {
     WUDSyncDeviceCallback callback;
     BOOL enable;
 
-    WUD_DEBUGPrint("WUDiAutoSync()\n");
 
     if (!WUDIsBusy()) {
         enable = OSDisableInterrupts();
@@ -2171,7 +2155,6 @@ void WUDiCancelSync() {
     WUDSyncDeviceCallback callback;
     BOOL enable;
 
-    WUD_DEBUGPrint("WUDiCancelSync()\n");
 
     enable = OSDisableInterrupts();
     if (p_wcb->syncState != 0) {
@@ -2196,7 +2179,6 @@ void WUDiDeleteAllLinkKeys(void) {
     s32 result;
     BOOL enabled;
 
-    DEBUGPrint("WUDiDeleteAllLinkKeys()\n");
     enabled = OSDisableInterrupts();
 
     pClearCallback = p->clearDevCB;
@@ -2224,7 +2206,6 @@ void WUDiRegisterDevice(BD_ADDR addr) {
     pInfo = WUDiGetDevInfo(addr);
 
     status = BTA_DmAddDevice(pInfo->devAddr, pInfo->linkKey, 0, FALSE);
-    DEBUGPrint("BTA_DmAddDevice(): %d\n", status);
 
     if (WUD_DEV_NAME_IS_CNT(pInfo->conf.devName) ||
         (WUD_DEV_NAME_IS_WBC(pInfo->conf.devName) && _linkedWBC)) {
@@ -2232,7 +2213,6 @@ void WUDiRegisterDevice(BD_ADDR addr) {
         desc.dl_len = sizeof(descriptor);
         desc.dsc_list = descriptor;
 
-        DEBUGPrint("BTA_HhAddDev()\n");
         BTA_HhAddDev(pInfo->devAddr, pInfo->hhAttrMask, pInfo->subclass, pInfo->appID, desc);
     }
 
@@ -2252,25 +2232,18 @@ void WUDiRemoveDevice(BD_ADDR addr) {
     tBTM_STATUS status;
     BOOL enabled = OSDisableInterrupts();
 
-    DEBUGPrint("WUDiRemoveDevice : \n");
 
     pInfo = WUDiGetDevInfo(addr);
 
     if (pInfo != NULL) {
-        DEBUGPrint(" handle : %d,  addr : %02x:%02x:%02x:%02x:%02x:%02x\n", pInfo->devHandle, pInfo->devAddr[0], pInfo->devAddr[1], pInfo->devAddr[2],
-                   pInfo->devAddr[3], pInfo->devAddr[4], pInfo->devAddr[5]);
 
-        DEBUGPrint("remove device info from database.\n");
 
         if (WUD_DEV_NAME_IS_CNT(pInfo->conf.devName) ||
             (WUD_DEV_NAME_IS_WBC(pInfo->conf.devName) && _linkedWBC)) {
-            DEBUGPrint("BTA_HhRemoveDev()\n");
-            DEBUGPrint(" handle : %d\n", pInfo->devHandle);
             BTA_HhRemoveDev(pInfo->devHandle);
         }
 
         status = BTA_DmRemoveDevice(pInfo->devAddr);
-        DEBUGPrint("BTA_DmRemoveDevice(): %d\n", status);
 
         if (pInfo->sync_type == 0 || pInfo->sync_type == 2 || pInfo->sync_type == 4 || pInfo->sync_type == 5) {
             p->devNums--;
@@ -2710,7 +2683,7 @@ BOOL WUDIsBusy(void) {
     return TRUE;
 }
 
-static void CleanupCallback(tBTA_STATUS status) {
+static void __wudCleanupStackCallback(tBTA_STATUS status) {
     WUDCB* p = &_wcb;
 
     if (status == BTA_SUCCESS) {
@@ -2719,7 +2692,6 @@ static void CleanupCallback(tBTA_STATUS status) {
         return;
     }
 
-    DEBUGPrint("WARNING: USB_CLOSE_FAILURE!\n");
 }
 
 void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
@@ -2733,16 +2705,12 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     tBTA_DM_PIN_REQ* pPinReq;
     tBTA_DM_AUTH_CMPL* pAuthCmpl;
 
-    DEBUGPrint("WUDSecurityCallback: ");
 
     switch (event) {
     case BTA_DM_ENABLE_EVT: {
         pEnable = &pData->enable;
         WUD_BDCPY(p->hostAddr, pEnable->bd_addr);
 
-        DEBUGPrint("BTA_ENABLE_EVT\n");
-        DEBUGPrint("host : %02x:%02x:%02x:%02x:%02x:%02x\n", p->hostAddr[0], p->hostAddr[1], p->hostAddr[2], p->hostAddr[3], p->hostAddr[4],
-                   p->hostAddr[5]);
 
         WUDiEnableStack();
         p->libStatus = WUD_LIB_STATUS_2;
@@ -2750,16 +2718,14 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     }
 
     case BTA_DM_DISABLE_EVT: {
-        DEBUGPrint("BTA_DISABLE_EVT\n");
 
-        BTA_CleanUp(CleanupCallback);
+        BTA_CleanUp(__wudCleanupStackCallback);
         break;
     }
 
     case BTA_DM_PIN_REQ_EVT: {
         pPinReq = &pData->pin_req;
 
-        DEBUGPrint("BTA_DM_PIN_REQ_EVT\n");
 
         WUDiSetPinCode(pPinReq->bd_addr);
         break;
@@ -2768,20 +2734,11 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     case BTA_DM_AUTH_CMPL_EVT: {
         pAuthCmpl = &pData->auth_cmpl;
 
-        DEBUGPrint("BTA_DM_AUTH_CMPL_EVT\n");
 
-        DEBUGPrint("  addr : %02x:%02x:%02x:%02x:%02x:%02x\n", pAuthCmpl->bd_addr[0], pAuthCmpl->bd_addr[1], pAuthCmpl->bd_addr[2],
-                   pAuthCmpl->bd_addr[3], pAuthCmpl->bd_addr[4], pAuthCmpl->bd_addr[5]);
 
         // clang-format off
-        DEBUGPrint("  key  : %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-                   pAuthCmpl->key[0],  pAuthCmpl->key[1],  pAuthCmpl->key[2],  pAuthCmpl->key[3],
-                   pAuthCmpl->key[4],  pAuthCmpl->key[5],  pAuthCmpl->key[6],  pAuthCmpl->key[7],
-                   pAuthCmpl->key[8],  pAuthCmpl->key[9],  pAuthCmpl->key[10], pAuthCmpl->key[11],
-                   pAuthCmpl->key[12], pAuthCmpl->key[13], pAuthCmpl->key[14], pAuthCmpl->key[15]);
         // clang-format on
 
-        DEBUGPrint("  result = %d\n", pAuthCmpl->key_type);
 
         if (pAuthCmpl->key_type == HCI_LKEY_TYPE_COMBINATION) {
             break;
@@ -2802,17 +2759,13 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     }
 
     case BTA_DM_AUTHORIZE_EVT: {
-        DEBUGPrint("BTA_DM_AUTHORIZE_EVT\n");
         break;
     }
 
     case BTA_DM_LINK_UP_EVT: {
         pLinkUp = &pData->link_up;
 
-        DEBUGPrint("BTA_DM_LINK_UP_EVT\n");
 
-        DEBUGPrint("   addr : %02x:%02x:%02x:%02x:%02x:%02x\n", pLinkUp->bd_addr[0], pLinkUp->bd_addr[1], pLinkUp->bd_addr[2], pLinkUp->bd_addr[3],
-                   pLinkUp->bd_addr[4], pLinkUp->bd_addr[5]);
 
         pInfo = WUDiGetDevInfo(pLinkUp->bd_addr);
         if (pInfo == NULL && WUD_BDCMP(pLinkUp->bd_addr, _work.devAddr) == 0) {
@@ -2822,8 +2775,6 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
         if (pInfo == NULL || WUDiGetLinkNum() == WUD_MAX_CHANNELS) {
             btm_remove_acl(pLinkUp->bd_addr);
 
-            DEBUGPrint("%s --> %02x:%02x:%02x:%02x:%02x:%02x\n", pInfo == NULL ? "not paired" : "4 links exist", pLinkUp->bd_addr[0],
-                       pLinkUp->bd_addr[1], pLinkUp->bd_addr[2], pLinkUp->bd_addr[3], pLinkUp->bd_addr[4], pLinkUp->bd_addr[5]);
             break;
         }
 
@@ -2835,12 +2786,8 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     case BTA_DM_LINK_DOWN_EVT: {
         pLinkDown = &pData->link_down;
 
-        DEBUGPrint("BTA_DM_LINK_DOWN_EVT\n");
 
-        DEBUGPrint("   addr : %02x:%02x:%02x:%02x:%02x:%02x\n", pLinkDown->bd_addr[0], pLinkDown->bd_addr[1], pLinkDown->bd_addr[2],
-                   pLinkDown->bd_addr[3], pLinkDown->bd_addr[4], pLinkDown->bd_addr[5]);
 
-        DEBUGPrint("result: %d\n", pLinkDown->status);
 
         pInfo = WUDiGetDevInfo(pLinkDown->bd_addr);
         if (pInfo != NULL) {
@@ -2864,7 +2811,6 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
             p->syncState = WUD_STATE_SYNC_ERROR;
             p->linkedNum--;
         } else {
-            DEBUGPrint("this device in not paired\n");
         }
 
         if (p->linkedNum <= 255 && p->linkedNum >= 250) {
@@ -2875,18 +2821,16 @@ void WUDSecurityCallback(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* pData) {
     }
 
     case BTA_DM_SIG_STRENGTH_EVT: {
-        DEBUGPrint("BTA_DM_SIG_STRENGTH_EVT\n");
         break;
     }
 
     case BTA_DM_BUSY_LEVEL_EVT: {
-        DEBUGPrint("BTA_DM_BUSY_LEVEL_EVT\n");
         break;
     }
     }
 }
 
-void WUDSearchCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData) {
+void __wudSearchEventStackCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData) {
     s32 timeout;
 
     switch (event) {
@@ -2894,11 +2838,6 @@ void WUDSearchCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData) {
         tBTA_DM_INQ_RES* pResp = &pData->inq_res;
 
         // clang-format off
-        DEBUGPrint("INQUIRY RESULT: %02x:%02x:%02x:%02x:%02x:%02x   %02x%02x%02x   %d\n",
-                   pResp->bd_addr[0], pResp->bd_addr[1], pResp->bd_addr[2],
-                   pResp->bd_addr[3], pResp->bd_addr[4], pResp->bd_addr[5],
-                   pResp->dev_class[0], pResp->dev_class[1], pResp->dev_class[2],
-                   pResp->rssi);
         // clang-format on
 
         _discRssi = pResp->rssi;
@@ -2914,7 +2853,6 @@ void WUDSearchCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData) {
     }
 
     case BTA_DM_INQ_CMPL_EVT: {
-        DEBUGPrint("INQUIRY_COMPLETED\n");
         break;
     }
 
@@ -2928,22 +2866,16 @@ void WUDSearchCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData) {
         _discNumResps++;
 
         // clang-format off
-        DEBUGPrint("DISCOVER RESULT:  %02x:%02x:%02x:%02x:%02x:%02x   %s (%04x)\n",
-                   _discResp.devAddr[0], _discResp.devAddr[1], _discResp.devAddr[2], 
-                   _discResp.devAddr[3], _discResp.devAddr[4], _discResp.devAddr[5],
-                   _discResp.devName, _discResp.services);
         // clang-format on
         break;
     }
 
     case BTA_DM_DISC_CMPL_EVT: {
-        DEBUGPrint("DISCOVER COMPLETED\n");
         _wcb.syncState = WUD_STATE_SYNC_CHECK_SEARCH_RESULT;
         break;
     }
 
     case BTA_DM_SEARCH_CANCEL_CMPL_EVT: {
-        DEBUGPrint("SEARCH CANCEL\n\n");
         WUDiResetAuthFailCount();
         ClearDiscoverResult();
         _wcb.syncState = WUD_STATE_SYNC_CHECK_SEARCH_RESULT;
@@ -2951,13 +2883,12 @@ void WUDSearchCallback(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* pData) {
     }
 
     default: {
-        DEBUGPrint("Warning: Search Callback returns invalid event\n");
         break;
     }
     }
 }
 
-void WUDVendorSpecificCallback(UINT8 len, UINT8* pData) {
+void __wudVendorSpecificEventStackCallback(UINT8 len, UINT8* pData) {
 #pragma unused(len)
 
     u8 event = pData[0];
@@ -2965,25 +2896,21 @@ void WUDVendorSpecificCallback(UINT8 len, UINT8* pData) {
 
     switch (event) {
     case WUD_VSE_INITIATE_PAIRING: {
-        DEBUGPrint("VSE:- INITIATE_PAIRING\n");
         WUDiAutoSync();
         break;
     }
 
     case WUD_VSE_DELETE_ALL_KEYS: {
-        DEBUGPrint("VSE:- DELETE_ALL_KEYS\n");
         WUDiDeleteAllLinkKeys();
         break;
     }
 
     case WUD_VSE_SI_PORT_STATUS: {
-        DEBUGPrint("VSE:- SI_PORT_STATUS  status = %d\n", pData[1]);
         p->serialPortStatus = pData[1];
         break;
     }
 
     case WUD_VSE_WATCH_DOG_RESET_HW: {
-        DEBUGPrint("VSE:- WATCH_DOG_RESET  HW error = %d\n", pData[1]);
 
         // clang-format off
 #line 4346
@@ -2994,15 +2921,14 @@ void WUDVendorSpecificCallback(UINT8 len, UINT8* pData) {
     }
 }
 
-void WUDDeviceStatusCallback(tBTM_DEV_STATUS status) {
-    DEBUGPrint("WUDDeviceStatusCallback\n");
+void __wudDeviceStatusEventStackCallback(tBTM_DEV_STATUS status) {
 
     if (status == BTM_DEV_STATUS_CMD_TOUT) {
         OSReport("---- WARNING: USB FATAL ERROR! ----\n");
     }
 }
 
-void WUDStoredLinkKeyCallback(void* p1) {
+void __wudLinkKeyEventStackCallback(void* p1) {
     tBTM_BD_ADDR_LINK_KEY_PAIR* pPair;
     WUDCB* p = &_wcb;
     WUDDevInfo* pInfo;
@@ -3018,7 +2944,6 @@ void WUDStoredLinkKeyCallback(void* p1) {
     case BTM_CB_EVT_RETURN_LINK_KEYS: {
         pReturn = p1;
 
-        DEBUGPrint("BTM_CB_EVT_RETURN_LINK_KEYS\n");
 
         pPair = (tBTM_BD_ADDR_LINK_KEY_PAIR*)(pReturn + 1);
         i = 0;
@@ -3026,19 +2951,11 @@ void WUDStoredLinkKeyCallback(void* p1) {
         while (i < pReturn->num_keys) {
             pInfo = WUDiGetDevInfo(pPair->bd_addr);
 
-            DEBUGPrint("BD_ADDR:  %02x:%02x:%02x:%02x:%02x:%02x\n", pPair->bd_addr[0], pPair->bd_addr[1], pPair->bd_addr[2], pPair->bd_addr[3],
-                       pPair->bd_addr[4], pPair->bd_addr[5]);
 
             // clang-format off
-            DEBUGPrint("LINKKEY: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-                       pPair->link_key[0],  pPair->link_key[1],  pPair->link_key[2],  pPair->link_key[3],
-                       pPair->link_key[4],  pPair->link_key[5],  pPair->link_key[6],  pPair->link_key[7],
-                       pPair->link_key[8],  pPair->link_key[9],  pPair->link_key[10], pPair->link_key[11],
-                       pPair->link_key[12], pPair->link_key[13], pPair->link_key[14], pPair->link_key[15]);
             // clang-format on
 
             if (pInfo == NULL) {
-                DEBUGPrint("this device is not stored in NAND\n");
 
                 pInfo = WUDiGetNewDevInfo();
 
@@ -3067,8 +2984,6 @@ void WUDStoredLinkKeyCallback(void* p1) {
                 }
 
                 WUD_BDCPY(p->pairAddr, pPair->bd_addr);
-                DEBUGPrint("   LAST: %02x:%02x:%02x:%02x:%02x:%02x\n", p->pairAddr[0], p->pairAddr[1], p->pairAddr[2], p->pairAddr[3], p->pairAddr[4],
-                           p->pairAddr[5]);
             }
 
             pPair++;
@@ -3081,8 +2996,6 @@ void WUDStoredLinkKeyCallback(void* p1) {
     case BTM_CB_EVT_READ_STORED_LINK_KEYS: {
         pRead = p1;
 
-        DEBUGPrint("BTM_CB_EVT_READ_STORED_LINK_KEYS\n");
-        DEBUGPrint("  status: %d  max_keys: %d  num_keys: %d\n", pRead->status, pRead->max_keys, pRead->read_keys);
 
         p->linkKeyState = WUD_STATE_LINK_KEY_START;
         break;
@@ -3091,8 +3004,6 @@ void WUDStoredLinkKeyCallback(void* p1) {
     case BTM_CB_EVT_WRITE_STORED_LINK_KEYS: {
         pWrite = p1;
 
-        DEBUGPrint("BTM_CB_EVT_WRITE_STORED_LINK_KEYS\n");
-        DEBUGPrint("  status: %d  num_keys: %d\n", pWrite->status, pWrite->num_keys);
 
         p->linkKeyState = WUD_STATE_LINK_KEY_START;
         break;
@@ -3101,11 +3012,8 @@ void WUDStoredLinkKeyCallback(void* p1) {
     case BTM_CB_EVT_DELETE_STORED_LINK_KEYS: {
         pDelete = p1;
 
-        DEBUGPrint("BTM_CB_EVT_DELETE_STORED_LINK_KEYS\n");
-        DEBUGPrint("  status: %d  num_keys: %d\n", pDelete->status, pDelete->num_keys);
 
         if (pDelete->num_keys == 0) {
-            DEBUGPrint("WARNING: no entry is deleted\n");
         }
 
         p->linkKeyState = WUD_STATE_LINK_KEY_START;
@@ -3121,21 +3029,16 @@ void WUDStoredLinkKeyCallback(void* p1) {
     }
 }
 
-void WUDPowerManagerCallback(BD_ADDR bd_addr, tBTM_PM_STATUS status, u16 value, u8 hci_status) {
+void __wudPowerMangeEventStackCallback(BD_ADDR bd_addr, tBTM_PM_STATUS status, u16 value, u8 hci_status) {
     WUDCB* p_wcb = &_wcb;
     WUDDevInfo* p_info;
 
-    WUD_DEBUGPrint("WUDPowerManagerCallback\n");
-    WUD_DEBUGPrint("hci_status = %d\n", hci_status);
 
     p_info = WUDiGetDevInfo(bd_addr);
     if (p_info == NULL) {
         if (!memcmp(_work.devAddr, bd_addr, BD_ADDR_LEN)) {
             p_info = &_work;
         } else {
-            WUD_DEBUGPrint("Unknown device is connected and changes the connection type!!!!\n");
-            WUD_DEBUGPrint(" addr = %02x:%02x:%02x:%02x:%02x:%02x,  status = %d\n", bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4],
-                           bd_addr[5], status);
             return;
         }
     }
@@ -3152,15 +3055,12 @@ void WUDPowerManagerCallback(BD_ADDR bd_addr, tBTM_PM_STATUS status, u16 value, 
 
         break;
     }
-    WUD_DEBUGPrint(" addr = %02x:%02x:%02x:%02x:%02x:%02x,  status = %d\n", p_info->devAddr[0], p_info->devAddr[1], p_info->devAddr[2],
-                   p_info->devAddr[3], p_info->devAddr[4], p_info->devAddr[5], p_info->status);
 }
 
 BOOL _WUDEnableTestMode() {
     tBTM_STATUS status;
     BOOL enable;
 
-    WUD_DEBUGPrint("_WUDEnableTestMode\n");
 
     status = BTM_EnableTestMode();
     enable = (status == BTM_SUCCESS) ? TRUE : FALSE;
@@ -3175,7 +3075,6 @@ void _WUDStartSyncDevice(BD_ADDR bd_addr, u8* bd_name) {
     u32 delStatus;
     s32 status;
 
-    WUD_DEBUGPrint("_WUDStartSyncDevice()\n");
 
     enable = OSDisableInterrupts();
     status = p_wcb->libStatus;
@@ -3185,7 +3084,6 @@ void _WUDStartSyncDevice(BD_ADDR bd_addr, u8* bd_name) {
 
     if (status == 3) {
         if (WUDIsBusy() == FALSE) {
-            WUD_DEBUGPrint("start\n");
             enable = OSDisableInterrupts();
             p_wcb->syncState = 5;
             p_wcb->syncedNum = 0;
@@ -3201,7 +3099,6 @@ void _WUDStartSyncDevice(BD_ADDR bd_addr, u8* bd_name) {
 void _WUDDeleteStoredDevice() {
     WUDCB* p_wcb = &_wcb;
 
-    WUD_DEBUGPrint("_WUDDeleteStoreDevice()\n");
 
     WUDiDeleteAllLinkKeys();
 
@@ -3209,7 +3106,6 @@ void _WUDDeleteStoredDevice() {
         ;
     } while (p_wcb->deleteState != 0);
 
-    WUD_DEBUGPrint("dev number = %d\n", WUDiGetDevNumber());
 }
 
 BD_ADDR_PTR _WUDGetDevAddr(UINT8 handle) {

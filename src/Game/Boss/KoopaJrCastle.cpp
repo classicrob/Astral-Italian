@@ -96,8 +96,7 @@ void KoopaJrCastle::init(const JMapInfoIter& rIter) {
     MR::declarePowerStar(this);
     MR::declareStarPiece(this, 30);
     MR::tryInitDemoSheetAnim(mBody, rIter, "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea", "DemoOpeningKoopaJrCastle");
-    MtxPtr rootMtx = MR::getJointMtx(mKoopaJr, "Root");
-    DemoFunction::registerDemoTalkMessageCtrlDirect(mKoopaJr, MR::createTalkCtrlDirect(mKoopaJr, rIter, "DemoOpeningKoopaJrCastle000", TVec3f(0.0f), rootMtx), "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea");
+    DemoFunction::registerDemoTalkMessageCtrlDirect(mKoopaJr, MR::createTalkCtrlDirect(mKoopaJr, rIter, "DemoOpeningKoopaJrCastle000", TVec3f(0.0f), MR::getJointMtx(mKoopaJr, "Root")), "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea");
     MR::initTalkAnimDemoCast(mKoopaJr, rIter, "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea", "DemoOpeningKoopaJrCastle");
     MR::initTalkAnimDemoCast(mHead, rIter, "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea", "DemoOpeningKoopaJrCastle");
     makeActorAppeared();

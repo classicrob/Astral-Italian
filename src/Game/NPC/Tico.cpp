@@ -283,10 +283,10 @@ void Tico::calcAndSetBaseMtx() {
 
 // NONMATCHING: local vector stack slots and floating load scheduling differ.
 void Tico::control() {
+    TVec3f trans;
     mWasHitByStarPiece = false;
 
     if (mBodyJointMtx) {
-        TVec3f trans;
         MR::extractMtxTrans(mBodyJointMtx, &trans);
         MR::requestPointLight(this, trans, mPointLightColor, 0.998646f, -1.0f, -1);
     }
@@ -306,9 +306,7 @@ void Tico::control() {
         if (mFollowGravity) {
             TVec3f front;
             mOrientationQuat.getZDir(front);
-            TVec3f up;
-            up.negate(mGravity);
-            MR::blendQuatUpFront(&mInitOrientationQuat, up, front, 1.0f, 0.0f);
+            MR::blendQuatUpFront(&mInitOrientationQuat, -mGravity, front, 1.0f, 0.0f);
         }
 
         NPCActor::control();

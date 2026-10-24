@@ -60,6 +60,7 @@ CareTakerHunter::CareTakerHunter(const char* pName) : NPCActor(pName) {
 
 // NONMATCHING: callback member-pointer copies and local stack allocation differ.
 void CareTakerHunter::init(const JMapInfoIter& rIter) {
+    const char* pName;
     s32 arg0 = -1;
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
     mObjArg0 = arg0;
@@ -123,7 +124,7 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
 
         s32 idx = 0;
         for (s32 i = 0; i < numChild; i++) {
-            const char* pName = NULL;
+            pName = NULL;
             MR::getChildObjName(&pName, rIter, i);
             if (MR::isEqualString(pName, "BringEnemy")) {
                 NameObj* pObj = NameObjFactory::initChildObj(rIter, i);

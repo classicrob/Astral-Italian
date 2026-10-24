@@ -245,8 +245,7 @@ static inline void NETMemCpy_SimpleRev(void* dst, const void* src, unsigned long
     }
 }
 
-// NONMATCHING: Source preserves original destination in r12 versus target r0; a duplicate return move adds four bytes.
-// Copy operations and control flow otherwise differ only in temporary register allocation.
+// NONMATCHING: Copy operations and control flow agree; temporary GPR allocation differs.
 void* NETMemCpy(void* dst, const void* src, u32 size) {
     void* originalDst = dst;
     unsigned long headSize;
@@ -258,26 +257,26 @@ void* NETMemCpy(void* dst, const void* src, u32 size) {
 
     if ((uintptr_t)dst > (uintptr_t)src && (uintptr_t)dst < (uintptr_t)src + size) {
         NETMemCpy_SimpleRev(dst, src, size);
-        return originalDst;
-    }
+    } else {
 
-    if (((uintptr_t)dst <= (uintptr_t)src - 0x20 || (uintptr_t)dst >= (uintptr_t)src) && size >= 0x40) {
-        headSize = (uintptr_t)dst & 0x1F;
-        if (headSize != 0) {
-            headSize = 0x20 - headSize;
-            NETMemCpy_SimpleFwd(dst, src, headSize);
-            dst = (unsigned char*)dst + headSize;
-            src = (const unsigned char*)src + headSize;
-            size -= headSize;
+        if (((uintptr_t)dst <= (uintptr_t)src - 0x20 || (uintptr_t)dst >= (uintptr_t)src) && size >= 0x40) {
+            headSize = (uintptr_t)dst & 0x1F;
+            if (headSize != 0) {
+                headSize = 0x20 - headSize;
+                NETMemCpy_SimpleFwd(dst, src, headSize);
+                dst = (unsigned char*)dst + headSize;
+                src = (const unsigned char*)src + headSize;
+                size -= headSize;
+            }
+
+            accBlkSize = size & ~0x1F;
+            NETMemCpy_DstSize32Aligned(dst, src, accBlkSize);
+            dst = (unsigned char*)dst + accBlkSize;
+            src = (const unsigned char*)src + accBlkSize;
+            size -= accBlkSize;
         }
 
-        accBlkSize = size & ~0x1F;
-        NETMemCpy_DstSize32Aligned(dst, src, accBlkSize);
-        dst = (unsigned char*)dst + accBlkSize;
-        src = (const unsigned char*)src + accBlkSize;
-        size -= accBlkSize;
+        NETMemCpy_SimpleFwd(dst, src, size);
     }
-
-    NETMemCpy_SimpleFwd(dst, src, size);
     return originalDst;
 }

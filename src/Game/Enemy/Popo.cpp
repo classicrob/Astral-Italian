@@ -351,8 +351,7 @@ void Popo::exeStick() {
     TVec3f playerUp;
     MR::getPlayerUpVec(&playerUp);
     const TVec3f* pPlayerPos = MR::getPlayerPos();
-    f32 height = playerUp.dot(mouthPos - *pPlayerPos);
-    TVec3f center(*MR::getPlayerPos() + playerUp * height * 0.5f);
+    TVec3f center(*MR::getPlayerPos() + playerUp * playerUp.dot(mouthPos - *pPlayerPos) * 0.5f);
     TVec3f dirMouth(mouthPos);
     dirMouth -= center;
     f32 lenMouth = PSVECMag(&dirMouth);

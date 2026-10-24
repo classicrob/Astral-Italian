@@ -178,6 +178,9 @@ else()
 endif()
 
 if(BUILD_TESTING)
+    add_executable(petari_title_observation_tests ${PETARI_REPO_ROOT}/native/tests/title_observation_tests.cpp)
+    target_compile_features(petari_title_observation_tests PRIVATE cxx_std_17)
+    add_test(NAME native_title_observation COMMAND petari_title_observation_tests)
     add_executable(petari_app_first_run_tests "${PETARI_REPO_ROOT}/native/tests/app_first_run_tests.cpp"
         "${PETARI_REPO_ROOT}/native/tests/first_run_fake_importer.cpp" disc_resolution.cpp)
     target_link_libraries(petari_app_first_run_tests PRIVATE petari_app_locations)

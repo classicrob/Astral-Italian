@@ -528,6 +528,13 @@ void setHoldProgressSource(HoldProgressFn source);
 // this process. The GX app points it at petari_gx_pipeline_prewarm_progress; null (the default) draws nothing.
 using PreparationProgressFn = bool (*)(unsigned* done, unsigned* total, double* remainingSeconds);
 void setPreparationProgressSource(PreparationProgressFn source);
+// Same thread as drawImGuiOverlay, immediately afterwards. This is the actual
+// pill's polled state, not fallback-tier readiness or a host-time estimate.
+struct GraphicsPreparationState {
+    bool polled = false, valid = false, visible = false, complete = false;
+    unsigned done = 0, total = 0;
+};
+GraphicsPreparationState graphicsPreparationState();
 // Draws the pill for `fraction` (0..1) in the image's bottom-right corner (used by drawImGuiOverlay; exposed for tests).
 void drawPreparingGraphics(float fraction, float imageX, float imageY, float imageWidth, float imageHeight);
 // Draws the ring for `progress` (used by drawImGuiOverlay; exposed for the render tool and tests).

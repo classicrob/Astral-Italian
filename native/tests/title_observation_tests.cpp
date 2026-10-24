@@ -11,7 +11,8 @@ int main() {
     O warm;
     check(warm.tick(10, true) == O::Step::Running);
     check(warm.tick(39.999, true) == O::Step::Running);
-    check(warm.tick(40, true) == O::Step::Complete);
+    check(warm.tick(40, true) == O::Step::Running);
+    check(warm.tick(40.017, true) == O::Step::Complete);
     check(warm.completionSeconds() == 10);
     O tooLate;
     check(tooLate.tick(880, true) == O::Step::Running);
@@ -19,5 +20,6 @@ int main() {
     O window(315);
     check(window.tick(10, true) == O::Step::Running);
     check(window.tick(40, true) == O::Step::Running);
-    check(window.tick(315, true) == O::Step::Complete);
+    check(window.tick(315, true) == O::Step::Running);
+    check(window.tick(315.017, true) == O::Step::Complete);
 }

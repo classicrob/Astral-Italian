@@ -64,6 +64,7 @@ namespace detail { void finalize_render_target_layout(RenderTargetLayout& l) { l
 RenderTargetLayout scene_render_target_layout() { return {}; }
 std::mutex g_pipelineMutex;
 bool g_hasPipelineThread=true;
+bool petariGameplay=false;
 std::atomic<bool> g_pipelineThreadEnd=false;
 std::condition_variable g_pipelineQueueCv,g_pipelineReadyCv;
 enum class ShaderType { GX };
@@ -182,9 +183,13 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l,gx::PetariUberTier::Generic));
   gfx::g_pipelineQueue.push_back({9});gfx::petariPipelineSamples[9].drawBlocking=true;
   CHECK(!take(0)); // worker 0 stays reserved for the draw-blocking specialised compile
+  CHECK(!take()); // menus keep specialised draw priority, even with a demanded fallback
+  gfx::petariGameplay=true;
   PetariPipeline::fallbackPriority=false;CHECK(!take()); // override off: the real draw gets the slot first
   PetariPipeline::fallbackPriority=true;auto run=take();CHECK(run);run(); // another worker may finish the demanded fallback
   gfx::g_pipelineQueue.clear();
+  CHECK(!take(0)); // worker 0 stays available even while the draw queue is empty
+  gfx::petariActiveWorkers=1;auto solo=take(0);CHECK(solo);solo(); // single-worker progress
   CHECK(gfx::petariUberBoot.completed.contains(gx::petari_uber_key(d,l,gx::PetariUberTier::Generic)));
  } else if(test=="stage") {
   auto d=c;d.shaderConfig.variant=2;

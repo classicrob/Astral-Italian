@@ -88,23 +88,24 @@ static bool petari_uber_job_eligible(const PetariUberJob& job) {
 static bool petari_uber_worker_ready(unsigned workerIndex) {
   const auto limit = petariUberTitleReleased ? petariActiveWorkers :
       std::min(petariActiveWorkers, kPetariOnDemandWorkers);
-  // Before the title is released, worker 0 stays free for draw-blocking jobs: a front-end Generic fallback compile already
-  // running there held the first boot screen's single pipeline for 0.1-1.05 s on true-cold boots (5.4 server gate; none
-  // with ubershaders off). A draw is preferred only when a worker picks its next job; it cannot preempt a running compile.
-  if (!petariUberTitleReleased && workerIndex == 0 && petariActiveWorkers > 1) return false;
+  // Keep worker 0 out of fallback compiles even when no draw is queued yet.
+  // Compiles cannot be preempted: lending this worker to a 0.98s Generic job
+  // left every M1 worker occupied when the next title draw arrived. Preserve
+  // progress on a single-worker pool, where no separate fallback worker exists.
+  if (workerIndex == 0 && petariActiveWorkers > 1) return false;
   return workerIndex < limit && std::any_of(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {
   if (!petari_uber_worker_ready(workerIndex)) return false;
   auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
-  const auto demanded = PetariPipeline::demandFallbackPriority() && petariUberTitleReleased
+  const auto demanded = PetariPipeline::demandFallbackPriority() && petariUberTitleReleased && petariGameplay
       ? std::find_if(petariUberJobs.begin(), petariUberJobs.end(), [](const auto& pending) {
           return pending.key && pending.demand && pending.tier == gx::PetariUberTier::Generic &&
               petari_uber_job_eligible(pending);
         }) : petariUberJobs.end();
   // A clear/UI draw still gets every available slot. For GX, reserve worker 0
   // for specialised draws (including uncovered configurations). Other workers
-  // may finish a demanded Generic fallback first: one fallback can release many
+  // may finish a demanded Generic fallback first during play: one fallback can release many
   // deferred draws, whereas compiling their specialised variants holds it back.
   if (!g_pipelineQueue.empty()) {
     const auto it = petariPipelineSamples.find(g_pipelineQueue.front().hash);
@@ -117,10 +118,10 @@ static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& jo
   petariUberMaxInFlight = std::max(petariUberMaxInFlight, ++petariUberInFlight);
   if (PetariPipeline::diagnostics()) {
     std::fprintf(stderr, "[gx fallback dispatch] worker=%u key=%016llx tier=%s priority=%u demand=%u "
-                 "inflight=%u queued=%zu monotonic_ms=%.3f\n", workerIndex,
+                 "inflight=%u queued=%zu gameplay=%u monotonic_ms=%.3f\n", workerIndex,
                  static_cast<unsigned long long>(at->key),
                  at->tier == gx::PetariUberTier::Generic ? "generic" : "fast", at->priority,
-                 at->demand, petariUberInFlight, petariUberJobs.size(),
+                 at->demand, petariUberInFlight, petariUberJobs.size(), petariGameplay,
                  PetariPipeline::milliseconds(PetariPipeline::Clock::now().time_since_epoch()));
   }
   job = std::move(at->run);

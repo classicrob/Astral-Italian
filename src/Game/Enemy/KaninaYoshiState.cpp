@@ -185,7 +185,9 @@ void KaninaYoshiState::exeShotStraight() {
         MR::sendMsgToBindedSensor(8, mHost->getSensor("Attack"));
         mHit = true;
     }
-    tryKill();
+    if (tryKill()) {
+        return;
+    }
 }
 
 // NONMATCHING: type/model pointer loads use different scheduling.

@@ -485,9 +485,7 @@ bool HammerHeadPackun::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSen
     if (MR::isMsgToEnemyAttackBlow(msg) && !checkBlowAttack()) {
         f32 sendRadius = MR::getSensorRadius(pSender) + MR::getSensorRadius(pReceiver);
         f32 temp = MR::getSensorRadius(pSender) / sendRadius;
-        TVec3f senderWeighted = *MR::getSensorPos(pSender) * (1.0f - temp);
-        TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * temp;
-        TVec3f hitMtx = receiverWeighted + senderWeighted;
+        TVec3f hitMtx = *MR::getSensorPos(pReceiver) * temp + *MR::getSensorPos(pSender) * (1.0f - temp);
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         MR::emitEffectHit(this, hitMtx, nullptr);
         MR::stopScene(8);

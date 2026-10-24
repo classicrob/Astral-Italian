@@ -422,7 +422,9 @@ void KinopioPostman::exeReaction() {
     if (this->mReactionStart != 0) {
         MR::startActionSound(this, "SvKinopioStarPieceHit", -1, -1, -1);
     }
-    MR::tryStartReactionAndPopNerve(this);
+    if (MR::tryStartReactionAndPopNerve(this)) {
+        return;
+    }
 }
 
 void KinopioPostman::exeWait() {

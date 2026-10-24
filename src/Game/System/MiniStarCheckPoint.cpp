@@ -12,24 +12,14 @@ class TalkMessageCtrl;
 namespace NrvMiniStarCheckPoint {
     class MiniStarCheckPointNrvClose : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
-            MiniStarCheckPoint* pActor = reinterpret_cast<MiniStarCheckPoint*>(pSpine->mExecutor);
-            if (MR::isFirstStep(pActor)) {
-                MR::startAction(pActor, "Close");
-            }
-        };
+        virtual void execute(Spine* pSpine) const;
         static MiniStarCheckPointNrvClose sInstance;
     };
     MiniStarCheckPointNrvClose MiniStarCheckPointNrvClose::sInstance ATTRIBUTE_WEAK;
 
     class MiniStarCheckPointNrvStandby : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
-            MiniStarCheckPoint* pActor = reinterpret_cast<MiniStarCheckPoint*>(pSpine->mExecutor);
-            if (MR::isFirstStep(pActor)) {
-                MR::startAction(pActor, "Standby");
-            }
-        };
+        virtual void execute(Spine* pSpine) const;
         static MiniStarCheckPointNrvStandby sInstance;
     };
     MiniStarCheckPointNrvStandby MiniStarCheckPointNrvStandby::sInstance ATTRIBUTE_WEAK;
@@ -101,6 +91,20 @@ void MiniStarCheckPoint::init(const JMapInfoIter& rIter) {
         }
     } else {
         makeActorAppeared();
+    }
+}
+
+void NrvMiniStarCheckPoint::MiniStarCheckPointNrvClose::execute(Spine* pSpine) const {
+    MiniStarCheckPoint* pActor = reinterpret_cast<MiniStarCheckPoint*>(pSpine->mExecutor);
+    if (MR::isFirstStep(pActor)) {
+        MR::startAction(pActor, "Close");
+    }
+}
+
+void NrvMiniStarCheckPoint::MiniStarCheckPointNrvStandby::execute(Spine* pSpine) const {
+    MiniStarCheckPoint* pActor = reinterpret_cast<MiniStarCheckPoint*>(pSpine->mExecutor);
+    if (MR::isFirstStep(pActor)) {
+        MR::startAction(pActor, "Standby");
     }
 }
 

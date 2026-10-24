@@ -11,6 +11,9 @@ public:
     YoshiLockOnIterator(MR::BothDirPtrLink* link) : mLink(link) {
     }
     MR::BothDirPtrLink* operator++(int) NO_INLINE;
+    YoshiLockOnTargetControl* operator->() const {
+        return static_cast<YoshiLockOnTargetControl*>(mLink->mValue);
+    }
     MR::BothDirPtrLink* mLink;
 };
 MR::BothDirPtrLink* YoshiLockOnIterator::operator++(int) {
@@ -106,7 +109,7 @@ u32 YoshiLockOnManager::getTargetCapacity() const {
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 u32 YoshiLockOnManager::takeActiveTargets(YoshiLockOnTargetDesc* out, u32) {
     u32 count = 0;
-    for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; iterator++) static_cast<YoshiLockOnTargetControl*>(iterator.mLink->mValue)->copyTargetInfo(out+count++);
+    for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; iterator++, count++) iterator->copyTargetInfo(out+count);
     clearActiveTargets();
     return count;
 }
@@ -114,10 +117,11 @@ u32 YoshiLockOnManager::takeActiveTargets(YoshiLockOnTargetDesc* out, u32) {
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiLockOnManager::clearActiveTargets() {
     for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; ) {
-        YoshiLockOnTargetControl* control = static_cast<YoshiLockOnTargetControl*>((iterator++)->mValue);
-        control->disappearMark();
-        mActive.remove(control);
-        mFading.append(control);
+        YoshiLockOnIterator current(iterator);
+        iterator++;
+        current->disappearMark();
+        mActive.remove(static_cast<YoshiLockOnTargetControl*>(current->mValue));
+        mFading.append(static_cast<YoshiLockOnTargetControl*>(current->mValue));
     }
 }
 
@@ -159,17 +163,17 @@ bool YoshiLockOnManager::tryLockOnSingleTarget(YoshiLockOnTarget* target, s32 ta
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 bool YoshiLockOnManager::tryActivateTarget(YoshiLockOnTarget* target, s32 framesUntilExpiry, s32 targetType) {
     if (!mFree.mCount) return false;
-    MR::BothDirPtrLink* link = mFree.mHead;
-    mFree.remove(static_cast<YoshiLockOnTargetControl*>(link->mValue));
-    mActive.append(static_cast<YoshiLockOnTargetControl*>(link->mValue));
+    YoshiLockOnIterator current(mFree.mHead);
+    mFree.remove(static_cast<YoshiLockOnTargetControl*>(current->mValue));
+    mActive.append(static_cast<YoshiLockOnTargetControl*>(current->mValue));
     YoshiTargetMark* mark = findUnusedMark();
     if (mark) mark->appear();
-    YoshiLockOnTargetControl* control = static_cast<YoshiLockOnTargetControl*>(link->mValue);
+    YoshiLockOnTargetControl* control = current.operator->();
     control->mTarget = target;
     control->mFramesUntilExpiry = framesUntilExpiry;
     control->mMark = mark;
     control->mType = targetType;
-    control->updateMarkPosition();
+    current->updateMarkPosition();
     return true;
 }
 
@@ -188,13 +192,17 @@ YoshiTargetMark* YoshiLockOnManager::findUnusedMark() {
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiLockOnManager::updateFadingTargets() {
     for (YoshiLockOnIterator iterator(mFading.mHead); iterator.mLink; ) {
-        YoshiLockOnTargetControl* control = static_cast<YoshiLockOnTargetControl*>((iterator++)->mValue);
-        control->update(mContextActor->mPosition, getYoshiLockOnDistance(control->mType));
-        if (control->isMarkDead()) {
-            if (control->mMark) control->mMark->disappear();
-            control->reset();
-            mFading.remove(static_cast<YoshiLockOnTargetControl*>(control->mValue));
-            mFree.append(static_cast<YoshiLockOnTargetControl*>(control->mValue));
+        YoshiLockOnIterator current(iterator);
+        iterator++;
+        YoshiLockOnTargetControl* control = current.operator->();
+        const TVec3f& position = mContextActor->mPosition;
+        control->update(position, getYoshiLockOnDistance(control->mType));
+        if (current->isMarkDead()) {
+            YoshiLockOnTargetControl* fading = current.operator->();
+            if (fading->mMark) fading->mMark->disappear();
+            fading->reset();
+            mFading.remove(static_cast<YoshiLockOnTargetControl*>(current->mValue));
+            mFree.append(static_cast<YoshiLockOnTargetControl*>(current->mValue));
         }
     }
 }
@@ -202,13 +210,16 @@ void YoshiLockOnManager::updateFadingTargets() {
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiLockOnManager::updateActiveTargets() {
     for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; ) {
-        YoshiLockOnTargetControl* control = static_cast<YoshiLockOnTargetControl*>((iterator++)->mValue);
-        control->update(mContextActor->mPosition, getYoshiLockOnDistance(control->mType));
-        if (control->isInvalid()) {
-            control->disappearMark();
-            mActive.remove(static_cast<YoshiLockOnTargetControl*>(control->mValue));
-            mFading.append(static_cast<YoshiLockOnTargetControl*>(control->mValue));
-        }control->invalidate();
+        YoshiLockOnIterator current(iterator);
+        iterator++;
+        YoshiLockOnTargetControl* control = current.operator->();
+        const TVec3f& position = mContextActor->mPosition;
+        control->update(position, getYoshiLockOnDistance(control->mType));
+        if (current->isInvalid()) {
+            current->disappearMark();
+            mActive.remove(static_cast<YoshiLockOnTargetControl*>(current->mValue));
+            mFading.append(static_cast<YoshiLockOnTargetControl*>(current->mValue));
+        }current->invalidate();
     }
 }
 
@@ -224,12 +235,13 @@ bool YoshiLockOnManager::tryRefreshActiveTarget(YoshiLockOnTarget* target) {
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 bool YoshiLockOnManager::tryReactivateFadingTarget(YoshiLockOnTarget* target) {
     for (YoshiLockOnIterator iterator(mFading.mHead); iterator.mLink; ) {
-        YoshiLockOnTargetControl* control = static_cast<YoshiLockOnTargetControl*>((iterator++)->mValue);
-        if (control->mTarget == target) {
-            control->appearMark();
-            control->mFramesUntilExpiry = sTimer;
-            mFading.remove(static_cast<YoshiLockOnTargetControl*>(control->mValue));
-            mActive.append(static_cast<YoshiLockOnTargetControl*>(control->mValue));
+        YoshiLockOnIterator current(iterator);
+        iterator++;
+        if (current->mTarget == target) {
+            current->appearMark();
+            current->mFramesUntilExpiry = sTimer;
+            mFading.remove(static_cast<YoshiLockOnTargetControl*>(current->mValue));
+            mActive.append(static_cast<YoshiLockOnTargetControl*>(current->mValue));
             return true;
         }
     }return false;

@@ -271,7 +271,9 @@ void CareTakerHunter::exeReaction() {
         MR::startActionSound(this, "SmCaretakerSpinHit", -1, -1, -1);
         MR::startActionSound(this, "SvCareTakerStarPiece", -1, -1, -1);
     }
-    MR::tryStartReactionAndPopNerve(this);
+    if (MR::tryStartReactionAndPopNerve(this)) {
+        return;
+    }
 }
 
 void CareTakerHunter::exeTalk() {

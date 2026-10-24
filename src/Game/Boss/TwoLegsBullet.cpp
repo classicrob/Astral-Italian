@@ -301,7 +301,9 @@ void TwoLegsBullet::exeWalk() {
     MR::moveCoordAndFollowTrans(this, 8.0f);
     turnToward(MR::getRailDirection(this), mSide, 4.0f);
     MR::startActionSound(this, "BulletMoveGoundAS", -1, -1, -1);
-    tryStartPointBind();
+    if (tryStartPointBind()) {
+        return;
+    }
 }
 
 #pragma pop

@@ -211,7 +211,9 @@ void KuriboChief::control() {
 
     MR::blendQuatFromGroundAndFront(&mUpFrontQuat, this, mFront, ::sUpVecBlendRate, ::sFrontVecBlendRate);
     MR::changeShowModelFlagSyncNearClipping(this, 900.0f);
-    tryDieInHazard();
+    if (tryDieInHazard()) {
+        return;
+    }
 }
 
 void KuriboChief::calcAndSetBaseMtx() {

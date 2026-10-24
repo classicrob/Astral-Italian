@@ -676,7 +676,7 @@ s32 WPADiHIDParser(u8 chan, u8* data) {
     WPADStatus* status;
     BOOL enabled;
     s32 result = 0;
-    if ((u8)(data[0] - 0x20) <= 0x1F) {
+    if ((u8)(data[0] + 0xE0) <= 0x1F) {
         enabled = OSDisableInterrupts();
         p_buffer = _wpdcb[chan];
         status = (WPADStatus*)(p_buffer->rxBuf + p_buffer->rxBufIndex * WPAD_RX_DATASIZE);
@@ -708,7 +708,7 @@ void __a1_20_status_report(u8 chan, u8* data, WPADStatus* p_status) {
         OSRestoreInterrupts(enabled);
         return;
     }
-    p_cb->infos.attach = (data[3] >> 1) & 1;
+    p_cb->infos.attach = (s8)(data[3] & 2) >> 1;
     p_cb->infos.lowBat = data[3] & 1;
     p_cb->infos.led = (data[3] >> 4) & 0xF;
     p_cb->infos.protocol = 0;

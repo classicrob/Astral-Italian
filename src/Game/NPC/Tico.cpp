@@ -389,7 +389,9 @@ void Tico::exeReaction() {
         }
     }
 
-    MR::tryStartReactionAndPopNerve(this);
+    if (MR::tryStartReactionAndPopNerve(this)) {
+        return;
+    }
 }
 
 void Tico::exeDelight() {

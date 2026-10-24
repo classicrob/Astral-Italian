@@ -920,10 +920,7 @@ void MarioAnimator::stopUpper(const char* pName) {
         return;
     }
 
-    bool shouldStop = false;
-    if (pName == nullptr || mXanimePlayerUpper->isRun(pName)) {
-        shouldStop = true;
-    }
+    bool shouldStop = pName == nullptr || mXanimePlayerUpper->isRun(pName);
 
     if (shouldStop) {
         u16 jointID = MR::getJointIndex(mActor, "Spine1");

@@ -52,10 +52,11 @@ void Wanwan::init(const JMapInfoIter& rIter) {
     initRailRider(rIter);
     initEffect();
     TVec3f zero;
-    zero.x = 0.0f;
-    zero.y = 0.0f;
-    zero.z = 0.0f;
-    MR::initStarPointerTarget(this, 275.0f * (mType == 1 ? 0.3f : mScale.x), zero);
+    TVec3f* offset = &zero;
+    offset->x = 0.0f;
+    offset->y = 0.0f;
+    offset->z = 0.0f;
+    MR::initStarPointerTarget(this, 275.0f * (mType == 1 ? 0.3f : mScale.x), *offset);
     MR::initUseStageSwitchWriteDead(this, rIter);
     initSound(5, "Wanwan", nullptr, TVec3f(0.0f));
     f32 dropLength;
@@ -69,8 +70,9 @@ void Wanwan::init(const JMapInfoIter& rIter) {
         s32 num = MR::getChildObjNum(rIter);
         s32 i = 0;
         if (num > 0) {
+            const char* keyName = "\x8c\xae\x83\x58\x83\x43\x83\x62\x83\x60";
             for (; i < num; i++) {
-                mKeySwitch = new KeySwitch("\x8c\xae\x83\x58\x83\x43\x83\x62\x83\x60");
+                mKeySwitch = new KeySwitch(keyName);
                 MR::initChildObj(mKeySwitch, rIter, i);
                 mKeySwitch->prepareDemoStart();
             }

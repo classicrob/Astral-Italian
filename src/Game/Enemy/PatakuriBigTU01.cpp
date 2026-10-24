@@ -171,7 +171,9 @@ void PatakuriBig::makeActorAppeared() {
 void PatakuriBig::control() {
     mScaleCtrl->updateNerve();
     MR::blendQuatFromGravityAndFront(&mQuat, this, &mFront, 0.05f, 0.2f);
-    tryStartBigBindStar();
+    if (tryStartBigBindStar()) {
+        return;
+    }
 }
 
 void PatakuriBig::calcAndSetBaseMtx() {

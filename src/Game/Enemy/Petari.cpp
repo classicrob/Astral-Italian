@@ -254,7 +254,6 @@ void Petari::exeSwoonStart() {
     MR::setNerveAtBckStopped(this, GET_NERVE(Petari, PetariNrvSwoon));
 }
 
-// NONMATCHING: epilogue scheduling (lwz r0 hoisted above the final trySwoonFreeze call result use)
 void Petari::exeSwoon() {
     if (MR::isFirstStep(this)) {
         mVelocity.zero();
@@ -270,7 +269,9 @@ void Petari::exeSwoon() {
 
     MR::startActionSound(this, "EmLvSwoonS");
     MR::setNerveAtStep(this, GET_NERVE(Petari, PetariNrvSwoonEnd), 180);
-    trySwoonFreeze();
+    if (trySwoonFreeze()) {
+        return;
+    }
 }
 
 void Petari::exeSwoonEnd() {

@@ -37,9 +37,11 @@ s32 getHomeLeaveType(WorldMapOwner* pHost) {
 
 const char* getHomeLeaveEndName() {
     s32 world = GameDataFunction::getCurrentWorldId();
-    const char* name = "離脱終了（ホーム）";
+    const char* name;
     if (world == 7) {
         name = "離脱終了Ｓ（ホーム）";
+    } else {
+        name = "離脱終了（ホーム）";
     }
     return name;
 }

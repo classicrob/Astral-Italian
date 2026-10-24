@@ -175,18 +175,20 @@ void BellyDragonBodyPart::exeBindA() {
     mVelocity.scale(0.75f);
     if (isHead()) {
         pullToMtx(mBindMtxA.mMtx, 0.05f);
-        f32 radius = mRadius;
         f32 prevRadius = mPrev->mRadius;
+        f32 radius = mRadius;
         pullToMtxSide(mPrev->getBaseMtx(), false, 0.0f, 0.15f, prevRadius + radius);
     } else if (isSecond()) {
         pullToMtx(mBindMtxA.mMtx, 0.04f);
-        f32 radius = mRadius;
         f32 prevRadius = mPrev->mRadius;
+        f32 radius = mRadius;
         pullToMtxSide(mPrev->getBaseMtx(), false, 0.0f, 0.05f, prevRadius + radius);
     } else {
         pullToMtx(mBindMtxA.mMtx, 0.02f);
     }
-    tryBindA();
+    if (tryBindA()) {
+        return;
+    }
 }
 
 void BellyDragonBodyPart::exeBindAWeak() {
@@ -265,7 +267,9 @@ void BellyDragonBodyPart::exeBindB() {
     if (mNext != nullptr) {
         pullToMtx(mNext->getBaseMtx(), sNextPull);
     }
-    tryBindB();
+    if (tryBindB()) {
+        return;
+    }
 }
 
 // NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.

@@ -558,7 +558,9 @@ void ElectricRailMoving::exeWait() {
     move(mMovementSpeed);
     updateHitSensorPos();
     MR::startActionSound(this, "OjLvElecRailHam", -1, -1, -1);
-    tryFreeze();
+    if (tryFreeze()) {
+        return;
+    }
 }
 
 void ElectricRailMoving::exeFreeze() {

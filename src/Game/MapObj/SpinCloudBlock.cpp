@@ -384,7 +384,9 @@ void SpinCloudBlock::exeDisappear() {
 // NONMATCHING: position and velocity store order and vector temporary stack slots differ.
 void SpinCloudBlock::placeAt(const TVec3f& rPos) {
     TQuat4f identity;
-    identity.x = identity.y = identity.z = 0.0f;
+    identity.x = 0.0f;
+    identity.y = 0.0f;
+    identity.z = 0.0f;
     identity.w = 1.0f;
     MR::setPosition(this, rPos);
     MR::calcGravity(this);

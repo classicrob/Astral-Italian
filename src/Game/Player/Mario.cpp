@@ -2783,7 +2783,7 @@ void Mario::fn_803882A0() {
                         if (hit) {
                             const char* hitCode = MR::getWallCodeString(&hitTriangle);
                             if (hitCode && strcmp(hitCode, "Fur") == 0) {
-                                MarioActor* actor = mActor;
+                                MarioActor* actor = getActor();
                                 actor->entryWallWalkMode(hitPos, *hitTriangle.getNormal(0));
                             }
                         }
@@ -7733,6 +7733,7 @@ u32 Mario::moveRelativePosition(u32) {
 }
 
 u32 Mario::moveRelativePositionWall() {
+    const TVec3f* position;
     u32 moved = 0;
 
     for (u32 i = 0; i < 2; i++) {
@@ -7754,9 +7755,9 @@ u32 Mario::moveRelativePositionWall() {
         TVec3f movePos;
         PSMTXMultVec(*tri->getBaseMtx(), relPos, &movePos);
 
-        const TVec3f& position = mPosHolder->mPos;
+        position = &mPosHolder->mPos;
         TVec3f add(movePos);
-        add -= position;
+        add -= *position;
 
         const f32 elem = MR::vecKillElement(add, *tri->getNormal(0), &add);
         if (elem > 0.0f) {

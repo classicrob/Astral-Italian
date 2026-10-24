@@ -1351,8 +1351,8 @@ bool Mario::fn_8039A430() {
 }
 
 void Mario::fn_8039A460() {
-    if (this->_544 <= 5) {
-    }
+    if (_544 > 5) return;
+    if (_430 == 8) return;
 }
 
 // NONMATCHING: string relocation identities; complete payloads match target.

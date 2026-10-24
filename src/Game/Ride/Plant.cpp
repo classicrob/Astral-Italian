@@ -207,7 +207,9 @@ void Plant::exeGrowUp() {
         }
     }
 
-    updateGrowUp();
+    if (updateGrowUp()) {
+        return;
+    }
 }
 
 void Plant::exeHangWaitGrowUp() {

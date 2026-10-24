@@ -210,7 +210,9 @@ void KoopaSealField::exeDemoCamera() {
             MR::startMultiActorCameraTargetSelf(this, mCameraInfo, "\x94\xE0\x83\x43\x83\x93", -1);
         }
     }
-    tryStartPuppet();
+    if (tryStartPuppet()) {
+        return;
+    }
 }
 
 void KoopaSealField::exeDemoIn() {

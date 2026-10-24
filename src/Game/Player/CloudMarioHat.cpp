@@ -109,10 +109,9 @@ void CloudMarioHat::initDynamics() {
     mControllers = new JointController*[3];
     mJoints = new J3DJoint*[3];
     for (u32 i = 0; i < 3; ++i) {
-        const char* name = sJoints[i].name;
-        JointController* controller = MR::createJointDelegatorWithNullChildFunc<CloudMarioHat>(this, sCalcJoint, name);
+        JointController* controller = MR::createJointDelegatorWithNullChildFunc<CloudMarioHat>(this, sCalcJoint, sJoints[i].name);
         mControllers[i] = controller;
-        mJoints[i] = MR::getJoint(this, name);
+        mJoints[i] = MR::getJoint(this, sJoints[i].name);
     }
 }
 

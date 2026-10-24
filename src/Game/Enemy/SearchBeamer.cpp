@@ -328,7 +328,9 @@ void SearchBeamer::control() {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
 
-    tryDPDSwoon();
+    if (tryDPDSwoon()) {
+        return;
+    }
 }
 
 void SearchBeamer::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

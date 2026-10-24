@@ -167,7 +167,7 @@ void GameSequenceEnding::exeMessage() {
             return;
         }
         bool isMailPending = !GameDataFunction::isOnGameEventFlag(sNormalEndingMailFlag);
-        if (!isMailPending) {
+        if (isMailPending) {
             setNerve(GET_NERVE_ANON(GameSequenceEndingNrvMessageWait));
             return;
         }

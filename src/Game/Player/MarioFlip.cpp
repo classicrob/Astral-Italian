@@ -71,7 +71,7 @@ bool MarioFlip::update() {
 
         addVelocity(velocity);
         _18.scale(mActor->mConst->getTable()->mFlipFriction2);
-        if (_12 == mActor->getConst().getTable()->mFlipTimer1 + mActor->mConst->getTable()->mFlipTimer2) {
+        if (_12 == mActor->getConst().getTable()->mFlipTimer1 + mActor->getConst().getTable()->mFlipTimer2) {
             _14++;
         }
 

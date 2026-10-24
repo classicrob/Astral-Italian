@@ -674,9 +674,9 @@ void J3DTevBlock4::load() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
         const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
                          GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
                          GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
@@ -725,9 +725,9 @@ void J3DTevBlock16::load() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
         const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
                          GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
                          GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
@@ -809,9 +809,9 @@ void J3DTevBlockPatched::patchTexNoAndTexCoordScale() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
         const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
                          GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
                          GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
@@ -973,9 +973,9 @@ void J3DTevBlock4::patchTexNoAndTexCoordScale() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
         const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
                          GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
                          GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));
@@ -1039,9 +1039,9 @@ void J3DTevBlock16::patchTexNoAndTexCoordScale() {
     }
 
     for (u32 i = 0; i < tevStageNum; i += 2) {
-        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         u32 next = i + 1;
         const J3DTevOrderInfo& nextOrder = mTevOrder[next].getTevOrderInfo();
+        const J3DTevOrderInfo& order = mTevOrder[i].getTevOrderInfo();
         J3DGDSetTevOrder(GXTevStageID(i), GXTexCoordID(order.mTexCoord), GXTexMapID(order.mTexMap),
                          GXChannelID(order.mColorChan), GXTexCoordID(nextOrder.mTexCoord),
                          GXTexMapID(nextOrder.mTexMap), GXChannelID(nextOrder.mColorChan));

@@ -61,7 +61,8 @@ void ShadowVolumeBox::makeVertexBuffer() const {
 
     TVec3f size = mSize;
     if (controller->isFollowHostScale()) {
-        TVec3f scale(controller->getHost()->mScale);
+        const TVec3f& hostScale = controller->getHost()->mScale;
+        TVec3f scale(hostScale);
         scale /= 2.0f;
         size *= scale;
     } else {

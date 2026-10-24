@@ -505,7 +505,7 @@ void BossJugem::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 return;
             }
             if (MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver)) {
-                if (MR::sendMsgEnemyAttackElectric(pReceiver, pSender)) {
+                if (!MR::sendMsgEnemyAttackElectric(pReceiver, pSender)) {
                     return;
                 }
             }

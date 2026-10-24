@@ -65,11 +65,7 @@ void PhantomTorch::init(const JMapInfoIter& rIter) {
     mPullParticle = new SpinPullParticleCallBack();
     initSound(4, "PhantomTorch", nullptr, TVec3f(0.0f));
     initHitSensor(1);
-    TVec3f vec;
-    vec.x = 0.0f;
-    vec.y = 70.0f * x;
-    vec.z = 0.0f;
-    MR::addHitSensorMapObj(this, "body", 8, 50.0f * x, vec);
+    MR::addHitSensorMapObj(this, "body", 8, 50.0f * x, TVec3f(0.0f, 70.0f * x, 0.0f));
     MR::setClippingTypeSphere(this, 500.0f * x);
     MR::initStarPointerTarget(this, 50.0f * x, TVec3f(0.0f, 70.0f * x, 0.0f));
     MR::joinToGroupArray(this, rIter, mParticle, 32);

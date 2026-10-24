@@ -1,4 +1,5 @@
 #define XJOINT_TRANSFORM_SCALE_NOINLINE
+#define COLOR8_GX_CTOR_INLINE
 #define JGEOMETRY_OUTLINE_MATRIX_SET_DIRECTION  // SMG2: TRotation3 setX/Y/ZDir(const TVec3f&) out of line in this TU
 #include "Game/NPC/EventDirector.hpp"
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU

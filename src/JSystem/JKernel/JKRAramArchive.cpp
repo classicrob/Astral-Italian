@@ -262,7 +262,7 @@ u32 JKRAramArchive::fetchResource_subroutine(u32 entryNum, u32 length, JKRHeap* 
     }
     case COMPRESSION_YAY0:
     case COMPRESSION_YAZ0: {
-        u8 headerBuf[0x40];
+        u8 headerBuf[0x20 + 0x1F];
 #ifdef GALAXY_NATIVE
         u8* alignHeader = static_cast< u8* >(ROUND_UP_PTR(&headerBuf[0], sizeof(RarcHeader)));
 #else

@@ -62,7 +62,7 @@
 
 static void hidh_l2cif_connect_ind(BD_ADDR bd_addr, UINT16 l2cap_cid, UINT16 psm, UINT8 l2cap_id);
 static void hidh_l2cif_connect_cfm(UINT16 l2cap_cid, UINT16 result);
-static void hidh_l2cif_config_ind(UINT16 l2cap_cid, tL2CAP_CFG_INFO* p_cfg);
+static void hidh_l2cif_config_ind_8061AA80(UINT16 l2cap_cid, tL2CAP_CFG_INFO* p_cfg);
 static void hidh_l2cif_config_cfm(UINT16 l2cap_cid, tL2CAP_CFG_INFO* p_cfg);
 static void hidh_l2cif_disconnect_ind(UINT16 l2cap_cid, BOOLEAN ack_needed);
 static void hidh_l2cif_disconnect_cfm(UINT16 l2cap_cid, UINT16 result);
@@ -80,7 +80,7 @@ static void hidh_conn_retry(UINT8 dhandle);
 
 // .rodata
 static tL2CAP_APPL_INFO const hst_reg_info = {
-    &hidh_l2cif_connect_ind,    &hidh_l2cif_connect_cfm,    NULL, &hidh_l2cif_config_ind, &hidh_l2cif_config_cfm,
+    &hidh_l2cif_connect_ind,    &hidh_l2cif_connect_cfm,    NULL, &hidh_l2cif_config_ind_8061AA80, &hidh_l2cif_config_cfm,
     &hidh_l2cif_disconnect_ind, &hidh_l2cif_disconnect_cfm, NULL, &hidh_l2cif_data_ind,   &hidh_l2cif_cong_ind,
 };
 
@@ -301,7 +301,7 @@ static void hidh_l2cif_connect_cfm(UINT16 l2cap_cid, UINT16 result) {
     HIDH_TRACE(EVENT, "HID - got CTRL conn cnf, sent cfg req, CID: 0x%x", l2cap_cid);
 }
 
-static void hidh_l2cif_config_ind(UINT16 l2cap_cid, tL2CAP_CFG_INFO* p_cfg) {
+static void hidh_l2cif_config_ind_8061AA80(UINT16 l2cap_cid, tL2CAP_CFG_INFO* p_cfg) {
     UINT8 dhandle;
     tHID_CONN* p_hcon = NULL;
     tHID_HOST_DEV_CTB* p_dev;

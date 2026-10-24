@@ -1,5 +1,7 @@
+#include <stddef.h>
 #include "revolution/kpad/KMPLSInternal.h"
 #include <cmath>
+#include <stdint.h>
 
 KMPLSWork* kmplsWork;
 
@@ -12,10 +14,9 @@ static s32 s_rawRange[3][3] = {
     {0x7FFFFF, 0x7FFFFF, 0x7FFFFF}
 };
 
-// NONMATCHING: Null-check and channel-address scheduling differ; both result stores retain separate return arms.
 void wpad_callback_func(s32 chan, s32 result) {
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     if (kmplsWork) {
-        KMPLSState* state = &kmplsWork->channels[chan];
         if (result == 0) {
             state->calibrationResult = 1;
             return;
@@ -680,8 +681,8 @@ s32 get_mpls_data_z(KMPLSState* state, const WPADMPStatus* report) {
 // NONMATCHING: Channel-address arithmetic is scheduled after the null guard; the same three ring fields are written.
 void KMPLSSetKpadRingBuffer(s32 chan, const KPADUnifiedWpadStatus* internalRing,
                           const KPADUnifiedWpadStatus* externalRing, u32 externalLength) {
+    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     if (kmplsWork) {
-        KMPLSState* state = &kmplsWork->channels[chan];
         state->internalRing = internalRing;
         state->externalRing = externalRing;
         state->externalLength = externalLength;

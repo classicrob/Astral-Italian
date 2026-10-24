@@ -1010,7 +1010,8 @@ void MarioSwim::fn_803FA450() {
     if (mSwimState == SWIM_STATE_SURFACE) {
         Mario* mario = getPlayer();
         f32 projection = static_cast<f32>(-static_cast<f64>(getAirGravityVec().dot(mario->mJumpVec)));
-        f32 speed = projection * 0.5f;
+        f32 speed = projection;
+        speed *= 0.5f;
         mForwardSpeed = speed;
         if (speed < 0.1f)
             mForwardSpeed = 0.1f;
@@ -2018,6 +2019,14 @@ void MarioSwim::fn_803FD140() {
         mPreviousPos = selectedPosition;
     }
 }
+
+const char* sWaterCubeStateNames[] = {
+    "WCUBE_OUTOF_WATER",
+    "WCUBE_ON_WATER",
+    "WCUBE_IN_WATER",
+    "WCUBE_UNDER_WATER",
+    "WCUBE_SIDE_WATER",
+};
 
 // NONMATCHING: temporary vector stack placement and instruction scheduling.
 bool MarioSwim::fn_803FD5E0(s32) {

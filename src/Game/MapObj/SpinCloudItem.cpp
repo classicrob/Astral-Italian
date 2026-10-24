@@ -35,6 +35,11 @@ void SpinCloudItem::init(const JMapInfoIter& iter) {
     }
     MR::registerMarioFaceShipNpc(this, iter);
 }
+void NrvSpinCloudItem::SpinCloudItemNrvAppearDemo::execute(Spine* spine) const {
+    SpinCloudItem* actor = static_cast<SpinCloudItem*>(spine->mExecutor);
+    if (MR::isFirstStep(actor)) MR::startActionSound(actor, "OjMorphFlowerAppear");
+    MR::updateActorStateAndNextNerve(actor, &NrvSpinCloudItem::SpinCloudItemNrvWait::sInstance);
+}
 void SpinCloudItem::control() {}
 bool SpinCloudItem::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
     if (MR::isMsgItemGet(msg)) return updatePlayerPowerUp();
@@ -74,9 +79,4 @@ void SpinCloudItem::exeHide() {
         }
     }
     if (MR::isGreaterStep(this, 180)) setNerve(&NrvSpinCloudItem::SpinCloudItemNrvAppear::sInstance);
-}
-void NrvSpinCloudItem::SpinCloudItemNrvAppearDemo::execute(Spine* spine) const {
-    SpinCloudItem* actor = static_cast<SpinCloudItem*>(spine->mExecutor);
-    if (MR::isFirstStep(actor)) MR::startActionSound(actor, "OjMorphFlowerAppear");
-    MR::updateActorStateAndNextNerve(actor, &NrvSpinCloudItem::SpinCloudItemNrvWait::sInstance);
 }

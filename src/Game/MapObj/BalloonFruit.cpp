@@ -143,7 +143,9 @@ void BalloonFruit::exeWait() {
 
     mMtxAC.set(getBaseMtx());
     MR::addTransMtxLocalY(mMtxAC, 100.0f);
-    tryStartBind();
+    if (tryStartBind()) {
+        return;
+    }
 }
 
 void BalloonFruit::exeTrampled() {

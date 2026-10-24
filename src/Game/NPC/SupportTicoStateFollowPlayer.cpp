@@ -161,7 +161,9 @@ void SupportTicoStateFollowPlayer::exeJump() {
 void SupportTicoStateFollowPlayer::exeSpin() {
     MR::updateActorStateAndNextNerve(this, &NrvSupportTicoStateFollowPlayer::SupportTicoStateFollowPlayerNrvWait::sInstance);
     SupportTicoStateFunction::calcFollowOffset(mHost);
-    tryJumpStart();
+    if (tryJumpStart()) {
+        return;
+    }
 }
 
 void SupportTicoStateFollowPlayer::exeItemDrop() {

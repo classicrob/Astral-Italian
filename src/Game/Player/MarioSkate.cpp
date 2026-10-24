@@ -310,8 +310,8 @@ bool MarioSkate::close() {
             }
 
             TVec3f velocity;
-            Mario* pPlayer = getPlayer();
-            f32 vertical = MR::vecKillElement(pPlayer->mJumpVec, getGravityVec(), &velocity);
+            const TVec3f& jump = getPlayer()->mJumpVec;
+            f32 vertical = MR::vecKillElement(jump, getGravityVec(), &velocity);
             velocity *= 1.5f;
             velocity += getGravityVec() * vertical;
             getPlayer()->setJumpVec(velocity);

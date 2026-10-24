@@ -65,21 +65,21 @@ void MapGalaxyCounters::control() {
     mStarKeepFrames = MR::max(mStarKeepFrames - 1, 0);
     mStarPieceKeepFrames = MR::max(mStarPieceKeepFrames - 1, 0);
 }
-// NONMATCHING: life-counter pointer and visibility flag use swapped r30/r31 registers.
 void MapGalaxyCounters::requestAppearCoinsAndLives() {
+    bool show;
     mCoinLifeKeepFrames = 4;
     if (MR::isDead(this)) LayoutActor::appear();
     {
-    bool showCoin = false;
+    show = false;
     CoinCounter* coin = mCoinCounter;
-    if (MR::isDead(coin) || MR::isHiddenLayout(coin)) showCoin = true;
-    if (showCoin) mCoinCounter->forceAppear(false);
+    if (MR::isDead(coin) || MR::isHiddenLayout(coin)) show = true;
+    if (show) mCoinCounter->forceAppear(false);
     }
     {
-    bool showLeft = false;
+    show = false;
     PlayerLeft* left = mPlayerLeft;
-    if (MR::isDead(left) || MR::isHiddenLayout(left)) showLeft = true;
-    if (showLeft) mPlayerLeft->forceAppear();
+    if (MR::isDead(left) || MR::isHiddenLayout(left)) show = true;
+    if (show) mPlayerLeft->forceAppear();
     }
     requestAppearStars();
     requestAppearStarPieces();

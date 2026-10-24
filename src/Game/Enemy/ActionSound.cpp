@@ -135,8 +135,7 @@ void ActionSound::applyRateToSound(f32 rate) {
     }
 }
 
-// NONMATCHING: optimizer-disabled stack-base register and epilogue scheduling differ; branch graph and arithmetic match.
-#pragma global_optimizer off
+// NONMATCHING: redundant type-sentinel comparisons are optimized out.
 void ActionSound::applyPitchVolumeArgs(s32 pitchArg, s32 volumeArg) {
     if (mHandle && mHandle->mSound) {
         f32 pitch = 0.0f;
@@ -199,4 +198,3 @@ void ActionSound::applyPitchVolumeArgs(s32 pitchArg, s32 volumeArg) {
 done:
     return;
 }
-#pragma global_optimizer on

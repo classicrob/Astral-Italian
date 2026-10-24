@@ -136,8 +136,8 @@ bool FluffWindHolder::calcWindInfo(const TVec3f& rPosition, TVec3f* pWindDirecti
     f32 bestDistance = 1000000.0f;
     TVec3f bestDir(0.0f, 0.0f, 0.0f);
 
-    bool found = false;
     LiveActor* pActor;
+    bool found = false;
     for (s32 i = 0; i < getObjNum(); i++) {
         pActor = getActor(i);
         if (MR::isDead(pActor)) {

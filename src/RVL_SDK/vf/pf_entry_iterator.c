@@ -516,7 +516,8 @@ u32 VFiPFENT_ITER_IsAtLogicalEnd(struct PF_ENT_ITER* p_iter) {
         }
         if (p_iter->sector != 0xFFFFFFFF) {
             err = VFiPFENT_ITER_LoadEntry(p_iter);
-            return err != 0;
+            if (err != 0) return 1;
+            return 0;
         }
         return 1;
     }

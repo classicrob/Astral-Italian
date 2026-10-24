@@ -78,44 +78,45 @@ void MaterialAnmBuffer::searchUpdateMaterialID(const ResourceHolder* pResourceHo
 
 // NONMATCHING: register allocation differs; material animation checks and archive arguments match.
 void MaterialAnmBuffer::setDiffFlag(const ResourceHolder* pResourceHolder) {
-    const char* pBpkName;
+    const char* pName;
+    const char* pResourceName;
     const ResTable* pBpkTable = pResourceHolder->mBpkResTable;
 
     for (u32 iBpk = 0; iBpk < pBpkTable->mCount; iBpk++) {
-        pBpkName = pBpkTable->getResName(iBpk);
-        const char* pResourceName = pResourceHolder->mName;
+        pName = pBpkTable->getResName(iBpk);
+        pResourceName = pResourceHolder->mName;
         const J3DAnmColorKey* pAnm = static_cast< J3DAnmColorKey* >(pBpkTable->getRes(iBpk));
-        MR::onDiffFlagBpk(mDiffFlags, pAnm, pResourceName, pBpkName);
+        MR::onDiffFlagBpk(mDiffFlags, pAnm, pResourceName, pName);
     }
 
     u32 iBtp;
     const ResTable* pBtpTable = pResourceHolder->mBtpResTable;
 
     for (iBtp = 0; iBtp < pBtpTable->mCount; iBtp++) {
-        const char* pBtpName = pBtpTable->getResName(iBtp);
-        const char* pResourceName = pResourceHolder->mName;
+        pName = pBtpTable->getResName(iBtp);
+        pResourceName = pResourceHolder->mName;
         const J3DAnmTexPattern* pAnm = static_cast< J3DAnmTexPattern* >(pBtpTable->getRes(iBtp));
-        MR::onDiffFlagBtp(mDiffFlags, pAnm, pResourceName, pBtpName);
+        MR::onDiffFlagBtp(mDiffFlags, pAnm, pResourceName, pName);
     }
 
     u32 iBtk;
     const ResTable* pBtkTable = pResourceHolder->mBtkResTable;
 
     for (iBtk = 0; iBtk < pBtkTable->mCount; iBtk++) {
-        const char* pBtkName = pBtkTable->getResName(iBtk);
-        const char* pResourceName = pResourceHolder->mName;
+        pName = pBtkTable->getResName(iBtk);
+        pResourceName = pResourceHolder->mName;
         const J3DAnmTextureSRTKey* pAnm = static_cast< J3DAnmTextureSRTKey* >(pBtkTable->getRes(iBtk));
-        MR::onDiffFlagBtk(mDiffFlags, pAnm, pResourceName, pBtkName);
+        MR::onDiffFlagBtk(mDiffFlags, pAnm, pResourceName, pName);
     }
 
     u32 iBrk;
     const ResTable* pBrkTable = pResourceHolder->mBrkResTable;
 
     for (iBrk = 0; iBrk < pBrkTable->mCount; iBrk++) {
-        const char* pBrkName = pBrkTable->getResName(iBrk);
-        const char* pResourceName = pResourceHolder->mName;
+        pName = pBrkTable->getResName(iBrk);
+        pResourceName = pResourceHolder->mName;
         const J3DAnmTevRegKey* pAnm = static_cast< J3DAnmTevRegKey* >(pBrkTable->getRes(iBrk));
-        MR::onDiffFlagBrk(mDiffFlags, pAnm, pResourceName, pBrkName);
+        MR::onDiffFlagBrk(mDiffFlags, pAnm, pResourceName, pName);
     }
 }
 

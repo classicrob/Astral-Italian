@@ -213,10 +213,11 @@ void MarioYoshiBalloon::fn_80414B90(const TVec3f& vertical) {
 
 // NONMATCHING: temporary stack slots, GPR allocation and multiply-result register.
 void MarioYoshiBalloon::fn_80414CD0() {
+    const TVec3f* gravity;
     const TVec3f& pad = getWorldPadDir();
-    const TVec3f& gravity = getAirGravityVec();
+    gravity = &getAirGravityVec();
     TVec3f desired;
-    JMAVECScaleAdd(gravity, pad, desired, -gravity.dot(pad));
+    JMAVECScaleAdd(*gravity, pad, desired, -gravity->dot(pad));
     MR::normalizeOrZero(&desired);
     desired.scale(8.0f);
     TVec3f velocity(fn_803EF300());
@@ -227,14 +228,15 @@ void MarioYoshiBalloon::fn_80414CD0() {
     addVelocity(newVelocity);
     getPlayer()->setHeadVec(-getAirGravityVec());
     getPlayer()->fixFrontVecFromUpSide();
+    TVec3f current;
     TVec3f opposite(-desired);
     const TVec3f& gravity3 = getAirGravityVec();
     TVec3f facing;
     JMAVECScaleAdd(gravity3, opposite, facing, -gravity3.dot(opposite));
+    const TVec3f* gravity4;
     const TVec3f& front = getFrontVec();
-    const TVec3f& gravity4 = getAirGravityVec();
-    TVec3f current;
-    JMAVECScaleAdd(gravity4, front, current, -gravity4.dot(front));
+    gravity4 = &getAirGravityVec();
+    JMAVECScaleAdd(*gravity4, front, current, -gravity4->dot(front));
     if (MR::normalizeOrZero(&current)) {
         if (!MR::normalizeOrZero(&facing)) {
             getPlayer()->setFrontVecKeepUp(facing);
@@ -263,8 +265,7 @@ void MarioYoshiBalloon::fn_80414CD0() {
     speed *= 0.125f;
     if (speed > 1.0f) speed = 1.0f;
     TQuat4f tilt;
-    alignment *= -0.34906584f;
-    tilt.setRotate(axis, speed * alignment);
+    tilt.setRotate(axis, speed * (-0.34906584f * alignment));
     tilt.transform(adjusted);
     getPlayer()->setFrontVecKeepSide(adjusted);
 }

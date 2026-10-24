@@ -69,11 +69,12 @@ void BossJugemStateThrowOne::prepareMove() {
     mRailStart = MR::getRailCoord(mHost);
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowOne::updateMove() {
     if (!mIsDead) {
+        s32 frameA;
+        LiveActor* pActor;
         BossJugem* pHost = mHost;
-        s32 frameA = MR::getBckFrameMax(pHost, "ThrowOne");
+        frameA = MR::getBckFrameMax(pHost, "ThrowOne");
         s32 frameB = MR::getBckFrameMax(pHost, "ThrowOneSign");
         f32 frameMax = frameB + frameA + 1;
         f32 dist = 1600.0f;
@@ -82,7 +83,7 @@ void BossJugemStateThrowOne::updateMove() {
         if (!MR::isRailCoordNotBehind(mHost, target)) {
             target = mRailStart - dist;
         }
-        LiveActor* pActor = mHost;
+        pActor = mHost;
         MR::setRailCoord(pActor, MR::getLinerValue(mMoveStep, mRailStart, target, frameMax));
         MR::moveTransToCurrentRailPos(mHost);
     }
@@ -150,11 +151,12 @@ void BossJugemStateThrowTwo::prepareMove() {
     mRailStart = MR::getRailCoord(mHost);
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossJugemStateThrowTwo::updateMove() {
     if (!mIsDead) {
+        s32 frameA;
+        LiveActor* pActor;
         BossJugem* pHost = mHost;
-        s32 frameA = MR::getBckFrameMax(pHost, "ThrowTwo");
+        frameA = MR::getBckFrameMax(pHost, "ThrowTwo");
         s32 frameB = MR::getBckFrameMax(pHost, "ThrowTwoSign");
         f32 frameMax = frameB + frameA + 1;
         f32 dist = 2400.0f;
@@ -163,7 +165,7 @@ void BossJugemStateThrowTwo::updateMove() {
         if (!MR::isRailCoordNotBehind(mHost, target)) {
             target = mRailStart - dist;
         }
-        LiveActor* pActor = mHost;
+        pActor = mHost;
         MR::setRailCoord(pActor, MR::getLinerValue(mMoveStep, mRailStart, target, frameMax));
         MR::moveTransToCurrentRailPos(mHost);
     }

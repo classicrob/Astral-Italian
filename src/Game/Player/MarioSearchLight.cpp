@@ -64,10 +64,7 @@ void MarioSearchLight::attackSensor(HitSensor* sender, HitSensor* receiver) {
     }
     TVec3f toReceiver = *MR::getSensorPos(receiver) - mPosition;
     f32 distance = front.dot(toReceiver);
-    if (distance < 0.0f) {
-        return;
-    }
-    if (distance > _C0) {
+    if (distance < 0.0f || distance > _C0) {
         return;
     } else {
         if (MR::sendArbitraryMsg(0xC, receiver, sender)) {

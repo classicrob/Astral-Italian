@@ -12,9 +12,12 @@ namespace {
     const f32 cFlyOutB[] = {3.5f, 0.0f, 0.95f, 0.0f};
     const f32 cEndA[] = {3.0f, 0.0f, 0.95f, 1.5f};
     const f32 cEndB[] = {3.5f, 0.0f, 0.95f, 2.0f};
-    const s32 cDiveLimit = 180, cDiveTimeA = 60, cDiveTimeB = 45;
+    s32 cDiveLimit = 180;
+    const s32 cDiveTimeA = 60, cDiveTimeB = 45;
     const f32 cTurnRateA = 2.0f, cTurnRateB = 1.5f;
-    const s32 cAimStart = 30, cAimTimeA = 60, cAimTimeB = 70, cEffectLead = 10;
+    s32 cAimStart = 30;
+    const s32 cAimTimeA = 60, cAimTimeB = 70;
+    s32 cEffectLead = 10;
     const s32 cWaitTimeA = 60, cWaitTimeB = 45, cFlyOutTimeA = 20, cFlyOutTimeB = 20, cEndTimeA = 15, cEndTimeB = 15;
     const f32 cGravityA = 0.0f, cGravityB = 0.0f;
 }
@@ -96,8 +99,9 @@ void BellyDragonArmShot::exeDown() {
             MR::calcMapHitAlongDirection(*MR::getPlayerPos(), &mTargetPos, *MR::getPlayerGravity(), NULL, NULL, NULL, NULL, 1000.0f);
     }
     if (MR::isGreaterEqualStep(this, cAimStart)) {
+        BellyDragon* host = mHost;
         TVec3f dir(mTargetPos);
-        dir -= mHost->mPosition;
+        dir -= host->mPosition;
         if (!MR::isNearZero(dir, 0.001f)) {
             MR::normalize(&dir);
             MR::turnVecToVecDegree(&mHost->mFront, mHost->mFront, dir, mDownParam[3], TVec3f(0, 1, 0));

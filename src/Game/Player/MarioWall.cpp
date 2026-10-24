@@ -116,7 +116,7 @@ bool MarioWall::update() {
             }
         }
 
-        getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+        getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
         _1D = 1;
     } else {
         _1D = 0;
@@ -134,7 +134,7 @@ bool MarioWall::update() {
 
             release = true;
         } else {
-            getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+            getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
         }
     }
 
@@ -184,7 +184,7 @@ bool MarioWall::update() {
         if (isPlayerModeFire()) {
             mActor->updateFireSpin();
         } else {
-            getPlayer()->mMovementStates.mHighWord &= 0xFFEFFFFFU;
+            getPlayer()->mMovementStates.mHighBits.mBit20 = 0;
             if (isPlayerModeCloud()) {
                 changeAnimation("雲スピン空中");
             } else {

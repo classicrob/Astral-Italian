@@ -468,8 +468,8 @@ void __wpadGetExtConfig2(s32 chan, s32 result) {
     if (p_cb->mplsPassthroughConfigBusy) {
         if (result == WPAD_ERR_NONE) {
             if (_mplsExtensionType[chan] == 0) {
-                p_cb->extConf.fs.acc_0g.z = p_cb->extConf.fs.acc_0g.y = p_cb->extConf.fs.acc_0g.x = 512;
-                p_cb->extConf.fs.acc_1g.z = p_cb->extConf.fs.acc_1g.y = p_cb->extConf.fs.acc_1g.x = 716;
+                p_cb->extConf.fs.acc_0g.x = p_cb->extConf.fs.acc_0g.y = p_cb->extConf.fs.acc_0g.z = 512;
+                p_cb->extConf.fs.acc_1g.x = p_cb->extConf.fs.acc_1g.y = p_cb->extConf.fs.acc_1g.z = 716;
                 if (__wpadCheckCalibration(data, 14, 0)) {
                     p_cal = _wpdcb[chan];
                     p_cal->extConf.fs.acc_0g.x = (data[0] << 2) | ((data[3] >> 4) & 3);
@@ -934,7 +934,7 @@ void __parse_dpd_data(s32 chan, WPADStatus** p_status, u8 fmt, u8* p_data, u8 le
 // NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_30_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
 }
 
@@ -953,7 +953,7 @@ void __a1_31_data_type(u8 chan, u8* data, WPADStatus* p_status) {
 // NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_32_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
     __parse_ext_data(chan, p_status, p_cb->devMode, data + 3, 8);
 }
@@ -973,7 +973,7 @@ void __a1_33_data_type(u8 chan, u8* data, WPADStatus* p_status) {
 // NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_34_data_type(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    p_status->button = (data[1] | (u16)((u16)(data[2] << 8) & 0xFF00)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = (data[1] >> 7) & 1;
     __parse_ext_data(chan, p_status, p_cb->devMode, data + 3, 19);
 }

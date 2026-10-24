@@ -26,13 +26,14 @@ void YoshiSilhouette::movement() {
 // NONMATCHING: equivalent clipping branch folded into the common epilogue.
 void YoshiSilhouette::calcAnim() {
     if(!mHidden && !MR::isDead(this) && !MR::isNoCalcAnim(this)) {
-        if(MR::isClipped(this)) return;
+        if(!MR::isClipped(this)) {
         J3DModel* model=MR::getJ3DModel(this);
         J3DMtxBuffer* destination=model->getMtxBuffer();
         J3DMtxBuffer* source=MR::getJ3DModel(mHost)->getMtxBuffer();
         for(s32 i=0;i<source->mJointTree->getJointNum();i++) PSMTXCopy(source->mpAnmMtx[i],destination->mpAnmMtx[i]);
         model->calcWeightEnvelopeMtx();
         model->viewCalc();
+        }
     }
 }
 void YoshiSilhouette::calcViewAndEntry() {}

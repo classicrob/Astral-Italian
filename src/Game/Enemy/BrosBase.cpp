@@ -138,6 +138,7 @@ void BrosBase::emitBrosYoshiEatItem() {
 }
 
 void BrosBase::killProjectiles() {
+    const TVec3f* pos;
     for (s32 i = 0; i < 5; i++) {
         BrosProjectileBase* p = mProjectiles[i];
         switch (p->mState) {
@@ -145,9 +146,9 @@ void BrosBase::killProjectiles() {
             p->clearState();
             break;
         case 2: {
-            const TVec3f& pos = p->mPosition;
+            pos = &p->mPosition;
             if (MR::getDeclareRemnantStarPieceCount(this) > 3) {
-                MR::appearStarPiece(this, pos, 1, 10.0f, 40.0f, false);
+                MR::appearStarPiece(this, *pos, 1, 10.0f, 40.0f, false);
             }
             mProjectiles[i]->clearState();
             break;

@@ -36,8 +36,8 @@ MarioStick::MarioStick(MarioActor* pActor) : MarioState(pActor, MarioStatus_Stic
     _20.zero();
     _2C.zero();
     _38.zero();
-    _51 = 0;
     _44 = 0.0f;
+    _51 = 0;
     _60.zero();
     _6C.zero();
     _78.zero();
@@ -71,7 +71,8 @@ bool MarioStick::setStickSensor(const HitSensor* pSensor) {
     if (pSensor->isType(0x4D)) {
         TVec3f v12;
         MR::getRotatedAxisY(&v12, MR::getSensorHost(pSensor)->mRotation);
-        TVec3f v11(mActor->_240 - *MR::getSensorPos(pSensor));
+        const TVec3f& center = mActor->_240;
+        TVec3f v11(center - *MR::getSensorPos(pSensor));
         MR::normalizeOrZero(&v11);
 
         if (v12.dot(v11) < mActor->getConst().getTable()->mBeeStickAngleLimit) {

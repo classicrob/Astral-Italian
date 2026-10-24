@@ -22,8 +22,7 @@ s32 RailGraph::addNode(const TVec3f& rVec) {
     node.mPosition.x = rVec.x;
     node.mPosition.y = rVec.y;
     node.mPosition.z = rVec.z;
-    s32 cnt = mUsedNodeCount;
-    mUsedNodeCount = cnt + 1;
+    s32 cnt = mUsedNodeCount++;
 
     RailGraphNode* nodes = &mNodes[cnt];
     nodes->mPosition = node.mPosition;

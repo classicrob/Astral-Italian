@@ -214,8 +214,9 @@ void YoshiTongueCurve::fn_8041DA20(TVec3f* output, f32 progress) const {
     u32 index;
     for (index = 1; index < 7; ++index) if (mDistances[index] >= progress) break;
     if (index == 7) index = 6;
+    f32 span = mDistances[index];
     f32 previous = mDistances[index - 1];
-    f32 span = mDistances[index] - previous;
+    span -= previous;
     f32 t;
     if (span == 0.0f) t = static_cast<f32>(index - 1) / 7.0f;
     else {
@@ -231,9 +232,9 @@ YoshiTongueJoint::YoshiTongueJoint(LiveActor* actor, const char* name, f32 weigh
 }
 
 bool YoshiTongueJoint::fn_8041D5B0(TPos3f* matrix, const JointControllerInfo&) {
+    TVec3f side;
     TVec3f up;
     TVec3f front;
-    TVec3f side;
     matrix->getYDir(up);
     matrix->getZDir(front);
     PSVECCrossProduct(&up, &front, &side);

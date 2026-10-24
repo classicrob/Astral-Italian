@@ -176,7 +176,7 @@ void YoshiModelState::calcJoint(TPos3f* mtx,const JointControllerInfo& info) {
 void YoshiModelTargetState::calcTargetRotation(const TPos3f& input,TQuat4f* quat) {
     TVec3f x,y,z;input.getXDir(x);input.getYDir(y);input.getZDir(z);MR::normalize(&x);MR::normalize(&y);MR::normalize(&z);
     TPos3f root;root.set(MR::getJointMtx(mCtrl->mHost,"AllRoot"));TVec3f rootX,rootY,rootZ;root.getXDir(rootX);root.getYDir(rootY);root.getZDir(rootZ);
-    if(mCtrl->mAlignEnabled && !MR::normalizeOrZero(&rootY)) {TVec3f neg=-rootY;TQuat4f q;q.setRotate(y,neg);q.transform(x);q.transform(y);q.transform(z);}
+    if(mCtrl->mAlignEnabled && !MR::normalizeOrZero(&rootY)) {TQuat4f q;q.setRotate(y,-rootY);q.transform(x);q.transform(y);q.transform(z);}
     if(!MR::normalizeOrZero(&rootZ)) {TQuat4f q;q.setRotate(x,rootZ);q.transform(x);q.transform(y);q.transform(z);}
     TPos3f rot;rot.identity();rot.setXDir(x);rot.setYDir(y);rot.setZDir(z);rot.getQuat(*quat);
 }
@@ -186,7 +186,7 @@ void YoshiModelTargetState::calc(const TPos3f& input,TPos3f* out) {
     TVec3f scale,trans;TQuat4f oldQuat;
     if(!decomposeYoshiModelMtx(*out,&scale,&trans,&oldQuat)) {JMath::gekko_ps_copy12(out,&input);out->concat(mInitialMtx);return;}
     if(!mTarget) {JMath::gekko_ps_copy12(out,&input);out->concat(mInitialMtx);return;}
-    TVec3f y;out->getYDir(y);TVec3f targetDir=*mTarget-(trans-y*mOffset);
+    TVec3f y;out->getYDir(y);TVec3f offset=y*mOffset;TVec3f centered=trans-offset;TVec3f targetDir=*mTarget-centered;
     if(MR::normalizeOrZero(&targetDir)) {JMath::gekko_ps_copy12(out,&input);out->concat(mInitialMtx);return;}
     TQuat4f targetQuat;calcTargetRotation(input,&targetQuat);
     TPos3f original;original.concat(input,mInitialMtx);TVec3f originalScale,originalTrans;TQuat4f originalQuat;decomposeYoshiModelMtx(original,&originalScale,&originalTrans,&originalQuat);

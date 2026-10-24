@@ -348,7 +348,9 @@ bool MarioHang::postureCtrl(MtxPtr pMatrix) {
         MR::makeMtxFrontUp(reinterpret_cast< TPos3f* >(pMatrix), -_34, getPlayer()->_368);
     } else {
         f32 blend = MR::clamp(_14 / 30.0f, 0.0f, 1.0f);
-        MR::vecBlendSphere(getPlayer()->_368, getPlayer()->mHeadVec, &up, blend);
+        Mario* headPlayer = getPlayer();
+        Mario* bodyPlayer = getPlayer();
+        MR::vecBlendSphere(bodyPlayer->_368, headPlayer->mHeadVec, &up, blend);
         if (MR::isSameDirection(up, _34, 0.01f)) {
             return false;
         }

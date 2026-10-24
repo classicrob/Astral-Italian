@@ -92,14 +92,13 @@ void TwoLegsBullet::control() {
     mScaleCtrl->updateNerve();
 }
 
-// NONMATCHING: the two vector temporaries occupy reversed stack slots.
 void TwoLegsBullet::calcAndSetBaseMtx() {
     TPos3f mtx;
     MR::makeMtxFrontSidePos(&mtx, mFront, mSide, mPosition);
     MR::setBaseTRMtx(this, mtx);
     if (isNerve(&NrvTwoLegsBullet::TwoLegsBulletNrvMove::sInstance)) {
-        TVec3f up(*mHost->getBodyFront());
         TVec3f pos;
+        TVec3f up(*mHost->getBodyFront());
         JMAVECScaleAdd(up, mPosition, pos, 300.0f);
         MR::makeMtxFrontUpPos(&mMtx, mFront, up, pos);
     } else {
@@ -189,9 +188,9 @@ void TwoLegsBullet::calcSideVec() {
     MR::calcRailPosAtCoord(&posB, this, coord);
     TVec3f gravity;
     MR::calcGravityVector(this, posA, &gravity, nullptr, 0);
+    TVec3f up;
     TVec3f dir(posB);
     dir.sub(posA);
-    TVec3f up;
     up.negate(gravity);
     PSVECCrossProduct(up, dir, mSide);
     MR::normalize(&mSide);

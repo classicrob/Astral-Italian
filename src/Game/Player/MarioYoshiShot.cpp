@@ -20,7 +20,8 @@ bool MarioYoshiShot::start() {
     getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
     getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
     clearVelocity();
-    getPlayer()->mWalkSpeed=0.0f;
+    Mario* player = getPlayer();
+    player->mWalkSpeed = 0.0f;
     mShotVelocity.set<f32>(-getAirGravityVec()*15.0f);
     mInheritedVelocity=getPlayer()->_184;
     getPlayer()->fn_8039CFD0();
@@ -29,7 +30,8 @@ bool MarioYoshiShot::start() {
 }
 // NONMATCHING: true constant is hoisted into a saved GPR.
 bool MarioYoshiShot::close() {
-    mActor->fn_803B9810()->_9C=true;
+    YoshiTongueAction* tongue = mActor->fn_803B9810();
+    tongue->_9C = true;
     changeAnimation(nullptr,"落下");
     setJumpVec(fn_803EF300());
     return true;

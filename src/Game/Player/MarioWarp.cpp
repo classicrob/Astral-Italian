@@ -304,8 +304,8 @@ bool MarioWarp::update() {
 
 // NONMATCHING: movement-state bitfield encoding.
 bool MarioWarp::close() {
-    getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
-    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowBits.mBit30 = 1;
+    getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
     Mario* player = getPlayer();
     player->_420 = 16;
     stopAnimation(nullptr);
@@ -370,9 +370,9 @@ bool MarioWarp::close() {
             mActor->_A6E = 0;
         }
 
-        getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-        getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-        getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
+        getPlayer()->mMovementStates.mLowBits.mBit30 = 0;
+        getPlayer()->mMovementStates.mLowBits.mBit31 = 1;
+        getPlayer()->mMovementStates.mHighBits.mBit20 = 1;
         getPlayer()->_402 = 0;
         getPlayer()->mJumpVec = TVec3f(0.0f, 0.0f, 0.0f);
         changeAnimation("落下");
@@ -400,9 +400,9 @@ bool MarioWarp::close() {
     }
 
     if (getPlayerMode() != 6) {
-        getPlayer()->mMovementStates.mHighWord |= 0x20000000U;
+        getPlayer()->mMovementStates.mHighBits.mBit29 = 1;
     } else {
-        getPlayer()->mMovementStates.mHighWord &= 0xDFFFFFFFU;
+        getPlayer()->mMovementStates.mHighBits.mBit29 = 0;
     }
 
     _4C = nullptr;

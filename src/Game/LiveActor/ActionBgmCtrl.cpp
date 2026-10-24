@@ -47,9 +47,10 @@ void ActionBgmCtrl::update() {
         findAndUpdateBgm();
     }
 
+    ActionBgmInfo* pInfo;
     J3DFrameCtrl* pBckCtrl = mModelManager->getBckCtrl();
     for (s32 i = 0; i < mInfoNum; i++) {
-        ActionBgmInfo* pInfo = &mInfos[i];
+        pInfo = &mInfos[i];
         if (pInfo->mIsBckMatch && !pInfo->mIsUpdated && pBckCtrl->checkPass(pInfo->mBckStartFrame)) {
             if (isCurrentStageScenario(pInfo->mStageName, pInfo->mStageScenarioNo)) {
                 updateBgm(*pInfo);
@@ -93,8 +94,9 @@ void ActionBgmCtrl::findAndUpdateBgm() {
         return;
     }
 
+    ActionBgmInfo* pInfo;
     for (s32 i = 0; i < mInfoNum; i++) {
-        ActionBgmInfo* pInfo = &mInfos[i];
+        pInfo = &mInfos[i];
         if (pInfo->mBckName == NULL) {
             continue;
         }

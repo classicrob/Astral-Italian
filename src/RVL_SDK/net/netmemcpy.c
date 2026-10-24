@@ -247,9 +247,9 @@ static inline void NETMemCpy_SimpleRev(void* dst, const void* src, unsigned long
 
 // NONMATCHING: Copy operations and control flow agree; temporary GPR allocation differs.
 void* NETMemCpy(void* dst, const void* src, u32 size) {
-    void* originalDst = dst;
     unsigned long headSize;
     unsigned long accBlkSize;
+    void* originalDst = dst;
 
     if (dst == src) {
         return originalDst;

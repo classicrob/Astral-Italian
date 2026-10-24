@@ -2116,12 +2116,11 @@ static s32 __wpadSendDataSub(s32 chan, WPADCommand cmd) {
     u8* ptr;
     s8 handle;
     s32 status;
-    WPADControlBlock* p_wpd;
+    WPADControlBlock* p_wpd = _wpdcb[chan];
     u8 rep_id = (u8)cmd.command;
     u8* p_data = cmd.data;
     u16 len = cmd.len;
 
-    p_wpd = _wpdcb[chan];
     enable = OSDisableInterrupts();
     status = p_wpd->status;
     handle = p_wpd->dev_handle;
@@ -2230,13 +2229,13 @@ BOOL WPADiSendSetReportType(WPADCmdQueue* queue, u32 fmt, BOOL powerSave, WPADCa
         break;
     case 10: cmd.data[1] = 0x32; break;
     case 11: cmd.data[1] = 0x37; break;
-    case 12: cmd.data[1] = 0x34; break;
-    case 13: cmd.data[1] = 0x35; break;
     case 15: cmd.data[1] = 0x37; break;
-    case 16: cmd.data[1] = 0x37; break;
-    case 17: cmd.data[1] = 0x37; break;
     case 18: cmd.data[1] = 0x37; break;
     case 19: cmd.data[1] = 0x35; break;
+    case 12: cmd.data[1] = 0x34; break;
+    case 13: cmd.data[1] = 0x35; break;
+    case 17: cmd.data[1] = 0x37; break;
+    case 16: cmd.data[1] = 0x37; break;
     }
 
     return WPADiPushCommand(queue, cmd);
@@ -2560,7 +2559,7 @@ void __wpadCertFailed(s32 chan) {
     memset(p_cb->certParamX, 0, sizeof(p_cb->certParamX));
     memset(p_cb->certParamY, 0, sizeof(p_cb->certParamY));
     memset(p_cb->certWork, 0, sizeof(p_cb->certWork));
-    p_cb->certWork[0] = p_cb->certParamY[0] = p_cb->certParamX[0] = 1;
+    p_cb->certParamX[0] = p_cb->certParamY[0] = p_cb->certWork[0] = 1;
     p_cb->certParamBytes = 0;
     p_cb->certCachedValidity = -1;
     p_cb->devType = 252;

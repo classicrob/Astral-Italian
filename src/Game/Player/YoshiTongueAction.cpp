@@ -439,7 +439,7 @@ void YoshiTongueAction::fn_8041EBE0() {
         mArrow->appear();
         mArrow->fn_80413FB0();
     }
-    mPlayer->mWalkSpeed = 0.9789999723434448f * mPlayer->mWalkSpeed;
+    mPlayer->mWalkSpeed *= 0.9789999723434448f;
     if (!fn_80421240()) {
         TVec3f start;
         fn_80421830(&start);
@@ -544,9 +544,9 @@ void YoshiTongueAction::fn_8041F0E0() {
         fn_80420780();
         mStartPosition = mYoshi->mPosition;
     }
-    mPlayer->mMovementStates.mLowWord &= 0xBFFFFFFF;
-    mPlayer->mMovementStates.mLowWord &= 0xFFDFFFFF;
-    mPlayer->mMovementStates.mLowWord |= 0x80000000;
+    mPlayer->mMovementStates.mLowBits.mBit30 = 0;
+    mPlayer->mMovementStates.mLowBits.mBit21 = 0;
+    mPlayer->mMovementStates.mLowBits.mBit31 = 1;
     TVec3f position(mYoshi->mPosition);
     TVec3f target;
     mTarget->calcCurrentTargetPosition(&target);

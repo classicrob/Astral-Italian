@@ -823,6 +823,31 @@ int VFiPFCODE_CP932_OEM2Unicode(const char* cp932_src, unsigned short* uc_dst) {
     c0 = *cp932_src;
     c1 = *(cp932_src + 1);
 
+    switch ((u32)c0) {
+    case 0x80:
+    case 0x85:
+    case 0x86:
+    case 0xA0:
+    case 0xEB:
+    case 0xEC:
+    case 0xEF:
+    case 0xF0:
+    case 0xF1:
+    case 0xF2:
+    case 0xF3:
+    case 0xF4:
+    case 0xF5:
+    case 0xF6:
+    case 0xF7:
+    case 0xF8:
+    case 0xF9:
+    case 0xFD:
+    case 0xFE:
+    case 0xFF:
+        *uc_dst = 95;
+        return VFiPFCODE_Combine_Width(1, 2);
+    }
+
     if (c0 < 0x80u) {
         *uc_dst = c0;
         return VFiPFCODE_Combine_Width(1, 2);
@@ -830,11 +855,6 @@ int VFiPFCODE_CP932_OEM2Unicode(const char* cp932_src, unsigned short* uc_dst) {
 
     if (c0 >= 0xA1u && c0 <= 0xDFu) {
         *uc_dst = c0 + 0xFEC0;
-        return VFiPFCODE_Combine_Width(1, 2);
-    }
-
-    if (c0 == 128 || c0 == 133 || c0 == 134 || c0 == 160 || c0 == 235 || c0 == 236 || (c0 >= 0xEFu && c0 <= 0xF9u) || (c0 >= 0xFDu && c0 == 0xFFu)) {
-        *uc_dst = 95;
         return VFiPFCODE_Combine_Width(1, 2);
     }
 
@@ -943,8 +963,8 @@ s32 VFiPFCODE_CP932_Unicode2OEM(const u16* uc_src, s8* cp932_dst) {
         return VFiPFCODE_Combine_Width(1, 2);
     }
 
-    cp932_dst[1] = (u8)(cp932 & 0xFF);
     cp932_dst[0] = (cp932 >> 8) & 0xFF;
+    cp932_dst[1] = (u8)(cp932 & 0xFF);
     return VFiPFCODE_Combine_Width(2, 2);
 }
 
@@ -960,7 +980,7 @@ int VFiPFCODE_CP932_OEMCharWidth(const char* buf) {
 }
 
 u32 VFiPFCODE_CP932_isOEMMBchar(s8 cp932, u32 num) {
-    u8 code;
+    u32 code;
     u32 is_mb;
 
     code = (u8)cp932;

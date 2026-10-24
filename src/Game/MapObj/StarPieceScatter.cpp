@@ -29,7 +29,6 @@ void StarPieceScatter::init(const JMapInfoIter& iter){
     initNerve(&NrvStarPieceScatter::StarPieceScatterNrvScatter::sInstance,0);
     makeActorDead();
 }
-// NONMATCHING: only vector temporary stack slots differ from the target.
 void StarPieceScatter::scatter(const TVec3f& position,const TVec3f& up,f32 randomMagnitude,f32 upSpeed){
     TVec3f random(0.f);
     MR::getRandomVector(&random,randomMagnitude);
@@ -37,7 +36,8 @@ void StarPieceScatter::scatter(const TVec3f& position,const TVec3f& up,f32 rando
     MR::vecKillElement(random,up,&random);
     MR::normalizeOrZero(&mUp,up);
     mPosition=position;
-    mVelocity.set(mUp*upSpeed+random);
+    TVec3f velocity(mUp*upSpeed);
+    mVelocity.set(velocity+random);
     MR::setScale(this,8.f);
     MR::emitEffect(this,"WorldMapStarPieceLight");
     MR::invalidateClipping(this);

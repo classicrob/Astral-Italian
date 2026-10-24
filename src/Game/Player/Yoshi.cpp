@@ -1764,9 +1764,7 @@ bool Yoshi::fn_804112A0() const {
     if (Collision::checkStrikeLineToMap(origin, ray, 0, nullptr, nullptr)) return false;
     TVec3f end(origin);
     end.add(ray);
-    TVec3f down;
-    JGeometry::negateInternal(&up.x, &down.x);
-    TVec3f drop(down);
+    TVec3f drop(TVec3f(-up));
     drop.scale(300.0f);
     return !Collision::checkStrikeLineToMap(end, drop, 0, nullptr, nullptr);
 }
@@ -1777,10 +1775,11 @@ bool Yoshi::fn_804113C0() {
 }
 
 bool Yoshi::fn_80411410() {
+    bool running;
     AreaObj* area = MR::getAreaObj("PlaneModeCube", mPosition);
     if (!area) return false;
     if (!MR::isAreaFormCube(area)) return false;
-    bool running = false;
+    running = false;
     if (isNerve(&NrvYoshi::YoshiNrv804138A0::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138B0::sInstance)) running = true;
     if (running) setNerve(&NrvYoshi::YoshiNrv80413990::sInstance);
     TVec3f origin;
@@ -1878,15 +1877,13 @@ bool Yoshi::fn_80411AC0() const {
 bool Yoshi::fn_80411BF0() {
     if (!fn_80411AC0()) return false;
     if (MR::isBindedGroundDamageFire(this)) {
-        TVec3f velocity(0.0f);
-        fn_80410350(velocity);
+        fn_80410350(TVec3f(0.0f));
         MR::fn_80422520();
         setNerve(&NrvYoshi::YoshiNrv80413960::sInstance);
         return true;
     }
     if (MR::isBindedGroundDamageElectric(this)) {
-        TVec3f velocity(0.0f);
-        fn_80410350(velocity);
+        fn_80410350(TVec3f(0.0f));
         MR::fn_80422550();
         setNerve(&NrvYoshi::YoshiNrv80413970::sInstance);
         return true;

@@ -286,8 +286,9 @@ void Meramera::control() {
     mAnimScaleController->updateNerve();
     updatePose();
 
+    TVec3f up = -mGravity;
     TVec3f sinPos;
-    MR::turnVecToVecDegree(&mUp, mUp, -mGravity, 1.0f, mFront);
+    MR::turnVecToVecDegree(&mUp, mUp, up, 1.0f, mFront);
 
     MR::copyJointPos(this, "Sin", &sinPos);
     MR::makeMtxUpNoSupportPos(&mEffectMtx, mUp, sinPos);

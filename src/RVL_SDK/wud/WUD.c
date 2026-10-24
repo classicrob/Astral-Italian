@@ -767,8 +767,8 @@ static u8 WUDiVirginSimpleSync(void) {
 
 static inline void WUDiSetWiiFitPairingRecord(const u8* address, const u8* key, const SCDevInfo* config) {
     u32 checksum;
-    u32 sum;
     u16 inverse;
+    u32 sum;
     const u16* word;
     u32 i;
 
@@ -3225,7 +3225,7 @@ void __wudVendorSpecificEventStackCallback(UINT8 len, UINT8* pData) {
     case WUD_VSE_WATCH_DOG_RESET_HW: {
 
         // clang-format off
-#line 4346
+#line 5387
         OS_ERROR("MODULE FATAL ERROR\n");
         // clang-format on
         break;
@@ -3329,7 +3329,7 @@ void __wudLinkKeyEventStackCallback(void* p1) {
 
     default: {
         // clang-format off
-#line 4498
+#line 5544
         OS_ERROR("Unknown event\n");
         // clang-format on
     }
@@ -3430,7 +3430,7 @@ u16 _WUDGetQueuedSize(s8 handle) {
     u16 queuedSize;
     BOOL enabled = OSDisableInterrupts();
 
-    if ((u8)handle < WUD_MAX_DEV_ENTRY) {
+    if ((u8)handle <= WUD_MAX_DEV_ENTRY - 1) {
         queuedSize = _dev_handle_queue_size[(u8)handle];
 
     } else {
@@ -3445,7 +3445,7 @@ u16 _WUDGetNotAckedSize(s8 handle) {
     u16 notAckedSize;
     BOOL enabled = OSDisableInterrupts();
 
-    if ((u8)handle < WUD_MAX_DEV_ENTRY) {
+    if ((u8)handle <= WUD_MAX_DEV_ENTRY - 1) {
         notAckedSize = _dev_handle_notack_num[(u8)handle];
     } else {
         notAckedSize = 0;

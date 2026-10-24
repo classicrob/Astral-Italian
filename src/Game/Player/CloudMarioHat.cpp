@@ -80,7 +80,7 @@ void CloudMarioHat::control() {
 void CloudMarioHat::calcAndSetBaseMtx() {
     if (_90) {
         MR::concatWithPlayerJointMtx(&mHatMatrix, "CapPosition");
-        TVec3f y, z, x;
+        TVec3f z, y, x;
         mHatMatrix.getYDir(y);
         mHatMatrix.getZDir(z);
         PSVECCrossProduct(&y, &z, &x);

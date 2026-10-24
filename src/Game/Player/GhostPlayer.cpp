@@ -42,7 +42,9 @@ namespace MR {
     bool fn_8037F6F0(const TVec3f& input, s8 shift, TVec3Sc* output) {
         f32 factor = getShiftRatio(shift);
         f32 x = input.x * factor, y = input.y * factor, z = input.z * factor;
-        s32 ix = static_cast<s32>(x), iy = static_cast<s32>(y), iz = static_cast<s32>(z);
+        s32 iz;
+        s32 ix = static_cast<s32>(x), iy = static_cast<s32>(y);
+        iz = static_cast<s32>(z);
         output->x = ix;
         output->y = iy;
         output->z = iz;
@@ -65,8 +67,9 @@ namespace MR {
     }
     // NONMATCHING: floating-point register allocation.
     void convToFloat(TVec3s& input, s8 shift, TVec3f* output) {
+        f32 x;
         f32 factor = 1.0f / getShiftRatio(shift);
-        f32 x = static_cast<f32>(input.x) * factor;
+        x = static_cast<f32>(input.x) * factor;
         f32 y = static_cast<f32>(input.y) * factor;
         f32 z = static_cast<f32>(input.z) * factor;
         output->x = x;
@@ -75,8 +78,9 @@ namespace MR {
     }
     // NONMATCHING: floating-point register allocation.
     void convToFloat(TVec3Sc& input, s8 shift, TVec3f* output) {
+        f32 x;
         f32 factor = 1.0f / getShiftRatio(shift);
-        f32 x = static_cast<f32>(input.x) * factor;
+        x = static_cast<f32>(input.x) * factor;
         f32 y = static_cast<f32>(input.y) * factor;
         f32 z = static_cast<f32>(input.z) * factor;
         output->x = x;

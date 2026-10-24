@@ -785,6 +785,16 @@ public:
 #endif
     };
 
+    struct LowPairBits32 {
+#if defined(GALAXY_NATIVE) && defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        u32 mLowPair : 2;
+        u32 mRemaining : 30;
+#else
+        u32 mRemaining : 30;
+        u32 mLowPair : 2;
+#endif
+    };
+
     struct MovementStates {
         enum Mask {
             Jumping = 0x80000000U,
@@ -800,6 +810,7 @@ public:
         union {
             u32 mHighWord;
             FlagBits32 mHighBits;
+            LowPairBits32 mHighPairBits;
         };
     };
 

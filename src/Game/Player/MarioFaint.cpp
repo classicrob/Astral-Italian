@@ -71,11 +71,13 @@ bool MarioFaint::start() {
     getPlayer()->mMovementStates.mLowBits.mBit20 = 0;
     getPlayer()->mMovementStates.mLowBits.mBit31 = 0;
 
-    if (_18.dot(getPlayer()->mFrontVec) > 0.0f) {
+    const TVec3f& front = getPlayer()->mFrontVec;
+    if (_18.dot(front) > 0.0f) {
         getPlayer()->setFrontVecKeepUp(_18);
         changeAnimation("後方小ダメージ");
     } else {
-        getPlayer()->setFrontVecKeepUp(-_18);
+        TVec3f backwards(-_18);
+        getPlayer()->setFrontVecKeepUp(backwards);
         changeAnimation("前方小ダメージ");
     }
 
@@ -94,9 +96,7 @@ bool MarioFaint::start() {
 
     if (!mNoDamage) {
         mActor->decLife(0);
-        TVec3f reaction(_18);
-        reaction.scale(0.5f);
-        mActor->fn_803BE8D0(reaction);
+        mActor->fn_803BE8D0(_18 * 0.5f);
         mActor->fn_803B94E0();
 
         if (mActor->mHealth == 0) {

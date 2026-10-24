@@ -167,7 +167,7 @@ static OSShutdownFunctionInfo ShutdownFunctionInfo = {OnShutdown, 127};
 
 // NONMATCHING: explicit FALSE default adds one redundant zero load; target retains the incoming FALSE in r3.
 static BOOL OnShutdown(BOOL final, u32 event) {
-    BOOL retval = FALSE;
+    BOOL retval = final;
     static BOOL first = TRUE;
     static u32 count;
 

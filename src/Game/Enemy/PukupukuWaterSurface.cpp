@@ -425,10 +425,7 @@ s32 PukupukuWaterSurface::probeSurfaceBelow() {
     }
     TVec3f up(0.0f);
     MR::calcUpVec(&up, this);
-    TVec3f offset(up);
-    offset.scale(sWaterProbeTop);
-    TVec3f pos(mPosition);
-    pos.add(offset);
+    TVec3f pos(mPosition + up * sWaterProbeTop);
     TVec3f direction(up);
     direction.scale(-(sWaterProbeTop - sWaterProbeBottom));
     return MR::isFirstPolyOnLineToMapIce(&pos, &direction);

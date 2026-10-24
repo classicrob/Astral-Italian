@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Server's 23 Cappy cases, isolated behind the M1 native lock; trim each completed case."""
-import importlib.util,json,os,sys
+import argparse,importlib.util,json,os,sys
 from common import ROOT,REPO,native_lock,prep,disk,trim,sha,write
 p=REPO/'native/tests/cappy_spin_switch_tests.py'
 spec=importlib.util.spec_from_file_location('cappy_reference',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -16,8 +16,9 @@ def run(*args,**kwargs):
   shutil.rmtree(out/'user',ignore_errors=True)
   return result
 m.run=run
-app,meta=prep();out=ROOT/'runs'/(sys.argv[1] if len(sys.argv)>1 else 'cappy')
+parser=argparse.ArgumentParser();parser.add_argument('label',nargs='?',default='cappy');parser.add_argument('--only');args=parser.parse_args()
+app,meta=prep();out=ROOT/'runs'/args.label
 assert not out.exists(),out
-sys.argv=[str(p),'--app',str(app/'Contents/MacOS/Petari'),'--disc',str(m.Path.home()/'MacioGalaxy2-gamedata/SB4E01-extracted'),'--out',str(out)]
-disk();write(out/'launch-m1.json',{'app_sha256':meta['perf_exe_sha256'],'frozen_exe_sha256':meta['source_exe_sha256'],'nice':os.getpriority(os.PRIO_PROCESS,0),'reference_runner_sha256':sha(p),'input_driver':'PETARI_INPUT_SCRIPT'})
+sys.argv=[str(p),'--app',str(app/'Contents/MacOS/Petari'),'--disc',str(m.Path.home()/'MacioGalaxy2-gamedata/SB4E01-extracted'),'--out',str(out)]+(['--only',args.only] if args.only else [])
+disk();write(out/'launch-m1.json',{'app_sha256':meta['perf_exe_sha256'],'frozen_exe_sha256':meta['source_exe_sha256'],'nice':os.getpriority(os.PRIO_PROCESS,0),'selected_cases':args.only,'reference_runner_sha256':sha(p),'input_driver':'PETARI_INPUT_SCRIPT'})
 m.main()

@@ -1,3 +1,4 @@
+#include "test_crash.hpp"
 // The per-frame host seam (petari/app.hpp). Aurora and SDL side.
 
 #ifdef PETARI_EDITOR_UI
@@ -924,6 +925,7 @@ extern "C" void petari_host_frame_mark(int mark) {
 extern "C" uint64_t petari_gx_pipeline_skipped_draws();
 
 extern "C" void petari_host_frame_seam(void) {
+    TestCrash::frame();
     LaunchStage::testReturnToShipFrame();
     const std::uint64_t entry = Telemetry::nowNs();
     PetariNative::HostAllocationScope host;

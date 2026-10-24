@@ -34,6 +34,10 @@ if(NOT TARGET petari_native_config)
     endif()
 endif()
 
+# Release executables need DWARF for the separately retained dSYM, and frame
+# pointers for saved-context unwinding. This interface reaches game TUs too.
+target_compile_options(petari_native_config INTERFACE "$<$<CONFIG:Release>:-g>" -fno-omit-frame-pointer)
+
 find_package(Threads REQUIRED)
 
 # PetariNative::HostAllocationScope. The root build defines petari_host_runtime; a
@@ -81,6 +85,7 @@ add_library(petari_platform_os STATIC
     os/os_cache.cpp
     os/os_power.cpp
     os/os_crash.cpp
+    os/build_identity.cpp
     ${PETARI_SDK_OS_SOURCES})
 set_source_files_properties(${PETARI_SDK_OS_SOURCES} PROPERTIES
     LANGUAGE CXX
@@ -88,6 +93,7 @@ set_source_files_properties(${PETARI_SDK_OS_SOURCES} PROPERTIES
 target_include_directories(petari_platform_os PUBLIC include PRIVATE os)
 target_link_libraries(petari_platform_os PUBLIC petari_native_config petari_host_runtime Threads::Threads)
 target_compile_features(petari_platform_os PUBLIC cxx_std_17)
+target_link_libraries(petari_platform_os PUBLIC "-framework CoreFoundation")
 
 # NAND save storage (host IOS file system + port of the synchronous SDK NAND
 # library) and ES title identity. Replaces src/RVL_SDK/nand/*.c and the ES
@@ -147,6 +153,18 @@ add_executable(petari_dvd_smoke tools/dvd_smoke.cpp)
 target_link_libraries(petari_dvd_smoke PRIVATE petari_platform)
 
 if(BUILD_TESTING)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    add_executable(petari_crash_demo ${PETARI_REPO_ROOT}/native/tests/petari_crash_demo.cpp
+        ${PETARI_REPO_ROOT}/native/app/test_crash.cpp)
+    target_include_directories(petari_crash_demo PRIVATE ${PETARI_REPO_ROOT}/native/app)
+    target_compile_options(petari_crash_demo PRIVATE -g -fno-omit-frame-pointer)
+    target_link_libraries(petari_crash_demo PRIVATE petari_platform_os)
+    add_executable(petari_build_identity_tests ${PETARI_REPO_ROOT}/native/tests/build_identity_tests.cpp)
+    target_link_libraries(petari_build_identity_tests PRIVATE petari_platform_os)
+    target_compile_options(petari_build_identity_tests PRIVATE -UNDEBUG)
+    add_test(NAME native_build_identity COMMAND petari_build_identity_tests)
+    add_test(NAME native_symbolicate COMMAND "${Python3_EXECUTABLE}" -I
+        "${PETARI_REPO_ROOT}/native/tests/symbolicate_tests.py")
     add_executable(petari_virtual_async_tests ${PETARI_REPO_ROOT}/native/tests/virtual_async_tests.cpp)
     target_link_libraries(petari_virtual_async_tests PRIVATE petari_platform_os petari_platform_gx_sync)
     add_test(NAME native_virtual_async COMMAND petari_virtual_async_tests)

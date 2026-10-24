@@ -1,0 +1,19 @@
+==== Petari native crash report ====
+report version: 2
+app version: test-1
+source commit: test-source
+executable UUID: 12345678-1234-1234-1234-123456789ABC
+bundle executable UUID: 12345678-1234-1234-1234-123456789ABC
+macOS: 15.1 (24B83)
+model: MacBookAir10,1
+host thread: synthetic; thread id: 123; mach thread id: 456
+signal: SIGSEGV (11), code 1, fault address 0x0
+host arm64 registers (not PowerPC):
+  pc 0000000000000000  lr 0000000100001234  sp 0000000160000000  fp 0000000160000100
+host backtrace:
+#0 0x0  ??? +0x0
+#1 0x100001234  Petari +0x1234
+Binary Images:
+0x100000000 12345678-1234-1234-1234-123456789ABC /synthetic/Petari
+recent OSReport output:
+==== end of report ====

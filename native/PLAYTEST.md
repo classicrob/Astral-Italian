@@ -529,3 +529,59 @@ or grounded state), and the largest error. A replay that drifts is shown as drif
 
 The launcher keeps only the 20 newest session tapes in ~/MacioGalaxy2-play/tapes (about 150 MB an hour of play); older ones are removed
 when a new session starts. Copy a tape worth keeping (a star get, a bug) to ~/MacioGalaxy2-gamedata/rec-tapes first.
+
+## Crash reports and release verification
+
+The app writes `Crashes/petari-crash-<time>-<pid>.txt` under its user directory
+and prints the same report to stderr. Send it with **Collect Bug Report.command**
+(the bundle puts it in `crashes/`). Version 2 includes the running executable's
+LC_UUID, bundle version/source commit, the UUID recorded in Info.plist, macOS
+and hardware model, the crashed thread's name/ID and Mach thread ID,
+arm64 registers, up to 64 saved-context frames, image load addresses/UUIDs/paths,
+and the existing panic, OS thread, registered-handler and recent-output sections.
+Thread names and IDs come from kernel Mach thread queries; unnamed threads
+have an empty name. PC zero is retained and LR
+plus readable, aligned, increasing frame pointers recover null-call callers.
+A corrupt/unreadable frame ends the unwind. Image metadata is refreshed by dyld
+callbacks; the fixed snapshot holds 2048 image loads and says if it fills up.
+
+From the matching source checkout, run:
+
+```sh
+tools/release/symbolicate.sh /path/to/report.txt --dsym /path/to/Petari.app.dSYM
+# Also accepts macOS .ips, old .crash text, a directory of dSYMs, or a release .dSYM.zip.
+tools/release/symbolicate.sh /path/to/report.ips --dsym /path/to/releases --json
+```
+
+`--dsym` can be repeated; search then checks `~/MacioGalaxy2-team/releases/dsym`
+and Spotlight. UUIDs must match the running executable, including when a stale
+Info.plist says otherwise. Wrong dSYMs are refused. `--app PATH.app` helps find
+embedded library binaries. `atos -i` shows inline frames; unavailable system
+symbols retain their image and offset. The exit status is nonzero if executable
+frames cannot be resolved to source lines. JSON has `build`, `crash` (signal,
+fault_address), and `frames` (index, image, hex address/offset, symbol, file,
+integer-or-null line, inlined); inline entries repeat the physical index and mark inline functions with `inlined: true`.
+Diagnostics go to stderr, so stdout stays valid JSON.
+
+**Test-only deliberate crashes:** launch with `PETARI_TEST_CRASH=null-call`,
+`segv-write`, or `abort`. After three seconds from the first frame seam, the app
+crashes once through `testCrashOuter`, `testCrashMiddle`, and `testCrashLeaf` in
+`native/app/test_crash.cpp`. With the variable unset there is no test action.
+This works at both GX and headless frame seams; a normal headless run still
+requires the player's extracted disc and a valid input script. Keep the real
+Release app's dSYM and verify this path on that app before shipping.
+
+The synthetic standalone check requires no game data:
+
+```sh
+cmake -S native/platform -B build/crash -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/crash --target petari_crash_demo petari_build_identity_tests petari_platform_crash_tests -j6
+ctest --test-dir build/crash -R 'native_(build_identity|platform_crash|symbolicate)$' --output-on-failure
+python3 -I native/tests/crash_demo_receipt.py build/crash/petari_crash_demo /path/to/receipts
+```
+
+The demo uses the production handler/identity and the app's actual test chain.
+It runs all three signals, creates a dSYM with `dsymutil`, checks a synthetic
+.app's Info.plist, and asserts function names and source lines from both our
+report and a real macOS `.ips`. It copies its reports to receipts and removes
+only the `.ips` files it created from DiagnosticReports.

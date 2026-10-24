@@ -18,8 +18,8 @@
 //   host pointer would mislead.
 // The signal handler is async-signal-safe: it formats into a fixed buffer with
 // its own integer/hex/string appenders (no stdio, no locale, no malloc) and
-// writes with write(2). backtrace() is warmed up at install (its first call
-// loads the unwinder), and backtrace_symbols_fd() writes without allocating.
+// writes with write(2). Image metadata and build identity are cached before
+// faults; the saved context is unwound with bounded, checked memory reads.
 // A fault inside the handler itself does not recurse: it restores the default
 // action and terminates.
 
@@ -27,7 +27,11 @@
 #include <revolution/os.h>
 #include <revolution/os/OSError.h>
 
-#include <execinfo.h>
+#include <mach/mach.h>
+#include <mach/mach_vm.h>
+#include <mach-o/dyld.h>
+#include <mach-o/dyld_images.h>
+#include <ptrauth.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <signal.h>
@@ -43,6 +47,7 @@
 #include <mutex>
 
 #include "os_internal.hpp"
+#include "petari/platform/build_identity.hpp"
 #include "petari/host_allocation.hpp"
 #include "petari/platform/crash.hpp"
 
@@ -68,6 +73,64 @@ std::atomic<bool> gHavePanic{false};
 
 char gReportPath[1024];
 bool gInstalled;
+
+// dyld serializes callbacks. Publish immutable entries only after filling them;
+// removal merely clears a lock-free flag, so a signal never waits on dyld.
+struct Image {
+    uintptr_t base, textStart, textEnd;
+    char uuid[37];
+    char path[1024];
+    const char* name;
+    std::atomic<bool> active{false};
+};
+constexpr unsigned kMaxImages = 2048;
+Image gImages[kMaxImages];
+std::atomic<unsigned> gImageCount{0};
+static_assert(std::atomic<unsigned>::is_always_lock_free && std::atomic<bool>::is_always_lock_free);
+
+void snapshotImage(const mach_header* header, intptr_t slide, const char* path) {
+    if (header->magic != MH_MAGIC_64) return;
+    const unsigned index = gImageCount.fetch_add(1);
+    if (index >= kMaxImages) return;
+    auto& image = gImages[index];
+    image.base = reinterpret_cast<uintptr_t>(header);
+    image.textStart = image.textEnd = image.base;
+    const auto* h = reinterpret_cast<const mach_header_64*>(header);
+    const auto* command = reinterpret_cast<const load_command*>(h + 1);
+    for (uint32_t i = 0; i < h->ncmds; ++i) {
+        if (command->cmd == LC_SEGMENT_64) {
+            const auto* segment = reinterpret_cast<const segment_command_64*>(command);
+            if (segment->initprot & VM_PROT_EXECUTE) {
+                image.textStart = segment->vmaddr + slide;
+                image.textEnd = image.textStart + segment->vmsize;
+            }
+        }
+        command = reinterpret_cast<const load_command*>(reinterpret_cast<const char*>(command) + command->cmdsize);
+    }
+    PetariNative::Platform::BuildIdentity::imageUUID(header, image.uuid);
+    if (path) std::snprintf(image.path, sizeof(image.path), "%s", path);
+    const char* slash = std::strrchr(image.path, '/');
+    image.name = slash ? slash + 1 : image.path;
+    image.active.store(true, std::memory_order_release);
+}
+void addImage(const mach_header* header, intptr_t slide) {
+    const char* path = nullptr;
+    for (uint32_t i = 0; i < _dyld_image_count(); ++i) {
+        if (_dyld_get_image_header(i) == header) {
+            path = _dyld_get_image_name(i);
+            break;
+        }
+    }
+    snapshotImage(header, slide, path);
+}
+void removeImage(const mach_header* header, intptr_t) {
+    for (unsigned i = 0; i < std::min(gImageCount.load(), kMaxImages); ++i) {
+        if (gImages[i].active.load(std::memory_order_acquire) && gImages[i].base == reinterpret_cast<uintptr_t>(header)) gImages[i].active.store(false);
+    }
+}
+uintptr_t codeAddress(uintptr_t address) {
+    return reinterpret_cast<uintptr_t>(ptrauth_strip(reinterpret_cast<void*>(address), ptrauth_key_return_address));
+}
 
 const char* signalName(int sig) {
     switch (sig) {
@@ -152,7 +215,7 @@ public:
     }
 
 private:
-    char mBuffer[512];
+    char mBuffer[2048];
     size_t mLength = 0;
 };
 
@@ -160,6 +223,26 @@ void writeReport(int sig, siginfo_t* info, void* ucontextRaw) {
     const int fd = gReportPath[0] ? ::open(gReportPath, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644) : -1;
     Line line;
     line.str("==== Petari native crash report ====\n").emit(fd);
+    const auto& build = PetariNative::Platform::BuildIdentity::get();
+    line.str("report version: 2\n").emit(fd);
+    line.str("app version: ").str(build.appVersion).str("\n").emit(fd);
+    line.str("source commit: ").str(build.sourceCommit).str("\n").emit(fd);
+    line.str("executable UUID: ").str(build.executableUUID).str("\n").emit(fd);
+    line.str("bundle executable UUID: ").str(build.bundleExecutableUUID).str("\n").emit(fd);
+    line.str("macOS: ").str(build.macos).str("\n").emit(fd);
+    line.str("model: ").str(build.model).str("\n").emit(fd);
+    const mach_port_t threadPort = mach_thread_self();
+    thread_extended_info_data_t thread{};
+    mach_msg_type_number_t threadCount = THREAD_EXTENDED_INFO_COUNT;
+    thread_info(threadPort, THREAD_EXTENDED_INFO, reinterpret_cast<thread_info_t>(&thread), &threadCount);
+    thread.pth_name[sizeof(thread.pth_name) - 1] = 0;
+    thread_identifier_info_data_t identifier{};
+    threadCount = THREAD_IDENTIFIER_INFO_COUNT;
+    thread_info(threadPort, THREAD_IDENTIFIER_INFO, reinterpret_cast<thread_info_t>(&identifier), &threadCount);
+    // These Mach queries use fixed stack messages and kernel state, including
+    // on host threads that have never installed an alternate signal stack.
+    line.str("host thread: ").str(thread.pth_name).str("; thread id: ").dec(identifier.thread_id)
+        .str("; mach thread id: ").dec(threadPort).str("\n").emit(fd);
     line.str("signal: ").str(signalName(sig)).str(" (").dec(sig).str("), code ").dec(info ? info->si_code : 0).str(", fault address ")
         .ptr(info ? info->si_addr : nullptr).str("\n").emit(fd);
     if (gHavePanic.load()) {
@@ -194,12 +277,51 @@ void writeReport(int sig, siginfo_t* info, void* ucontextRaw) {
     }
 
     line.str("host backtrace:\n").emit(fd);
-    void* frames[64];
-    const int count = backtrace(frames, 64);
-    backtrace_symbols_fd(frames, count, STDERR_FILENO);
-    if (fd >= 0) {
-        backtrace_symbols_fd(frames, count, fd);
+    uintptr_t frames[64]{};
+    unsigned count = 0;
+    if (ucontextRaw) {
+        const auto& ss = static_cast<ucontext_t*>(ucontextRaw)->uc_mcontext->__ss;
+        frames[count++] = codeAddress(__darwin_arm_thread_state64_get_pc(ss));
+        const uintptr_t lr = codeAddress(__darwin_arm_thread_state64_get_lr(ss));
+        if (lr && lr != frames[0]) frames[count++] = lr;
+        uintptr_t fp = __darwin_arm_thread_state64_get_fp(ss);
+        const uintptr_t sp = __darwin_arm_thread_state64_get_sp(ss);
+        unsigned walked = 0;
+        while (count < 64 && walked++ < 64 && fp >= sp && fp && (fp & 15) == 0) {
+            uintptr_t pair[2]{};
+            mach_vm_size_t read = 0;
+            // Mach copies into our fixed buffer and returns an error for an
+            // unreadable frame (including guard pages). No direct dereference
+            // of a corrupt stack and no libc unwinder or allocator in a fault.
+            if (mach_vm_read_overwrite(mach_task_self(), fp, sizeof(pair),
+                    reinterpret_cast<mach_vm_address_t>(pair), &read) != KERN_SUCCESS || read != sizeof(pair)) break;
+            const uintptr_t address = codeAddress(pair[1]);
+            if (address && !(walked == 1 && address == frames[count - 1])) frames[count++] = address;
+            if (pair[0] <= fp) break;
+            fp = pair[0];
+        }
     }
+    const unsigned images = std::min(gImageCount.load(), kMaxImages);
+    for (unsigned f = 0; f < count; ++f) {
+        const Image* found = nullptr;
+        for (unsigned i = 0; i < images; ++i) {
+            const auto& image = gImages[i];
+            if (image.active.load(std::memory_order_acquire) && frames[f] >= image.textStart && frames[f] < image.textEnd) {
+                found = &image;
+                break;
+            }
+        }
+        line.str("#").dec(f).str(" 0x").hex(frames[f]).str("  ").str(found ? found->name : "???")
+            .str(" +0x").hex(found ? frames[f] - found->base : frames[f]).str("\n").emit(fd);
+    }
+    line.str("Binary Images:\n").emit(fd);
+    for (unsigned i = 0; i < images; ++i) {
+        const auto& image = gImages[i];
+        if (image.active.load(std::memory_order_acquire)) {
+            line.str("0x").hex(image.base).str(" ").str(image.uuid).str(" ").str(image.path).str("\n").emit(fd);
+        }
+    }
+    if (images == kMaxImages) line.str("(image snapshot capacity reached)\n").emit(fd);
 
     line.str("game error handlers (registered, not called: no PowerPC context natively):\n").emit(fd);
     bool any = false;
@@ -286,15 +408,34 @@ void install(const std::filesystem::path& reportDirectory) {
         std::snprintf(gReportPath, sizeof(gReportPath), "%s/petari-crash-%ld-%d.txt", reportDirectory.c_str(), static_cast<long>(std::time(nullptr)),
                       static_cast<int>(::getpid()));
     }
-    // backtrace()'s first call loads the unwinder (and may allocate): do it
-    // now, so the signal handler's call does not.
-    void* warm[4];
-    (void)backtrace(warm, 4);
+    PetariNative::Platform::BuildIdentity::initialize();
+    _dyld_register_func_for_add_image(addImage);
+    _dyld_register_func_for_remove_image(removeImage);
+    task_dyld_info_data_t dyldInfo{};
+    mach_msg_type_number_t dyldInfoCount = TASK_DYLD_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_DYLD_INFO, reinterpret_cast<task_info_t>(&dyldInfo), &dyldInfoCount) == KERN_SUCCESS) {
+        const auto* info = reinterpret_cast<const dyld_all_image_infos*>(dyldInfo.all_image_info_addr);
+        const auto* header = info->dyldImageLoadAddress;
+        if (header && header->magic == MH_MAGIC_64) {
+            const auto* h = reinterpret_cast<const mach_header_64*>(header);
+            const auto* command = reinterpret_cast<const load_command*>(h + 1);
+            for (uint32_t i = 0; i < h->ncmds; ++i) {
+                if (command->cmd == LC_SEGMENT_64) {
+                    const auto* segment = reinterpret_cast<const segment_command_64*>(command);
+                    if (std::strcmp(segment->segname, SEG_TEXT) == 0) {
+                        snapshotImage(header, reinterpret_cast<uintptr_t>(header) - segment->vmaddr, "/usr/lib/dyld");
+                        break;
+                    }
+                }
+                command = reinterpret_cast<const load_command*>(reinterpret_cast<const char*>(command) + command->cmdsize);
+            }
+        }
+    }
     // Faults caused by stack overflow need their own stack.
     installThread();
     struct sigaction action{};
     action.sa_sigaction = crashHandler;
-    action.sa_flags = SA_SIGINFO | SA_ONSTACK;
+    action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_NODEFER;
     sigemptyset(&action.sa_mask);
     for (int sig : {SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGTRAP, SIGABRT}) {
         sigaction(sig, &action, nullptr);

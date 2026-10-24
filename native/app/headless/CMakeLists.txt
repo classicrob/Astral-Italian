@@ -5,6 +5,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     include(CTest)
 endif()
+add_compile_options("$<$<CONFIG:Release>:-g>" -fno-omit-frame-pointer)
 get_filename_component(_headless_root "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
 find_package(Threads REQUIRED)
 find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
@@ -153,7 +154,7 @@ if(GALAXY_NATIVE_TRAP_UNDEFINED)
     message(WARNING "PLACEHOLDER(port): diagnostic headless link uses available objects; unresolved data/vtables are PROT_NONE guarded ranges, never usable values")
     return()
 endif()
-add_executable(petari_headless EXCLUDE_FROM_ALL main.cpp observe.cpp "${_headless_root}/native/app/milestone.cpp"
+add_executable(petari_headless EXCLUDE_FROM_ALL main.cpp observe.cpp "${_headless_root}/native/app/test_crash.cpp" "${_headless_root}/native/app/milestone.cpp"
     "${_headless_root}/native/app/actor_observe.cpp" "${_headless_root}/native/app/play_ready.cpp")
 target_compile_definitions(petari_headless PRIVATE PETARI_HEADLESS_SOURCE_ROOT="${_headless_root}")
 # Game classes are compiled without RTTI (petari_game_objects): TUs that emit vtables for them must not need their typeinfo.

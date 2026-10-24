@@ -21,6 +21,7 @@
 #include <string>
 
 #include "petari/platform/crash.hpp"
+#include "petari/platform/build_identity.hpp"
 
 extern "C" void __OSThreadInit(void);
 
@@ -168,7 +169,9 @@ void testCrashReports() {
     check(has(segvReport, "==== Petari native crash report ====") && (has(segvReport, "SIGSEGV") || has(segvReport, "SIGBUS")), "report names the signal");
     check(has(segvReport, "fault address 0x0"), "report has the fault address");
     check(has(segvReport, "host arm64 registers (not PowerPC)") && has(segvReport, "  pc ") && has(segvReport, "x28"), "host registers, labelled");
-    check(has(segvReport, "host backtrace:"), "host backtrace");
+    check(has(segvReport, "host backtrace:\n#0 0x"), "context backtrace has frames");
+    check(has(segvReport, "report version: 2") && has(segvReport, "executable UUID: ") &&
+          has(segvReport, "Binary Images:\n0x"), "versioned identity and images");
     check(has(segvReport, "OS thread: 0x"), "running OS thread");
     check(has(segvReport, "DSI -> 0x"), "registered game handler listed, not called");
     check(has(segvReport, "loading scene 7"), "recent OSReport output");
@@ -232,13 +235,41 @@ void testCrashReportsUnderHeldLocks() {
         }, nullptr);
         pthread_join(thread, nullptr);
     });
-    check(overflow != -1 && WIFSIGNALED(overflow) && has(overflowReport, "==== end of report ===="),
+    check(overflow != -1 && WIFSIGNALED(overflow) && has(overflowReport, "==== end of report ====") && has(overflowReport, "#63 "),
           "stack overflow on another thread: complete report, no re-fault");
+    auto [unregistered, unregisteredReport] = crashInChildWithin(dir, 10, [] {
+        pthread_t thread;
+        pthread_create(&thread, nullptr, [](void*) -> void* {
+            pthread_setname_np("Unregistered crash test");
+            malloc_zone_t* zone = malloc_default_zone();
+            zone->introspect->force_lock(zone);
+            volatile int* null = nullptr;
+            *null = 3;
+            return nullptr;
+        }, nullptr);
+        pthread_join(thread, nullptr);
+    });
+    check(unregistered != -1 && WIFSIGNALED(unregistered) &&
+          has(unregisteredReport, "host thread: Unregistered crash test;") && has(unregisteredReport, "==== end of report ===="),
+          "new host thread with malloc locked: named, complete report without allocation");
+
+    auto [nested, nestedReport] = crashInChildWithin(dir, 10, [] {
+        struct sigaction action{};
+        sigaction(SIGSEGV, nullptr, &action);
+        // Deliberately break the handler's saved-context input. The resulting
+        // synchronous fault must enter the recursion guard and terminate.
+        action.sa_sigaction(SIGSEGV, nullptr, reinterpret_cast<void*>(1));
+    });
+    check(nested != -1 && WIFSIGNALED(nested) && WTERMSIG(nested) == SIGSEGV &&
+          has(nestedReport, "report version: 2"), "fault inside the handler terminates without recursion");
     fs::remove_all(dir);
 }
 }  // namespace
 
 int main() {
+    // CoreFoundation must initialize before the scheduler starts threads and
+    // these tests fork children. The children share the executable identity.
+    PetariNative::Platform::BuildIdentity::initialize();
     __OSThreadInit();
     testRegistryAndContexts();
     testCrashReports();

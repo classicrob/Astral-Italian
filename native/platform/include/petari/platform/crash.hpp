@@ -9,7 +9,8 @@
 // host state:
 // - signal, code, and fault address;
 // - arm64 registers (x0-x28, fp, lr, sp, pc), labelled as host registers;
-// - a host backtrace;
+// - a saved-context frame-pointer backtrace and UUID/load-address image list;
+// - the cached app/build/OS/hardware identity and crashed host thread identity;
 // - the running OS thread and whether the fault was in interrupt context;
 // - the last OSPanic/OSFatal message and recent OSReport lines;
 // - the game error handlers registered with OSSetErrorHandler.

@@ -92,7 +92,7 @@ instead of waiting for a reply. The demo requires `ASTRAL_SUPPORT_DIR`.
 | `C/pipeline_cache.<renderer-key>.db`, `C/dawn_cache.<renderer-key>.db`; SQLite `-wal`, `-shm`, `-journal` and adoption `.partial` siblings | Pipeline configurations and Dawn compiled data. Exactly one matching `petari_cache_build` identity is mandatory; only empty newly created databases can acquire it at runtime. Normal/background adoption copies only matching named and tagged `U` databases. Legacy `pipeline_cache.db` / `dawn_cache.db`, foreign keys and untagged databases are ignored and left untouched, even if renamed. | Root selection/locks unchanged; namespace shared only by identical renderer keys. `native/gx/pipeline_cache_identity.{hpp,py}`, `patch_aurora_cache_policy.py`; `pipeline_cache_dir.cpp`, `smoke_storage.cpp`; Aurora pipeline/Dawn cache call sites patched by commit `1b122ce4`. |
 | `C/imgui.log` | ImGui's configured debug log destination, when logging is requested. | Same sharing as cache; pinned Aurora `lib/imgui.cpp`. |
 | `~/Library/Caches/AstralItalian/.petari-instance.lock` | Machine graphics-cache flock file; file may remain after process exit. | Machine shared; `pipeline_cache_dir.cpp`. Override/test paths bypass this particular lock. Do not infer a live owner from file existence. |
-| `U/Crashes/petari-crash-<time>-<pid>.txt` | Native fatal/signal report. | Per `U`; `platform_host.cpp`; `native/platform/os/os_crash.cpp`. |
+| `U/Crashes/petari-crash-<time>-<pid>.txt` | Native fatal/signal report. | Per `U`; `platform_host.cpp` and the headless harness; `native/platform/os/os_crash.cpp`. |
 | `U/Crashes/petari-hang-<pid>.sample.txt` | Watchdog's optional `/usr/bin/sample` output (`PETARI_HANG_SAMPLE`). Without a supplied hang directory the helper can use `TMPDIR` or `/tmp`. | Per invocation; `native/app/smoke.cpp`, `sampleProcess`/hang watchdog. |
 | `~/Library/Application Support/Astral Italian/logs/astral-<YYYYmmdd-HHMMSS>[-pid].log` / inherited stdout and stderr | Direct app launch redirects both only when they are closed or `/dev/null` (Finder); terminal, pipe and file redirection are preserved. Keeps the 20 newest app logs. | `native/app/app_locations.cpp`, `redirectAppLog`; player launcher redirects both below. Sanitizer runtime env such as `ASAN_OPTIONS=log_path=...` can independently redirect its own reports. |
 
@@ -131,6 +131,7 @@ String-valued trace switches that only print to stderr do not add destinations.
 | Aurora texture-dump configuration | `C/texture_dumps/<texture-key>.dds` | Pinned Aurora `lib/gfx/texture_replacement.cpp`; only if `allowTextureDumps` enabled (zero-initialized/off in app config). Replacement-directory API may create its caller-selected root. |
 
 Headless developer runs (`native/app/headless/main.cpp`, `native/tools/headless.py`)
+also install the native crash handler in `U/Crashes` (the report family above), and
 write the caller's trace, `.timing.csv`, `.sync.json`, `.complete`,
 `.manifest.json`, temporary sibling `smg2-kpad-*/inputs.kpd` tape, user NAND/settings, and launcher logs.
 The freeze includes `--actor-trace`: when enabled it adds `.actors.csv`,

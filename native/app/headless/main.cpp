@@ -1,3 +1,5 @@
+#include "../test_crash.hpp"
+#include <petari/platform/crash.hpp>
 #include "replay.hpp"
 #include "keyboard.hpp"
 #include <petari/mods.hpp>
@@ -72,6 +74,7 @@ public:
     }
     std::uint64_t tapeFrame() const { return !mReplay || mReplay->waitingForSync() ? UINT64_MAX : mReplay->frame(); }
     void frame() {
+        PetariNative::App::TestCrash::frame();
         if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("frame seam ran on an unexpected thread");
         L::testReturnToShipFrame();
         PetariNative::HostAllocationScope host;
@@ -351,6 +354,8 @@ int main(int argc,char** argv) {
         if (!existingUnlockedUser && std::filesystem::exists(user) && !std::filesystem::is_empty(user))
             throw H::ReplayError("--user must be a fresh isolated directory");
         std::filesystem::create_directories(user);
+        std::filesystem::create_directories(user / "Crashes");
+        P::Crash::install(user / "Crashes");
         std::unique_ptr<H::Replay> replay;
         std::unique_ptr<H::KeyboardScript> keyboard;
         if (args.count("--inputs")) {

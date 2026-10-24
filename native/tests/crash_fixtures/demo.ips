@@ -1,0 +1,117 @@
+{"bug_type":"309"}
+{
+  "procName": "petari_crash_demo",
+  "osVersion": {
+    "train": "macOS 15.1",
+    "build": "24B5070a",
+    "releaseType": "User"
+  },
+  "modelCode": "MacBookPro18,2",
+  "exception": {
+    "codes": "0x0000000000000001, 0x0000000000000000",
+    "rawCodes": [
+      1,
+      0
+    ],
+    "type": "EXC_BAD_ACCESS",
+    "signal": "SIGSEGV",
+    "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000000"
+  },
+  "faultingThread": 0,
+  "usedImages": [
+    {
+      "source": "P",
+      "arch": "arm64",
+      "base": 4345184256,
+      "size": 327680,
+      "uuid": "afb44a66-95fc-3a3d-ad59-28f040b418d4",
+      "path": "/synthetic/petari_crash_demo",
+      "name": "petari_crash_demo"
+    },
+    {
+      "source": "P",
+      "arch": "arm64e",
+      "base": 6443491328,
+      "size": 534456,
+      "uuid": "30a1d1f9-6c45-33af-99f5-6899bded46ab",
+      "path": "/usr/lib/dyld",
+      "name": "dyld"
+    },
+    {
+      "size": 0,
+      "source": "A",
+      "base": 0,
+      "uuid": "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "source": "P",
+      "arch": "arm64e",
+      "base": 6447398912,
+      "size": 32740,
+      "uuid": "c1180d17-c7f2-3c23-8b5c-4c218cf5d66c",
+      "path": "/usr/lib/system/libsystem_platform.dylib",
+      "name": "libsystem_platform.dylib"
+    }
+  ],
+  "threads": [
+    {
+      "triggered": true,
+      "frames": [
+        {
+          "imageOffset": 26616,
+          "sourceLine": 19,
+          "sourceFile": "test_crash.cpp",
+          "symbol": "PetariNative::App::TestCrash::(anonymous namespace)::testCrashLeaf(char const*)",
+          "imageIndex": 0,
+          "symbolLocation": 108
+        },
+        {
+          "imageOffset": 26496,
+          "sourceLine": 25,
+          "sourceFile": "test_crash.cpp",
+          "symbol": "PetariNative::App::TestCrash::(anonymous namespace)::testCrashMiddle(char const*)",
+          "imageIndex": 0,
+          "symbolLocation": 24
+        },
+        {
+          "imageOffset": 25652,
+          "sourceLine": 28,
+          "sourceFile": "test_crash.cpp",
+          "symbol": "PetariNative::App::TestCrash::(anonymous namespace)::testCrashOuter(char const*)",
+          "imageIndex": 0,
+          "symbolLocation": 24
+        },
+        {
+          "imageOffset": 25616,
+          "sourceLine": 32,
+          "sourceFile": "test_crash.cpp",
+          "symbol": "PetariNative::App::TestCrash::trigger(char const*)",
+          "imageIndex": 0,
+          "symbolLocation": 24
+        },
+        {
+          "imageOffset": 26256,
+          "sourceLine": 46,
+          "sourceFile": "test_crash.cpp",
+          "symbol": "PetariNative::App::TestCrash::frame()",
+          "imageIndex": 0,
+          "symbolLocation": 592
+        },
+        {
+          "imageOffset": 18168,
+          "sourceLine": 26,
+          "sourceFile": "petari_crash_demo.cpp",
+          "symbol": "main",
+          "imageIndex": 0,
+          "symbolLocation": 364
+        },
+        {
+          "imageOffset": 25204,
+          "symbol": "start",
+          "symbolLocation": 2840,
+          "imageIndex": 1
+        }
+      ]
+    }
+  ]
+}

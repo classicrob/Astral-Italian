@@ -28,6 +28,10 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     include(CTest)
 endif()
 
+# Host-only app units deliberately do not inherit the SDK configuration, but
+# their Release builds still need source lines and frame pointers for reports.
+add_compile_options("$<$<CONFIG:Release>:-g>" -fno-omit-frame-pointer)
+
 get_filename_component(PETARI_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
 
 add_library(petari_app_locations STATIC app_locations.cpp)
@@ -85,7 +89,7 @@ if(NOT _petari_app_standalone)
         petari_headless_core)  # tape replay (tape_play.cpp) feeds the recorded KPAD reads through the headless Replay
     target_include_directories(petari_app_platform PRIVATE ${PETARI_REPO_ROOT}/native/input/include)  # petari/kpad_replay.hpp
 
-    add_library(petari_app_host STATIC frame_seam.cpp frame_stats.cpp spike_profiler.cpp input_events.cpp pipeline_startup.cpp display_window.cpp)
+    add_library(petari_app_host STATIC frame_seam.cpp test_crash.cpp frame_stats.cpp spike_profiler.cpp input_events.cpp pipeline_startup.cpp display_window.cpp)
     # The donor cutscene-skip feature is deferred in SMG2. Keep the frame seam
     # buildable until the game's feature header and implementation are ported.
     if(EXISTS "${PETARI_REPO_ROOT}/include/Game/System/CutsceneSkip.hpp")
@@ -227,7 +231,7 @@ if(BUILD_TESTING)
     target_link_libraries(petari_app_smoke_domes_tests PRIVATE petari_app_smoke)
     add_test(NAME native_app_smoke_domes COMMAND petari_app_smoke_domes_tests)
     # The seam against recording fakes of Aurora, SDL and the app's other units.
-    add_executable(petari_app_seam_tests ${PETARI_REPO_ROOT}/native/tests/app_seam_tests.cpp frame_seam.cpp frame_stats.cpp spike_profiler.cpp)
+    add_executable(petari_app_seam_tests ${PETARI_REPO_ROOT}/native/tests/app_seam_tests.cpp frame_seam.cpp test_crash.cpp frame_stats.cpp spike_profiler.cpp)
     target_link_libraries(petari_app_seam_tests PRIVATE petari_app_smoke)
     target_compile_definitions(petari_app_seam_tests PRIVATE PETARI_HAS_CUTSCENE_SKIP=1)
     target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_REPO_ROOT}/native/include ${PETARI_REPO_ROOT}/native/home_menu/include)

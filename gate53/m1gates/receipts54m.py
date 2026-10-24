@@ -52,6 +52,7 @@ def summary(g):
  if name=='seed-pack':return '64 DBs; selected source resources identical; SQLite integrity checked'
  if name=='gx-fresh-warm':return str(d['passing'])+'/'+str(d['cases'])+'; failed: '+', '.join(d['failed_checks'])
  if name in ('normal-route-grandmap','normal-boot-ui'):return d.get('reason','Unavailable')
+ if name=='full-star-flipswap':return str(d['acceptance_runs'])+' strict full-star replays; star 0 to 1; all four state/RNG checkpoints per run'
  if name=='intro-skip':return ('; '.join(r['arm']+': '+str(r.get('frames_from_stage_to_play'))+' frames to play' for r in d['runs']) if d.get('build_kind')=='server-candidate' else '; '.join(d.get('no_press_play_ready',[]))+'; skip arm unavailable without host input')
  if name=='flipswap-cappy':return str(d['passing'])+'/23; failed: '+', '.join(d.get('failed_cases',[]))
  if name=='v2-cold-stall':
@@ -72,7 +73,7 @@ def main():
    detail=fn();ok=detail.pop('passed') is True
   except Exception as e:ok=False;detail={'error':repr(e)}
   tier=is_tier_gate(name,candidate_mode)
-  record={'gate':name,'passed':ok,'classification':'tier' if tier else 'functional','status':('TIER ' if tier else 'PASS ' if ok else 'FAIL ')+status,'required_for_functional_acceptance':not tier,'measurement_verified':'error' not in detail,'receipt':str(paths[0]),'limits':list(limits),'nice':m['nice'],'build_kind':'server-candidate' if candidate_mode else 'frozen54','source':frozen['source'],'source_exe_sha256':frozen['binary_sha256'],'perf_exe_sha256':detail.get('normal_perf_sha256',expected),'evidence_sha256':{str(q):sha(q) for q in paths if q.is_file()},'details':detail}
+  record={'gate':name,'passed':ok,'classification':'tier' if tier else 'functional','status':('TIER ' if tier else 'PASS ' if ok else 'FAIL ')+status,'required_for_functional_acceptance':not tier,'measurement_verified':'error' not in detail,'receipt':str(paths[0]),'limits':list(limits),'nice':m['nice'],'build_kind':'server-candidate' if candidate_mode else 'frozen54','source':frozen['source'],'source_exe_sha256':frozen['binary_sha256'],'perf_exe_sha256':detail.get('normal_perf_sha256',detail.get('full_star_perf_sha256',expected)),'evidence_sha256':{str(q):sha(q) for q in paths if q.is_file()},'details':detail}
   if not candidate_mode:record.update(frozen_source=frozen['source'],frozen_exe_sha256=frozen['binary_sha256'])
   else:record.update(frozen54_acceptance=False,tier_authority=m['tier_authority'] if tier else None)
   gates.append(record)
@@ -118,6 +119,11 @@ def main():
   def bootcheck():
    result=normalcheck();boot=readj(base/'candidate-normal-boot-ui.json');assert boot=={**result,'gate':'normal-boot-ui','frozen54_acceptance':False};return result
   gate('normal-boot-ui',[base/'candidate-normal-boot-ui.json'],bootcheck,'ordinary title/FileSelect prefix from canonical normal tape')
+  if m.get('full_star_results') or m.get('require_bounded_identity'):
+   def fullstarcheck():
+    from candidate_evidence54m import full_star_evidence
+    value=full_star_evidence(m['full_star_results'],meta['candidate_directory']);assert value==readj(base/'full-star-status.json');return value
+   gate('full-star-flipswap',[base/'full-star-status.json']+[Path(q) for q in m.get('full_star_results') or []],fullstarcheck,'three complete Flip-Swap Star sessions from fresh private users',('Each original tape_prefix retains the native min(declared seams, complete CSV rows) accounting; no input tape mutation.',))
  else:gate('normal-route-grandmap',[tape],lambda:{'passed':False,**readj(tape)},'whole normal route on frozen54',('Candidate tape runs are separate and cannot prove frozen54 whole-session replay.',))
  intro=runpath('intro')/'RESULT.json'
  def introcheck():
@@ -209,9 +215,11 @@ def main():
    assert readj(before)==readj(after)==protected_inputs(meta['candidate_directory'])
   except Exception as e:identity=False;issues.append('protected inputs: '+repr(e))
  if not identity:issues.append('selected build identity/priority')
- validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
+ interrupted=readj(base/'INTERRUPTED.json') if (base/'INTERRUPTED.json').is_file() else None
+ validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','campaign_interruption':interrupted,'frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
  write(base/'VALIDATION.json',validation)
  lines=[('M1 server candidate '+frozen['source'] if candidate_mode else 'M1 frozen 5.4')+' versus server (actual evidence; nice 0 on M1)','',f"Source exe {frozen['binary_sha256']}; re-signed perfm1a exe {expected}.",'M1 Max / macOS 15.1 / built-in 120 Hz ProMotion. Panel cadence is recorded per run.','Server promotion/normal/intro/Cappy used nice 19; PORT approved nice 0 on M1 because the shared harness is load-sensitive.','', '| Gate | Server | M1 | Comparison |','| --- | --- | --- | --- |']
+ if interrupted:lines[0:0]=['Superseded partial campaign: '+interrupted['authority']+'. Remaining measurements were not run; see INTERRUPTED.json.','']
  for g in gates:
   detail=summary(g)
   lines.append('| '+g['gate']+' | '+SERVER.get(g['gate'],'Derived functional check')+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('Preserved older-source comparison' if g['classification']=='source-comparison' else 'M1 tier observation' if g['classification']=='tier' else 'Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')

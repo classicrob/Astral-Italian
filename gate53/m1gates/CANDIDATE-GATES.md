@@ -31,6 +31,16 @@ UI's title/FileSelect prefix. Intro twins use their original direct launch stage
 All tape adapters retain interactive-and-play-ready-v1, exact play-ready state,
 RNG read-back, and actual game pointer buffer comparisons.
 
+New candidate campaigns also require `--full-star-results R1 R2 R3`, supplying
+SOL B's three actual `full_star_tape_gate.py` receipts on that same candidate.
+The separate functional `full-star-flipswap` row revalidates each retained
+route CSV, complete actual recorder sidecar, native replay and original tape.
+It requires the zero-to-one star event at recorded row8426 and all four ordered
+state/RNG checkpoints (1255,4222,5464,10750), including naturally evolved RNG
+at both in-scene resumes. Command metadata must show a fresh empty private user
+and the original direct RedBlueExGalaxy scenario1 launch. The original tape's
+declared/available prefix accounting remains explicit; no tape data is changed.
+
 `receipts54m.py` requires platform, seed pack, all fifteen promotion cases, normal
 route, normal-boot UI, intro twins, Cappy23, image comparison, warm pairs, audio,
 Wii source lineage, and input latency. The original 27 presses/two-frames-after-read

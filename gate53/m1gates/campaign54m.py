@@ -7,21 +7,24 @@ from common import *
 STAGES=('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy')
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');p.add_argument('--pointer-tape',type=Path,default=ROOT/'tapes/tape-worldmap-54');p.add_argument('--wii-proof-log',type=Path);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');p.add_argument('--pointer-tape',type=Path,default=ROOT/'tapes/tape-worldmap-54');p.add_argument('--wii-proof-log',type=Path);p.add_argument('--full-star-results',type=Path,nargs=3);a=p.parse_args()
  assert re.fullmatch(r'[A-Za-z0-9_-]+',a.label),'safe unique label required'
  assert os.getpriority(os.PRIO_PROCESS,0)==0,'run campaign at nice 0'
  candidate_mode=a.server_candidate_dir is not None
  assert not a.require_bounded_identity or candidate_mode
  assert not a.wii_proof_log or candidate_mode
+ assert not a.full_star_results or candidate_mode
  if candidate_mode:assert not any((a.candidate_app,a.candidate_sha,a.candidate_source,a.candidate_original_app,a.candidate_original_sha,a.tape_result)),'do not mix legacy tape-only selectors with a full candidate campaign'
  if candidate_mode:
-  from candidate_evidence54m import normal_evidence,combine_promotion
+  from candidate_evidence54m import normal_evidence,combine_promotion,full_star_evidence
   assert a.normal_results,'candidate campaign requires all three completed SOL B normal acceptance receipts'
   normal=normal_evidence(a.normal_results,a.server_candidate_dir,a.require_bounded_identity)
+  assert not a.require_bounded_identity or a.full_star_results,'new candidate requires three full-star acceptance receipts'
+  full_star=full_star_evidence(a.full_star_results,a.server_candidate_dir) if a.full_star_results else None
  app,meta=campaign_build(a.server_candidate_dir)
  base=ROOT/'campaigns'/a.label;base.mkdir(parents=True,exist_ok=False)
  manifest={'schema':1,'label':a.label,'host':platform.node(),'platform':platform.platform(),'nice':0,'build_kind':'server-candidate' if candidate_mode else 'frozen54','priority_reason':'Normal priority approved by PORT; server promotion/normal/intro/Cappy ran nice 19, a documented load-sensitive harness difference.',('candidate_build' if candidate_mode else 'frozen'):{k:v for k,v in meta.items() if k!='resource_tree'},'steps':[],'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'reference_root':str(HOME/'MacioGalaxy2-team/scratch-port/gate53/m1gates/srv-ref')}
- if candidate_mode:manifest.update(app=str(app),normal_results=[str(q.resolve()) for q in a.normal_results],require_bounded_identity=a.require_bounded_identity,pointer_tape=str(a.pointer_tape.resolve()),tier_authority='PORT/head final candidate ruling: cold stall and Fifo cadence are M1 TIER rows; all functional gates required')
+ if candidate_mode:manifest.update(app=str(app),normal_results=[str(q.resolve()) for q in a.normal_results],require_bounded_identity=a.require_bounded_identity,pointer_tape=str(a.pointer_tape.resolve()),full_star_results=[str(q.resolve()) for q in a.full_star_results] if a.full_star_results else None,tier_authority='PORT/head final candidate ruling: cold stall and Fifo cadence are M1 TIER rows; all functional gates required')
  write(base/'MANIFEST.json',manifest)
  if candidate_mode:
   from promotion54m import prepare_m1_fixture
@@ -103,6 +106,7 @@ def main():
    elif gate=='tape':
     if candidate_mode:
      write(base/'tape-status.json',normal)
+     if full_star:write(base/'full-star-status.json',full_star)
      write(base/'candidate-normal-boot-ui.json',{**normal,'gate':'normal-boot-ui','frozen54_acceptance':False})
      command('candidate-pointer',[sys.executable,'-B',HERE/'replay_cases54m.py','pointer',a.label+'-pointer','--app',meta['source_app'],'--sha',meta['source_exe_sha256'],'--source',meta['source'],'--tape',a.pointer_tape,'--allow-incomplete']+(['--require-bounded-identity'] if a.require_bounded_identity else []))
      continue

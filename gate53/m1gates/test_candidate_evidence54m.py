@@ -19,7 +19,7 @@ class CandidateEvidence(unittest.TestCase):
   for n in range(3):
    path=root/f'normal-r{n}/RESULT.json';command={'command':[str(exe)],'binary_sha256':sha(exe)};write(path.parent/'command.json',command)
    write(path.parent/'replay/divergence.json',{'mode':'whole-session','finished':True,'stopped':'','anchor_policy':'interactive-and-play-ready-v1','segments':[{'stage':'FileSelect','started':True,'completed':True,'diverged':False,'play_ready_required':False,'rows_compared':2,'tape_frames':1}]})
-   write(path,{'build_kind':'server-candidate','binary_sha256':sha(exe),'passed':True,'acceptance_passed':True,'checks':dict.fromkeys(ce.NORMAL_CHECKS,True),'priority':{'nice':0},'host_input_used':False,'anchor_policy':{'id':'interactive-and-play-ready-v1'},'scene_anchors':[{'stage':''},{'stage':'FileSelect'}]});paths.append(path)
+   write(path,{'build_kind':'server-candidate','source':'server candidate cccccccc','binary_sha256':sha(exe),'passed':True,'acceptance_passed':True,'checks':dict.fromkeys(ce.NORMAL_CHECKS,True),'priority':{'nice':0},'host_input_used':False,'anchor_policy':{'id':'interactive-and-play-ready-v1'},'scene_anchors':[{'stage':''},{'stage':'FileSelect'}]});paths.append(path)
   return directory,paths,app.parent/'PREP.json'
  def test_normal_joins_three_real_identity_records(self):
   with tempfile.TemporaryDirectory() as raw,patch.object(ce,'ROOT',Path(raw).resolve()):
@@ -33,12 +33,38 @@ class CandidateEvidence(unittest.TestCase):
    write(prep_path,original);d=json.loads(paths[0].read_text());del d['checks']['play_ready_state_checks'];write(paths[0],d)
    with self.assertRaises(AssertionError):ce.normal_evidence(paths,directory)
  def test_failed_functional_or_missing_tier_measurement_refuses(self):
-  for name in ('flipswap-cappy','intro-skip','gx-fresh-warm','input-latency','normal-route-grandmap','wii-proof'):
+  for name in ('flipswap-cappy','intro-skip','gx-fresh-warm','input-latency','normal-route-grandmap','full-star-flipswap','wii-proof'):
    self.assertTrue(requires_refusal(name,False,True,True),name)
   for name in ('v2-cold-stall','fifo-default-cadence-latency'):
    self.assertFalse(requires_refusal(name,False,True,True),name)
    self.assertTrue(requires_refusal(name,False,False,True),name)
    self.assertTrue(requires_refusal(name,False,True,False),name)
+ def test_full_star_contract_rejects_missing_resume_and_extra_restore(self):
+  with tempfile.TemporaryDirectory() as raw,patch.object(ce,'ROOT',Path(raw).resolve()):
+   root=Path(raw).resolve();directory,paths,_=self.normal_fixture(root)
+   tape=root/'tapes/tape-user-flipswap-fullstar-541';write(tape/'route.tape.json',{'seams':10866});(tape/'route.csv').write_text('frame\n0\n')
+   points=[{'recorded':{'stage':stage,'row':row},'passed':True,'position_bit_exact':True,'rng':{'verified':True,'recorded':123,'readback':123,'restored_at_this_checkpoint':restore}} for stage,row,restore in (('RedBlueExGalaxy',1255,True),('RedBlueExGalaxy',4222,False),('RedBlueExGalaxy',5464,False),('MarioFaceShipGalaxy',10750,True))]
+   event={'row':8426,'stage':'RedBlueExGalaxy','scenario':1,'previous':0,'power_stars':1}
+   proof={'recorded_star_event':event,'star_event':event,'star_anchor_offset':0,'scene_chain':['FileSelect','RedBlueExGalaxy','MarioFaceShipGalaxy'],'recorded_scene_chain':['FileSelect','RedBlueExGalaxy','MarioFaceShipGalaxy'],'recorded_play_ready_count':4,'actual_play_ready_count':4,'all_play_ready_checkpoints':points,'tape_prefix':{'declared_seams':10866,'available_complete_csv_rows':10860}}
+   for path in paths:
+    native=json.loads((path.parent/'replay/divergence.json').read_text());native['interactive_position_bit_exact']=True
+    native['segments'][0].update(identity_rows_skipped=0,pointer_rows_compared=1,identity_recorded_frame=0,identity_replay_frame=0,identity_expected_replay_frame=0,identity_frame_offset=0,identity_offset_limit=30,identity_offset_checked=True,identity_offset_passed=True,max_position_error=0)
+    write(path.parent/'replay/divergence.json',native);write(path.parent/'route.tape.json',{'complete':True});(path.parent/'route.csv').write_text('frame\n0\n');(path.parent/'app.log').write_text('unit fixture')
+    command=json.loads((path.parent/'command.json').read_text());command['command']+=['--replay-tape',str(tape),'--stage','RedBlueExGalaxy','--scenario','1'];command.update(save_seed=None,save_before={},environment={'PETARI_ROUTE_RECORD':str(path.parent/'route.csv')});write(path.parent/'command.json',command)
+    d=json.loads(path.read_text());d.update(gate='full_star_tape_gate',save_mode='fresh private empty user',launch_stage='RedBlueExGalaxy',launch_scenario=1,tape=str(tape),replay=native,checks=dict.fromkeys(ce.FULL_STAR_CHECKS,True),**proof);write(path,d)
+   checks=dict.fromkeys(ce.FULL_STAR_CHECKS,True)
+   with patch('full_star_tape_gate.evaluate',return_value=(checks,proof)):
+    self.assertTrue(ce.full_star_evidence(paths,directory)['passed'])
+    bad=copy.deepcopy(proof);bad['all_play_ready_checkpoints'][1]['rng']['restored_at_this_checkpoint']=True
+    for path in paths:
+     d=json.loads(path.read_text());d.update(bad);write(path,d)
+    with patch('full_star_tape_gate.evaluate',return_value=(checks,bad)):
+     with self.assertRaises(AssertionError):ce.full_star_evidence(paths,directory)
+    bad=copy.deepcopy(proof);bad['all_play_ready_checkpoints']=bad['all_play_ready_checkpoints'][:3];bad['actual_play_ready_count']=3
+    for path in paths:
+     d=json.loads(path.read_text());d.update(bad);write(path,d)
+    with patch('full_star_tape_gate.evaluate',return_value=(checks,bad)):
+     with self.assertRaises(AssertionError):ce.full_star_evidence(paths,directory)
  def test_promotion_join_retains_failed_pointer_verdict(self):
   with tempfile.TemporaryDirectory() as raw:
    root=Path(raw);meta={'source':'c'*40,'perf_exe_sha256':'a'*64,'source_exe_sha256':'b'*64,'renderer_key':'d'*64}

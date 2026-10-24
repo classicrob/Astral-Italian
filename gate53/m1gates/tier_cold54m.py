@@ -30,9 +30,12 @@ def analyze(out):
     if (item['coverage'] or {}).get('covered')=='1':item['fallback_inference']='Covered config waited for a specialized pipeline: the ready-fallback fast path did not resolve this draw. Exact preparation status at request is not logged.'
     else:item['fallback_inference']='No matched covered config; do not infer fallback readiness.'
     near.append(item)
-  dominant=max(lanes,key=lanes.get);fraction=lanes[dominant]/float(row['interval_ms'])
+  interval=float(row['interval_ms']);largest=max(lanes,key=lanes.get)
+  # Prefer the instrumented cause inside a containing seam/game-thread wait.
+  fine=('pipeline_wait_ms','stage_prep_wait_ms','token_barrier_wait_ms','efb_capture_max_ms','efb_staging_wait_ms','efb_submit_wait_ms','texture_hash_ms','texture_upload_ms','frame_submit_ms','drawable_acquire_ms','present_call_ms')
+  dominant=next((k for k in fine if lanes[k]>=.5*interval),largest);fraction=lanes[dominant]/interval
   exact_context=[w for w in fallback_waits if where and 0<where-w['line']<=40]
-  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':float(row['interval_ms']),'attribution':dominant if fraction>=.5 else 'unattributed_or_uninstrumented','largest_measured_lane':dominant,'largest_lane_fraction':fraction,'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'fallback_readiness_in_preceding_40_log_lines':exact_context,'raw_frame':row})
+  selected.append({'frame':int(row['frame']),'phase':row['phase'],'interval_ms':interval,'attribution':dominant if fraction>=.5 else 'unattributed_or_uninstrumented','attribution_lane_fraction':fraction,'largest_measured_lane':largest,'largest_lane_fraction':lanes[largest]/interval,'lanes_ms':lanes,'blocking_resolves_in_preceding_40_log_lines':near,'fallback_readiness_in_preceding_40_log_lines':exact_context,'raw_frame':row})
  return {'stall_frames_over100':selected,'gameplay_over100':sum(r['phase']=='gameplay' for r in selected),'max_gameplay_ms':max((float(r['interval_ms']) for r in frames if r['phase']=='gameplay'),default=None),
   'worker_policy_lines':[l for l in lines if l.startswith(('[gx pipeline] policy=','[gx pipeline pool]'))],
   'fallback_readiness_summary':[l for l in lines if l.startswith('[gx uber readiness]')],

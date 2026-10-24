@@ -44,8 +44,9 @@ void DemoPlayerKeeper::start() {
 
 // NONMATCHING: loop index and record pointer use different registers.
 void DemoPlayerKeeper::update() {
+    const DemoPlayerInfo* info;
     for (s32 i = 0; i < mNumPlayerInfos; i++) {
-        const DemoPlayerInfo* info = &mPlayerInfos[i];
+        info = &mPlayerInfos[i];
         if (MR::isDemoPartFirstStep(info->mPartName)) {
             executePlayer(info);
         }
@@ -55,8 +56,9 @@ void DemoPlayerKeeper::update() {
 
 // NONMATCHING: loop index and record pointer use different registers.
 const DemoPlayerInfo* DemoPlayerKeeper::findPlayerInfo(const char* partName) const {
+    const DemoPlayerInfo* info;
     for (s32 i = 0; i < mNumPlayerInfos; i++) {
-        const DemoPlayerInfo* info = &mPlayerInfos[i];
+        info = &mPlayerInfos[i];
         if (MR::isEqualString(info->mPartName, partName)) return info;
     }
     return nullptr;

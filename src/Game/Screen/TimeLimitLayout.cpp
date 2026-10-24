@@ -213,13 +213,14 @@ const Timing* TimeLimitLayout::getCurrentTiming() const {
     for (s32 i = 0; i < ARRAY_SIZE(::sTimingTable); i++) {
         u32 scaleStartFrame = ::sTimingTable[i].mScaleStartFrame;
         u32 timeLimit = mTimeLimit;
+        u32 timeLeft;
         u32 frame = scaleStartFrame - ::sTimingTable[i].mScaleKeepFrame;
 
         if (timeLimit >= frame && scaleStartFrame >= timeLimit) {
             continue;
         }
 
-        u32 timeLeft = mRemainingFrames;
+        timeLeft = mRemainingFrames;
 
         if (frame > timeLeft || timeLeft >= scaleStartFrame) {
             continue;

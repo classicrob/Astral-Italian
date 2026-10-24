@@ -15,6 +15,12 @@
 
 
 namespace {
+    const char sStateName[] = "\x88\xda\x93\xae";
+    const char sMoveLR[] = "MoveLR";
+    const char sMoveL[] = "MoveL";
+    const char sMoveR[] = "MoveR";
+    const char sMoveStart[] = "MoveStart";
+    const char sMoveRotate[] = "MoveRotate";
     extern const f32 sMaxMoveSpeed;
     extern const f32 sCenterRadius;
 }
@@ -29,7 +35,7 @@ namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvRotC Koop
 namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvMoveB KoopaJrCastleStateBodyMoveNrvMoveB::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvStop KoopaJrCastleStateBodyMoveNrvStop::sInstance ATTRIBUTE_WEAK; }
 
-KoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMove(KoopaJrCastleBody* pHost) : ActorStateBase< KoopaJrCastleBody >("\x88\xda\x93\xae", pHost) {
+KoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMove(KoopaJrCastleBody* pHost) : ActorStateBase< KoopaJrCastleBody >(sStateName, pHost) {
     mDirection.x = 0.0f;
     mDirection.y = 0.0f;
     mDirection.z = 0.0f;
@@ -95,7 +101,7 @@ bool KoopaJrCastleStateBodyMove::getFlag() const {
 void KoopaJrCastleStateBodyMove::exeSelectMove() {
     mHost->validateCollisionA();
     if (MR::isFirstStep(this)) {
-        MR::startAction(mHost, "MoveStart");
+        MR::startAction(mHost, sMoveStart);
     }
     if (MR::isGreaterStep(this, 90)) {
         if (mMode == 1) {
@@ -125,15 +131,15 @@ void KoopaJrCastleStateBodyMove::exeTurnToPlayer() {
         KoopaJrCastleFunction::fireBarOff();
     }
     if (MR::isPlayerLeftSide(mHost)) {
-        if (startBtkKeepFrame("MoveR")) {
+        if (startBtkKeepFrame(sMoveR)) {
             MR::setBtkRate(mHost, 1.0f);
         }
     } else {
-        if (startBtkKeepFrame("MoveL")) {
+        if (startBtkKeepFrame(sMoveL)) {
             MR::setBtkRate(mHost, 1.0f);
         }
     }
-    MR::startActionSound(mHost, "MoveRotate", -1, -1, -1);
+    MR::startActionSound(mHost, sMoveRotate, -1, -1, -1);
     mTurnRate += 0.025f;
     f32 rate = MR::clamp(mTurnRate, 0.0f, 0.5f);
     mTurnRate = rate;
@@ -153,7 +159,7 @@ void KoopaJrCastleStateBodyMove::exeTurnToPlayer() {
 
 void KoopaJrCastleStateBodyMove::exeMoveStart() {
     if (MR::isFirstStep(this)) {
-        startBtkKeepFrame("MoveLR");
+        startBtkKeepFrame(sMoveLR);
     }
     setMoveRate(MR::calcNerveEaseOutValue(this, 10, 0.1f, 1.8f));
     if (MR::isGreaterStep(this, 10)) {
@@ -240,15 +246,15 @@ void KoopaJrCastleStateBodyMove::exeTurnAroundCenter() {
     TVec3f axis((-pCastle->mGravity) * mTurnDirection);
     f32 angle = MR::turnVecToVecDegree(&pCastle->mFrontVec, pCastle->mFrontVec, target, 0.5f, axis);
     if (mTurnDirection > 0.0f) {
-        if (startBtkKeepFrame("MoveR")) {
+        if (startBtkKeepFrame(sMoveR)) {
             MR::setBtkRate(mHost, 1.0f);
         }
     } else {
-        if (startBtkKeepFrame("MoveL")) {
+        if (startBtkKeepFrame(sMoveL)) {
             MR::setBtkRate(mHost, 1.0f);
         }
     }
-    MR::startActionSound(mHost, "MoveRotate", -1, -1, -1);
+    MR::startActionSound(mHost, sMoveRotate, -1, -1, -1);
     if (angle < 4.0f) {
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvRotB::sInstance);
     } else if (mMoveStep > 900 || MR::isPlayerDamaging()) {
@@ -263,7 +269,7 @@ void KoopaJrCastleStateBodyMove::exeTurnAroundCenter() {
 // NONMATCHING: stack slot layout of TVec3f temporaries
 void KoopaJrCastleStateBodyMove::exeMoveAroundCenter() {
     if (MR::isFirstStep(this)) {
-        startBtkKeepFrame("MoveLR");
+        startBtkKeepFrame(sMoveLR);
     }
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     setMoveRate(MR::calcNerveEaseOutValue(this, 60, 0.1f, 1.8f));
@@ -341,8 +347,7 @@ void KoopaJrCastleStateBodyMove::calcTargetDir(TVec3f* pDst) {
     TPos3f mtx;
     MR::makeMtxUpSidePos(&mtx, -pCastle->mGravity, dir, pCastle->mPosition);
     MR::extractMtxZDir(mtx.toMtxPtr(), &front);
-    TVec3f axis = -pCastle->mGravity;
-    MR::rotateVecDegree(&front, axis, 7.0f * mTurnDirection);
+    MR::rotateVecDegree(&front, (-pCastle->mGravity), 7.0f * mTurnDirection);
     front *= mTurnDirection;
     *pDst = front;
 }

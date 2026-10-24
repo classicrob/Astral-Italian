@@ -114,12 +114,15 @@ void ScenarioStarter::exeWaitToStart() {
 }
 
 void ScenarioStarter::exeCinemaFrameBlank() {
+    const char* stage;
+    s32 scenario;
+
     if (MR::isFirstStep(this)) {
         if (!AudStageBgmTable::isStartOnWelcome(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
             isStartBgmOnWelcome();
         } else if (mFirstIslandFleetVisit && AudStageBgmTable::isFirstVisitStart(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
-            s32 scenario = MR::getCurrentScenarioNo();
-            const char* stage = MR::getCurrentStageName();
+            scenario = MR::getCurrentScenarioNo();
+            stage = MR::getCurrentStageName();
             // The target passes the controller pointer in the unused scene-name slot.
             MR::startStageBGMFromStageName(reinterpret_cast< const char* >(MR::getCurrentGameSystemSceneController()), stage, scenario, false, true);
         }

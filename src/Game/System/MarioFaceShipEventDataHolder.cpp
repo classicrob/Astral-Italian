@@ -114,12 +114,16 @@ void MarioFaceShipEventDataHolder::findCast(s32 eventNo, MarioFaceShipEventCast*
 }
 
 bool MarioFaceShipEventDataHolder::makeNoticeMessageId(s32 index, char* pDst, u32 size) const {
-    s32 eventNo = GameDataFunction::getFaceShipEventNo(index);
+    bool isAttention;
+    const char* pType;
+    s32 eventNo;
+
+    eventNo = GameDataFunction::getFaceShipEventNo(index);
 
     for (s32 i = 0; i < mEventInfoNum; i++) {
         if (eventNo == mEventInfos[i]->mObjId) {
-            const char* pType = mEventInfos[i]->mEventType;
-            bool isAttention = false;
+            pType = mEventInfos[i]->mEventType;
+            isAttention = false;
             if (MR::isEqualString(pType, "注目会話") || MR::isEqualString(pType, "注目会話[注目先行]")) {
                 isAttention = true;
             }

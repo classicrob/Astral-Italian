@@ -164,7 +164,7 @@ bool StaffRoll::isLastPartEnd() const {
     if (mCurrentPart == mParts + partCount) {
         return false;
     }
-    if (getCurrentPartIndex() == partCount - 1) {
+    if (partCount - 1 == getCurrentPartIndex()) {
         return (*mCurrentPart)->isEnd();
     }
     return false;

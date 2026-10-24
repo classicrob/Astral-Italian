@@ -32,8 +32,7 @@ GameSceneLayoutHolder::GameSceneLayoutHolder()
     mMarioSubMeter->initWithoutIter();
     mMissLayout = new MissLayout();
     mMissLayout->initWithoutIter();
-    bool skip = false;
-    if (MR::isStageStoryBook() || GameSequenceFunction::isPadModeDreamer()) skip = true;
+    const bool skip = MR::isStageStoryBook() || GameSequenceFunction::isPadModeDreamer();
     if (skip) return;
     mIsActiveDefaultGameLayout = true;
     mCameraInfo = new CameraInfo("カメラ情報表示");

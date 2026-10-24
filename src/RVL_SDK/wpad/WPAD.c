@@ -263,7 +263,7 @@ static u8 IsAnalogChanged(s32 curr, s32 prev, s32 threshold) {
     return (u8)((diff > threshold) ? 1 : 0);
 }
 
-static u8 __wpadCheckChangeCount(BOOL changed, u16* count, u16* hysteresis, u32 type) {
+static u32 __wpadCheckChangeCount(BOOL changed, u16* count, u16* hysteresis, u32 type) {
     if (changed) {
         ++*count;
         if (*count > __wpadChangeDiffThreshold[type]) {
@@ -283,20 +283,24 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
     const WPADStatus* curr = (const WPADStatus*)p_curr;
     const WPADStatus* prev = (const WPADStatus*)p_prev;
     u8 result = 0;
-    int i;
     if ((curr->err == WPAD_ERR_NONE || curr->err == -7) &&
         (prev->err == WPAD_ERR_NONE || prev->err == -7)) {
-        BOOL accChanged = IsAnalogChanged(curr->accX, prev->accX, 12) |
-                          IsAnalogChanged(curr->accY, prev->accY, 12) |
-                          IsAnalogChanged(curr->accZ, prev->accZ, 12);
-        BOOL dpdChanged = 0;
-        u8 acc = __wpadCheckChangeCount(accChanged, &p_wpd->diffCountAcc, &p_wpd->hystCountAcc, WPAD_CHANGE_ACC);
-        for (i = 0; i < WPAD_DPD_MAX_OBJECTS; ++i) {
-            dpdChanged |= IsAnalogChanged(curr->obj[i].x, prev->obj[i].x, 2) |
-                          IsAnalogChanged(curr->obj[i].y, prev->obj[i].y, 2);
-        }
-        result = IsButtonChanged(curr->button, prev->button) | acc |
-                 __wpadCheckChangeCount(dpdChanged, &p_wpd->diffCountDpd, &p_wpd->hystCountDpd, WPAD_CHANGE_DPD);
+        BOOL accChanged;
+        BOOL dpdChanged;
+        result = IsButtonChanged(curr->button, prev->button);
+        accChanged = IsAnalogChanged(curr->accX, prev->accX, 12) |
+                     IsAnalogChanged(curr->accY, prev->accY, 12) |
+                     IsAnalogChanged(curr->accZ, prev->accZ, 12);
+        result |= __wpadCheckChangeCount(accChanged, &p_wpd->diffCountAcc, &p_wpd->hystCountAcc, WPAD_CHANGE_ACC);
+        dpdChanged = IsAnalogChanged(curr->obj[0].x, prev->obj[0].x, 2) |
+                     IsAnalogChanged(curr->obj[0].y, prev->obj[0].y, 2) |
+                     IsAnalogChanged(curr->obj[1].x, prev->obj[1].x, 2) |
+                     IsAnalogChanged(curr->obj[1].y, prev->obj[1].y, 2) |
+                     IsAnalogChanged(curr->obj[2].x, prev->obj[2].x, 2) |
+                     IsAnalogChanged(curr->obj[2].y, prev->obj[2].y, 2) |
+                     IsAnalogChanged(curr->obj[3].x, prev->obj[3].x, 2) |
+                     IsAnalogChanged(curr->obj[3].y, prev->obj[3].y, 2);
+        result |= __wpadCheckChangeCount(dpdChanged, &p_wpd->diffCountDpd, &p_wpd->hystCountDpd, WPAD_CHANGE_DPD);
     }
     if (curr->err == WPAD_ERR_NONE && prev->err == WPAD_ERR_NONE) {
         switch (p_wpd->dataFormat) {
@@ -308,8 +312,8 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
                 IsAnalogChanged(fsCurr->fsAccY, fsPrev->fsAccY, 12) |
                 IsAnalogChanged(fsCurr->fsAccZ, fsPrev->fsAccZ, 12),
                 &p_wpd->diffCountfsAcc, &p_wpd->hystCountfsAcc, WPAD_CHANGE_EXTENSION);
-            result |= IsAnalogChanged(fsCurr->fsStickX, fsPrev->fsStickX, 1) |
-                      IsAnalogChanged(fsCurr->fsStickY, fsPrev->fsStickY, 1);
+            result |= IsAnalogChanged(fsCurr->fsStickX, fsPrev->fsStickX, 1);
+            result |= IsAnalogChanged(fsCurr->fsStickY, fsPrev->fsStickY, 1);
             break;
         }
         case 6: case 7: case 8: case 11: case 15: case 17: case 18: {
@@ -318,24 +322,24 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
             s32 left, right, trigger;
             switch (p_wpd->devMode) {
             case 1: left = 16; right = 32; trigger = 8; break;
-            case 3: left = right = 4; trigger = 1; break;
-            default: left = right = trigger = 1; break;
+            case 3: left = 4; right = 4; trigger = 1; break;
+            default: left = 1; right = 1; trigger = 1; break;
             }
-            result |= IsButtonChanged(clCurr->clButton, clPrev->clButton) |
-                IsAnalogChanged(clCurr->clLStickX / left, clPrev->clLStickX / left, 1) |
-                IsAnalogChanged(clCurr->clLStickY / left, clPrev->clLStickY / left, 1) |
-                IsAnalogChanged(clCurr->clRStickX / right, clPrev->clRStickX / right, 1) |
-                IsAnalogChanged(clCurr->clRStickY / right, clPrev->clRStickY / right, 1) |
-                IsAnalogChanged(clCurr->clTriggerL / trigger, clPrev->clTriggerL / trigger, 1) |
-                IsAnalogChanged(clCurr->clTriggerR / trigger, clPrev->clTriggerR / trigger, 1);
+            result |= IsButtonChanged(clCurr->clButton, clPrev->clButton);
+            result |= IsAnalogChanged(clCurr->clLStickX / left, clPrev->clLStickX / left, 1);
+            result |= IsAnalogChanged(clCurr->clLStickY / left, clPrev->clLStickY / left, 1);
+            result |= IsAnalogChanged(clCurr->clRStickX / right, clPrev->clRStickX / right, 1);
+            result |= IsAnalogChanged(clCurr->clRStickY / right, clPrev->clRStickY / right, 1);
+            result |= IsAnalogChanged(clCurr->clTriggerL / trigger, clPrev->clTriggerL / trigger, 1);
+            result |= IsAnalogChanged(clCurr->clTriggerR / trigger, clPrev->clTriggerR / trigger, 1);
             break;
         }
         case 10: {
             const WPADPercussionStatus* pc = (const WPADPercussionStatus*)p_curr;
             const WPADPercussionStatus* pp = (const WPADPercussionStatus*)p_prev;
-            result |= IsButtonChanged(pc->button, pp->button) |
-                      IsAnalogChanged(pc->force[0], pp->force[0], 1) |
-                      IsAnalogChanged(pc->force[1], pp->force[1], 1);
+            result |= IsButtonChanged(pc->button, pp->button);
+            result |= IsAnalogChanged(pc->force[0], pp->force[0], 1);
+            result |= IsAnalogChanged(pc->force[1], pp->force[1], 1);
             break;
         }
         case 12: {
@@ -369,18 +373,18 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
                         IsAnalogChanged(fc->fsAccY, fp->fsAccY, 12) |
                         IsAnalogChanged(fc->fsAccZ, fp->fsAccZ, 12),
                         &p_wpd->diffCountfsAcc, &p_wpd->hystCountfsAcc, WPAD_CHANGE_EXTENSION);
-                    result |= IsAnalogChanged(fc->fsStickX, fp->fsStickX, 1) |
-                              IsAnalogChanged(fc->fsStickY, fp->fsStickY, 1);
+                    result |= IsAnalogChanged(fc->fsStickX, fp->fsStickX, 1);
+                    result |= IsAnalogChanged(fc->fsStickY, fp->fsStickY, 1);
                 } else if (p_wpd->devMode == 7) {
                     const WPADCLStatus* cc = (const WPADCLStatus*)p_curr;
                     const WPADCLStatus* cp = (const WPADCLStatus*)p_prev;
-                    result |= IsButtonChanged(cc->clButton, cp->clButton) |
-                        IsAnalogChanged(cc->clLStickX / 16, cp->clLStickX / 16, 1) |
-                        IsAnalogChanged(cc->clLStickY / 16, cp->clLStickY / 16, 1) |
-                        IsAnalogChanged(cc->clRStickX / 32, cp->clRStickX / 32, 1) |
-                        IsAnalogChanged(cc->clRStickY / 32, cp->clRStickY / 32, 1) |
-                        IsAnalogChanged(cc->clTriggerL / 8, cp->clTriggerL / 8, 1) |
-                        IsAnalogChanged(cc->clTriggerR / 8, cp->clTriggerR / 8, 1);
+                    result |= IsButtonChanged(cc->clButton, cp->clButton);
+                    result |= IsAnalogChanged(cc->clLStickX / 16, cp->clLStickX / 16, 1);
+                    result |= IsAnalogChanged(cc->clLStickY / 16, cp->clLStickY / 16, 1);
+                    result |= IsAnalogChanged(cc->clRStickX / 32, cp->clRStickX / 32, 1);
+                    result |= IsAnalogChanged(cc->clRStickY / 32, cp->clRStickY / 32, 1);
+                    result |= IsAnalogChanged(cc->clTriggerL / 8, cp->clTriggerL / 8, 1);
+                    result |= IsAnalogChanged(cc->clTriggerR / 8, cp->clTriggerR / 8, 1);
                 }
             }
             break;
@@ -2466,13 +2470,20 @@ void __wpadMplsControlCallback(s32 chan, s32 result) {
 
 // NONMATCHING: equivalent device-range lowering and register allocation differ.
 s32 WPADiControlMpls(s32 chan, u8 mode, WPADCallback callback) {
+    BOOL enabled;
     WPADControlBlock* p_cb = _wpdcb[chan];
-    BOOL enabled = OSDisableInterrupts();
-    u8 device = p_cb->devType;
-    u8 currentMode = p_cb->devMode;
-    s32 result = p_cb->status;
-    BOOL setup = p_cb->setup;
-    u8 busy = p_cb->mplsControlCallback != NULL ? 1 : p_cb->mplsControlBusy;
+    BOOL setup;
+    u8 device;
+    u8 currentMode;
+    s32 result;
+    u8 busy;
+
+    enabled = OSDisableInterrupts();
+    device = p_cb->devType;
+    currentMode = p_cb->devMode;
+    result = p_cb->status;
+    setup = p_cb->setup;
+    busy = p_cb->mplsControlCallback != NULL ? 1 : p_cb->mplsControlBusy;
 
     if (result == WPAD_ERR_NO_CONTROLLER) {
         // Preserve disconnected status.
@@ -2483,7 +2494,7 @@ s32 WPADiControlMpls(s32 chan, u8 mode, WPADCallback callback) {
     } else if (mode == currentMode) {
         result = WPAD_ERR_NONE;
     } else if (((u32)(device - 5) <= 2 || device == 250) && (mode == 0 || mode == 0x80) ||
-               ((u32)(device - 5) > 2 && device != 250) && (mode == 4 || mode == 5 || mode == 7)) {
+               (((u32)device - 5) > 2 && device != 250) && (mode == 4 || mode == 5 || mode == 7)) {
         if (mode == 0x80 && p_cb->mplsInitTicks < 200) {
             result = WPAD_ERR_BUSY;
         } else {
@@ -2669,16 +2680,35 @@ void __wpadCertGetParamCallback(s32 chan, s32 result) {
 }
 
 // NONMATCHING: compiler removes a transient completion boolean; register/stack allocation differs.
-void __wpadCertVerifyParamY(s32 chan) {
+static inline void __wpadCertProbeReady(s32 chan) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    WPADiSendReadData(&p_cb->extq, &p_cb->certProbeResponse, 1, 0x04a400f7,
+        __wpadCertProbeReadyCallback);
+}
+
+enum { WPAD_CERT_PARAM_X, WPAD_CERT_PARAM_Y, WPAD_CERT_WORK };
+
+static inline BOOL __wpadCertReadParam(s32 chan, u8 param) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     if (p_cb->certParamBytes < 64) {
-        p_cb->certParam = p_cb->certWork;
+        switch (param) {
+        case WPAD_CERT_PARAM_X: p_cb->certParam = p_cb->certParamX; break;
+        case WPAD_CERT_PARAM_Y: p_cb->certParam = p_cb->certParamY; break;
+        default: p_cb->certParam = p_cb->certWork; break;
+        }
         WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
             __wpadCertGetParamCallback);
-    } else {
+        return FALSE;
+    }
+    p_cb->certBusy = 0;
+    p_cb->certParamBytes = 0;
+    return TRUE;
+}
+
+void __wpadCertVerifyParamY(s32 chan) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    if (__wpadCertReadParam(chan, WPAD_CERT_WORK)) {
         u32 modulusMinusOne[18] = WPAD_CERT_MODULUS_INITIALIZER;
-        p_cb->certBusy = 0;
-        p_cb->certParamBytes = 0;
         --modulusMinusOne[1];
         if ((p_cb->certWork[0] > 1 || p_cb->certWork[1] > 1) &&
             ((p_cb->certChallengeBit != 0 && LINTCmp(p_cb->certWork, __wpadCertModulus) == -1) ||
@@ -2697,123 +2727,104 @@ void __wpadCertVerifyParamY(s32 chan) {
 // NONMATCHING: compiler removes transient completion booleans and changes register/stack allocation.
 void __wpadCertWork(s32 chan) {
     WPADControlBlock* p_cb = _wpdcb[chan];
-    if (p_cb->certValidity != 0 || p_cb->certState < 0 || !p_cb->infos.attach) return;
-    if (!p_cb->certBusy && p_cb->certWorkDelay-- < 0) {
-        p_cb->certBusy = 1;
-        switch (p_cb->certState) {
-        case 0:
-            WPADiSendReadData(&p_cb->extq, &p_cb->certProbeResponse, 1, 0x04a400f7,
-                __wpadCertProbeReadyCallback);
-            break;
-        case 1:
-            if (p_cb->certParamBytes < 64) {
-                p_cb->certParam = p_cb->certParamX;
-                WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
-                    __wpadCertGetParamCallback);
-            } else {
-                p_cb->certBusy = 0;
-                p_cb->certParamBytes = 0;
-                if ((p_cb->certParamX[0] > 1 || p_cb->certParamX[1] > 1) &&
-                    LINTCmp(p_cb->certParamX, __wpadCertModulus) == -1) {
-                    p_cb->certState = 2;
-                    p_cb->certWorkDelay = 500;
-                } else {
-                    __wpadCertFailed(chan);
+    if (p_cb->certValidity == 0 && p_cb->certState >= 0 && p_cb->infos.attach) {
+        if (!p_cb->certBusy && p_cb->certWorkDelay-- < 0) {
+            p_cb->certBusy = 1;
+            switch (p_cb->certState) {
+            case 0:
+                __wpadCertProbeReady(chan);
+                break;
+            case 1:
+                if (__wpadCertReadParam(chan, WPAD_CERT_PARAM_X)) {
+                    if ((p_cb->certParamX[0] > 1 || p_cb->certParamX[1] > 1) &&
+                        LINTCmp(p_cb->certParamX, __wpadCertModulus) == -1) {
+                        p_cb->certState = 2;
+                        p_cb->certWorkDelay = 500;
+                    } else {
+                        __wpadCertFailed(chan);
+                    }
                 }
-            }
-            break;
-        case 2:
-            if (p_cb->certParamBytes < 64) {
-                p_cb->certParam = p_cb->certWork;
-                WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
-                    __wpadCertGetParamCallback);
-            } else {
-                p_cb->certBusy = 0;
-                p_cb->certParamBytes = 0;
-                if ((p_cb->certWork[0] > 1 || p_cb->certWork[1] > 1) &&
-                    LINTCmp(p_cb->certWork, __wpadCertModulus) == -1 &&
-                    LINTCmp(p_cb->certWork, p_cb->certParamX) == 0) {
-                    memset(p_cb->certWork, 0, sizeof(p_cb->certWork));
-                    p_cb->certWork[0] = 1;
-                    p_cb->certChallengeBit = OSGetTick() & 1;
-                    p_cb->certState = 3;
-                    p_cb->certWorkDelay = 0;
-                } else {
-                    __wpadCertFailed(chan);
+                break;
+            case 2:
+                if (__wpadCertReadParam(chan, WPAD_CERT_WORK)) {
+                    if ((p_cb->certWork[0] > 1 || p_cb->certWork[1] > 1) &&
+                        LINTCmp(p_cb->certWork, __wpadCertModulus) == -1 &&
+                        LINTCmp(p_cb->certWork, p_cb->certParamX) == 0) {
+                        memset(p_cb->certWork, 0, sizeof(p_cb->certWork));
+                        p_cb->certWork[0] = 1;
+                        p_cb->certChallengeBit = OSGetTick() & 1;
+                        p_cb->certState = 3;
+                        p_cb->certWorkDelay = 0;
+                    } else {
+                        __wpadCertFailed(chan);
+                    }
                 }
-            }
-            break;
-        case 3:
-            WPADiSendWriteDataCmd(&p_cb->extq, (u8)p_cb->certChallengeBit, 0x04a400f1,
-                __wpadCertChallengeCallback);
-            break;
-        case 4:
-            WPADiSendReadData(&p_cb->extq, &p_cb->certProbeResponse, 1, 0x04a400f7,
-                __wpadCertProbeReadyCallback);
-            break;
-        case 5:
-            if (p_cb->certParamBytes < 64) {
-                p_cb->certParam = p_cb->certParamY;
-                WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
-                    __wpadCertGetParamCallback);
-            } else {
-                u32 modulusMinusOne[18] = WPAD_CERT_MODULUS_INITIALIZER;
-                p_cb->certBusy = 0;
-                p_cb->certParamBytes = 0;
-                        --modulusMinusOne[1];
-                if ((p_cb->certParamY[0] > 1 || p_cb->certParamY[1] > 1) &&
-                    ((p_cb->certChallengeBit != 0 && LINTCmp(p_cb->certParamY, __wpadCertModulus) == -1) ||
-                     (p_cb->certChallengeBit == 0 && LINTCmp(p_cb->certParamY, modulusMinusOne) == -1))) {
-                    p_cb->certWorkDelay = 500;
-                    p_cb->certState = 6;
-                } else {
-                    __wpadCertFailed(chan);
+                break;
+            case 3:
+                WPADiSendWriteDataCmd(&p_cb->extq, (u8)p_cb->certChallengeBit, 0x04a400f1,
+                    __wpadCertChallengeCallback);
+                break;
+            case 4:
+                __wpadCertProbeReady(chan);
+                break;
+            case 5:
+                if (__wpadCertReadParam(chan, WPAD_CERT_PARAM_Y)) {
+                    u32 modulusMinusOne[18] = WPAD_CERT_MODULUS_INITIALIZER;
+                    --modulusMinusOne[1];
+                    if ((p_cb->certParamY[0] > 1 || p_cb->certParamY[1] > 1) &&
+                        ((p_cb->certChallengeBit != 0 && LINTCmp(p_cb->certParamY, __wpadCertModulus) == -1) ||
+                         (p_cb->certChallengeBit == 0 && LINTCmp(p_cb->certParamY, modulusMinusOne) == -1))) {
+                        p_cb->certWorkDelay = 500;
+                        p_cb->certState = 6;
+                    } else {
+                        __wpadCertFailed(chan);
+                    }
                 }
-            }
-            break;
-        case 6:
-            __wpadCertVerifyParamY(chan);
-            break;
-        case 7:
-            if (p_cb->certChallengeBit != 0) {
-                LINTMul(p_cb->certWork, p_cb->certParamX, __wpadCertMultiplier);
-            } else {
-                memcpy(p_cb->certWork, p_cb->certParamX, sizeof(p_cb->certParamX));
-            }
-            p_cb->certBusy = 0;
-            p_cb->certWorkDelay = 0;
-            p_cb->certState = 8;
-            break;
-        case 8:
-            __wpadCertCalcModX(chan);
-            break;
-        case 9:
-            LINTMul(p_cb->certWork, p_cb->certParamY, p_cb->certParamY);
-            p_cb->certBusy = 0;
-            p_cb->certWorkDelay = 0;
-            p_cb->certState = 10;
-            break;
-        case 10:
-            __wpadCertCalcModY(chan);
-            break;
-        case 11:
-            {
-                s32 comparison = LINTCmp(p_cb->certParamX, p_cb->certParamY);
+                break;
+            case 6:
+                __wpadCertVerifyParamY(chan);
+                break;
+            case 7:
+                if (p_cb->certChallengeBit != 0) {
+                    LINTMul(p_cb->certWork, p_cb->certParamX, __wpadCertMultiplier);
+                } else {
+                    memcpy(p_cb->certWork, p_cb->certParamX, sizeof(p_cb->certParamX));
+                }
                 p_cb->certBusy = 0;
                 p_cb->certWorkDelay = 0;
-                p_cb->certState = 12;
-                if (comparison == 0) {
-                    p_cb->certValidity = 1;
-                    p_cb->certCachedValidity = 1;
-                } else {
-                    __wpadCertFailed(chan);
+                p_cb->certState = 8;
+                break;
+            case 8:
+                __wpadCertCalcModX(chan);
+                break;
+            case 9:
+                LINTMul(p_cb->certWork, p_cb->certParamY, p_cb->certParamY);
+                p_cb->certBusy = 0;
+                p_cb->certWorkDelay = 0;
+                p_cb->certState = 10;
+                break;
+            case 10:
+                __wpadCertCalcModY(chan);
+                break;
+            case 11:
+                {
+                    s32 comparison = LINTCmp(p_cb->certParamX, p_cb->certParamY);
+                    p_cb->certBusy = 0;
+                    p_cb->certWorkDelay = 0;
+                    p_cb->certState = 12;
+                    if (comparison == 0) {
+                        p_cb->certValidity = 1;
+                        p_cb->certCachedValidity = 1;
+                    } else {
+                        __wpadCertFailed(chan);
+                    }
                 }
+                break;
             }
-            break;
         }
-    }
-    if (p_cb->certWorkCount++ > 60000) {
-        p_cb->certState = 120;
-        __wpadCertFailed(chan);
+        if (p_cb->certWorkCount++ > 60000) {
+            p_cb->certState = 120;
+            __wpadCertFailed(chan);
+        }
     }
 }

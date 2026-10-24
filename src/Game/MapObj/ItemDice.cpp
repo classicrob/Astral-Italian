@@ -569,8 +569,13 @@ bool DiceBase::isSettled() {
 
 // NONMATCHING: calls match; float expression scheduling differs.
 void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 scale) {
+    f32 sq;
+    f32 depth;
+    f32 radius;
+    f32 len;
+
     TVec3f dir = pReceiver->mPosition - pSender->mPosition;
-    f32 len = PSVECMag(&dir);
+    len = PSVECMag(&dir);
     if (MR::isNearZero(len, 0.001f)) {
         MtxPtr m1 = getBaseMtx();
         MtxPtr m2 = getBaseMtx();
@@ -580,13 +585,13 @@ void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 
         dir.scale(1.0f / len);
     }
 
-    f32 radius = pReceiver->mRadius;
+    radius = pReceiver->mRadius;
     TVec3f offset(dir);
     offset.scale(radius);
     TVec3f pos = pReceiver->mPosition - offset;
-    f32 depth = scale * (pReceiver->mRadius + pSender->mRadius - len);
+    depth = scale * (pReceiver->mRadius + pSender->mRadius - len);
 
-    f32 sq = dir.squared();
+    sq = dir.squared();
     if (sq <= 0.000003814697265625f) {
     } else {
         dir.scale(JGeometry::TUtil<f32>::inv_sqrt(sq) * depth);

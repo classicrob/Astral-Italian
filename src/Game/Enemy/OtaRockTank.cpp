@@ -981,12 +981,16 @@ void OtaRockTank::updateTankEaseOutSpeed(s32 step, f32 target) {
 
 // NONMATCHING: saved-register allocation differs
 void OtaRockTank::updateTankBrake(f32 target) {
-    f32 base = 7.0f;
-    s32 steps = 40;
+    bool flag;
+    s32 steps;
+    f32 base;
+
+    base = 7.0f;
+    steps = 40;
     if (mLife == 1) {
         base = 10.0f;
     }
-    bool flag = false;
+    flag = false;
     if (isNerve(NT(RunAccel)) || isNerve(NT(RunKeep)) || isNerve(NT(RunRail)) || isNerve(NT(BrakeA))) {
         flag = true;
     }
@@ -1124,6 +1128,12 @@ void OtaRockTank::fireTankSideBatteries() {
 
 // NONMATCHING: vector subtraction inlining and reuse of the 30-degree constant differ
 void OtaRockTank::fireTankMouth() {
+    f32 angle;
+    f32 offs;
+    s32 i;
+    f32 a;
+    f32 speed;
+
     FixedPosition* pFixedPos = mFixedPositions[6];
     pFixedPos->calc();
     TVec3f trans;
@@ -1140,8 +1150,8 @@ void OtaRockTank::fireTankMouth() {
         }
         MR::normalize(&zdir);
         MR::emitEffect(mChief, sThrowEffects[6]);
-        f32 speed = mLife == 1 ? 34.0f : 32.0f;
-        f32 angle = 5.0f + 2.5f * (f32)MR::getRandom(static_cast< s32 >(1), static_cast< s32 >(3));
+        speed = mLife == 1 ? 34.0f : 32.0f;
+        angle = 5.0f + 2.5f * (f32)MR::getRandom(static_cast< s32 >(1), static_cast< s32 >(3));
         if (MR::getRandom(static_cast< s32 >(0), static_cast< s32 >(2)) == 1) {
             angle = -angle;
         }
@@ -1149,10 +1159,10 @@ void OtaRockTank::fireTankMouth() {
             findFreeTankCoconutBall()->launchCoconutTowardPlayer(trans, speed, angle, 160.0f);
             return;
         }
-        f32 offs = 30.0f;
-        s32 i = 0;
+        offs = 30.0f;
+        i = 0;
         do {
-            f32 a = 0.0f;
+            a = 0.0f;
             if (i == 1) {
                 a = offs;
             } else if (i == 2) {

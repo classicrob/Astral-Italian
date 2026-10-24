@@ -180,9 +180,12 @@ void BellyDragonUtil::killPodObjects(BellyDragon* pHost) {
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void BellyDragonUtil::killWeakPoints(BellyDragon* pHost) {
-    s32 count = BODY_COUNT(pHost->mBody);
+    LiveActor* pPart;
+    s32 count;
+
+    count = BODY_COUNT(pHost->mBody);
     for (s32 i = 0; i < count; i++) {
-        LiveActor* pPart = BODY_PART(pHost->mBody, i);
+        pPart = BODY_PART(pHost->mBody, i);
         if (!MR::isDead(pPart)) {
             pPart->kill();
         }
@@ -226,15 +229,19 @@ bool BellyDragonUtil::isSensorWeakPoint(HitSensor* pSensor) {
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 s32 BellyDragonUtil::isEnoughWeakPointsBroken(BellyDragon* pHost, s32 flag) {
+    s32 count;
+    s32 ok;
+    s32 need;
+
     if (isAttackNerve(pHost)) {
         return 0;
     }
-    s32 need = 3;
+    need = 3;
     if (flag != 0) {
         need = 2;
     }
-    s32 ok = 0;
-    s32 count = BODY_COUNT(pHost->mBody);
+    ok = 0;
+    count = BODY_COUNT(pHost->mBody);
     for (s32 i = 0; i < count; i++) {
         if (!BODY_PART(pHost->mBody, i)->isAttackable()) {
             ok += 1;

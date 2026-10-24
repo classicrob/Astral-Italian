@@ -67,7 +67,9 @@ void StarPieceTrackingPiece::appearScattered(const TVec3f& position, const TVec3
     MR::vecKillElement(random, up, &random);
     MR::normalizeOrZero(&mUp, up);
     mPosition = position;
-    mVelocity.set(mUp * height + random);
+    TVec3f launch(mUp);
+    launch *= height;
+    mVelocity.set(launch + random);
     MR::setScale(this, 10.0f);
     MR::emitEffect(this, "WorldMapStarPieceLight");
     MR::startBtkAndSetFrameAndStop(this, "WorldMap", 0.0f);
@@ -120,7 +122,8 @@ void StarPieceTrackingPiece::exeFlyWorldMap() {
 void StarPieceTrackingPiece::exeTracking() {
     TVec3f direction(0.0f);
     const TVec3f* playerVelocity = MR::getPlayerVelocity();
-    direction = *MR::getPlayerPos() + *playerVelocity - mPosition;
+    TVec3f predictedPosition = *MR::getPlayerPos() + *playerVelocity;
+    direction = predictedPosition - mPosition;
     MR::normalizeOrZero(&direction, direction);
     mVelocity *= 0.9f;
     mVelocity += direction * 14.0f;

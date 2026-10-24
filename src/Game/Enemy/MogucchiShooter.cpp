@@ -266,19 +266,22 @@ void MogucchiShooter::getShooterTargetMotion(TVec3f* pPos, TVec3f* pVel) {
 
 // NONMATCHING: vector temporary stack slots and f29/f30 allocation differ; calls, constants and branches match.
 void MogucchiShooter::aimShooterAtPredictedTarget(TVec3f* pFront, const TVec3f& rPos) {
+    f32 distance;
+    f32 bestDist;
+
     TVec3f origin(0.0f);
     TVec3f velocity(0.0f);
     getShooterTargetMotion(&origin, &velocity);
     TVec3f best(rPos);
     TVec3f muzzle(rPos + *pFront * 800.0f);
-    f32 bestDist = 3.4028234663852886e+38f;
+    bestDist = 3.4028234663852886e+38f;
     for (s32 i = 0; i < 150; i++) {
         TVec3f candidate(origin + velocity * i);
         TVec3f direction(candidate);
         direction.sub(muzzle);
         MR::normalize(&direction);
         TVec3f shot(muzzle + (direction * 22.0f) * i);
-        f32 distance = PSVECDistance(&shot, &candidate);
+        distance = PSVECDistance(&shot, &candidate);
         if (distance < bestDist) {
             best.set(candidate);
             bestDist = distance;

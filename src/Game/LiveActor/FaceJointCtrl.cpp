@@ -103,16 +103,18 @@ bool FaceJointCtrl::updateJointMtxCallBack(TPos3f* matrix, const JointController
     MR::normalize(&direction);
     TPos3f desired(*matrix);
     TVec3f up;
-    up.set< f32 >(desired.mMtx[0][1], desired.mMtx[1][1], desired.mMtx[2][1]);
+    desired.getYDir(up);
     TVec3f horizontal;
     JMAVECScaleAdd(&up, &direction, &horizontal, -up.dot(direction));
     if (!MR::normalizeOrZero(&horizontal)) {
         TVec3f front;
         desired.getZDir(front);
         if (front.dot(horizontal) >= 0.0f) {
-            MR::turnMtxToXDirDegree(&desired, horizontal, mParam->mDegreeRight * mJointCtrlRate->_0);
+            f32 rate = mJointCtrlRate->_0;
+            MR::turnMtxToXDirDegree(&desired, horizontal, mParam->mDegreeRight * rate);
         } else {
-            MR::turnMtxToXDirDegree(&desired, horizontal, mParam->mDegreeLeft * mJointCtrlRate->_0);
+            f32 rate = mJointCtrlRate->_0;
+            MR::turnMtxToXDirDegree(&desired, horizontal, mParam->mDegreeLeft * rate);
         }
     }
     TVec3f side;
@@ -123,7 +125,10 @@ bool FaceJointCtrl::updateJointMtxCallBack(TPos3f* matrix, const JointController
     JMAVECScaleAdd(&front, &direction, &vertical, -front.dot(direction));
     f32 factor = horizontal.dot(side);
     if (!MR::normalizeOrZero(&vertical) && factor > 0.0f) {
-        MR::turnMtxToXDirDegree(&desired, vertical, mParam->mDegreeVertical * factor * mJointCtrlRate->_0);
+        f32 rate = mJointCtrlRate->_0;
+        f32 angle = mParam->mDegreeVertical * factor;
+        angle *= rate;
+        MR::turnMtxToXDirDegree(&desired, vertical, angle);
     }
     TVec3f oldSide, baseSide, newSide;
     previous.getXDir(oldSide);

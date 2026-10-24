@@ -754,11 +754,15 @@ bool Popo::isBlowable() const {
 
 // NONMATCHING: f30/f31 allocation
 void Popo::calcBlowVelocity(s32 total, s32 step) {
-    f32 rate = (f32)step / (f32)total;
+    f32 v;
+    f32 speed;
+    f32 rate;
+
+    rate = (f32)step / (f32)total;
     rate = rate * rate;
-    f32 speed = MR::vecKillElement(mVelocity, mGravity, &mVelocity);
+    speed = MR::vecKillElement(mVelocity, mGravity, &mVelocity);
     mVelocity.add((TVec3f(0.0f) - mVelocity) * rate);
-    f32 v = clampVelocity(speed);
+    v = clampVelocity(speed);
     mVelocity.add(mGravity * v);
 }
 
@@ -770,12 +774,17 @@ bool Popo::isBehind() const {
 
 // NONMATCHING: order of the two literal loads
 void Popo::calcReturnVelocity() {
+    f32 v;
+    f32 maxDown;
+    f32 decay;
+    f32 speed;
+
     TVec3f horizontal;
-    f32 speed = MR::vecKillElement(mVelocity, mGravity, &horizontal);
+    speed = MR::vecKillElement(mVelocity, mGravity, &horizontal);
     horizontal.scale(0.98f);
-    f32 decay = 0.5f;
-    f32 maxDown = 10.0f;
-    f32 v = speed - decay;
+    decay = 0.5f;
+    maxDown = 10.0f;
+    v = speed - decay;
     if (v < -maxDown) {
         v = -maxDown;
     }
@@ -791,12 +800,16 @@ void Popo::decelerate() {
 
 // NONMATCHING: f0/f5 allocation of the x/z matrix column loads
 bool Popo::tryFindYoshi() {
+    f32 x;
+    f32 y;
+    f32 z;
+
     MtxPtr pMtx = MR::getJointMtx(this, "JointRoot");
     TVec3f dir;
     SightParam sight;
-    f32 z = pMtx[2][0];
-    f32 y = pMtx[1][0];
-    f32 x = pMtx[0][0];
+    z = pMtx[2][0];
+    y = pMtx[1][0];
+    x = pMtx[0][0];
     dir.x = x;
     dir.y = y;
     dir.z = z;

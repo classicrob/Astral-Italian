@@ -35,12 +35,13 @@ s32 GameDataAllGalaxyStorage::calcCurrentPowerStarNum() const {
 }
 
 s32 GameDataAllGalaxyStorage::calcNormalPowerStarNum() const {
+    GameDataSomeScenarioAccessor* pScenario;
     s32 normalPowerStarNum = 0;
     for (s32 idx = 0; idx < getGalaxyNum(); idx++) {
         GameDataSomeGalaxyStorage* pStorage = mSomeGalaxyStorages[idx];
         GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor(pStorage->mGalaxyName);
         for (s32 scenarioNo = 1; scenarioNo <= pStorage->getPowerStarNumOwned(); scenarioNo++) {
-            GameDataSomeScenarioAccessor* pScenario = &pStorage->mScenarioAccessors[scenarioNo - 1];
+            pScenario = &pStorage->mScenarioAccessors[scenarioNo - 1];
             if (!pScenario->testFlag(1)) {
                 continue;
             }

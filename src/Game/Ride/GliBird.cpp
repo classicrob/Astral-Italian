@@ -458,10 +458,8 @@ void GliBird::calcAndSetBaseMtx() {
 
     if (!isNerve(GET_NERVE(GliBird, GliBirdNrvDeadDamage)) && !isNerve(GET_NERVE(GliBird, GliBirdNrvDeadWall))) {
         if (mVelocity.dot(mFront) > 0.0f) {
-            TVec3f velPart = mDirFront * mSpeed;
-            dir.set(velPart);
-            TVec3f sidePart = mSide * (mSideAccel * 0.1f);
-            dir.add(sidePart);
+            dir.set((mDirFront * mSpeed));
+            dir.add((mSide * (mSideAccel * 0.1f)));
         }
     }
 

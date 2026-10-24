@@ -956,6 +956,10 @@ void KingTossin::exeChase() {
 
 // NONMATCHING: saved integer register allocation.
 void KingTossin::exeBrake() {
+    f32 speed;
+    s32 end;
+    s32 start;
+
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Sliding");
         mSlideSpeed = PSVECMag(&mVelocity);
@@ -968,9 +972,9 @@ void KingTossin::exeBrake() {
         mMoveDir = mFront;
     }
 
-    s32 start = sBrakeStartStep;
-    s32 end = start + 60;
-    f32 speed = MR::getEaseInValueWithNormalize(getNerveStep(), start, end, mSlideSpeed, sBrakeEndSpeed);
+    start = sBrakeStartStep;
+    end = start + 60;
+    speed = MR::getEaseInValueWithNormalize(getNerveStep(), start, end, mSlideSpeed, sBrakeEndSpeed);
     TVec3f dir(mVelocity);
     MR::normalizeOrZero(&dir);
     mVelocity.set(dir * speed);

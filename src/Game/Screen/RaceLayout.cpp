@@ -54,9 +54,8 @@ void RaceLayout::playRank(u32 rank) {
 }
 // NONMATCHING: the pooled-string base and boolean result use swapped r30/r31 registers.
 bool RaceLayout::isAllAnimStopped() {
-    bool stopped = false;
-    if (MR::isPaneAnimStopped(this, "Goal", 0) && MR::isPaneAnimStopped(this, "Lose", 0)
-        && MR::isPaneAnimStopped(this, "ScoreTime", 0) && MR::isPaneAnimStopped(this, "Rank", 0)) stopped = true;
+    const bool stopped = MR::isPaneAnimStopped(this, "Goal", 0) && MR::isPaneAnimStopped(this, "Lose", 0)
+        && MR::isPaneAnimStopped(this, "ScoreTime", 0) && MR::isPaneAnimStopped(this, "Rank", 0);
     return stopped;
 }
 void RaceLayout::hideAllPane() {

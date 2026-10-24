@@ -120,6 +120,7 @@ MameMuimuiScorer::MameMuimuiScorer(const char* pName) : LiveActor(pName) {
 
 // NONMATCHING: register allocation (resource holder / count / new actor swap r27-r28).
 void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
+    s32 num;
     MR::initDefaultPos(this, rIter);
     MR::connectToSceneEnemyMovement(this);
     MR::getJMapInfoMatrixFromRT(rIter, &mInitialMtx);
@@ -135,7 +136,7 @@ void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
         mLevel = 1;
         mTargetScore = 500;
     }
-    const s32 num = mPlacements->mNum;
+    num = mPlacements->mNum;
     mGroups[0] = new MameMuimuiGroup("\227\316\203}\203\201\203\200\203C\203\212\203X\203g", num);
     for (s32 i = 0; i < num; i++) {
         MameMuimui* pMuimui = new MameMuimui("\227\316\203}\203\201\203\200\203C");

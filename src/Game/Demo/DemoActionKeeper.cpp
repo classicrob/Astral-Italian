@@ -274,8 +274,9 @@ void DemoActionInfo::executeStoryBookStart() const {
 }
 
 bool DemoActionKeeper::isStoryBookPart(const char* part) const {
+    DemoActionInfo* info;
     for (s32 i = 0; i < mNumInfos; i++) {
-        DemoActionInfo* info = mInfoArray[i];
+        info = mInfoArray[i];
         if (MR::isEqualString(info->mPartName, part)) {
             if (info->mActionType == 16) return true;
             if (info->mActionType == 17) return true;
@@ -286,8 +287,9 @@ bool DemoActionKeeper::isStoryBookPart(const char* part) const {
 }
 
 DemoActionInfo* DemoActionKeeper::findInfo(const LiveActor* actor, const char* part) const {
+    DemoActionInfo* info;
     for (s32 i = 0; i < mNumInfos; i++) {
-        DemoActionInfo* info = mInfoArray[i];
+        info = mInfoArray[i];
         if (MR::isEqualString(info->mPartName, part)) {
             for (s32 j = 0; j < info->mCastCount; j++) {
                 if (MR::isSame(info->mCastList[j], actor)) {
@@ -300,8 +302,9 @@ DemoActionInfo* DemoActionKeeper::findInfo(const LiveActor* actor, const char* p
 }
 
 void DemoActionKeeper::updatePartActions(bool skip) {
+    DemoActionInfo* info;
     for (s32 i = 0; i < mNumInfos; i++) {
-        DemoActionInfo* info = mInfoArray[i];
+        info = mInfoArray[i];
         if (skip) {
             for (s32 j = 0; j < info->mCastCount; j++) {
                 TalkMessageCtrl* talk = ::findTalkMessageCtrl(info->mCastList[j]);

@@ -31,8 +31,9 @@ ActorParam* ActorParam::tryCreate(LiveActor* pActor) {
 
 // Looks up a row by name. Returns NULL if no row has that name.
 ActorParamEntry* findEntry(const ActorParam* pParam, const char* pName) {
+    ActorParamEntry* pEntry;
     for (s32 i = 0; i < pParam->mEntryNum; i++) {
-        ActorParamEntry* pEntry = &pParam->mEntries[i];
+        pEntry = &pParam->mEntries[i];
         if (MR::isEqualString(pEntry->mName, pName)) {
             return pEntry;
         }

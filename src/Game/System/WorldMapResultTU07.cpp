@@ -525,10 +525,12 @@ bool WorldMapResultWorld::updateRouteStep(WorldMapResultRoute* pRoute, s32 step,
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 bool WorldMapResultWorld::isRouteNotHeld(WorldMapResultRoute* pRoute) const {
+    s32 to;
+
     GalaxyWorldMapInfoHolder* pData = mWorldData;
 
     for (s32 i = 0; i < pRoute->mCount; i++) {
-        s32 to = pRoute->mEdges[i].mTo;
+        to = pRoute->mEdges[i].mTo;
 
         if (pData->isNewOpen(pRoute->mEdges[i].mFrom) || pData->isNewOpen(to)) {
             return false;

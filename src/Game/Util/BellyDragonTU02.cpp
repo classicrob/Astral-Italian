@@ -732,6 +732,7 @@ BellyDragonBody::BellyDragonBody(BellyDragon* pHost, TPos3f* pBaseMtx, bool isLv
     f32 maxScale = 1.0f;
     f32 minScale = 0.6f;
     for (s32 i = 0; i < mPartNum; i++) {
+        f32 rate;
         f32 radius = 200.0f;
         f32 scale = 1.0f;
         if ((f32)(mPartNum - 1 - i) <= tailLen) {
@@ -739,7 +740,7 @@ BellyDragonBody::BellyDragonBody(BellyDragon* pHost, TPos3f* pBaseMtx, bool isLv
             radius = minRadius + t * (maxRadius - minRadius);
             scale = minScale + t * (maxScale - minScale);
         }
-        f32 rate = 1.0f;
+        rate = 1.0f;
         if ((u32)(i - 7) <= 0x10) {
             rate = MR::getEaseInValue((f32)(i - 7) / (f32)easeLen, 0.0f, 1.0f, 1.0f);
         }
@@ -754,8 +755,9 @@ BellyDragonBody::BellyDragonBody(BellyDragon* pHost, TPos3f* pBaseMtx, bool isLv
     HitSensor* pMessage = pHost->getSensor("Message");
     s32 weakIndices[7] = {4, 8, 12, 16, 20, 24, -1};
     mWeakPoints = new BellyDragonWeakPoint*[mWeakPointNum];
+    BellyDragonBodyPart* pPart;
     for (s32 i = 0; i < mWeakPointNum; i++) {
-        BellyDragonBodyPart* pPart = mParts[weakIndices[i]];
+        pPart = mParts[weakIndices[i]];
         mWeakPoints[i] = new BellyDragonWeakPoint(pMessage, pPart);
         mWeakPoints[i]->initWithoutIter();
         pPart->mHillA->mIsDiveSound = true;

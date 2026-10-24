@@ -21,6 +21,7 @@ ActionFootPrintCtrl* ActionFootPrintCtrl::tryCreate(LiveActor* pActor) {
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionFootPrintCtrl::update() {
+    ActionFootPrintInfo* pInfo;
     if (mPlayingBckName != MR::getPlayingBckName(mActor)) {
         mPlayingBckName = MR::getPlayingBckName(mActor);
         updateInfoEnabled();
@@ -28,7 +29,7 @@ void ActionFootPrintCtrl::update() {
 
     J3DFrameCtrl* pBckCtrl = MR::getBckCtrl(mActor);
     for (s32 i = 0; i < mInfoNum; i++) {
-        ActionFootPrintInfo* pInfo = &mInfos[i];
+        pInfo = &mInfos[i];
         if (pInfo->mIsEnabled && pBckCtrl->checkPass(pInfo->mStartFrame)) {
             if (pInfo->mJointName != NULL) {
                 MR::addFootPrintToJoint(mHandle, mActor, pInfo->mJointName, pInfo->mIsRight, 200.0f);
@@ -69,9 +70,10 @@ ActionFootPrintCtrl::ActionFootPrintCtrl(LiveActor* pActor) : mActor(pActor), mP
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionFootPrintCtrl::updateInfoEnabled() {
+    ActionFootPrintInfo* pInfo;
     if (mPlayingBckName != NULL) {
         for (s32 i = 0; i < mInfoNum; i++) {
-            ActionFootPrintInfo* pInfo = &mInfos[i];
+            pInfo = &mInfos[i];
             if (pInfo->mBckName != NULL) {
                 if (MR::isEqualStringCase(mPlayingBckName, pInfo->mBckName)) {
                     pInfo->mIsEnabled = 1;

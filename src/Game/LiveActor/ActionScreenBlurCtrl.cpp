@@ -20,6 +20,7 @@ ActionScreenBlurCtrl* ActionScreenBlurCtrl::tryCreate(const ModelManager* pModel
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionScreenBlurCtrl::update() {
+    ActionScreenBlurInfo* pInfo;
     if (mPlayingBckName != mModelManager->getPlayingBckName()) {
         mPlayingBckName = mModelManager->getPlayingBckName();
         updateInfoEnabled();
@@ -27,7 +28,7 @@ void ActionScreenBlurCtrl::update() {
 
     J3DFrameCtrl* pBckCtrl = mModelManager->getBckCtrl();
     for (s32 i = 0; i < mInfoNum; i++) {
-        ActionScreenBlurInfo* pInfo = &mInfos[i];
+        pInfo = &mInfos[i];
         if (pInfo->mIsEnabled && pBckCtrl->checkPass(pInfo->mStartFrame)) {
             MR::startCenterScreenBlur(pInfo->mTotalStep, pInfo->mOffset, pInfo->mAlpha, pInfo->mFadeInStep, pInfo->mFadeOutStep);
         }
@@ -60,9 +61,10 @@ ActionScreenBlurCtrl::ActionScreenBlurCtrl(const ModelManager* pModelManager) : 
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 void ActionScreenBlurCtrl::updateInfoEnabled() {
+    ActionScreenBlurInfo* pInfo;
     if (mPlayingBckName != NULL) {
         for (s32 i = 0; i < mInfoNum; i++) {
-            ActionScreenBlurInfo* pInfo = &mInfos[i];
+            pInfo = &mInfos[i];
             if (pInfo->mBckName != NULL) {
                 if (MR::isEqualStringCase(mPlayingBckName, pInfo->mBckName)) {
                     pInfo->mIsEnabled = 1;

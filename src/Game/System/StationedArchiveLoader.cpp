@@ -102,8 +102,9 @@ void StationedArchiveLoader::loadScenarioData(JKRHeap* pHeap) {
 
 // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
 bool StationedArchiveLoader::createAndAddResourcesFromTable(const Condition& rCondition, s32 start, s32 end) {
+    s32 count;
     const MR::StationedFileInfo* pInfo = MR::getStationedFileInfoTable();
-    s32 count = 0;
+    count = 0;
     for (; pInfo->mArchive != nullptr; pInfo++) {
         if (!rCondition.isExecute(pInfo)) continue;
         if (++count <= start) continue;

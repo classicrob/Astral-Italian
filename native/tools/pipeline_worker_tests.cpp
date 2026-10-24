@@ -16,8 +16,12 @@
 namespace absl {
 template<class K, class V> using flat_hash_map = std::unordered_map<K, V>;
 }
-namespace aurora::gx { enum class PetariUberTier { Generic, Fast }; }
+namespace aurora::gx {
+enum class PetariUberTier { Generic, Fast };
+struct PipelineConfig;
+}
 namespace aurora::gfx {
+struct RenderTargetLayout;
 using PipelineRef = uint64_t;
 using HashType = uint64_t;
 enum class ShaderType { Clear, GX, Rml };

@@ -45,6 +45,9 @@ PREFIX = r'''
 namespace PetariPipeline {
 using Clock=std::chrono::steady_clock;
 double milliseconds(Clock::duration d) { return std::chrono::duration<double,std::milli>(d).count(); }
+bool fallbackPriority=true;
+bool demandFallbackPriority() { return fallbackPriority; }
+bool diagnostics() { return false; }
 }
 namespace aurora {
 struct { const char* resourcesPath=""; } g_config;
@@ -69,7 +72,7 @@ std::map<uint64_t,Known> g_knownPipelines;
 std::map<PipelineRef,CompiledPipeline> g_pipelines;
 struct Pending { PipelineRef hash; };
 std::deque<Pending> g_pipelineQueue;
-struct Sample { bool drawBlocking=false; };
+struct Sample { bool drawBlocking=false; ShaderType type=ShaderType::GX; };
 std::map<PipelineRef,Sample> petariPipelineSamples;
 unsigned petariNormalWorkers=4,petariActiveWorkers=4;
 constexpr unsigned kPetariOnDemandWorkers=2;
@@ -178,8 +181,10 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberJobs.size()==2);
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_key(d,l,gx::PetariUberTier::Generic));
   gfx::g_pipelineQueue.push_back({9});gfx::petariPipelineSamples[9].drawBlocking=true;
-  CHECK(!take()); // a real draw gets the reserved slot first
-  gfx::g_pipelineQueue.clear();auto run=take();CHECK(run);run();
+  CHECK(!take(0)); // worker 0 stays reserved for the draw-blocking specialised compile
+  PetariPipeline::fallbackPriority=false;CHECK(!take()); // override off: the real draw gets the slot first
+  PetariPipeline::fallbackPriority=true;auto run=take();CHECK(run);run(); // another worker may finish the demanded fallback
+  gfx::g_pipelineQueue.clear();
   CHECK(gfx::petariUberBoot.completed.contains(gx::petari_uber_key(d,l,gx::PetariUberTier::Generic)));
  } else if(test=="stage") {
   auto d=c;d.shaderConfig.variant=2;
@@ -229,7 +234,7 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
   gfx::petari_uber_schedule_stage(c,l,l,"MarioFaceShipGalaxy"); // old stage jobs lose their priority
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
- } else if(test=="cost_order") {
+ } else if(test=="stage_order") {
   gfx::petariUberTitleReleased=true;
   auto nonind=c;nonind.fixed=10;nonind.shaderConfig.tevStageCount=16;
   auto ind=c;ind.fixed=11;ind.shaderConfig.numIndStages=1;
@@ -239,15 +244,16 @@ int main(int argc,char** argv) {
   for(const auto& cfg:{nonind,ind,tev,tex,tie})gfx::petari_uber_schedule_stage(cfg,l,l,"MokumokuValleyGalaxy");
   std::vector<uint64_t> generic,fast;
   for(const auto& job:gfx::petariUberJobs)(job.tier==gx::PetariUberTier::Generic?generic:fast).push_back(job.key);
-  CHECK(generic==std::vector<uint64_t>({gx::petari_uber_keys(tex,l).generic,gx::petari_uber_keys(tie,l).generic,
-    gx::petari_uber_keys(tev,l).generic,gx::petari_uber_keys(ind,l).generic,gx::petari_uber_keys(nonind,l).generic}));
+  // Active-stage Generic fallbacks keep the stage's first-use order (not a cost proxy).
+  CHECK(generic==std::vector<uint64_t>({gx::petari_uber_keys(nonind,l).generic,gx::petari_uber_keys(ind,l).generic,
+    gx::petari_uber_keys(tev,l).generic,gx::petari_uber_keys(tex,l).generic,gx::petari_uber_keys(tie,l).generic}));
   CHECK(fast==std::vector<uint64_t>({gx::petari_uber_keys(nonind,l).fast,gx::petari_uber_keys(ind,l).fast,
     gx::petari_uber_keys(tev,l).fast,gx::petari_uber_keys(tex,l).fast,gx::petari_uber_keys(tie,l).fast}));
   // Stage switches demote to the unchanged stable order; activation re-sorts.
   gfx::petari_uber_schedule_stage(c,l,l,"MarioFaceShipGalaxy");
   CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(c,l).generic);
   gfx::petari_uber_schedule_stage(nonind,l,l,"MokumokuValleyGalaxy");
-  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(tex,l).generic);
+  CHECK(gfx::petariUberJobs.front().key==gx::petari_uber_keys(nonind,l).generic);
   gfx::g_pipelineQueue.push_back({99});gfx::petariPipelineSamples[99].drawBlocking=true;
   CHECK(!take()); // cost sorting cannot preempt a draw-blocking specialised compile
  } else if(test=="alias") {
@@ -299,7 +305,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "cost_order", "alias"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

@@ -59,6 +59,10 @@ Patched pointer runs also require `pointer_valid_rows_compared >= 30` and
 `pointer_distinct_positions_compared >= 3` from successful actual WPad seam
 comparisons. Route CSV pointer columns describe physical BoundState and stay
 neutral during raw KPAD replay; they do not supply these coverage counters.
+PORT also requires both pointer arms to observe the original 90 seconds. After
+the declared tape end, neutral post-roll supplies the remaining observation;
+its start and duration must be recorded. Every tape row remains strict, and
+the warm arm still needs at least fifty audio reports with zero underruns.
 
 The separate item3tier worker sweep is paused before workers8-r1 app launch;
 its three diagnostic arms and first cap2/cap4 runs remain intact. After the

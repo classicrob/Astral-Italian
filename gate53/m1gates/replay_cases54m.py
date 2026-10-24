@@ -4,7 +4,7 @@
 Copies a server candidate to SOL A's perfm1a namespace; records both source and
 re-signed hashes. Never changes frozen54 results or invokes host input.
 """
-import argparse,json,os,re,shutil,subprocess,sys
+import argparse,json,math,os,re,shutil,subprocess,sys
 from common import *
 
 ANCHOR_POLICY='interactive-and-play-ready-v1'
@@ -35,6 +35,17 @@ def game_pointer_coverage(report):
   result['passed']=result['valid_rows_compared']>=30 and result['distinct_positions_compared']>=3
  except (AssertionError,KeyError,TypeError):pass
  return result
+
+def pointer_observation_checks(report,process):
+ """Retain the reference 90-second window after strict tape completion."""
+ checks=dict.fromkeys(('original_observation_window','neutral_post_roll_recorded'),False)
+ try:
+  o=report['observation'];p=o['post_roll']
+  def number(v):return type(v) in (int,float) and math.isfinite(v) and v>=0
+  checks['original_observation_window']=o['completed'] is True and type(o['requested_seconds']) in (int,float) and o['requested_seconds']==90 and o['clock']=='steady_clock; quit scheduling only' and all(number(o[k]) for k in ('start_monotonic_seconds','stop_monotonic_seconds','elapsed_seconds')) and number(process['seconds']) and 90<=o['elapsed_seconds']<=process['seconds']+.05 and process['seconds']>=90 and abs(o['stop_monotonic_seconds']-o['start_monotonic_seconds']-o['elapsed_seconds'])<=.05
+  checks['neutral_post_roll_recorded']=p['started'] is True and p['input']=='neutral' and p['input_source']=='Headless::Replay::neutral' and all(type(p[k]) is int and p[k]>=0 for k in ('start_route_row','end_route_row','loops','neutral_read_calls')) and p['end_route_row']>=p['start_route_row'] and p['loops']>0 and p['neutral_read_calls']>0 and all(number(p[k]) for k in ('start_elapsed_seconds','elapsed_seconds')) and p['start_elapsed_seconds']<=o['elapsed_seconds'] and abs(p['start_elapsed_seconds']+p['elapsed_seconds']-o['elapsed_seconds'])<=.05
+ except (KeyError,TypeError):pass
+ return checks
 
 def anchor_checks(report,required_play_stage=None,require_identity=False):
  parts=report.get('segments',[])
@@ -67,6 +78,7 @@ def replay(app,out,tape,stage,allow_incomplete,warm=None,renderer_key=None,promo
  def caches(path):return [inspect_cache(p,renderer_key) for p in sorted(path.glob('*.db')) if renderer_key in p.name]
  before_cache=caches(Path(warm)/'cache') if promotion_pointer and warm else []
  if promotion_pointer and warm:env.update(SDL_AUDIO_DRIVER='coreaudio',PETARI_SMOKE_REAL_AUDIO='1',PETARI_AUDIO_DIAG='1')
+ if promotion_pointer:env['PETARI_TAPE_PLAY_OBSERVE_SECONDS']='90'
  proc=run(app,out,stage=stage,scenario=1,copied=True,fixture=fixture,verify_fixture_attrs=True,extra=env,warm=warm,cold=not warm,seconds=540)
  report=json.loads((out/'replay/divergence.json').read_text());parts=report.get('segments',[]);text=(out/'app.log').read_text(errors='replace');rs=rows(out/'route.csv')
  checks={'completed_process':proc['completed'],'no_faults':proc['no_faults'],'seed_unchanged':proc['seed_unchanged'],'binary_unchanged':proc['binary_unchanged'],'tape_unchanged':tree(tape)==before,'whole_session_replay':report.get('mode')=='whole-session' and 'jump cut' not in text,'replay_completed':report.get('finished') is True and bool(parts) and all(s.get('started') and s.get('completed') for s in parts) and replay_accounting(report,require_identity),'no_divergence':not report.get('stopped') and bool(parts) and not any(s.get('diverged') for s in parts)}
@@ -75,6 +87,7 @@ def replay(app,out,tape,stage,allow_incomplete,warm=None,renderer_key=None,promo
   frame_rows=rows(out/'frames.csv');after_cache=caches(out/'cache');audio=[int(n) for n in re.findall(r'underrun (\d+) frames',text)]
   checks.update(menu_frames=any(r['phase']=='menu' for r in frame_rows),gameplay_frames=sum(r['phase']=='gameplay' for r in frame_rows)>=120,matching_key_cache_written=any(r['rows'] for r in after_cache),cache_arm_verified=any(r['rows'] for r in before_cache) if warm else not before_cache)
   if warm:checks['real_audio_zero_underruns']=len(audio)>=50 and sum(audio)==0 and 'SDL audio underrun:' not in text
+  if identity_contract(report,require_identity):checks.update(pointer_observation_checks(report,proc))
  result={'passed':all(checks.values()),'checks':checks,'process':proc,'replay':report,'build_kind':'server-candidate','tape':str(tape),'tape_exe_sha256':meta.get('exe_sha256'),'app_sha256':sha(app/'Contents/MacOS/Petari'),'tape_exe_hash_matches_app':meta.get('exe_sha256')==sha(app/'Contents/MacOS/Petari'),'hash_comparison_gated':False,'recording_complete':meta.get('complete'),'allow_incomplete':allow_incomplete,'launch_stage':stage,'nice':os.getpriority(os.PRIO_PROCESS,0),'host_input_used':False}
  result['first_divergence']=next((s for s in parts if s.get('diverged')),None)
  if promotion_pointer:result.update(before_cache=before_cache,after_cache=after_cache,real_audio=bool(warm),audio_reports=len(audio),audio_underrun_frames=sum(audio),frame_counts={phase:sum(r['phase']==phase for r in frame_rows) for phase in ('startup','loading','menu','gameplay')})

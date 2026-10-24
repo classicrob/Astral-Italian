@@ -87,4 +87,16 @@ class GateValidation(unittest.TestCase):
    bad=copy.deepcopy(report);del bad['segments'][0][field]
    self.assertFalse(game_pointer_coverage(bad)['passed'],field)
   self.assertFalse(game_pointer_coverage({'segments':[]})['passed'])
+ def test_pointer_observation_keeps_ninety_seconds_and_neutral_provenance(self):
+  from replay_cases54m import pointer_observation_checks
+  report={'observation':{'requested_seconds':90,'clock':'steady_clock; quit scheduling only','start_monotonic_seconds':1000.,'stop_monotonic_seconds':1090.,'elapsed_seconds':90.,'completed':True,'post_roll':{'started':True,'start_route_row':1801,'end_route_row':5401,'start_elapsed_seconds':30.,'elapsed_seconds':60.,'loops':3600,'input':'neutral','input_source':'Headless::Replay::neutral','neutral_read_calls':14400}}}
+  self.assertTrue(all(pointer_observation_checks(report,{'seconds':90.5}).values()))
+  self.assertFalse(all(pointer_observation_checks(report,{'seconds':89.9}).values()))
+  for key,value in (('elapsed_seconds',89.99),('completed',False),('stop_monotonic_seconds',None),('requested_seconds',30)):
+   bad=copy.deepcopy(report);bad['observation'][key]=value
+   self.assertFalse(all(pointer_observation_checks(bad,{'seconds':90.5}).values()),key)
+  for key,value in (('input','recorded'),('input_source','host'),('neutral_read_calls',0),('elapsed_seconds',59.),('started',False)):
+   bad=copy.deepcopy(report);bad['observation']['post_roll'][key]=value
+   self.assertFalse(all(pointer_observation_checks(bad,{'seconds':90.5}).values()),key)
+  self.assertFalse(all(pointer_observation_checks({}, {'seconds':90.5}).values()))
 if __name__=='__main__':unittest.main()

@@ -526,7 +526,13 @@ void GameScene::init() {
     if (MR::isStageMarioFaceShipOrWorldMap()) {
         MR::createSceneObj(0x37);
     }
-    if (MR::isStageStaffRoll() || MR::isStageMarioFaceShip()) {
+    bool createStaff = false;
+    if (MR::isStageStaffRoll()) {
+        createStaff = true;
+    } else {
+        createStaff = MR::isStageMarioFaceShip();
+    }
+    if (createStaff) {
         MR::createSceneObj(0x98);
     }
     SceneFunction::waitDoneStageFileLoad();

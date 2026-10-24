@@ -9324,7 +9324,7 @@ void MarioActor::fn_803CCF90(HitSensor* sensor) {
 }
 
 bool MarioActor::fn_803CD000() {
-    if (_934 != 0) {
+    if (isRushing()) {
         return false;
     }
     if (this->mHealth == 0) {
@@ -9419,7 +9419,7 @@ bool MarioActor::fn_803CD380() {
 }
 
 bool MarioActor::fn_803CD3C0() {
-    if (_934 != 0) {
+    if (isRushing()) {
         return false;
     }
     if (this->mHealth == 0) {

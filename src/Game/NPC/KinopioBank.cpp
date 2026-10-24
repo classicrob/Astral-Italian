@@ -152,7 +152,7 @@ void KinopioBank::updateBank(s32 immediate) {
     if(mGoods0) mGoods0->makeActorAppeared();
     if(mGoods1) mGoods1->makeActorAppeared();
     const BankActions& actions=sActions[index];
-    mParam._14=actions.wait; mParam._18=actions.turn; mParam._1C=actions.talk; mParam._20=actions.turn;
+    mParam.setMoveAction(actions.wait, actions.turn); mParam.setTalkAction(actions.talk, actions.turn);
     mSpinAction=actions.spin; mReactionAction=actions.reaction; mTrampledAction=actions.reaction; mPointingAction=actions.turn;
     if(index==0) MR::emitEffect(mGoods0,"KinopioGoodsStarPieceLight");
     MR::startAction(this,mParam._1C);

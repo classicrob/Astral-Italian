@@ -111,8 +111,7 @@ void Popo::initAfterPlacement() {
     TVec3f line = mGravity * sFloatKeepHeight * 2.0f;
     TVec3f hitPos;
     if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, start, line)) {
-        TVec3f pos(hitPos - mGravity * sFloatKeepHeight);
-        MR::setPosition(this, pos);
+        MR::setPosition(this, hitPos - mGravity * sFloatKeepHeight);
     }
     MR::calcFrontVec(&mFrontVec, this);
     makeActorAppeared();
@@ -464,8 +463,7 @@ void Popo::exeStickCancel() {
         f32 radius = MR::getSensorRadius(this, "Body");
         TVec3f hitPos;
         TVec3f from(mPosition - mGravity * radius);
-        TVec3f line = mGravity * radius * 2.0f;
-        if (MR::getFirstPolyOnLineToMap(&hitPos, &tri, from, line)) {
+        if (MR::getFirstPolyOnLineToMap(&hitPos, &tri, from, mGravity * radius * 2.0f)) {
             MR::setPosition(this, hitPos + *tri.getNormal(0) * radius);
         }
     }

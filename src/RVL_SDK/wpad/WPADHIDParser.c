@@ -580,7 +580,7 @@ void __wpadGetExtType(s32 chan, s32 result) {
         } else p_cb->isSetStickOrigin = 0;
         p_cb->extensionPreviousType = _devType[chan];
         p_cb->extensionReconnectPending = 0;
-        switch (_devType[chan]) {
+        switch ((u32)_devType[chan]) {
         case 251:
         case 252:
             p_cb->devType = _devType[chan];

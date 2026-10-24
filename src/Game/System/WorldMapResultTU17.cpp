@@ -226,10 +226,7 @@ void WorldMapResultStatePointEvent::exeEnd() {
         mHost->startNodeCamera(-1, -1);
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    TVec3f sp8 = mPos + sPointEventOffset;
-    TVec3f sp14 = sp8 * (1.0f - rate);
-    TVec3f sp20 = mOffset * rate;
-    TVec3f sp2C = sp20 + sp14;
+    TVec3f sp2C = mOffset * rate + (mPos + sPointEventOffset) * (1.0f - rate);
     mHost->setRocketPosWithTarget(&sp2C);
     if (MR::isGreaterEqualStep(this, 30)) {
         kill();
@@ -238,10 +235,7 @@ void WorldMapResultStatePointEvent::exeEnd() {
 
 void WorldMapResultStatePointEvent::moveCamera(f32 rate) {
     rate = MR::getEaseInOutValue(rate, 0.0f, 1.0f, 1.0f);
-    TVec3f sp8 = mPos + sPointEventOffset;
-    TVec3f sp14 = sp8 * rate;
-    TVec3f sp20 = mPos * (1.0f - rate);
-    TVec3f sp2C = sp20 + sp14;
+    TVec3f sp2C = mPos * (1.0f - rate) + (mPos + sPointEventOffset) * rate;
     mHost->setRocketPosWithTarget(&sp2C);
 }
 

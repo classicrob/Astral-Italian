@@ -223,7 +223,9 @@ void KoopaJrCastleStateBodyMove::exeMoveChase() {
         } else if (isTurnEnd(1.0f)) {
             MR::zeroVelocity(pCastle);
             setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvRotA::sInstance);
+            return;
         }
+        return;
     } else {
         if (isTurnEnd(1.0f) || MR::isPlayerDamaging()) {
             MR::zeroVelocity(pCastle);

@@ -767,6 +767,8 @@ public:
         return _482 || _481;
     }
 
+    inline bool isRushing() const { return _934; }
+
     inline Mario* getMario() const {
         return mMario;
     }
@@ -938,7 +940,7 @@ public:
     /* 0x6BC */ u32 _390;
     /* 0x6C0 */ u32 _394;  // SMG2 offset vote-TAIL
     /* 0x6C4 */ u32 _398;
-    /* 0x6C8 */ u32 mCounter6C8;
+    /* 0x6C8 */ s32 mCounter6C8;
     /* 0x6CC */ u8 _39D;
     /* 0x6CD */ u8 _39C;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6CE */ u16 _3A8;

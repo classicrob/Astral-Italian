@@ -678,7 +678,6 @@ s32 get_mpls_data_z(KMPLSState* state, const WPADMPStatus* report) {
     return (s32)(0.5 + output);
 }
 
-// NONMATCHING: Channel-address arithmetic is scheduled after the null guard; the same three ring fields are written.
 void KMPLSSetKpadRingBuffer(s32 chan, const KPADUnifiedWpadStatus* internalRing,
                           const KPADUnifiedWpadStatus* externalRing, u32 externalLength) {
     KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);

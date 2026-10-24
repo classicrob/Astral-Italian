@@ -184,9 +184,12 @@ void MogucchiShooter::control() {
     }
     f32 phase = 360.0f * (mSwayTimer % sSwingPeriod) / sSwingPeriod;
     mPosition = mHomePos + mUpVec * (20.0f * MR::sinDegree(phase));
-    bool v1 = true;
-    bool v2 = true;
-    bool v3 = true;
+    bool v1;
+    bool v3;
+    bool v2;
+    v1 = true;
+    v2 = true;
+    v3 = true;
     if (!isNerve(MS_NRV(Nrv2C00)) && !isNerve(MS_NRV(Nrv2C08))) { v2 = false; }
     if (!v2 && !isNerve(MS_NRV(Nrv2C04))) { v3 = false; }
     if (!v3 && !isNerve(MS_NRV(Nrv2C10))) { v1 = false; }

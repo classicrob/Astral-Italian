@@ -122,16 +122,16 @@ def evaluate(rows, log, replay):
                         "last_pointer_recorded", "last_pointer_replayed", "last_pointer_valid")} for s in segments]}
 
 
-def main(argv=None):
+def main(argv=None, profile=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("app", type=Path)
     parser.add_argument("sha256")
     parser.add_argument("source")
     parser.add_argument("label")
-    parser.add_argument("--tape", type=Path, default=ROOT / "tapes/tape-normal-54")
+    parser.add_argument("--tape", type=Path, default=profile.TAPE if profile else ROOT / "tapes/tape-normal-54")
     parser.add_argument("--build-kind", choices=("server-candidate", "dev-m1", "frozen54"), required=True)
     parser.add_argument("--mode", choices=("whole-session", "segments"), default="whole-session")
-    parser.add_argument("--bound", type=float, default=540)
+    parser.add_argument("--bound", type=float, default=profile.BOUND if profile else 540)
     parser.add_argument("--allow-incomplete", action="store_true", help="use a recording checkpoint; recorded in RESULT")
     a = parser.parse_args(argv)
     if Path(a.label).name != a.label or a.label in (".", ".."):
@@ -151,13 +151,16 @@ def main(argv=None):
         parser.error("recording incomplete; --allow-incomplete explicitly permits its checkpoint")
     if meta.get("lossy_samples", 0) or meta.get("unencodable_samples", 0):
         parser.error("lossy or unencodable tape cannot be an exact replay")
-    before = tree(SEED)
-    if before != json.loads((SEED.parent / "receipt.json").read_text())["files"]:
+    before = {} if profile else tree(SEED)
+    if not profile and before != json.loads((SEED.parent / "receipt.json").read_text())["files"]:
         parser.error("unlocked fixture differs from its receipt")
     tape_before = tree(tape)
     case = ROOT / a.label
     case.mkdir(parents=True, exist_ok=False, mode=0o700)
-    subprocess.run(["/usr/bin/ditto", str(SEED), str(case / "user")], check=True)
+    if profile:
+        (case / "user").mkdir()
+    else:
+        subprocess.run(["/usr/bin/ditto", str(SEED), str(case / "user")], check=True)
     if tree(case / "user") != before:
         raise RuntimeError("save copy does not match fixture")
     (case / "cache").mkdir()
@@ -173,7 +176,9 @@ def main(argv=None):
             parser.error(f"unsupported recorded scene hook: {key}")
         env[key] = str(value)
     cmd = [str(exe), "--disc", str(DISC), "--user", str(case / "user"), "--replay-tape", str(tape)]
-    checks = dict.fromkeys(CHECKS, False)
+    if profile:
+        cmd += ["--stage", profile.STAGE, "--scenario", str(profile.SCENARIO)]
+    checks = dict.fromkeys(profile.CHECKS if profile else CHECKS, False)
     result = {"passed": False, "checks": checks, "source": a.source, "build_kind": a.build_kind,
               "anchor_policy": ANCHOR_POLICY,
               "locks": {"heavy": str(HEAVY), "heavy_kind": "lockf -k", "order": ["heavy", "native"]},
@@ -183,6 +188,10 @@ def main(argv=None):
               "hash_comparison_gated": False, "tape": str(tape), "case": str(case), "bundle_id": bundle,
               "recording_complete": meta.get("complete"), "mode": a.mode, "host_input_used": False,
               "priority": {"nice": os.getpriority(os.PRIO_PROCESS, 0), "reason": "inherited; KPAD is game-frame driven"}}
+    if profile:
+        result.update(gate=profile.NAME, profile_script_sha256=sha(Path(profile.__file__)),
+                      save_mode="fresh private empty user", launch_stage=profile.STAGE, launch_scenario=profile.SCENARIO)
+        app_before = tree(app)
     start = None
     child = None
     try:
@@ -195,7 +204,7 @@ def main(argv=None):
             start = time.time()
             (case / "command.json").write_text(json.dumps({**result, "command": cmd, "bound_seconds": a.bound,
                 "environment": {k: v for k, v in env.items() if k.startswith("PETARI_")},
-                "save_seed": str(SEED), "save_before": before, "start_epoch": start}, indent=2) + "\n")
+                "save_seed": None if profile else str(SEED), "save_before": before, "start_epoch": start}, indent=2) + "\n")
             with (case / "app.log").open("wb") as log:
                 child = subprocess.Popen(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
                 try:
@@ -216,11 +225,16 @@ def main(argv=None):
             rows = list(csv.DictReader(route.open())) if route.exists() else []
             path = case / "replay/divergence.json"
             replay = json.loads(path.read_text()) if path.exists() else {}
-            evaluated, evidence = evaluate(rows, (case / "app.log").read_text(errors="replace"), replay)
+            text = (case / "app.log").read_text(errors="replace")
+            evaluated, evidence = profile.evaluate(rows, text, replay, meta, case, tape) if profile else evaluate(rows, text, replay)
             checks.update(evaluated)
-            checks.update(seed_unchanged=tree(SEED) == before, binary_unchanged=sha(exe) == a.sha256,
+            checks.update(binary_unchanged=sha(exe) == a.sha256,
                           lossless_tape=not meta.get("lossy_samples", 0) and not meta.get("unencodable_samples", 0),
                           tape_unchanged=tree(tape) == tape_before)
+            if profile:
+                checks["app_unchanged"] = tree(app) == app_before
+            else:
+                checks["seed_unchanged"] = tree(SEED) == before
             result.update(evidence)
             checks["replay_completed"] &= child.returncode == 0 and not result["timed_out"]
             result["passed"] = all(checks.values())
@@ -232,7 +246,7 @@ def main(argv=None):
         # Preserve logs and summaries, discard duplicate tape/captures and the private shader cache before another run.
         for name in ("route.csv", "route.kpd", "route.actions", "route.tape.json"):
             (case / "replay" / name).unlink(missing_ok=True)
-        for name in ("route.kpd", "route.actions", "route.tape.json"):
+        for name in (("route.kpd", "route.actions") if profile else ("route.kpd", "route.actions", "route.tape.json")):
             (case / name).unlink(missing_ok=True)
         for path in (case / "cache", case / "user"):
             shutil.rmtree(path, ignore_errors=True)

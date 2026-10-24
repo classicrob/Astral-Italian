@@ -7,7 +7,7 @@ from common import *
 STAGES=('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy')
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');p.add_argument('--pointer-tape',type=Path,default=ROOT/'tapes/tape-worldmap-54');a=p.parse_args()
  assert re.fullmatch(r'[A-Za-z0-9_-]+',a.label),'safe unique label required'
  assert os.getpriority(os.PRIO_PROCESS,0)==0,'run campaign at nice 0'
  candidate_mode=a.server_candidate_dir is not None
@@ -20,7 +20,7 @@ def main():
  app,meta=campaign_build(a.server_candidate_dir)
  base=ROOT/'campaigns'/a.label;base.mkdir(parents=True,exist_ok=False)
  manifest={'schema':1,'label':a.label,'host':platform.node(),'platform':platform.platform(),'nice':0,'build_kind':'server-candidate' if candidate_mode else 'frozen54','priority_reason':'Normal priority approved by PORT; server promotion/normal/intro/Cappy ran nice 19, a documented load-sensitive harness difference.',('candidate_build' if candidate_mode else 'frozen'):{k:v for k,v in meta.items() if k!='resource_tree'},'steps':[],'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'reference_root':str(HOME/'MacioGalaxy2-team/scratch-port/gate53/m1gates/srv-ref')}
- if candidate_mode:manifest.update(app=str(app),normal_results=[str(q.resolve()) for q in a.normal_results],require_bounded_identity=a.require_bounded_identity,tier_authority='PORT/head final candidate ruling: cold stall and Fifo cadence are M1 TIER rows; all functional gates required')
+ if candidate_mode:manifest.update(app=str(app),normal_results=[str(q.resolve()) for q in a.normal_results],require_bounded_identity=a.require_bounded_identity,pointer_tape=str(a.pointer_tape.resolve()),tier_authority='PORT/head final candidate ruling: cold stall and Fifo cadence are M1 TIER rows; all functional gates required')
  write(base/'MANIFEST.json',manifest)
  if candidate_mode:
   from promotion54m import prepare_m1_fixture
@@ -102,7 +102,7 @@ def main():
     if candidate_mode:
      write(base/'tape-status.json',normal)
      write(base/'candidate-normal-boot-ui.json',{**normal,'gate':'normal-boot-ui','frozen54_acceptance':False})
-     command('candidate-pointer',[sys.executable,'-B',HERE/'replay_cases54m.py','pointer',a.label+'-pointer','--app',meta['source_app'],'--sha',meta['source_exe_sha256'],'--source',meta['source'],'--tape',ROOT/'tapes/tape-worldmap-54','--allow-incomplete']+(['--require-bounded-identity'] if a.require_bounded_identity else []))
+     command('candidate-pointer',[sys.executable,'-B',HERE/'replay_cases54m.py','pointer',a.label+'-pointer','--app',meta['source_app'],'--sha',meta['source_exe_sha256'],'--source',meta['source'],'--tape',a.pointer_tape,'--allow-incomplete']+(['--require-bounded-identity'] if a.require_bounded_identity else []))
      continue
     # Candidate replay receipts cannot satisfy frozen54 identity. SOL B owns its runner.
     if a.candidate_app:
@@ -114,7 +114,7 @@ def main():
      replay_base=[sys.executable,'-B',HERE/'replay_cases54m.py']
      identity_args=['--app',a.candidate_original_app,'--sha',a.candidate_original_sha,'--source',a.candidate_source]+(['--allow-incomplete'] if a.allow_incomplete_tape else [])
      command('candidate-intro',replay_base+['intro',a.label+'-candidate-intro',*identity_args,'--tape',ROOT/'tapes/tape-intro-54-49','--none-tape',ROOT/'tapes/tape-intro-54-none'])
-     command('candidate-pointer',replay_base+['pointer',a.label+'-candidate-pointer',*identity_args,'--tape',ROOT/'tapes/tape-worldmap-54'])
+     command('candidate-pointer',replay_base+['pointer',a.label+'-candidate-pointer',*identity_args,'--tape',a.pointer_tape])
     write(base/'tape-status.json',{'passed':False,'reason':'Frozen54 lacks full-session replay. PORT approved separate server-built candidate tape runs; never merge candidate evidence into frozen54 receipts.','candidate_result':str(a.tape_result) if a.tape_result else None})
     if a.tape_result:
      normal=json.loads(a.tape_result.read_text());write(base/'candidate-normal-boot-ui.json',{'passed':normal.get('acceptance_passed') is True,'build_kind':normal.get('build_kind'),'binary_sha256':normal.get('binary_sha256'),'source':normal.get('source'),'gate':'normal-boot-ui','receipt':str(a.tape_result),'checks':{k:normal.get('checks',{}).get(k) for k in ('scene_chain','existing_unlocked_file1','no_faults','no_divergence','whole_session_replay','replay_completed')},'limits':['Canonical normal-route tape includes ordinary title/FileSelect boot; same actual run proves this prefix. Candidate evidence only.']})

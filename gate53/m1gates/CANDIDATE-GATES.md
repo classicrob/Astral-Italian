@@ -49,7 +49,10 @@ The collector revalidates it and keeps the failed unchanged-since-a23609ca
 comparison as a separate source observation.
 
 For a new candidate containing SOL B's e546b8fe boundary correction, add
-`--require-bounded-identity` to the campaign or direct replay adapter. This
+`--require-bounded-identity` to the campaign or direct replay adapter. Select
+the canonical pointer recording explicitly with campaign
+`--pointer-tape ~/MacioGalaxy2-gamedata/port53/m1g/tapes/tape-worldmap-54v2`
+(or direct adapter `--tape`); the older recording remains immutable. This
 requires bit-exact interactive positions, each identity observed within30 loops,
 `rows_compared + identity_rows_skipped == tape_frames + 1`, and
 `pointer_rows_compared == tape_frames`. Pointer comparisons include construction

@@ -95,6 +95,13 @@ def main():
    else:raise ValueError('unknown gate '+gate)
   except Exception as e:
    write(base/(gate+'-error.json'),{'passed':False,'error':repr(e)});print('ERROR',gate,repr(e),flush=True)
+  finally:
+   # The gate command has reaped its app; no subsequent gate depends on its caches.
+   for owned in (ROOT/'runs').glob(a.label+'-*'):
+    if owned.is_dir():
+     for child in sorted(owned.rglob('*'),key=lambda q:len(q.parts),reverse=True):
+      if child.is_dir() and (child.name in ('cache','user','captures','tmp','dump') or child.name.endswith('-cache')):shutil.rmtree(child)
+     if owned.name.endswith('-dump'):shutil.rmtree(owned)
  manifest['finished_utc']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime());write(base/'MANIFEST.json',manifest)
  command('receipts',[sys.executable,'-B',HERE/'receipts54m.py',base,base/'receipts'])
  print('CAMPAIGN EVIDENCE',base,flush=True)

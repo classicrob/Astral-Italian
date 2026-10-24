@@ -95,7 +95,7 @@ class GateValidation(unittest.TestCase):
   for key,value in (('elapsed_seconds',89.99),('completed',False),('stop_monotonic_seconds',None),('requested_seconds',30)):
    bad=copy.deepcopy(report);bad['observation'][key]=value
    self.assertFalse(all(pointer_observation_checks(bad,{'seconds':90.5}).values()),key)
-  for key,value in (('input','recorded'),('input_source','host'),('neutral_read_calls',0),('elapsed_seconds',59.),('started',False)):
+  for key,value in (('input','recorded'),('input_source','host'),('neutral_read_calls',0),('loops',3599),('elapsed_seconds',59.),('started',False)):
    bad=copy.deepcopy(report);bad['observation']['post_roll'][key]=value
    self.assertFalse(all(pointer_observation_checks(bad,{'seconds':90.5}).values()),key)
   self.assertFalse(all(pointer_observation_checks({}, {'seconds':90.5}).values()))

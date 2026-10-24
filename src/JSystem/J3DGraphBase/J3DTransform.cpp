@@ -37,11 +37,11 @@ void J3DCalcBBoardMtx(Mtx mtx) {
         z = sqrt(z);
     }
 
-    mtx[0][0] = x;
     mtx[0][1] = 0.0f;
     mtx[0][2] = 0.0f;
     mtx[2][0] = 0.0f;
     mtx[2][1] = 0.0f;
+    mtx[0][0] = x;
     mtx[1][0] = 0.0f;
     mtx[1][1] = y;
     mtx[1][2] = 0.0f;

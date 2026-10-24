@@ -173,7 +173,7 @@ void ChangeRoom::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         if (MR::isSensorYoshi(pReceiver)) {
             TVec3f diff;
             diff = *MR::getSensorPos(pSender);
-            diff -= *MR::getSensorPos(pReceiver);
+            diff.sub(diff, *MR::getSensorPos(pReceiver));
             TVec3f up;
             up.negate(mGravity);
             diff.scale(up.dot(diff), up);

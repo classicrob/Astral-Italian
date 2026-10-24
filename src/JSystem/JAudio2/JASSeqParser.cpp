@@ -174,8 +174,8 @@ void JASSeqParser::writeReg(JASTrack* track, u32 reg, u32 value) {
             track->setPanPower(value / 32767.0f);
             break;
         case 0x2A:
-            track->mNoteOnPrio = JSULoByte(value);
             track->mReleasePrio = JSUHiByte(value);
+            track->mNoteOnPrio = JSULoByte(value);
             break;
         case 0x2B:
             track->setNoteOnPrio(value);

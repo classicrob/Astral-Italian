@@ -158,9 +158,15 @@ namespace ScoreAttackFunction {
 }
 namespace MR {
     // NONMATCHING: equivalent absent-scene return block is emitted after the score load.
-    s32 getScoreAttackScore() { s32 score; if (!isExistSceneObj(SceneObj_ScoreAttackAccessor)) score = -1; else score = getScoreAttackCounter()->mScoreLayout->mScore; return score; }
+    s32 getScoreAttackScore() {
+        if (isExistSceneObj(SceneObj_ScoreAttackAccessor) == false) return -1;
+        return getScoreAttackCounter()->mScoreLayout->mScore;
+    }
     // NONMATCHING: equivalent absent-scene return block is emitted after the score load.
-    s32 getScoreAttackTargetScore() { s32 score; if (!isExistSceneObj(SceneObj_ScoreAttackAccessor)) score = -1; else score = getScoreAttackCounter()->mScoreLayout->mTargetScore; return score; }
+    s32 getScoreAttackTargetScore() {
+        if (isExistSceneObj(SceneObj_ScoreAttackAccessor) == false) return -1;
+        return getScoreAttackCounter()->mScoreLayout->mTargetScore;
+    }
     bool isScoreAttackFinished() { return getScoreAttackCounter()->isNerve(&NrvScoreAttackCounter::End::sInstance); }
     bool isScoreAttackClear() { return getScoreAttackCounter()->isClear(); }
     bool isScoreAttackFirstClear() { ScoreAttackCounter* counter=getScoreAttackCounter(); return !hasScoreAttackDeclaredPowerStar() && counter->isClear(); }

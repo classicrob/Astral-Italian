@@ -196,6 +196,7 @@ namespace {
 
 // NONMATCHING: regalloc
 void DemoTalkAnimCtrl::createBckCtrlData(BckCtrlData* data, s32 totalSteps) const {
+    bool extra;
     s16 start = MR::max(mAnimFrame - 1, 0);
     bool storyBook = DemoFunction::isStoryBookActionActive();
     u8 loop = 2;
@@ -203,7 +204,7 @@ void DemoTalkAnimCtrl::createBckCtrlData(BckCtrlData* data, s32 totalSteps) cons
     data->mLoopMode = loop;
     data->mStartFrame = start + 1;
     data->mRepeatFrame = start + 1;
-    bool extra = false;
+    extra = false;
     if (MR::isDemoSubPartLastStep() || !mIsWaitUserInput) extra = true;
     s16 end = start + totalSteps;
     if (extra) end = start + totalSteps + 1;

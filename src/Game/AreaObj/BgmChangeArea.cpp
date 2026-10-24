@@ -26,6 +26,7 @@ BgmChangeArea::BgmChangeArea(const char* pName) : AreaObj(pName) {
 }
 
 void BgmChangeArea::init(const JMapInfoIter& rIter) {
+    s32 scenario;
     AreaObj::init(rIter);
     MR::isStageTwisterTowerGalaxy();
 
@@ -33,7 +34,7 @@ void BgmChangeArea::init(const JMapInfoIter& rIter) {
     case 0: {
         s32 arg1 = mObjArg1;
         if (arg1 >= 0) {
-            s32 scenario = MR::getCurrentScenarioNo();
+            scenario = MR::getCurrentScenarioNo();
             AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg1);
         }
         s32 arg2 = mObjArg2;
@@ -45,7 +46,7 @@ void BgmChangeArea::init(const JMapInfoIter& rIter) {
     case 1: {
         s32 arg2 = mObjArg2;
         if (arg2 >= 0) {
-            s32 scenario = MR::getCurrentScenarioNo();
+            scenario = MR::getCurrentScenarioNo();
             AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg2);
         }
         break;

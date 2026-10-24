@@ -85,9 +85,9 @@ bool CymbalsStep::move(TPos3f* mtx, const JointControllerInfo&) {
     mtx->getScale(scale);
     TVec3f trans;
     mtx->getTrans(trans);
-    f32 z = scale.z;
-    f32 y = scale.y;
     f32 x = scale.x;
+    f32 y = scale.y;
+    f32 z = scale.z;
     mtx->zeroTrans();
     mtx->mMtx[0][0] = x;
     mtx->mMtx[0][1] = 0.0f;

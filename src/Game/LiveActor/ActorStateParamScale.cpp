@@ -161,8 +161,7 @@ void ActorStateParamScale::calcHostVelocity() {
 
 LiveActor* ActorStateParamScale::calcHostVelocity(const TVec3f& rVel) {
     f32 speed = mIsOnSwitch ? mSpeedOn : mSpeedOff;
-    TVec3f vel(rVel);
-    vel.scale(speed);
+    TVec3f vel = rVel * speed;
     mHost->mVelocity.add(vel);
     return mHost;
 }

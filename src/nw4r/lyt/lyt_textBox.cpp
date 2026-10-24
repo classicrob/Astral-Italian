@@ -58,7 +58,7 @@ namespace nw4r {
                 ut::Rect previousRect = *rect;
                 u16 ch = reader.Next();
                 while (static_cast<const CharT*>(reader.GetCurrentPos()) - str <= len) {
-                    if (ch < 0x20) {
+                    if (static_cast<int>(ch) < 0x20) {
                         typename ut::TagProcessorBase<CharT>::Operation operation;
                         ut::Rect tagRect(x, 0.0f, 0.0f, 0.0f);
 

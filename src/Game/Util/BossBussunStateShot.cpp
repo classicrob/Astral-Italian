@@ -58,7 +58,7 @@ void BossBussunStateShot::exeShot() {
         if (pShot != nullptr) {
             mFixedPos->calc();
             TVec3f pos;
-            pos.set< f32 >(mFixedPos->mMtx.mMtx[0][3], mFixedPos->mMtx.mMtx[1][3], mFixedPos->mMtx.mMtx[2][3]);
+            mFixedPos->mMtx.getTrans(pos);
             TVec3f target(pos);
             TVec3f forward = mHost->mFrontDir * 500.0f;
             target.add(forward);

@@ -627,8 +627,8 @@ bool SwingRope::updateSlideDown() {
     }
 
     if (mGrabCoord >= mRopeLength - ::sHangCoordMaxOffset) {
-        mGrabCoord = mRopeLength - ::sHangCoordMaxOffset;
         mSlideSpeed = 0.0f;
+        mGrabCoord = mRopeLength - ::sHangCoordMaxOffset;
         setNerve(GET_NERVE(SwingRope, SwingRopeNrvBindStretch));
         return true;
     }

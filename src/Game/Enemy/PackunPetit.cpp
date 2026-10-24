@@ -657,8 +657,7 @@ bool PackunPetit::isTongueHittableNerve() const {
 
 // NONMATCHING: argument load scheduling differs.
 void PackunPetit::setBlownModelPosture(const TPos3f& mtx, f32 scale) {
-    ModelObj* model = mBlownModel;
-    MR::setPosition(model, mtx(0,3), mtx(1,3), mtx(2,3));
+    MR::setPosition(mBlownModel, mtx(0,3), mtx(1,3), mtx(2,3));
     mtx.getEuler(mBlownModel->mRotation);
     TVec3f& rotation = mBlownModel->mRotation;
     rotation.x *= 57.295776f;

@@ -16,6 +16,7 @@ NEW_NERVE(RisePictureBookPlanetNrvReverse, RisePictureBookPlanet, Reverse);
 RisePictureBookPlanet::RisePictureBookPlanet(const char* name) : LiveActor(name), mParts(0), mTorches(0) {}
 // NONMATCHING: nonvolatile registers differ in collision-part initialization.
 void RisePictureBookPlanet::init(const JMapInfoIter& iter) {
+    MtxPtr mtx;
     MR::initActor(this, iter, false);
     f32 radius = 0.0f;
     MR::calcModelBoundingRadius(&radius, this);
@@ -23,7 +24,7 @@ void RisePictureBookPlanet::init(const JMapInfoIter& iter) {
     MR::setClippingFarMax(this);
     mParts = new CollisionParts*[9];
     for (s32 i=0; i<9; ++i) {
-        MtxPtr mtx = MR::getJointMtx(this, sCollisionJoints[i]);
+        mtx = MR::getJointMtx(this, sCollisionJoints[i]);
         mParts[i] = MR::createCollisionPartsFromLiveActor(this, sCollisionJoints[i], getSensor("Body"), mtx, MR::CollisionScaleType_Default);
         MR::validateCollisionParts(mParts[i]);
     }

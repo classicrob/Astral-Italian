@@ -27,10 +27,11 @@ void BendSwanpPlanet::init(const JMapInfoIter& iter) {
     MR::setClippingTypeSphere(this, radius);
     MR::setClippingFarMax(this);
     mParts = new CollisionObj*[3];
+    MtxPtr mtx;
     for (s32 i = 0; i < 3; ++i) {
         char name[256];
         snprintf(name, sizeof(name), "Collision[%s]", sParts[i]);
-        MtxPtr mtx = MR::getJointMtx(this, sParts[i]);
+        mtx = MR::getJointMtx(this, sParts[i]);
         mParts[i] = MR::createCollisionObj(this, sParts[i], getSensor(0), mtx);
         MR::validateCollisionParts(mParts[i]);
     }

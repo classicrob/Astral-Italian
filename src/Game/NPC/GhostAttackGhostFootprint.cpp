@@ -132,7 +132,7 @@ bool GhostAttackGhostFootprint::tryAddPrintOnSlide() {
     TVec3f position(0.0f);
     TVec3f up(0.0f, 1.0f, 0.0f);
     mBaseMtx.getTrans(position);
-    up.set<f32>(mBaseMtx[0][1], mBaseMtx[1][1], mBaseMtx[2][1]);
+    mBaseMtx.getYDir(up);
     position.add(up * 4.0f);
     mFootPrint->addPrint(position, direction, up, false);
     return true;

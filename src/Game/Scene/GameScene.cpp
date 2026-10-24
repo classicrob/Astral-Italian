@@ -413,7 +413,7 @@ void GameScene::draw2D() const {
 
 // NONMATCHING: equivalent branch block order
 bool GameScene::isValidScenarioOpeningCamera() const {
-    if (!MR::hasStartAnimCamera()) {
+    if (MR::hasStartAnimCamera() == false) {
         return false;
     }
     return !_2A;

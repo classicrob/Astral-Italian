@@ -117,14 +117,7 @@ bool RollingRock::calcForceDashVelocity(TVec3f* pDst, const LiveActor* pActor, f
         speed = arg;
     }
     MR::calcCubeAxisZ(pArea, pDst);
-    f32 sq = pDst->squared();
-    if (sq <= JGeometry::TUtil< f32 >::epsilon()) {
-    } else {
-        f32 k = JGeometry::TUtil< f32 >::inv_sqrt(sq) * speed;
-        pDst->x *= k;
-        pDst->y *= k;
-        pDst->z *= k;
-    }
+    pDst->setLength(speed);
     return true;
 }
 

@@ -32,6 +32,7 @@ StarPointerDirector::StarPointerDirector()
 
 // NONMATCHING: loop indices and input-state temporaries use different registers.
 void StarPointerDirector::update() {
+    bool inScreen;
     if (MR::isStarPointerModeHomeButton() || MR::isStarPointerModeErrorWindow()) {
         mIsOSPointerMode = true;
         return;
@@ -60,7 +61,7 @@ void StarPointerDirector::update() {
             getStarPointerLayout(channel)->movement();
             getStarPointerLayout(channel)->calcAnim();
         }
-        bool inScreen = mControllers[channel].isInScreen();
+        inScreen = mControllers[channel].isInScreen();
         mMovePositionHolders[channel].update(mControllers[channel].getScreenPosition(), inScreen);
     }
 

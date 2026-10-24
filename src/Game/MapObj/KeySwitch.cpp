@@ -210,7 +210,6 @@ bool KeySwitch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
 }
 
 bool KeySwitch::tryAvoid() {
-    LiveActor* sensorActor;
     HitSensor* sensor = nullptr;
 
     if (MR::isBindedGround(this)) {
@@ -227,7 +226,7 @@ bool KeySwitch::tryAvoid() {
         return false;
     }
 
-    sensorActor = MR::getSensorHost(sensor);
+    LiveActor* sensorActor = MR::getSensorHost(sensor);
     TVec3f up;
     MR::calcUpVec(&up, sensorActor);
     TVec3f fromHost;

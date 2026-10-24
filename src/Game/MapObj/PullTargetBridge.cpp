@@ -173,7 +173,7 @@ bool PullTargetBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* p
 // Target inlines vector subtraction; the combined TU currently emits the shared operator call.
 bool PullTargetBridge::tryPull() {
     TVec3f move(*MR::getPlayerPos());
-    move -= mPlayerPos;
+    move.sub(move, mPlayerPos);
     mPlayerPos.set< f32 >(*MR::getPlayerPos());
     TVec3f dir(move);
     MR::normalizeOrZero(&dir);

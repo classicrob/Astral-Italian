@@ -63,12 +63,17 @@ static volatile BOOL _abortSync = FALSE;
 BOOL _linkedWBC;
 
 // RPHealth.dat's pairing record is copied independently of the read workarea.
-// The checksum covers 16-bit words; byte fields below are used only after memcpy.
-typedef struct WUDWiiFitPairingRecord {
+// The named union gives the checksum a halfword view of the on-disk byte record.
+typedef struct WUDWiiFitPairingRecordBytes {
     BD_ADDR address;
     LINK_KEY linkKey;
     u8 name[64];
     u8 reserved[42];
+} WUDWiiFitPairingRecordBytes;
+
+typedef union WUDWiiFitPairingRecord {
+    WUDWiiFitPairingRecordBytes bytes;
+    u16 words[sizeof(WUDWiiFitPairingRecordBytes) / sizeof(u16)];
 } WUDWiiFitPairingRecord;
 
 typedef struct WUDWiiFitPairingData {
@@ -767,12 +772,12 @@ static inline void WUDiSetWiiFitPairingRecord(const u8* address, const u8* key, 
     const u16* word;
     u32 i;
 
-    if (address) memcpy(_wiiFitPairingData.record.address, address, sizeof(BD_ADDR));
-    if (key) memcpy(_wiiFitPairingData.record.linkKey, key, sizeof(LINK_KEY));
-    if (config) memcpy(_wiiFitPairingData.record.name, config, sizeof(*config));
+    if (address) memcpy(_wiiFitPairingData.record.bytes.address, address, sizeof(BD_ADDR));
+    if (key) memcpy(_wiiFitPairingData.record.bytes.linkKey, key, sizeof(LINK_KEY));
+    if (config) memcpy(_wiiFitPairingData.record.bytes.name, config, sizeof(*config));
     sum = _wiiFitChecksum >> 16;
     inverse = _wiiFitChecksum;
-    word = (const u16*)&_wiiFitPairingData.record;
+    word = _wiiFitPairingData.record.words;
     for (i = 0; i < sizeof(WUDWiiFitPairingRecord) / sizeof(u16); ++i) {
         sum += *word;
         inverse += ~*word++;
@@ -1631,22 +1636,22 @@ u8 __wudGetDevInfoFromWiiFit(void) {
             _nandState = 5;
             break;
         }
-        if (memcmp(_wiiFitPairingData.record.address, zero, sizeof(BD_ADDR)) == 0) {
+        if (memcmp(_wiiFitPairingData.record.bytes.address, zero, sizeof(BD_ADDR)) == 0) {
             _nandState = 5;
             break;
         }
         if (memcmp(OSGetAppGamename(), "RFNJ", 4) != 0 &&
-            memcmp(_wiiFitPairingData.record.linkKey, zero, sizeof(LINK_KEY)) == 0) {
+            memcmp(_wiiFitPairingData.record.bytes.linkKey, zero, sizeof(LINK_KEY)) == 0) {
             _nandState = 5;
             break;
         }
         memset(_wiiFitWork, 0, sizeof(WUDWiiFitWorkArea));
         memset(&_scArray, 0, sizeof(_scArray));
         SCGetBtDeviceInfoArray(&_scArray);
-        memcpy(_scArray.info[14].bd_addr, _wiiFitPairingData.record.address, sizeof(BD_ADDR));
-        memcpy(_scArray.info[14].bd_name, _wiiFitPairingData.record.name, sizeof(_wiiFitPairingData.record.name));
+        memcpy(_scArray.info[14].bd_addr, _wiiFitPairingData.record.bytes.address, sizeof(BD_ADDR));
+        memcpy(_scArray.info[14].bd_name, _wiiFitPairingData.record.bytes.name, sizeof(_wiiFitPairingData.record.bytes.name));
         // This SC record embeds the key after the controller name's first 20 bytes.
-        memcpy(&_scArray.info[14].bd_name[20], _wiiFitPairingData.record.linkKey, sizeof(LINK_KEY));
+        memcpy(&_scArray.info[14].bd_name[20], _wiiFitPairingData.record.bytes.linkKey, sizeof(LINK_KEY));
         SCSetBtDeviceInfoArray(&_scArray);
         _nandBusy = 1;
         SCFlushAsync(__wudNandFlushCallback);
@@ -2740,7 +2745,8 @@ void WUDiMoveTopOfDisconnectedSmpDevice(WUDDevInfo* pInfo) {
     enabled = OSDisableInterrupts();
 
     for (i = 0; i < WUD_MAX_DEV_ENTRY_FOR_SMP; i++) {
-        if (WUD_BDCMP(p->smpList[i].devInfo->devAddr, pInfo->devAddr) != 0) {
+        WUDDevInfoList* entry = &p->smpList[i];
+        if (WUD_BDCMP(entry->devInfo->devAddr, pInfo->devAddr) != 0) {
             continue;
         }
 
@@ -2753,30 +2759,30 @@ void WUDiMoveTopOfDisconnectedSmpDevice(WUDDevInfo* pInfo) {
                 continue;
             }
 
-            if (WUD_BDCMP(p->smpListHead->devInfo->devAddr, p->smpList[i].devInfo->devAddr) == 0) {
+            if (WUD_BDCMP(p->smpListHead->devInfo->devAddr, entry->devInfo->devAddr) == 0) {
                 if (pIt == p->smpListHead->next) {
                     break;
                 }
 
-                p->smpListHead = p->smpList[i].next;
+                p->smpListHead = entry->next;
             } else {
-                p->smpList[i].prev->next = p->smpList[i].next;
+                entry->prev->next = entry->next;
             }
 
-            p->smpList[i].next->prev = p->smpList[i].prev;
+            entry->next->prev = entry->prev;
 
             if (pIt != p->smpListHead) {
-                p->smpList[i].prev = pIt->prev;
-                p->smpList[i].next = pIt;
+                entry->prev = pIt->prev;
+                entry->next = pIt;
 
-                pIt->prev->next = &p->smpList[i];
-                pIt->prev = &p->smpList[i];
+                pIt->prev->next = entry;
+                pIt->prev = entry;
             } else {
-                p->smpList[i].prev = pIt;
-                p->smpList[i].next = pIt->next;
+                entry->prev = pIt;
+                entry->next = pIt->next;
 
-                pIt->next->prev = &p->smpList[i];
-                pIt->next = &p->smpList[i];
+                pIt->next->prev = entry;
+                pIt->next = entry;
             }
 
             break;
@@ -2933,7 +2939,8 @@ void WUDiMoveTopOfDisconnectedStdDevice(WUDDevInfo* pInfo) {
     enabled = OSDisableInterrupts();
 
     for (i = 0; i < WUD_MAX_DEV_ENTRY_FOR_STD; i++) {
-        if (WUD_BDCMP(p->stdList[i].devInfo->devAddr, pInfo->devAddr) != 0) {
+        WUDDevInfoList* entry = &p->stdList[i];
+        if (WUD_BDCMP(entry->devInfo->devAddr, pInfo->devAddr) != 0) {
             continue;
         }
 
@@ -2951,29 +2958,29 @@ void WUDiMoveTopOfDisconnectedStdDevice(WUDDevInfo* pInfo) {
                 }
             }
 
-            if (WUD_BDCMP(p->stdListHead->devInfo->devAddr, p->stdList[i].devInfo->devAddr) == 0) {
+            if (WUD_BDCMP(p->stdListHead->devInfo->devAddr, entry->devInfo->devAddr) == 0) {
                 if (pIt == p->stdListHead->next)
                     break;
 
-                p->stdListHead = p->stdList[i].next;
+                p->stdListHead = entry->next;
             } else {
-                p->stdList[i].prev->next = p->stdList[i].next;
+                entry->prev->next = entry->next;
             }
 
-            p->stdList[i].next->prev = p->stdList[i].prev;
+            entry->next->prev = entry->prev;
 
             if (pIt != p->stdListHead) {
-                p->stdList[i].prev = pIt->prev;
-                p->stdList[i].next = pIt;
+                entry->prev = pIt->prev;
+                entry->next = pIt;
 
-                pIt->prev->next = &p->stdList[i];
-                pIt->prev = &p->stdList[i];
+                pIt->prev->next = entry;
+                pIt->prev = entry;
             } else {
-                p->stdList[i].prev = pIt;
-                p->stdList[i].next = pIt->next;
+                entry->prev = pIt;
+                entry->next = pIt->next;
 
-                pIt->next->prev = &p->stdList[i];
-                pIt->next = &p->stdList[i];
+                pIt->next->prev = entry;
+                pIt->next = entry;
             }
 
             break;

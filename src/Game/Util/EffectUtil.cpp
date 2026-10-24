@@ -95,7 +95,7 @@ namespace MR {
 
     // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited (FP order/grouping checked: no FP instructions).
     MultiEmitter* tryEmitEffect(LiveActor* pActor, const char* pEffectName) {
-        if (!isExistEffect(pActor, pEffectName)) {
+        if (isExistEffect(pActor, pEffectName) == false) {
             return nullptr;
         }
         return ::getEffectKeeper(pActor)->createEmitter(pEffectName);

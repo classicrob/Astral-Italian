@@ -285,7 +285,7 @@ void NokonokoLandBig::exeTurnLoop() {
         startBckBtp(this, "TurnLoopStart", "WalkWait");
         TPos3f mtx;
         mtx.set(getBaseMtx());
-        mUpVec.set<f32>(mtx.mMtx[0][1], mtx.mMtx[1][1], mtx.mMtx[2][1]);
+        mtx.getYDir(mUpVec);
         MR::normalize(&mUpVec);
     }
     if (MR::isBckOneTimeAndStopped(this)) {

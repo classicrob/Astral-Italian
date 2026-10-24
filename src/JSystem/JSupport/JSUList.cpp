@@ -1,8 +1,8 @@
 #include "JSystem/JSupport/JSUList.hpp"
 
 JSUPtrLink::JSUPtrLink(void* pData) {
-    mData = pData;
     mPtrList = 0;
+    mData = pData;
     mPrev = 0;
     mNext = 0;
 }

@@ -358,8 +358,8 @@ bool JASTrack::gateOn(u32 transposedPitch, u32 velocity, f32 seqTime, u32 flags)
         }
     }
 
-    mPitch = transposedPitch;
     mReadyToPlay = flags & 2;
+    mPitch = transposedPitch;
     return true;
 }
 

@@ -44,7 +44,7 @@ void* JASAudioThread::run() {
     OSMessage msg;
     while (true) {
         msg = waitMessageBlock();
-        switch ((intptr_t)msg) {
+        switch ((uintptr_t)msg) {
         case AUDIOMSG_DMA:
             if (sbPauseFlag) {
                 JASDriver::stopDMA();

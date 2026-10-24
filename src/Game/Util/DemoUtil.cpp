@@ -605,9 +605,7 @@ namespace MR {
         }
 
         char buf[0x80];
-        if (pName == nullptr) {
-            pName = "";
-        }
+        pName = pName != nullptr ? pName : "";
         snprintf(buf, 0x80, "%s%s", pActor->mName, pName);
 
         bool isDone;

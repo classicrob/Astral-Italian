@@ -568,8 +568,8 @@ void JASAramStream::updateChannel(u32 i_callbackType, JASChannel* i_channel, JAS
                     }
                 } else {
                     if (_118 == 0 && !UNK_BOOL_A) {
-                        _0AE &= ~2;
-                        _0AE &= ~4;
+                        _0AE &= static_cast<u8>(~2);
+                        _0AE &= static_cast<u8>(~4);
                     }
                 }
 

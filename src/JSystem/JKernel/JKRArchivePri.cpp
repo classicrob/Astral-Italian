@@ -38,8 +38,8 @@ JKRArchive::JKRArchive(s32 entryNum, EMountMode mountMode) {
     mEntryNum = entryNum;
 
     if (sCurrentVolume == nullptr) {
-        sCurrentDirID = 0;
         sCurrentVolume = this;
+        sCurrentDirID = 0;
     }
 }
 

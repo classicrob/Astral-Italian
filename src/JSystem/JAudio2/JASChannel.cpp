@@ -223,7 +223,7 @@ s32 JASChannel::initialUpdateDSPChannel(JASDsp::TChannel* i_channel) {
         return -1;
     }
 
-    switch (mChannelType) {
+    switch (static_cast<s32>(mChannelType)) {
     case 0:
         i_channel->setWaveInfo(mWaveInfo, mWavePtr, mSkipSamples);
         break;

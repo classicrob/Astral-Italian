@@ -39,7 +39,7 @@ JASLfo JASLfo::sFreeRunLfo;
 
 void JASLfo::resetCounter() {
     _16 = mDelay;
-    switch (_4) {
+    switch (static_cast<s32>(_4)) {
     case 0:
         _8 = sFreeRunLfo._8;
         break;

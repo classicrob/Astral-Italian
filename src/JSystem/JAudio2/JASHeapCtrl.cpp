@@ -211,8 +211,9 @@ template JSUTreeIterator< JASHeap > JSUTreeIterator< JASHeap >::operator++(int);
 
 u32 JASHeap::getMaxFreeSize() {
     JASMutexLock lock(&mMutex);
+    u8* current;
     u32 largestGap = 0;
-    u8* current = mBase;
+    current = mBase;
     for (JSUTreeIterator< JASHeap > it(mTree.getFirstChild()); it != mTree.getEndChild(); it++) {
         u32 gap = it->mBase - current;
         if (gap > largestGap) {

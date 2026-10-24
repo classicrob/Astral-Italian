@@ -96,8 +96,8 @@ void StopSceneStateControl::requestStopSceneOverwrite(const NameObj* pParam1) {
             return;
         }
 
-        _C = pParam1;
         _8 = MR::MovementControlType_5;
+        _C = pParam1;
 
         setNerve(GET_NERVE_ANON(StopSceneStateControlStopped));
         executeStopCategories(MR::MovementControlType_5);
@@ -110,8 +110,8 @@ void StopSceneStateControl::requestStopSceneOverwrite(const NameObj* pParam1) {
             return;
         }
 
-        _C = pParam1;
         _8 = MR::MovementControlType_5;
+        _C = pParam1;
 
         setNerve(GET_NERVE_ANON(StopSceneStateControlStopped));
         executeStopCategories(MR::MovementControlType_5);

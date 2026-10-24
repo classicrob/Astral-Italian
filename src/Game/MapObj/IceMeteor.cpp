@@ -85,7 +85,7 @@ void IceMeteor::resetMeteor() {
 void IceMeteor::updateMeteor() {
     TVec3f offset(mParts->getOffset());
     TVec3f distance(offset);
-    distance -= mPosition;
+    distance.sub(distance, mPosition);
     if (distance.dot(mUp) > -500.0f) { offset += mFallVelocity; mParts->setOffset(offset); }
 }
 bool IceMeteor::isPlayerOutsideIce(HitSensor* sensor) {

@@ -134,7 +134,7 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* con
     f32 errorX, errorY, errorZ;
     if (!kmplsWork) return 0.0f;
     state = &kmplsWork->channels[chan];
-    if (kmplsWork->channels[chan].aimingMode != (u8)KPADIsEnableAimingMode(chan) ||
+    if ((s32)kmplsWork->channels[chan].aimingMode != (s32)(u8)KPADIsEnableAimingMode(chan) ||
         kmplsWork->channels[chan].dpdYOffset != KPADGetSensorHeight(chan)) {
         kmplsWork->channels[chan].aimingMode = (u8)KPADIsEnableAimingMode(chan);
         kmplsWork->channels[chan].dpdYOffset = KPADGetSensorHeight(chan);
@@ -148,9 +148,9 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* con
         horizon.Y.x = -context->horizon.y;
         horizon.Y.y = context->horizon.x;
         horizon.Y.z = 0.0f;
-        horizon.Z = kmplsIdentity.Z;
         from = kmplsIdentity.Z;
-        desired = kmplsIdentity.Z;
+        horizon.Z = from;
+        desired = from;
         desired.x = (-scale) * context->pos.x;
         __KMPLS_normalize_Fxyz(&desired);
         __KMPLS_make_vec_dir(&rotation, &from, &desired);

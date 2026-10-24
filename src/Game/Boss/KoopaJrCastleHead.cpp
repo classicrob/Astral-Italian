@@ -109,10 +109,8 @@ void KoopaJrCastleHead::setNerveD() {
 }
 
 void KoopaJrCastleHead::resetWaitUnlessDamaged() {
-    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvB::sInstance)) {
-        return;
-    }
-    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvB::sInstance) ||
+        isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
         return;
     }
     setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvA::sInstance);

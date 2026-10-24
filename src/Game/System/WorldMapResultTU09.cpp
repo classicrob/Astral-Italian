@@ -46,8 +46,9 @@ void WorldMapResultStateEnterHome::init() {
     MR::createCenterScreenBlur();
     initNerve(GET_NERVE(WorldMapResultStateEnterHome, WorldMapResultStateEnterHomeApproach), 0);
     mCamInfo = new ActorCameraInfo(-1, 0);
+    LiveActor* pActor;
     WorldMapOwner* host = mHost;
-    LiveActor* pActor = host->getCamera()->mCameraTarget;
+    pActor = host->getCamera()->mCameraTarget;
     MR::initAnimCamera(pActor, mCamInfo, lbl_807D0570, MR::getResourceHolder(host->getRocket()));
     MR::createDepthOfFieldBlur();
     mIsDead = true;

@@ -1335,7 +1335,7 @@ void read_kpad_button(KPADInsideStatus* kp, u32 dev_type, u32 count, u32 core, u
     KPADStatus* sp = &kp->status;
     KPADEXStatus* ep = &kp->status.ex_status;
     u32 old_fg, change_fg;
-    u32 cl_old_fg, cl_change_fg;
+    u32 cl_change_fg, cl_old_fg;
     old_fg = sp->hold & KPAD_BUTTON_MASK;
     sp->hold = core & (KPAD_BUTTON_MASK & ~(WPAD_BUTTON_Z | WPAD_BUTTON_C));
     if (dev_type == WPAD_DEV_FREESTYLE || dev_type == WPAD_DEV_MPLS_FREESTYLE) {

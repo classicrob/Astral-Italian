@@ -299,8 +299,8 @@ EJKRCompression JKRDecomp::checkCompressed(unsigned char* pSrc) {
 
 JKRDecompCommand::JKRDecompCommand() {
     OSInitMessageQueue(&mMessageQueue, &mMessage, 1);
-    mThis = this;  // Probably a pointer to the data stored at 0x00 instead
     _14 = 0;
     _1C = nullptr;
+    mThis = this;  // Probably a pointer to the data stored at 0x00 instead
     _20 = 0;
 }

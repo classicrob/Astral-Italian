@@ -116,7 +116,7 @@ void PowerStarEventKeeper::initStarInfoTableAfterPlacement() {
                 }
                 if (star->mIsGreenStar) {
                     bool isGreenStage;
-                    if (!GameDataFunction::isOnGameEventFlagEnding120Stars()) {
+                    if (GameDataFunction::isOnGameEventFlagEnding120Stars() == false) {
                         isGreenStage = false;
                     } else {
                         isGreenStage = MR::isPowerStarGreenInCurrentStage();

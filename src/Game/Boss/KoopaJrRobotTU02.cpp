@@ -6,6 +6,11 @@
 #include "Game/Util.hpp"
 #include "Game/Util/FixedPosition.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#else
+#include <functional.hpp>
+#endif
 
 template < typename It, typename Pmf >
 static Pmf forEachCall(It it, It end, Pmf pmf) {
@@ -17,8 +22,9 @@ static Pmf forEachCall(It it, It end, Pmf pmf) {
 
 template < typename It, typename Pmf >
 static inline void forEachCallInline(It it, It end, Pmf pmf) {
-    for (; it != end; ++it) {
-        ((*it)->*pmf)();
+    It last = end;
+    for (It first = it; first != last; ++first) {
+        pmf(*first);
     }
 }
 
@@ -352,7 +358,7 @@ void KoopaJrRobotSeq::updateLauncherTransforms() {
 // NONMATCHING: same ptmf arg-copy stack layout as appearLaunchers
 void KoopaJrRobotSeq::movementLaunchers() {
     if (!mLaunchersDisabled) {
-        forEachCallInline(mLaunchers, mLaunchers + 8, &LiveActor::movement);
+        forEachCallInline(mLaunchers, mLaunchers + 8, std::mem_fun(&LiveActor::movement));
     }
 }
 

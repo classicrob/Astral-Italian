@@ -117,8 +117,8 @@ void JAISe::JAISeCategoryMgr_calc_() {
 
 bool JAISe::JAISound_tryDie_() {
     switch (inner_.track.getStatus()) {
-    case JASTrack::STATUS_FREE:
     case JASTrack::STATUS_STOPPED:
+    case JASTrack::STATUS_FREE:
         if (inner_.mSoundStrategy != nullptr) {
             inner_.mSoundStrategyMgr->deleteStrategy(inner_.mSoundStrategy);
             inner_.mSoundStrategy = nullptr;

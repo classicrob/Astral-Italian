@@ -1708,8 +1708,8 @@ void J3DIndBlockFull::reset(J3DIndBlock* pBlock) {
 
 void J3DPEBlockFogOff::reset(J3DPEBlock* pBlock) {
     switch (pBlock->getType()) {
-    case 'PEFL':
     case 'PEFG':
+    case 'PEFL':
         mAlphaComp = *pBlock->getAlphaComp();
         mBlend = *pBlock->getBlend();
         mZMode = *pBlock->getZMode();
@@ -1724,8 +1724,8 @@ void J3DPEBlockFull::reset(J3DPEBlock* pBlock) {
     }
 
     switch (pBlock->getType()) {
-    case 'PEFL':
     case 'PEFG':
+    case 'PEFL':
         mAlphaComp = *pBlock->getAlphaComp();
         mBlend = *pBlock->getBlend();
         mZMode = *pBlock->getZMode();

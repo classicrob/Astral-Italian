@@ -183,7 +183,11 @@ void GalaxyWorldMapInfo::makeActorAppeared() {
     mShadow->makeActorAppeared();
     mBack->makeActorAppeared();
 
-    if (isNerveNew() || isNerveOpened()) {
+    bool showStatus = isNerveNew();
+    if (showStatus == false) {
+        showStatus = isNerveOpened();
+    }
+    if (showStatus) {
         mStatusIcon->appear();
     }
 
@@ -239,7 +243,11 @@ void GalaxyWorldMapInfo::startClipped() {
 
 void GalaxyWorldMapInfo::endClipped() {
     LiveActor::endClipped();
-    if (isNerveNew() || isNerveOpened()) {
+    bool showStatus = isNerveNew();
+    if (showStatus == false) {
+        showStatus = isNerveOpened();
+    }
+    if (showStatus) {
         mStatusIcon->appear();
     }
 }

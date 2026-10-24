@@ -37,7 +37,7 @@ void MagmaSeaWave::control() {
     JMath::gekko_ps_copy12(&mtx, MR::getJointMtx(this, "VolumeCenter"));
     MR::rotateMtxLocalYDegree(mtx, 90.0f);
     JMath::gekko_ps_copy12(&mVolumeMtx, &mtx);
-    mSensorPosition.set<f32>(mVolumeMtx.mMtx[0][3], mVolumeMtx.mMtx[1][3], mVolumeMtx.mMtx[2][3]);
+    mVolumeMtx.getTrans(mSensorPosition);
     const f32 halfWidth = lbl_807DDBF8;
     MR::calcNearestPointToPlayerOnSideLine(&mSensorPosition, this, &mSensorPosition, -halfWidth, halfWidth);
     MR::addTransMtxLocal(mVolumeMtx, sVolumeOffset);

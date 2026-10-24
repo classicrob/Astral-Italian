@@ -91,7 +91,8 @@ def main():
       d=stage(f'cadence-{mode}-r{n}',STAGES[0],warm=prime,extra=env);trim(d)
     trim(ROOT/'runs'/(a.label+'-'+prime))
    elif gate=='audio':
-    quiet('audio');dylib=base/'thrprobe.dylib';command('audio-probe-build',['clang','-dynamiclib','-O2',HERE/'thrprobe.c','-o',dylib,'-lpthread'])
+    quiet('audio');dylib=base/'thrprobe.dylib'
+    with native_lock():command('audio-probe-build',['clang','-dynamiclib','-O2',HERE/'thrprobe.c','-o',dylib,'-lpthread'])
     cold='audio-cold'
     for mode in ('cold','warm'):
      name='audio-'+mode

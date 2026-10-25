@@ -120,6 +120,7 @@ InputScript& script() {
                 std::fputs("frame,line,keys,x,y,z,vx,vy,vz,ground,cam_x,cam_y,cam_z,cam_fx,cam_fy,cam_fz,dead,grav_x,grav_y,grav_z\n", s.log);
             }
         }
+        if (s.recordNative) TapeRecord::setNeutralTailPolicy(TapeNeutral::Policy::NativeControls);
         s.phase = Phase::Wait;
         std::fprintf(stderr, "[input-script] on: %zu lines from %s\n", s.lines.size(), path);
         return s;

@@ -1,5 +1,6 @@
 // The process-wide side of tape replay: the KPAD / mod hooks, the controller-connection feeder thread and the report files.
 #include "tape_play.hpp"
+#include "tape_record.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -123,6 +124,7 @@ bool configure(const std::string& dir, std::string* error) {
         const char* whole = std::getenv("PETARI_TAPE_PLAY_SESSION");
         gSession = std::make_unique<Session>(gTapeDir, whole && std::string(whole) == "1"
             ? Session::Mode::WholeSession : Session::Mode::Segments);
+        if (gCaptureReplay) TapeRecord::setNeutralTailPolicy(gSession->meta().neutralTailPolicy);
     } catch (const std::exception& e) {
         gSession.reset();
         if (error) *error = e.what();

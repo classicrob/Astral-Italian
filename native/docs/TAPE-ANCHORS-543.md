@@ -374,3 +374,45 @@ exempted as timestamps or sequence fields. Only read-envelope frame/ordinal,
 returned sample count and vector length can advance; every actual sample and
 connection remains recorded and is compared exactly on replay. The legacy
 conversion path retains its full single-bootstrap payload check.
+
+## Tape-bound native neutral tails (r8)
+
+r7's literal native recording passed its origin audit (51,492 reads, 180.016 s
+neutral tail, 33 shutdown rows). Its first replay stopped at source input frame
+2055: three identical no-control samples were compared with the legacy synthetic
+single-sample bootstrap. No subsequent matrix arm ran. The displayed position
+delta followed the failed read; all prior compared state rows were exact. The
+failed r7 receipts and unmodified tapes remain evidence.
+
+New sidecars bind `neutral_tail_policy` under schema 2 and
+`native-post-seam-power-v1`. Missing means `single-bootstrap-v1` and retains the
+existing full bootstrap comparison. Unknown values, duplicate fields or a policy
+without that versioned protocol fail closed. Only the native script producer
+selects `native-neutral-controls-v1`; a replay capture inherits its parsed source
+policy before recording, with no environment override. r8 records a new canonical;
+it never adds a field to r7's tape.
+
+For the native policy every sample must have no core or extension buttons, stick
+or trigger magnitude, valid pointer, core/Nunchuk acceleration-speed event or MPLS
+angular velocity (zero tolerance, no deadzone). All 240 sample bytes on each
+channel equal that channel's first tail sample, including acceleration/gravity,
+extension data and unknown bytes. There are no sample-field exemptions. Probe,
+device, error and requested capacity are constant per channel. Only the read
+envelope's frame, ordinal, returned count and sample count may advance. Every raw
+sample and connection still passes the separate exact replay audit; validation
+does not normalize or replace any byte. Power delivery and all shutdown checks
+are unchanged.
+
+The native power test covers a complete multi-sample session and legacy rejection
+of the same shape, all policy parsing negatives, first-sample control negatives,
+motion events, tiny stick values, pointer validity, changed acceleration and
+unknown bytes, and each connection-envelope field. Recorder tests persist the
+selected/default policy; source guards require strict captures to inherit it.
+The Python audit independently checks policy binding and the same byte rules.
+
+PORT builds r8's three exact source heads on the SERVER while SOL A owns the M1.
+The planner accepts either M1 or these authorised SERVER builds only with
+`native_tests_passed=true` and, for the candidate, `candidate_suite_passed=true`
+after the M4 admission suite. BUILD/PREP, full source SHA, original/perf binary
+hashes and the canonical's file hashes remain bound per arm. This supersedes the
+earlier M1-only build note for this specific round; measurement stays on the M1.

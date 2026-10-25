@@ -14,12 +14,21 @@ def body(text,name):
 
 
 class PowerSource(unittest.TestCase):
+    def test_replay_capture_inherits_policy_from_parsed_tape_only(self):
+        source=body((ROOT/'native/app/tape_play_hooks.cpp').read_text(),'bool configure(')
+        self.assertIn('if (gCaptureReplay) TapeRecord::setNeutralTailPolicy(gSession->meta().neutralTailPolicy)',source)
+        self.assertNotIn('PETARI_TAPE_NEUTRAL',source)
+
     def test_real_callback_is_between_record_and_actual_flag_acknowledgement(self):
         source=body((ROOT/'native/app/platform_host.cpp').read_text(),'void requestQuit()')
         names=['TapeRecord::powerRequest()','TapePlay::beforePowerRequest()',
                'Platform::Power::pressPowerButton()','TapeScene::powerRequestObserved()',
                'TapeRecord::acknowledgePower(observed)','TapePlay::acknowledgePower(observed)']
         self.assertEqual([source.index(n) for n in names],sorted(source.index(n) for n in names))
+
+    def test_native_producer_binds_policy_during_script_initialization(self):
+        source=(ROOT/'native/app/input_script_probe.cpp').read_text()
+        self.assertIn('if (s.recordNative) TapeRecord::setNeutralTailPolicy(TapeNeutral::Policy::NativeControls)',source)
 
     def test_native_script_tail_and_real_power_are_inside_recorder_seam(self):
         source=body((ROOT/'native/app/smoke_game.cpp').read_text(),'void recordRouteFrame(')

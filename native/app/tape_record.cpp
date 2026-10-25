@@ -49,6 +49,7 @@ std::string gControlError;
 std::atomic<bool> gControlsActive{false}, gAmbiguousControl{false};
 std::thread::id gControlThread;
 bool gControlSeam = false, gNeutralStarted = false;
+TapeNeutral::Policy gNeutralTailPolicy = TapeNeutral::Policy::SingleBootstrap;
 std::chrono::steady_clock::time_point gNeutralStart;
 void appendControl(const char* kind) {
     if (!gControlSeam || gInputPhases.empty() || !gInputPhases.back().open ||
@@ -181,8 +182,9 @@ void writeSidecar(bool final) {
         gap(cursor,phase.marker.inputFrame); cursor=end;
     }
     gap(cursor,gRow);
-    std::fprintf(f,"],\n  \"session_control_protocol\":%s,\n  \"session_control_error\":%s,\n  \"session_events\":[",
-        json(TapePower::kProtocol).c_str(),json(gAmbiguousControl.load() ? "ambiguous cross-thread/out-of-seam power request" : gControlError).c_str());
+    std::fprintf(f,"],\n  \"session_control_protocol\":%s,\n  \"neutral_tail_policy\":%s,\n  \"session_control_error\":%s,\n  \"session_events\":[",
+        json(TapePower::kProtocol).c_str(),json(TapeNeutral::name(gNeutralTailPolicy)).c_str(),
+        json(gAmbiguousControl.load() ? "ambiguous cross-thread/out-of-seam power request" : gControlError).c_str());
     bool firstControl=true;
     for (const auto& event:gControls) {
         if (event.afterRow>=gRow) continue; // never publish an incomplete seam
@@ -273,6 +275,10 @@ void beforeRead(const TapePhase::State& s) {
 
 void beginControlSeam() { if (gOpen && !gFinished) gControlSeam=true; }
 void endControlSeam() { gControlSeam=false; }
+void setNeutralTailPolicy(TapeNeutral::Policy policy) {
+    if (gFinished || gNeutralStarted) { gControlError="neutral-tail policy selected after tail/finish"; return; }
+    gNeutralTailPolicy=policy;
+}
 void neutralTailBegin() {
     if (!gControlsActive.load(std::memory_order_acquire)) return;
     if (std::this_thread::get_id()!=gControlThread || !gControlSeam) { gAmbiguousControl.store(true); return; }

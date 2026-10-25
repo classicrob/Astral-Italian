@@ -24,6 +24,7 @@
 #include "headless/replay.hpp"
 #include "tape_phase.hpp"
 #include "tape_power.hpp"
+#include "tape_neutral.hpp"
 
 namespace PetariNative::App::TapePlay {
 
@@ -48,6 +49,7 @@ struct Meta {
     std::string launchStage;
     int launchScenario = 1;
     bool powerProtocol = false;
+    TapeNeutral::Policy neutralTailPolicy = TapeNeutral::Policy::SingleBootstrap;
     std::vector<TapePower::Event> sessionEvents;
 };
 // The sidecar (<dir>/route.tape.json) text -> Meta. Throws Headless::ReplayError.
@@ -222,6 +224,7 @@ private:
     std::size_t mNextControl = 0;
     bool mPowerPending = false, mPowerCalling = false, mPowerDelivered = false, mNeutralTailActive = false;
     bool mShutdownTail = false, mNormalExitVerified = false, mEarlyPower = false;
+    TapeNeutral::NativeTail mNativeNeutralTail;
     std::uint64_t mPowerActualRow = 0, mShutdownRows = 0, mShutdownReads = 0, mShutdownReplayOffset = 0;
     std::vector<std::uint64_t> mControlActualRows;
 };

@@ -72,6 +72,10 @@ void Session::normalExit() {
 void Session::rejectUnexpectedPower() { phaseFailure("power request outside the recorded game-thread seam"); }
 void Session::validateNeutralTail(const H::Read& input) {
     if (!mMeta.powerProtocol || !mNeutralTailActive || mPowerDelivered) return;
+    if (mMeta.neutralTailPolicy == TapeNeutral::Policy::NativeControls) {
+        mNativeNeutralTail.validate(input);
+        return;
+    }
     const auto& neutral=mReplay->neutral(input.channel,input.capacity);
     if (input.returned!=neutral.returned || input.error!=neutral.error || input.probeError!=neutral.probeError ||
         input.device!=neutral.device || input.samples!=neutral.samples)

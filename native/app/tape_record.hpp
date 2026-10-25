@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <string>
 #include "tape_phase.hpp"
+#include "tape_neutral.hpp"
 
 namespace PetariNative::App::TapeRecord {
 
@@ -37,6 +38,9 @@ void beginControlSeam();
 void endControlSeam();
 void neutralTailBegin();
 void rejectSessionControl(const char* reason);
+// Select before the tail begins: native producer initialization or parsed replay
+// source only. There is deliberately no environment policy override.
+void setNeutralTailPolicy(TapeNeutral::Policy policy);
 bool powerRequest();
 void acknowledgePower(bool actualPowerFlag);
 void setLaunch(const std::string& stage, int scenario);  // actual parsed launch, before game boot

@@ -130,11 +130,12 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                     raise ValueError('protocol3 bootstrap scope unqualified; Unknown keeps first-use fallback')
                 cold_arms = [r for r in result['arms'] if r.get('cold_confirmation')]
                 only_old_cold_definition = bool(cold_arms) and bool(result.get('cold_disagreements')) and all(r['passed'] for r in result['arms']) and not result['warm_disagreements']
-                if (not result['passed'] and not only_old_cold_definition) or result['warm_disagreements']:
+                requalifiable = all(r['passed'] for r in result['arms']) and (only_old_cold_definition or bool(result['warm_disagreements']))
+                if not result['passed'] and not requalifiable:
                     raise ValueError('recording stage failed or warm/cold groups disagreed')
                 warm = [r for r in result['arms'] if r['name'] in ('warm-1', 'warm-2')]
                 if len(warm) != 2 or any(not r['passed'] for r in warm): raise ValueError('two valid warm captures required')
-                maps = []
+                maps, windows, warm_folders = [], [], []
                 for arm in warm:
                     folder = path.parent / stage / arm['name']
                     for name, field in [('first-use.jsonl', 'capture_sha256'), ('app.log', 'app_log_sha256'), ('launch.json', 'launch_sha256')]:
@@ -180,11 +181,33 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                         if 'jump cut' in text: raise ValueError('tape-driven recording used a jump cut')
                     if dedicated and ('PETARI_INPUT_SCRIPT' in launch['environment'] or launch.get('mode') != 'no-input-title'):
                         raise ValueError('title observation was not the no-input recording arm')
-                    maps.append(all_groups(folder / 'first-use.jsonl'))
+                    groups = all_groups(folder / 'first-use.jsonl')
+                    if dedicated or map_mode:
+                        groups[stage], window = recording.shutdown_observations(folder / 'first-use.jsonl', folder / 'app.log', stage)
+                        windows.append(window)
+                    maps.append(groups)
+                    warm_folders.append(folder)
                 if not maps[0].get(stage) or not maps[1].get(stage): raise ValueError('invalid/multiple target visits')
                 differences = recording.disagreements(maps[0][stage], maps[1][stage])
-                if differences:
-                    item['disagreements'] = differences; raise ValueError('raw warm maps differ')
+                item['raw_warm_disagreements'] = result['warm_disagreements']
+                if dedicated or map_mode:
+                    item['shutdown_windows'] = windows
+                    if windows[0]['excluded_post_quit_hashes'] != windows[1]['excluded_post_quit_hashes']:
+                        raise ValueError('post-quit first-use sets differ across warm pair')
+                    if differences:
+                        item['disagreements'] = differences; raise ValueError('in-window warm maps differ')
+                else:
+                    qualification = recording.qualify_cold(warm_folders[0] / 'first-use.jsonl', warm_folders[0] / 'route.tape.json',
+                                                          warm_folders[1] / 'first-use.jsonl', warm_folders[1] / 'route.tape.json', stage)
+                    item['warm_native_clock_qualification'] = qualification
+                    if not qualification['passed']:
+                        item['disagreements'] = qualification['exact_phase_offset_disagreements']
+                        raise ValueError('raw warm maps differ on native phase/offset clocks')
+                    for folder, raw in zip(warm_folders, maps):
+                        normalized, _ = recording.anchored_observations(folder / 'first-use.jsonl', folder / 'route.tape.json', stage)
+                        recording.prove_order(raw[stage], normalized)
+                    item['warm_packet_order_preserved'] = True
+                item['warm_definition_requalified'] = bool(result['warm_disagreements'])
                 cold_checks = []
                 for arm in result['arms']:
                     if not arm.get('cold_confirmation'): continue
@@ -206,6 +229,10 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                 item['cold_confirmation_checks'] = cold_checks
                 item['cold_definition_requalified'] = only_old_cold_definition and bool(cold_checks)
                 values = {int(k, 16): v for k, v in maps[0][stage].items()}
+                if dedicated and stage == 'FileSelect':
+                    known = {r[1] & deadlines.MASK for r in seedpack.database_rows(str(seeds / '__global__.db')) if r[0] == 1}
+                    item['uncovered_configs_absent_global'] = [f'{key:016x}' for key in sorted(values.keys() - known)]
+                    values = {key: value for key, value in values.items() if key in known}
                 rows, closure = close_manifest(seeds, output, stage, values)
                 item['manifest_closure'] = closure
                 target = output / (stage + '.first-use.bin')
@@ -227,6 +254,9 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
         observations = frontend.get(stage, [])
         item = {'stage': stage, 'admitted': False, 'policy': 'whole-stage c198 first-use fallback unless every warm pair agrees'}
         front_results.append(item)
+        if stage in admitted:
+            item.update(admitted=True, policy='dedicated target qualification and closure retained in stage_results')
+            continue
         if stage == 'Unknown':
             # Protocol3 deliberately pins requests to the next whole packet.
             # Its initial bootstrap packet has no named scene, so equality of
@@ -277,7 +307,7 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
               'stage_results': results, 'frontend_results': front_results, 'provenance': provenance_bindings,
               'source_seed_dir': str(seeds), 'output_seed_dir': str(output),
               'source_pack_binding': source_binding,
-              'policy': 'explicit matching warm frames; additive stage closure only from exact global rows; unknown global configs fail; no existing ranks rewritten; mismatched frontend falls back'}
+              'policy': 'exact native phase/offset warm qualification; actual warm-1 packet values retained with pairwise order proof; explicit shutdown event boundary for title/maps; exact matching in-window frames; additive stage closure only from exact global rows; unknown global configs fail; no existing ranks rewritten; mismatched frontend falls back'}
     report.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
     return result
 

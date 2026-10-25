@@ -1008,7 +1008,7 @@ orderly quit. The CSV flushes every60 rows, so the receipt records both the
 requested endpoint and the actual observed tail, including quit latency. No
 capture rows are trimmed. Admission requires the actual target map's native
 Game/End ready seam, normal completion, neutral input, no departure, progressing
-recording clock, no warm pipeline waits/pop-in and exact full warm maps.
+recording clock, no warm pipeline waits/pop-in and exact in-window warm maps under the explicit native shutdown boundary below.
 
 Cold qualification uses `native-init-end-and-play-ready-v1` (PORT ruling,
 2026-10-24). Absolute packet IDs include asynchronous loading loops. Configs
@@ -1027,3 +1027,36 @@ uses them only to order groups and break same-frame ties by cost; it never tests
 the current frame or waits until a deadline. The anchored cold definition
 therefore changes neither emitted frames nor scheduling order. No new recording
 executable, renderer identity or sidecar format is needed for this intake rule.
+
+
+Warm qualification uses the same exact native init-End/play-ready phase and
+signed-offset definition as cold qualification. It must preserve every pair's
+packet order, including ties, in BOTH warm maps; PFD1 retains warm-1's actual
+packet values. Original raw warm disagreements remain reported as failures
+alongside the independently qualified native-clock result. Missing anchors or
+any residual normalized difference fail closed. TimerSwitchingPlatform has one
+quiet fresh-prime/two-warm retry; another disagreement means whole-stage fallback.
+
+Title and no-input map observations end at the unique native `Petari: quitting`
+log marker. Every target first-use hash must bind to exactly one stage-config
+log event and capture entry. Only first uses whose event follows the marker are
+excluded from metadata AND additive closure; the excluded set must be identical
+across the two warm arms. Remaining packet groups must be exact. This is log-event
+order across main/FIFO threads (stage-config messages may be buffered), not an
+invented numeric quit packet. The report retains an inclusive packet interval
+between the last retained first use and first excluded first use (or captured
+clock end when no first use follows quit), raw hashes and the original failures.
+Missing/duplicate markers or event bindings, different excluded sets or remaining
+frame disagreements fail closed. Raw captures and logs are never trimmed.
+
+FileSelect's qualified title pair admits 39 additions copied as exact existing
+`__global__.db` rows. The 4 post-quit first-use hashes are excluded; the 2 among
+them absent from the stage DB are not added. Six in-window hashes absent from
+global remain explicitly uncovered (no row or deadline is invented):
+`4562580ba2df567a`, `8db8e4b30c1350c0`, `8e4579239ed88676`,
+`93d0175121192f3a`, `be4af1fe8a906da2`, `f70e3120d70014f8`.
+This specific title qualification does not change StaffRoll's whole-stage fallback.
+
+`WorldMap08Galaxy` keeps first-use fallback: all three direct-boot recording arms
+crashed (SIGSEGV in WorldMapOwner::setupWorldName / setTextBoxMessage). This is a
+separate game-source bug, not a recorder workaround; raw failed arms are retained.

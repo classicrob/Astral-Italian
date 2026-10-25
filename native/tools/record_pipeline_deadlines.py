@@ -247,6 +247,55 @@ def qualify_cold(warm_capture, warm_sidecar, cold_capture, cold_sidecar, stage):
             'sidecar_values': 'unchanged agreed warm packet frames; runtime consumes order only'}
 
 
+def shutdown_observations(capture, log, stage):
+    """Bind first uses to explicit native log events, never guess a quit packet.
+
+    Main/FIFO event order is the approved boundary. Callers MUST additionally
+    require the same post-quit set in both warm arms to detect interleaving.
+    """
+    values = observations(capture, stage)
+    lines = Path(log).read_text(errors='replace').splitlines()
+    markers = [i for i, line in enumerate(lines) if 'Petari: quitting' in line]
+    if len(markers) != 1:
+        raise ValueError('missing or ambiguous native quit marker')
+    events = {}
+    for index, line in enumerate(lines):
+        match = re.search(r'\[gx stage config\] stage=(\S+) config=([0-9a-f]{16})(?: |$)', line)
+        if match and match[1] == stage:
+            events.setdefault(match[2], []).append(index)
+    if set(events) != set(values) or any(len(v) != 1 for v in events.values()):
+        raise ValueError('missing, duplicate or ambiguous first-use/native config event binding')
+    excluded = sorted(key for key, indexes in events.items() if indexes[0] > markers[0])
+    kept = {key: value for key, value in values.items() if key not in excluded}
+    if not kept:
+        raise ValueError('no first uses before native quit')
+    rows = [json.loads(line) for line in Path(capture).read_text().splitlines()]
+    origin = next(r['origin_frame'] for r in rows if r['event'] == 'stage_begin' and r['stage'] == stage)
+    low = max(kept.values()) + origin
+    high = min(values[k] for k in excluded) + origin if excluded else rows[-1]['clock_last_frame']
+    if low > high:
+        raise ValueError('native quit event binding contradicts packet order')
+    return kept, {'policy': 'unique-native-quit-log-event-order',
+        'boundary_threads': 'main quit marker / FIFO stage-config log event order (messages may be buffered)',
+        'native_quit_marker_line': markers[0] + 1, 'marker_count': 1,
+        'bound_first_use_hashes': len(values), 'excluded_post_quit_hashes': excluded,
+        'packet_interval_inclusive': [low, high], 'exact_quit_packet_known': False,
+        'capture_sha256': sha(Path(capture)), 'app_log_sha256': sha(Path(log))}
+
+
+def prove_order(raw, normalized):
+    """Every pair, including ties, must keep its order in the runtime sidecar."""
+    if raw.keys() != normalized.keys():
+        raise ValueError('native-clock key set differs')
+    def sign(a, b): return (a > b) - (a < b)
+    keys = sorted(raw)
+    for i, key in enumerate(keys):
+        for other in keys[i+1:]:
+            if sign(raw[key], raw[other]) != sign(normalized[key], normalized[other]):
+                raise ValueError('native-clock qualification changes packet group order')
+    return True
+
+
 def select(disc, explicit=(), batch=None):
     if explicit:
         stages = list(explicit)

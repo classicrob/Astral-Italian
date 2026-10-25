@@ -4,7 +4,8 @@
 
 #include "Game/Player/MarioModule.hpp"
 #include "Game/Player/MarioPosHolder.hpp"
-#include "Game/Util/TriangleFilter.hpp"
+template < typename T >
+class TriangleFilterDelegator;
 #include <JSystem/JGeometry/TMatrix.hpp>
 #ifdef GALAXY_NATIVE
 #include "Game/Util/NativeOverload.hpp"
@@ -353,7 +354,6 @@ public:
     void initAfterConst();
     void writeBackPhyisicalVector();
     void update();
-    void updateLookOfs();
     void touchWater();
 
     bool isBlendWaitGround() const NO_INLINE;

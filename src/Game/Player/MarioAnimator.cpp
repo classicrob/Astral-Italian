@@ -237,15 +237,6 @@ void MarioAnimator::targetWeight(f32* weight, f32 target, f32 rate) {
 }
 #pragma dont_inline reset
 
-void MarioAnimator::setWalkWeight(const f32* pWeights) {
-    f32 rate = mActor->mConst->getTable()->mWeightBlendRatio;
-    if (getPlayer()->_3FA != 0) {
-        rate = 0.5f;
-    }
-
-    setBlendWeight(pWeights, rate);
-}
-
 void MarioAnimator::setBlendWeight(const f32* pWeights, f32 rate) {
     if (getPlayer()->isSwimming()) rate = mActor->mConst->getTable()->mWeightBlendRatioSwim;
     else if (getPlayer()->_3FA != 0) rate = 0.5f;
@@ -278,43 +269,6 @@ void MarioAnimator::initWalkWeight() {
     _1C = 0.0f;
     _20 = 0.0f;
     _24 = 1.0f;
-}
-
-bool MarioAnimator::isLandingAnimationRun() const {
-    if (getPlayer()->MarioModule::isPlayerModeTeresa()) {
-        return false;
-    }
-
-    if (isAnimationRun(animName806DC194) || isAnimationRun(animName806DC19C) || isAnimationRun(animName806DC1A4) || isAnimationRun(animName806DC1AC) ||
-        isAnimationRun(animName806DC1B8)) {
-        return true;
-    }
-
-    if (isAnimationRun(animName806DC1C4)) {
-        return true;
-    }
-
-    if (isAnimationRun(getPlayer()->_728)) {
-        return true;
-    }
-
-    if (isAnimationRun(animName806DC4AC)) {
-        return true;
-    }
-
-    if (isAnimationRun("逆着地")) {
-        return true;
-    }
-
-    if (isAnimationRun("ショート着地")) {
-        return true;
-    }
-
-    if (MR::isBckPlaying(mActor, animName806DC1D0)) {
-        return true;
-    }
-
-    return false;
 }
 
 bool MarioAnimator::isCancelableAnimationRun() const {
@@ -737,28 +691,6 @@ f32 MarioAnimator::getFrame() const {
 
 f32 MarioAnimator::getUpperFrame() const {
     return mXanimePlayerUpper->getAnimationFrame();
-}
-
-void MarioAnimator::setWalkMode() {
-    if (!((getPlayer()->mMovementStates.mLowWord >> 16) & 1U) && ((getPlayer()->mMovementStates.mLowWord >> 15) & 1U) && !((getPlayer()->mMovementStates.mLowWord >> 21) & 1U) && 0.0f == getPlayer()->_8F0 &&
-        static_cast< u8 >(getPlayer()->checkStickFrontBack()) == 2) {
-        if (!getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Magic) && !getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Skate)) {
-            if (((getPlayer()->mMovementStates.mHighWord >> 10) & 1U)) {
-                change("ブレーキ滑り床");
-            } else {
-                change(animName806DC1F8);
-            }
-        }
-    } else if (isAnimationRun(animName806DC1F8)) {
-        getPlayer()->doBrakingAnimation();
-        getPlayer()->mTargetWalkSpeedIndex = 0;
-    } else {
-        mXanimePlayer->stopAnimation("ブレーキ滑り床");
-    }
-
-    if (((getPlayer()->mMovementStates.mLowWord >> 27) & 1U) && !((getPlayer()->mMovementStates.mHighWord >> 28) & 1U)) {
-        getPlayer();
-    }
 }
 
 void MarioAnimator::calc() {

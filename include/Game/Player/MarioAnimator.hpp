@@ -100,9 +100,7 @@ public:
     u16 getUpperJointID() const;
     void setBlendWeight(const f32*, f32);
     void targetWeight(f32*, f32, f32);
-    void setWalkWeight(const f32*);
     void initWalkWeight();
-    bool isLandingAnimationRun() const;
     bool isCancelableAnimationRun() const;
     bool isWalkOrWaitingMotion() const;
     void updateWalkBas(const char*, f32);
@@ -112,7 +110,6 @@ public:
     void setHipSlidingTilt(f32, f32);
     void setHipSliderTilt();
     void setHipSlipTilt();
-    void setWalkMode();
     void updateJointRumble();
     void addRumblePower(f32, u32);
     void clearAllJointTransform();

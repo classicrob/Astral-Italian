@@ -5307,72 +5307,6 @@ void Mario::createAngleMtx(MtxPtr pMtx, bool a2) {
     MR::orderRotateMtx(0, -_58, _94);
 }
 
-void Mario::updateLookOfs() {
-    TVec3f vec;
-    vec.zero();
-
-    if (isStatusActive(MarioStatus_Blown)) {
-        return;
-    }
-
-    if (mActor->_934) {
-        MR::vecBlend(_13C, vec, &_13C, 0.3f);
-    }
-
-    if (_97C == nullptr) {
-        if (isAnimationRun("壁押し")) {
-            TVec3f vec2;
-            MR::vecKillElement(_4E8 - mPosHolder->mPos, mHeadVec, &vec2);
-            f32 len = vec2.length();
-            vec = *mFrontWallTriangle->getNormal(0) * (len - 35.0f);
-        }
-    } else if (_97C->mStatusId == MarioStatus_Swim) {
-        vec += -*getGravityVec() * mSwim->mSurfaceOffset;
-    }
-
-    if (((mMovementStates.mLowWord >> 30) & 1U) && !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && mVerticalSpeed > 5.0f && mVerticalSpeed < 50.0f && !isCurrentShadowFloorDangerAction()) {
-        TVec3f dirShadowToGround(mGroundPos - mShadowPos);
-        MR::normalizeOrZero(&dirShadowToGround);
-        if (dirShadowToGround.dot(_368) < 0.1f) {
-            vec += *getGravityVec() * mVerticalSpeed;
-        } else {
-            TVec3f vec3;
-            f32 f1 = MR::vecKillElement(mGroundPos - mPosHolder->mPos, *getGravityVec(), &vec3);
-            vec += *getGravityVec() * f1;
-        }
-    }
-
-    TVec3f vec4;
-    vec4.zero();
-
-    if (mSinkTimer != 0) {
-        vec4 = *getGravityVec() * static_cast< f32 >(mSinkTimer) * (1.0f / 256.0f) * 120.0f;
-        vec4 = -_1FC * static_cast< f32 >(mSinkTimer) * (1.0f / 256.0f) * 120.0f;
-    }
-
-    f32 blendRate = 0.2f;
-
-    if (!isUseSimpleGroundCheck()) {
-        if (getAnimator()->isLandingAnimationRun()) {
-            blendRate = 0.01f;
-        } else if (mTargetWalkSpeedIndex == 0 && mWalkSpeed < 0.2f && isBlendWaitGround()) {
-            if (_148.length() > vec.length()) {
-                blendRate = 0.5f;
-            } else {
-                blendRate = 0.02f * static_cast< f32 >(_3CE);
-
-                if (blendRate >= 0.2f) {
-                    blendRate = 0.2f;
-                }
-            }
-        }
-    }
-
-    MR::vecBlend(_148, vec, &_148, blendRate);
-    MR::vecBlend(_154, vec4, &_154, 0.2f);
-    _13C = _148 + _154;
-}
-
 void MarioCollision_FORCE_MATCH_SDATA2() {
     (void)0.001f;
     (void)3e+01f;
@@ -5871,8 +5805,4 @@ void MarioTeresa_FORCE_MATCH_SDATA2() {
     (void)2607.59448f;
     (void)0.707000017f;
     (void)-10.0f;
-}
-
-XjointTransform* (XanimeCore::*Mario_FORCE_MATCH_JOINT_TRANSFORM())(u32) {
-    return &XanimeCore::getJointTransform;
 }

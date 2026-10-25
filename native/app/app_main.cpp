@@ -330,6 +330,11 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
         std::fprintf(stderr, "PETARI LAUNCH: queued SMG2 request %s scenario %d; awaiting real catalog/file load\n", launchStage.c_str(), launchScenario);
     }
     App::prepareRunArtifacts(locations);
+    // The canonical catalog is published only after game boot. A pending
+    // resolved request therefore does not exist yet here or at Seam::attach.
+    // Retain the exact accepted launch spelling/scenario, which replay passes
+    // through the same catalog resolution instead of silently booting title.
+    if (App::TapeRecord::routePath()) App::TapeRecord::setLaunch(launchStage, launchScenario);
     return true;
 }
 
@@ -1107,8 +1112,6 @@ int main(int argc, char** argv) {
     App::LatencyReport::configureLayer(info.window);
     App::DisplayLink::start(info.window);  // the VI clock (default; PETARI_VI_CLOCK=timer opts out)
     App::Seam::attach(info.window);
-    if (const auto* request=App::LaunchStage::pendingStartupRequest())
-        App::TapeRecord::setLaunch(request->stage, request->scenario);
     App::TapeScene::install();
     if (!App::prepareFrontend(static_cast<SDL_Window*>(info.window))) {
         App::Seam::reportFrameStats();

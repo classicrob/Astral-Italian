@@ -163,6 +163,8 @@ def main(argv=None):
         checks['neutral_post_roll'] = (roll.get('started') is True and roll.get('loops', 0) > 0 and
             roll.get('neutral_read_calls', 0) > 0 and roll.get('input') == 'neutral')
         checks['lossless_recording'] = json.loads((a.out/'route.tape.json').read_text())['complete'] is True
+        captured_launch = json.loads((a.out/'route.tape.json').read_text()).get('launch')
+        checks['actual_launch_metadata'] = captured_launch == dict(stage=a.stage, scenario=a.scenario)
         if meta.get('schema') == 2:
             phases = native.get('input_phases', [])
             checks['schema2_marker_checks'] = native['anchor_policy'] == POLICY and len(phases) == len(meta['input_phases']) and all(

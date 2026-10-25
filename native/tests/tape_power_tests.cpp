@@ -82,6 +82,7 @@ bool drive(const fs::path& p,unsigned delay=0,bool omit=false,bool falseAck=fals
         if(powerFlag)++resetFrames;else x=canonical+0.5f;
         TP::SeamState row;row.stage="WorldMap01Galaxy";row.scenario=1;row.valid=resetFrames<4;
         row.x=row.valid?x:0;row.rngObserved=true;row.rngSeed=99;
+        row.pointerObserved=canonical<9; // actual returned slot in this fixture
         const auto step=session.seam(row);
         if(step.powerRequest && !omit) {
             if(earlyGate)session.rejectEarlyPower();

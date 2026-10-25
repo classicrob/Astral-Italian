@@ -20,7 +20,8 @@ inline bool parsePointer(const std::string& text, Pointer& out) {
 class Tail {
 public:
     enum Action { None, Begin, Power, Reject };
-    explicit Tail(std::uint64_t seconds=180):mDuration(seconds*1000000000ull) {
+    Tail():Tail(180) {}
+    explicit Tail(std::uint64_t seconds):mDuration(seconds*1000000000ull) {
         if (seconds<180 || seconds>1200) mFailed=true;
     }
     bool queue() { if (mQueued || mStarted || mDone || mFailed) { mFailed=true;return false; }mQueued=true;return true; }

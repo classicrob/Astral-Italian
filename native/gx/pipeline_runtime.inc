@@ -80,7 +80,8 @@ struct PetariUberJob {
 static std::deque<PetariUberJob> petariUberJobs; // g_pipelineMutex
 static unsigned petariUberInFlight = 0, petariUberMaxInFlight = 0; // g_pipelineMutex
 static uint64_t petariUberJobsStarted = 0, petariUberDemandSelections = 0;
-static bool petariUberPrePresent = false; // finite frontend-only phase before any frame is presented
+static bool petariUberPrePresent = false; // finite frontend Generic work during ordinary splash frames
+static bool petariUberFrontendArmed = false; // init returned; jobs await first actual visible present
 static bool petariUberTitleReleased = false; // g_pipelineMutex; reset each boot
 static unsigned petariUberAdmissions = 0; // complete stage maps/jobs before any fallback dispatch
 static uint32_t petari_uber_job_frame(const PetariUberJob&);
@@ -91,7 +92,7 @@ static bool petari_uber_job_eligible(const PetariUberJob& job) {
       (job.frontEnd && job.tier == gx::PetariUberTier::Generic);
 }
 static bool petari_uber_worker_ready(unsigned workerIndex) {
-  if (petariUberAdmissions) return false;
+  if (petariUberAdmissions || petariUberFrontendArmed) return false;
   const auto limit = (petariUberPrePresent || petariUberTitleReleased) ? petariActiveWorkers :
       std::min(petariActiveWorkers, kPetariOnDemandWorkers);
   // Keep worker 0 out of fallback compiles even when no draw is queued yet.
@@ -103,6 +104,10 @@ static bool petari_uber_worker_ready(unsigned workerIndex) {
 }
 static bool petari_take_uber_job(unsigned workerIndex, std::function<void()>& job) {
   if (!petari_uber_worker_ready(workerIndex)) return false;
+  if (petariUberPrePresent && !g_pipelineQueue.empty()) {
+    const auto at = petariPipelineSamples.find(g_pipelineQueue.front().hash);
+    if (at != petariPipelineSamples.end() && at->second.drawBlocking) return false;
+  }
   auto at = std::find_if(petariUberJobs.begin(), petariUberJobs.end(), petari_uber_job_eligible);
   const auto demanded = PetariPipeline::demandFallbackPriority() && petariUberTitleReleased && petariGameplay
       ? std::find_if(petariUberJobs.begin(), petariUberJobs.end(), [](const auto& pending) {
@@ -277,7 +282,15 @@ struct PetariPipelineWait {
 // throttled; stage work precedes the global backlog. During gameplay, burst
 // workers (index >= petariNormalWorkers) take only draw-requested jobs.
 static std::deque<PendingPipeline>* petari_runnable_queue(unsigned workerIndex) {
-  if (petariUberPrePresent) return nullptr; // all workers serve only the finite frontend Generic set
+  if (petariUberPrePresent || petariUberFrontendArmed) {
+    // First-use UI/clear pipelines must remain runnable while splash frames
+    // are submitted. No speculative specialised GX work borrows these workers.
+    if (!g_pipelineQueue.empty()) {
+      const auto at = petariPipelineSamples.find(g_pipelineQueue.front().hash);
+      if (at != petariPipelineSamples.end() && at->second.drawBlocking) return &g_pipelineQueue;
+    }
+    return nullptr;
+  }
   const bool burst = workerIndex >= petariNormalWorkers;
   const bool onDemandOnly = petariNormalWorkers > kPetariOnDemandWorkers && workerIndex < kPetariOnDemandWorkers;
   if (!g_pipelineQueue.empty()) {

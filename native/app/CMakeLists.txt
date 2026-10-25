@@ -89,7 +89,7 @@ if(NOT _petari_app_standalone)
         petari_headless_core)  # tape replay (tape_play.cpp) feeds the recorded KPAD reads through the headless Replay
     target_include_directories(petari_app_platform PRIVATE ${PETARI_REPO_ROOT}/native/input/include)  # petari/kpad_replay.hpp
 
-    add_library(petari_app_host STATIC frame_seam.cpp test_crash.cpp frame_stats.cpp spike_profiler.cpp input_events.cpp pipeline_startup.cpp display_window.cpp)
+    add_library(petari_app_host STATIC frame_seam.cpp test_crash.cpp frame_stats.cpp spike_profiler.cpp input_events.cpp pipeline_startup.cpp frontend_prepare.cpp display_window.cpp)
     # The donor cutscene-skip feature is deferred in SMG2. Keep the frame seam
     # buildable until the game's feature header and implementation are ported.
     if(EXISTS "${PETARI_REPO_ROOT}/include/Game/System/CutsceneSkip.hpp")

@@ -99,6 +99,10 @@ void menuWheel(float y);
 namespace Seam {
 // The window the seam reads its size from. Before openFirstFrame.
 void attach(SDL_Window* window);
+// Ordinary pre-game splash presentations use the SAME recorder and phase.
+// First successful present anchors it; subsequent presents include every gap.
+void recordStartupPresent(std::uint64_t presentedNs);
+std::uint64_t startupFrameCount();
 // Opens the Aurora frame the game's first GX commands go into. Main thread,
 // after Host::startOS and before Host::runGame.
 void openFirstFrame();

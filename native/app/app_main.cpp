@@ -1090,6 +1090,12 @@ int main(int argc, char** argv) {
 #endif
     App::LatencyReport::configureLayer(info.window);
     App::DisplayLink::start(info.window);  // the VI clock (default; PETARI_VI_CLOCK=timer opts out)
+    App::Seam::attach(info.window);
+    if (!App::prepareFrontend(static_cast<SDL_Window*>(info.window))) {
+        App::Seam::reportFrameStats();
+        aurora_shutdown();
+        return 0;
+    }
     if (!prepareKnownPipelines(static_cast<SDL_Window*>(info.window))) {
         aurora_shutdown();
         return 0;

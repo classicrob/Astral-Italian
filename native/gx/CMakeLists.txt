@@ -594,6 +594,14 @@ if(_petari_build_testing)
     target_include_directories(petari_pipeline_startup_tests PRIVATE "${CMAKE_SOURCE_DIR}/native/include"
         $<TARGET_PROPERTY:aurora::core,INTERFACE_INCLUDE_DIRECTORIES>)
     add_test(NAME native_pipeline_startup COMMAND petari_pipeline_startup_tests)
+    add_executable(petari_frontend_prepare_tests
+        "${CMAKE_SOURCE_DIR}/native/tools/frontend_prepare_tests.cpp"
+        "${CMAKE_SOURCE_DIR}/native/app/frontend_prepare.cpp")
+    target_compile_features(petari_frontend_prepare_tests PRIVATE cxx_std_20)
+    target_include_directories(petari_frontend_prepare_tests PRIVATE "${CMAKE_SOURCE_DIR}/native/include"
+        $<TARGET_PROPERTY:aurora::core,INTERFACE_INCLUDE_DIRECTORIES>)
+    add_test(NAME native_frontend_prepare COMMAND petari_frontend_prepare_tests)
+
     set_tests_properties(native_pipeline_startup PROPERTIES TIMEOUT 15)
     add_executable(petari_pipeline_cache_dir_tests "${CMAKE_SOURCE_DIR}/native/tools/pipeline_cache_dir_tests.cpp"
         "${CMAKE_SOURCE_DIR}/native/app/pipeline_cache_dir.cpp")
@@ -789,7 +797,7 @@ if(APPLE AND _petari_build_testing)
     target_compile_options(petari_boot_splash_tests PRIVATE -fobjc-arc)
     target_include_directories(petari_boot_splash_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
         "${aurora_SOURCE_DIR}/lib" "${aurora_SOURCE_DIR}/include")
-    target_link_libraries(petari_boot_splash_tests PRIVATE SDL3::SDL3 "-framework AppKit")
+    target_link_libraries(petari_boot_splash_tests PRIVATE SDL3::SDL3 "-framework AppKit" "-framework Carbon" "-framework CoreGraphics")
     add_test(NAME native_boot_splash COMMAND petari_boot_splash_tests)
     add_test(NAME native_boot_splash_hidden COMMAND petari_boot_splash_tests hidden)
 endif()

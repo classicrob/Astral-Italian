@@ -774,12 +774,23 @@ void attach(SDL_Window* window) {
     DisplayWindow::attach(window);
 }
 
+void recordStartupPresent(std::uint64_t presentedNs) {
+    HostAllocationScope host;
+    if (!gTiming.recorder) startTiming();
+    recordFrame(presentedNs, FrameStats::Phase::Startup);
+}
+std::uint64_t startupFrameCount() { return gTiming.frames; }
+
 void openFirstFrame() {
     HostAllocationScope host;
     const char* trace = std::getenv("PETARI_TRACE_BOOT");
     gTrace.enabled = trace != nullptr && trace[0] != '\0' && trace[0] != '0';
     gTrace.start = gTrace.last = TraceClock::now();
     startTiming();
+    if (gTiming.frames) {
+        std::fprintf(stderr, "[gx startup frame mapping] prep_csv_first=1 prep_csv_last=%llu game_csv_offset=%llu route_offset=0 policy=continuous-intervals\n",
+            (unsigned long long)gTiming.frames, (unsigned long long)gTiming.frames);
+    }
     startSmoke();
     if (gPresent.composeFrame == nullptr) {
         std::fprintf(stderr,

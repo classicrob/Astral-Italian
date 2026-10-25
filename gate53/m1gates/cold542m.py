@@ -34,24 +34,28 @@ def native_only():
 
 def clear_owned_metal():
     base = Path(subprocess.check_output(['/usr/bin/getconf', 'DARWIN_USER_CACHE_DIR'], text=True).strip())
-    target = base / OWN_ID
-    assert base.is_absolute() and base != Path('/') and target.name == 'dev.petari.Petari.perfm1b'
+    target = base / common.ID
+    assert base.is_absolute() and base != Path('/') and re.fullmatch(r'dev\.petari\.Petari\.perf[A-Za-z0-9_-]+', target.name)
     if target.exists(): shutil.rmtree(target)
 
 
 def arm(args, stage, repeat, spot):
-    common.ID, common.native_lock, common.clear_metal = OWN_ID, native_only, clear_owned_metal
+    common.ID, common.native_lock, common.clear_metal = args.bundle_id, native_only, clear_owned_metal
+    common.LOCK, common.DISC = args.native_lock.expanduser(), args.disc.expanduser()
     app, prep_path = args.app.resolve(), args.prep.resolve()
     prep = json.loads(prep_path.read_text())
     build = prep.get('build', prep.get('build_metadata'))
-    assert prep['build_kind'] == 'server-candidate' and prep['bundle_id'] == OWN_ID
+    assert prep['build_kind'] == 'server-candidate' and prep['bundle_id'] == args.bundle_id
     assert Path(prep['app']).resolve() == app and build['source'] == prep['source_commit']
     assert build['binary_sha256'] == prep['original_exe_sha256']
     assert common.sha(app / 'Contents/MacOS/Petari') == prep['perf_sha256']
+    if args.baseline:
+        assert prep['source_commit'] == '07223918c4f3cf2a648c77b70d66357f771cf7a1'
     before_resources = common.tree(app / 'Contents/Resources')
     if 'resource_tree' in prep: assert before_resources == prep['resource_tree']
     original = Path(prep['original_app'])
-    assert original.resolve().is_relative_to((common.ROOT / 'candidates').resolve())
+    assert original.name == 'Petari.app'
+    assert json.loads((original.parent/'BUILD.json').read_text()) == build
     assert common.sha(original / 'Contents/MacOS/Petari') == prep['original_exe_sha256']
     assert common.tree(original / 'Contents/Resources') == before_resources
     out = common.ROOT / 'runs' / f'{args.label}-{stage}-r{repeat}'
@@ -61,13 +65,13 @@ def arm(args, stage, repeat, spot):
     measured = tier_cold54m.analyze(out)
     deadline_counts = {'YosshiHomeGalaxy':183, 'MokumokuValleyGalaxy':168, 'MarioFaceShipGalaxy':74, 'VsKoopaLv1Galaxy':207}
     # Island is an explicitly unqualified recording fallback; preserve its spot evidence.
-    scored = gate542m.score(out, require_deadlines={stage:deadline_counts[stage]} if stage in deadline_counts else None, tier='m1', require_frontend=True)
+    scored = gate542m.score(out, require_deadlines={stage:deadline_counts[stage]} if stage in deadline_counts and not args.baseline else None, tier=args.tier, require_frontend=not args.baseline)
     old = subprocess.run([sys.executable, '-B', str(common.HERE / 'gate533.py'), str(out)], capture_output=True, text=True)
     legacy = json.loads(old.stdout)
     text = (out / 'app.log').read_text(errors='replace')
     valid = sum(r['stage'] == stage and r['valid'] == '1' for r in common.rows(out / 'route.csv'))
     checks = {'startup_observer_complete': startup.get('observer_joined') and not startup.get('observer_error') and 'first_valid' in startup,
-              'native_first_valid_bound_verified': startup.get('native_first_valid_inside_external_bounds') is True, 'normal_exit': process['completed'] and not process['timed_out'], 'no_faults': process['no_faults'],
+              'native_first_valid_bound_verified': args.baseline or startup.get('native_first_valid_inside_external_bounds') is True, 'normal_exit': process['completed'] and not process['timed_out'], 'no_faults': process['no_faults'],
               'binary_unchanged': process['binary_unchanged'], 'seed_unchanged': process['seed_unchanged'],
               'resources_unchanged': common.tree(app / 'Contents/Resources') == before_resources,
               'valid_stage_rows': valid >= 300, 'script_completed': '[input-script] done after 970 frames' in text,
@@ -84,11 +88,11 @@ def arm(args, stage, repeat, spot):
               'renderer_key': build['renderer_key'], 'prep': str(prep_path), 'prep_sha256': common.sha(prep_path),
               'process': process, 'startup': startup, 'valid_stage_rows': valid, 'measurements': measured, 'gate542m': scored,
               'legacy_gate_observation': legacy, 'legacy_gate_exit': old.returncode,
-              'pipeline_diag': 0, 'trace_boot': 0, 'nice': 0, 'bundle_id': OWN_ID,
+              'pipeline_diag': 0, 'trace_boot': 0, 'nice': 0, 'bundle_id': args.bundle_id, 'tier': args.tier, 'baseline': args.baseline,
               'gate_sources': {n: common.sha(common.HERE / n) for n in
                                ('cold542m.py', 'gate542m.py', 'gate533.py', 'tier_cold54m.py', 'common.py')},
               'raw_artifacts': {n: common.sha(out / n) for n in ('frames.csv', 'app.log', 'launch.json', 'quiet.json', 'route.csv')},
-              'acceptance_scope': 'M1 cold cohort only; title, baseline comparison and M4 no-regression required separately'}
+              'acceptance_scope': 'direct cold cohort only; title, symmetric baseline startup and both hardware tiers required separately'}
     common.write(out / 'RESULT.json', result)
     common.trim(out)
     print(json.dumps({'case': str(out), 'passed': result['passed'], 'gameplay_over100': measured['gameplay_over100'],
@@ -101,9 +105,17 @@ def main():
     parser.add_argument('--app', type=Path, required=True)
     parser.add_argument('--prep', type=Path, required=True)
     parser.add_argument('--label', required=True)
+    parser.add_argument('--tier', choices=('m1','m4'), required=True)
+    parser.add_argument('--bundle-id', default=OWN_ID)
+    parser.add_argument('--baseline', action='store_true')
+    parser.add_argument('--disc', type=Path, default=common.DISC)
+    parser.add_argument('--heavy-lock', type=Path, default=common.HEAVY)
+    parser.add_argument('--native-lock', type=Path, default=common.LOCK)
     parser.add_argument('--require-boot-responsiveness', action='store_true')
     parser.add_argument('--arm', type=int, help=argparse.SUPPRESS)
     args = parser.parse_args()
+    assert re.fullmatch(r'dev\.petari\.Petari\.perf[A-Za-z0-9_-]+', args.bundle_id)
+    assert not (args.baseline and args.require_boot_responsiveness)
     assert re.fullmatch(r'[A-Za-z0-9_-]+', args.label) and os.getpriority(os.PRIO_PROCESS, 0) == 0
     plan = [(stage, repeat, False) for repeat in (1, 2, 3) for stage in STAGES] + [(stage, 1, True) for stage in SPOTS]
     if args.arm is not None:
@@ -113,8 +125,10 @@ def main():
     base.mkdir(parents=True, exist_ok=False)
     results = []
     for index, (stage, repeat, spot) in enumerate(plan):
-        command = ['/usr/bin/lockf', '-k', str(common.HEAVY), sys.executable, '-B', __file__,
-                   '--app', str(args.app), '--prep', str(args.prep), '--label', args.label, '--arm', str(index)]
+        command = ['/usr/bin/lockf', '-k', str(args.heavy_lock.expanduser()), sys.executable, '-B', __file__,
+                   '--app', str(args.app), '--prep', str(args.prep), '--label', args.label, '--arm', str(index), '--tier', args.tier, '--bundle-id', args.bundle_id,
+                   '--disc', str(args.disc), '--native-lock', str(args.native_lock), '--heavy-lock', str(args.heavy_lock)]
+        if args.baseline: command += ['--baseline']
         if args.require_boot_responsiveness: command += ['--require-boot-responsiveness']
         with (base / f'arm-{index}.log').open('wb') as log:
             status = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)

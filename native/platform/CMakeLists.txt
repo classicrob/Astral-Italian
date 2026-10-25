@@ -201,6 +201,11 @@ if(BUILD_TESTING)
     target_include_directories(petari_platform_os_tests PRIVATE os dvd)
     target_link_libraries(petari_platform_os_tests PRIVATE petari_platform)
     add_test(NAME native_platform_os COMMAND petari_platform_os_tests)
+    # Explicit diagnostic target: requires caller-owned trace path + binding.
+    # Do not register it as an ordinary CTest or substitute it for the original.
+    add_executable(petari_platform_os_trace_tests ${PETARI_REPO_ROOT}/native/tests/platform_os_trace_tests.cpp)
+    target_include_directories(petari_platform_os_trace_tests PRIVATE os dvd)
+    target_link_libraries(petari_platform_os_trace_tests PRIVATE petari_platform)
     set_tests_properties(native_platform_os PROPERTIES LABELS timing)  # real-time assertions: quiet Mac only
 
     add_executable(petari_platform_power_tests ${PETARI_REPO_ROOT}/native/tests/platform_power_tests.cpp)

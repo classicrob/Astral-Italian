@@ -258,3 +258,14 @@ New K helper codegen must also be inspected: its single explicit cached-flag
 branch outlines the complete paired-clock/trace body; the false branch only
 calculates the normal Mach timer plan. No zero-initialized trace clock locals
 are placed before that flag. Actual new compiler placement remains PENDING.
+
+Portable traced-fixture target: `petari_platform_os_trace_tests`. It includes
+the original `platform_os_tests.cpp` verbatim with its main renamed, configures
+the existing transport before OS initialization, then calls that original
+main. Explicit DIAG/absolute output/binding are mandatory (otherwise exit86
+before the workload). There is deliberately no ordinary CTest registration;
+this adapter must never replace the original latency fixture. Match all modes
+to one retained original executable and, separately, one retained adapter
+executable. Record both hashes/sources; the adapter changes no assertion.
+The adapter addition is test-only and may be built incrementally on the
+server; label app09703560 separately if its already-built app is retained.

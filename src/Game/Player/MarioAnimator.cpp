@@ -1108,8 +1108,8 @@ void MarioAnimator::clearAllJointTransform() {
     XjointTransform* jt = mXanimePlayer->mCore->getJointTransform(0);
     jt->mWorldTranslationOffset = zeroVec;
 
-    _74 = 0;
     _70 = 0.0f;
+    _74 = 0;
 }
 
 // NONMATCHING: string-pool materialization and vector-address scheduling.

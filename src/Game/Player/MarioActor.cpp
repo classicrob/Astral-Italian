@@ -4547,12 +4547,16 @@ void MarioActor::drawIndirectModel() const {
     drawIndirectHand();
 }
 
+inline J3DModelX* getMarioActorDrawModel(const MarioActor& actor) {
+    return static_cast<J3DModelX*>(actor.mAllModel->getJ3DModel());
+}
+
 void MarioActor::drawModelBlur() const {
     if (isAllHidden()) {
         return;
     }
 
-    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+    J3DModelX* model = getMarioActorDrawModel(*this);
     if (!model->_1E4) {
         model->_1E5 = true;
         return;
@@ -4590,7 +4594,6 @@ void MarioActor::drawModelBlur() const {
     model->mDisplayListMask &= ~(1U << 12);
 }
 
-// NONMATCHING: equivalent pooled literals and r29/r30 allocation.
 void MarioActor::drawReflectModel() const {
     if (isAllHidden()) {
         return;
@@ -4605,7 +4608,7 @@ void MarioActor::drawReflectModel() const {
         captureScreenBox();
     }
 
-    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
+    J3DModelX* model = getMarioActorDrawModel(*this);
 
     MR::showJoint(model, "HandR0");
     MR::showJoint(model, "HandL0");
@@ -4870,7 +4873,6 @@ void MarioActor::updateReflectAlphaDL(u8 alpha) {
     DCStoreRange(holder->mDL, size);
 }
 
-// NONMATCHING: register allocation and scheduling of display-list buffer bookkeeping.
 void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, const Color8& rFog, f32 strength) {
     u8 buffer[512] ATTRIBUTE_ALIGN(32);
     GDLObj displayList;
@@ -4895,9 +4897,9 @@ void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, 
 
     GDPadCurr32();
     u32 length = displayList.ptr - displayList.start;
+    u32 size = (length + 31) & ~31;
     mCurrentDLSize1A0 = length;
     mCurrDL = 1 - mCurrDL;
-    u32 size = (length + 31) & ~31;
     MR::copyMemory(mDL[mCurrDL], buffer, size);
     DCStoreRange(mDL[mCurrDL], size);
 }
@@ -4905,8 +4907,9 @@ void MarioActor::updateLightDL(const Color8& rAmbient, const Color8& rMaterial, 
 // NONMATCHING: Matrix-address reuse, equivalent bit tests, and boolean-store scheduling.
 // NONMATCHING: initial zero-register reuse, load scheduling and literal identities.
 void MarioActor::movement() {
+    const u16 frame = _378 + 1;
     _46C = nullptr;
-    ++_378;
+    _378 = frame;
     _1E1 = false;
     mLifeDecreasedThisFrame = 0;
     mNearestUnderAngle79C = 0.7853981852531433f;
@@ -5898,11 +5901,15 @@ void MarioActor::fn_803C3C90() {
     }
 }
 
+inline const TVec3f* getMarioActorMorphGravity(const MarioActor& actor) {
+    return actor.mMario->getGravityVec();
+}
+
 void MarioActor::fn_803C3D10() {
     if (this->_3D8 != 0) {
         if (mPlayerMode == 6) {
             if (mMario->mVerticalSpeed < mConst->getTable()->mTeresaWaitHeight) {
-                this->mPosition -= *this->mMario->getGravityVec();
+                this->mPosition -= *getMarioActorMorphGravity(*this);
             }
         }
         if (!this->fn_803C3DF0() && !this->mMario->fn_803B26C0()) {
@@ -6027,14 +6034,26 @@ void MarioActor::fn_803C4100() {
     }
 }
 
-// NONMATCHING: equivalent visibility guards, register allocation, and pooled literal offsets.
+inline bool shouldHideMarioYoshi(const MarioActor& actor) {
+    bool hidden = true;
+    if (!actor._482 && !actor._481) hidden = false;
+    return hidden;
+}
+
+inline bool shouldHideMarioYoshiDuringMorph(const MarioActor& actor) {
+    bool hidden = false;
+    if (actor._482 || actor._483) hidden = true;
+    return hidden;
+}
+
+inline J3DModel* getMarioActorCapModel(const MarioActor& actor) {
+    return actor.mAllModel->getJ3DModel();
+}
+
 void MarioActor::calcAnim() {
     CollisionShadow* pShadow;
     if (mMario->isPlayerModeYoshi()) {
-        bool hideYoshi = true;
-        if (!_482 && !_481) hideYoshi = false;
-        if (hideYoshi == false) hideYoshi = !_482 && _483;
-        if (hideYoshi) mYoshiHolder->mYoshi->fn_8040CBF0();
+        if (shouldHideMarioYoshi(*this) || shouldHideMarioYoshiDuringMorph(*this)) mYoshiHolder->mYoshi->fn_8040CBF0();
         else mYoshiHolder->mYoshi->fn_8040CBD0();
     }
     bool canUpdateAnim = !_482 || _EA5;
@@ -6113,7 +6132,7 @@ void MarioActor::calcAnim() {
         }
     }
     if (mAllModel->mCurrentModel == 7 && (mActorEffectState->mActive || _390)) {
-        MR::showJoint(mAllModel->getJ3DModel(), "Cap0");
+        MR::showJoint(getMarioActorCapModel(*this), "Cap0");
         MR::hideModel(mCloudMarioHatEF0);
     }
     if (MR::isHiddenModel(this) && !_482) MR::showModel(this);
@@ -11174,7 +11193,6 @@ void MarioActor::initShadow() {
     }
 }
 
-// NONMATCHING: boolean materialization, constant conversion and stack allocation.
 inline f32 calcMarioGroundReflectionFacing(const MarioActor& actor) {
     const TVec3f* gravity = actor.getMario()->getGravityVec();
     return gravity->dot(MR::getCamZdir());
@@ -11189,6 +11207,11 @@ inline f32 calcMarioGroundReflectionFade(const f32& verticalSpeed) {
 inline s32 calcMarioGroundReflectionAlpha(const u32& maximum, const f32& verticalSpeed) {
     f32 fade = calcMarioGroundReflectionFade(verticalSpeed);
     return static_cast<s32>(static_cast<f32>(maximum) * fade);
+}
+
+inline f32 calcMarioWaterReflectionFacing(const MarioActor& actor) {
+    const TVec3f& opposite = -*actor.mMario->getGravityVec();
+    return actor.mCameraBasisZ.dot(opposite);
 }
 
 void MarioActor::fn_803D26F0() {
@@ -11228,7 +11251,7 @@ void MarioActor::fn_803D26F0() {
         }
     }
     if (this->mMario->isSwimming() && MR::isInWater(mCameraPosition)) {
-        if (this->mFlagF19 != 0 || mCameraBasisZ.dot(-*this->mMario->getGravityVec()) > 0.0f) {
+        if (this->mFlagF19 != 0 || calcMarioWaterReflectionFacing(*this) > 0.0f) {
             this->fn_803CA1F0();
             this->mWaterReflectionEF8 = 1;
         }
@@ -13566,16 +13589,14 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
         if (this->mMario->fn_803B2770(&hit, tri, start, dir)) {
             if (!(calcGravityAlongOffset(this->mMario, hit - this->mPosition) >= -5.0f)) {
                 CollisionParts* h = tri->mParts;
-                if (h != nullptr && h->mStationaryFrames == 0) {
-                    if (((this->mMario)->mMovementStates.mHighWord & 3) == 1) {
-                        return;
-                    }
-                    this->mPosition = hit;
-                    this->mMario->mPosHolder->fn_80405F90(this->mPosition);
-                    this->mMario->stopJump();
-                    this->mMario->changeAnimation("基本", "落下");
-                    this->mMario->updateGroundInfo();
+                if (h == nullptr || h->mStationaryFrames != 0 || ((this->mMario)->mMovementStates.mHighWord & 3) == 1) {
+                    return;
                 }
+                this->mPosition = hit;
+                this->mMario->mPosHolder->fn_80405F90(this->mPosition);
+                this->mMario->stopJump();
+                this->mMario->changeAnimation("基本", "落下");
+                this->mMario->updateGroundInfo();
             }
         }
     } else if (v->dot(*this->mMario->getGravityVec()) > 40.0f) {

@@ -285,12 +285,16 @@ MarioActionHash::MarioActionHash() {
 
 
 // NONMATCHING: fallback mode and player-stride temporaries exchange r5/r6.
+inline s32 getMarioActionFallback(const MarioActionHash& action) {
+    return action._4;
+}
+
 bool MarioActionHash::fn_803DB650(const char** result, const char* name, u16 player, u16 mode) {
     uintptr_t index;
     if (!mTable->search(name, &index))
         return false;
 
-    s32 fallback = _4;
+    s32 fallback = getMarioActionFallback(*this);
     *result = sMorphNames[index].mVariants[player][mode];
     switch (fallback) {
     case 1:

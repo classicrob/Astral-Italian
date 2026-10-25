@@ -312,12 +312,12 @@ void MarioTeresa::addTeresaVerticalVelocity(f32 amount) {
     _34 += getAirGravityVec() * amount;
     TVec3f horizontal;
     f32 vertical = MR::vecKillElement(_34, getAirGravityVec(), &horizontal);
-    f32 maximum = mActor->getConst().getTable()->mTeresaDropSpeedMax;
-    f32 minimum = -mActor->getConst().getTable()->mTeresaRiseSpeedMax;
+    f32 maximum = getActor()->getConst().getTable()->mTeresaDropSpeedMax;
+    f32 minimum = -getActor()->getConst().getTable()->mTeresaRiseSpeedMax;
     minimum = 10.0f * minimum;
     maximum = 20.0f * maximum;
     if (_58) {
-        f32 angle = 3.1415927f * (static_cast< f32 >(getPlayer()->_418) / mActor->getConst().getTable()->mTeresaWallThroughTime);
+        f32 angle = 3.1415927f * (static_cast< f32 >(getPlayer()->_418) / getActor()->getConst().getTable()->mTeresaWallThroughTime);
         maximum *= 1.0f + 0.5f * JMath::sSinCosTable.sinRadian(angle);
     }
 

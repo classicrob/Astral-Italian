@@ -630,7 +630,6 @@ void MarioSwim::fn_803F8DA0() {
     }
 }
 
-// NONMATCHING: constant-table register allocation.
 bool MarioSwim::fn_803F8E10() {
     if (isPlayerModeYoshi())
         return false;
@@ -638,11 +637,10 @@ bool MarioSwim::fn_803F8E10() {
         return false;
     if (--mZSinkTimer != 0)
         return false;
-    MarioActor* actor = mActor;
-    mVerticalAngle = actor->getConst().getTable()->mZsinkAngleX;
-    mActionLockTimer = actor->getConst().getTable()->mZsinkMoveTimer;
-    mSinkTimer = actor->getConst().getTable()->mZsinkSinkTimer;
-    mForwardSpeed = actor->getConst().getTable()->mZsinkFrontSpeed;
+    mVerticalAngle = getActor()->getConst().getTable()->mZsinkAngleX;
+    mActionLockTimer = getActor()->getConst().getTable()->mZsinkMoveTimer;
+    mSinkTimer = getActor()->getConst().getTable()->mZsinkSinkTimer;
+    mForwardSpeed = getActor()->getConst().getTable()->mZsinkFrontSpeed;
     _38 = 20;
     return true;
 }
@@ -1328,13 +1326,17 @@ void MarioSwim::fn_803FB300() {
     }
 }
 
-// NONMATCHING: boolean register allocation.
+inline bool hasSwimCarryWithoutJet(const MarioActor& actor, MarioSwimJet* const& jet) {
+    bool carried = false;
+    if (actor._468 && jet->mJetTimer == 0)
+        carried = true;
+    return carried;
+}
+
 bool MarioSwim::fn_803FB3D0() const {
     bool turtle;
     bool result = false;
-    bool carried = false;
-    if (mActor->_468 && mJet->mJetTimer == 0)
-        carried = true;
+    bool carried = hasSwimCarryWithoutJet(*mActor, mJet);
     if (carried) {
         turtle = false;
         if (mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE) || mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE_SLOW))
@@ -2096,7 +2098,7 @@ bool MarioSwim::fn_803FD5E0(s32) {
             f32 wave = mPreviousWaterInfo.mWaveHeight;
             mSurfaceOffset = 0.97f * offset + 0.03f * wave;
         }
-        else mSurfaceOffset = 0.99f * offset + 0.01f * (0.5f * mPreviousWaterInfo.mWaveHeight);
+        else mSurfaceOffset = 0.99f * offset + 0.01f * (mPreviousWaterInfo.mWaveHeight / 2.0f);
     } else {
         mSurfaceOffset = 0.8f * mSurfaceOffset;
     }
@@ -3983,7 +3985,6 @@ void MarioSwimDamage::reset() {
     mVelocity.zero();
 }
 
-// NONMATCHING: floating-point register allocation and operation scheduling.
 inline f32 blendSwimTilt(f32 blend, f32 target, f32 current) {
     return (blend * target) + ((1.0f - blend) * current);
 }
@@ -4003,9 +4004,7 @@ void MarioSwimTilt::update() {
             if (cross.dot(mSwim->mUpVec) > 0.0f) {
                 targetTiltX = -targetTiltX;
             }
-            f32 currentMagnitude = MR::abs(mTiltX);
-            f32 targetMagnitude = MR::abs(targetTiltX);
-            if (currentMagnitude < targetMagnitude) {
+            if (__fabsf(mTiltX) < __fabsf(targetTiltX)) {
                 blendX = 0.1f;
             } else {
                 blendX = 0.03f;

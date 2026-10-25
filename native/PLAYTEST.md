@@ -808,7 +808,7 @@ cap. Reaching the cap does not become success.
 The first successful splash presentation anchors the **same** frame recorder
 used by the game. Every subsequent prep presentation contributes a Startup row;
 the next game interval continues from the last prep present. Frame IDs continue,
-and `[gx startup frame mapping]` reports the prep prefix and game CSV offset.
+and `[gx startup frame mapping]` reports the prep prefix and game CSV offset (`csv_frame = route_row + game_csv_offset`; route rows start at zero).
 The game, route recorder and input scripts do not advance in the prep loop. The
 version-2 `[gx frontend pre-present]` receipt retains its historical name but
 reports actual presented frames (at least three), rather than claiming zero.

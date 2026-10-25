@@ -266,6 +266,10 @@ def main(argv=None):
 
     sidecar = locate_sidecar(a.tape)
     meta = json.loads(sidecar.read_text())
+    if meta.get("schema", 1) not in (1, 2):
+        raise SystemExit("replay_tape: unsupported tape schema")
+    if meta.get("schema") == 2 and a.anchor != "play":
+        raise SystemExit("replay_tape: schema2 scene markers require the GX whole-session player; headless supports play-ready segments only")
     if not meta.get("complete") and not a.allow_incomplete:
         raise SystemExit("replay_tape: the tape was not closed normally (complete=false: the session was killed, not quit). It is valid up to the "
                          f"last checkpoint ({meta['seams']} loops); pass --allow-incomplete to replay that part")
@@ -273,6 +277,10 @@ def main(argv=None):
         raise SystemExit(f"replay_tape: the recorder saw {meta['unencodable_samples']} unencodable / {meta['lossy_samples']} lossy KPAD samples: exact replay is not possible")
     base = sidecar.parent / sidecar.name[: -len(".tape.json")]
     kpd, actions, route = Path(meta.get("kpd", str(base) + ".kpd")), Path(meta.get("actions", str(base) + ".actions")), Path(meta["route_csv"])
+    if meta.get("schema") == 2:
+        # A copied schema2 tape is self-contained; metadata still preserves the
+        # recorder's original absolute paths as provenance.
+        kpd, actions, route = (sidecar.parent / p.name for p in (kpd, actions, route))
     for f in (kpd, actions, route):
         if not f.is_file():
             raise SystemExit(f"replay_tape: missing {f}")
@@ -309,7 +317,9 @@ def main(argv=None):
     env["PETARI_MODS"] = mods_env(meta["mods"])
     env.update(meta.get("replay_env") or {})
     (a.out / "command.json").write_text(json.dumps(dict(cmd=cmd, env={k: v for k, v in env.items() if k.startswith("PETARI_")}, segments=plan,
-                                                        tape_frames=total, mods=meta["mods"], exe_sha256_recorded=meta.get("exe_sha256")), indent=2) + "\n")
+                                                        tape_frames=total, mods=meta["mods"], exe_sha256_recorded=meta.get("exe_sha256"),
+                                                        source_schema=meta.get("schema", 1), anchor_policy="play-ready-segments-only",
+                                                        whole_session_proof=False), indent=2) + "\n")
     if a.dry_run:
         print(" ".join(cmd))
         return 0

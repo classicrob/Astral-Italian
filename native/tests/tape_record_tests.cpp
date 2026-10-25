@@ -25,7 +25,14 @@ int main(int argc,char** argv) {
         TR::Seam seam; seam.scene="Game"; seam.stage="TestGalaxy"; seam.scenario=1; seam.initEnd=true; seam.seedValid=true;
         KPADStatus empty{}; // the tape preserves slot zero even when KPAD returns zero samples
         for(unsigned i=0;i<307;++i) {
-            if(i) KP::read(0,120,0,0,0,0,&empty);
+            if(i) {
+                PetariNative::App::TapePhase::State state;
+                state.inputFrame=i; state.scene="Game"; state.stage="TestGalaxy"; state.scenario=1;
+                state.kind=i<205 ? "controller-normal" : "none";
+                state.firstNormal=i==1; state.rngObserved=true; state.rng=99;
+                TR::beforeRead(state);
+                KP::read(0,120,0,0,0,0,&empty);
+            }
             PetariNative::App::RouteRecordFrame row; row.stage="TestGalaxy"; row.valid=true; row.x=i;
             writer.write(row); TR::seam(seam);
         }
@@ -48,6 +55,8 @@ int main(int argc,char** argv) {
         const auto text=contents(dir/"route.tape.json");
         require(text.find(killed ? "\"complete\": false" : "\"complete\": true")!=std::string::npos,"complete reflects normal exit only");
         require(text.find(killed ? "\"seams\": 300," : "\"seams\": 307,")!=std::string::npos,"sidecar covers final seams or last checkpoint");
+        require(text.find("\"schema\": 2")!=std::string::npos && text.find("\"marker_error\": \"\"")!=std::string::npos,"new recordings have validated schema2 markers");
+        require(text.find("\"first_input_frame\": 1")!=std::string::npos && text.find("\"end_input_frame_exclusive\": 205")!=std::string::npos,"phase entry and exit are explicit read loops");
         std::ifstream csv(dir/"route.csv");std::string line;unsigned lines=0;while(std::getline(csv,line))++lines;
         require(lines==(killed?301u:308u),"CSV final partial block is flushed only on normal exit");
         std::ifstream kpd(dir/"route.kpd",std::ios::binary);char magic[8];kpd.read(magic,8);

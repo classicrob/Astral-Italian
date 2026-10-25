@@ -1,6 +1,8 @@
 // Observation for the smoke run (smoke.hpp): read-only queries of game and VI
 // state. SDK side: no Aurora or SDL headers here.
 
+#include "tape_scene.hpp"
+
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSequenceDirector.hpp"
@@ -340,5 +342,6 @@ void recordRouteFrame(bool background) {
         TapeRecord::seam(seam);
     }
     if (capture) PlaytestCapture::frame(row);
+    TapeScene::nextFrame();
 }
 }

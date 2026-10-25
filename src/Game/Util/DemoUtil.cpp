@@ -591,6 +591,10 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc and equivalent flag/branch lowering (FP order/grouping checked: no FP instructions).
+    inline void setDemoCameraWait(DemoDirector* director) {
+        director->mUnused13 = true;
+    }
+
     bool tryStartDemoEndWaitCameraInterpolating(LiveActor* pActor, const char* pName) {
         if (isSystemTalking()) {
             return false;
@@ -605,7 +609,9 @@ namespace MR {
         }
 
         char buf[0x80];
-        pName = pName != nullptr ? pName : "";
+        if (pName == nullptr) {
+            pName = "";
+        }
         snprintf(buf, 0x80, "%s%s", pActor->mName, pName);
 
         bool isDone;
@@ -614,7 +620,7 @@ namespace MR {
         else if (isStageBossParade() && hasPowerStarInCurrentStage(getCurrentScenarioNo())) isDone = true;
         else isDone = false;
         if (isDone) {
-            DemoFunction::getDemoDirector()->mUnused13 = true;
+            setDemoCameraWait(DemoFunction::getDemoDirector());
             tryFrameToBlankCinemaFrame();
             return true;
         }

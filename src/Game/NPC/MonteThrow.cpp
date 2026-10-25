@@ -133,9 +133,10 @@ void MonteThrow::exePrepare() {
     mBindPosition->copyTrans(&position);
     JMAVECLerp(&mPosition, &position, &mPosition, 0.2f);
 }
-// NONMATCHING: vector subtraction register allocation and scheduling differ.
-inline void subtractMonteThrowPosition(TVec3f& velocity, const TVec3f& position) {
+inline TVec3f calcMonteThrowVelocity(const TVec3f& target, const TVec3f& position) {
+    TVec3f velocity(target);
     velocity -= position;
+    return velocity;
 }
 
 void MonteThrow::exeThrow() {
@@ -147,9 +148,7 @@ void MonteThrow::exeThrow() {
     if (MR::isStep(this, 25)) MR::startLevelSoundPlayer("JumpStandAuto", -1, -1);
     TVec3f position;
     mPath->calcPosition(&position, MR::calcNerveRate(this, mThrowTime));
-    TVec3f velocity(position);
-    subtractMonteThrowPosition(velocity, mPosition);
-    MR::setVelocity(this, velocity);
+    MR::setVelocity(this, calcMonteThrowVelocity(position, mPosition));
     if (MR::isGreaterStep(this, 60)) {
         bool end = false;
         if (MR::isBinded(this) || MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) end = true;

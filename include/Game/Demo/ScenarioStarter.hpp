@@ -25,7 +25,7 @@ public:
     void exeShowWelcomeLayout();
     void isStartBgmOnWelcome();
     void getStartPos(TVec3f*);
-    bool isFollowValid() const;
+    bool isFollowValid(s32) const;
     void calcShootMotionTime();
     void turnBindHead(const TVec3f&, f32);
     void updateBindPosition();

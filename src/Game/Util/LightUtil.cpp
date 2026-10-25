@@ -8,6 +8,12 @@
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 
+namespace {
+inline LightPointCtrl* getMainPointLightCtrl() {
+    return MR::getSceneObj<LightDirector>(SceneObj_LightDirector)->mPointCtrl;
+}
+}
+
 namespace MR {
     void loadLight(s32 type) {
         if (type == MR::LightType_Player) {
@@ -58,9 +64,8 @@ namespace MR {
             ctrl->requestPointLight(pActor, lightPos, lightColor, intensity, duration, distRef);
         }
     }
-    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void requestPointLightPlayer(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef) {
-        MR::getSceneObj<LightDirector>(SceneObj_LightDirector)->mPointCtrl->requestPointLight(pActor, pos, color, intensity, duration, distRef);
+        getMainPointLightCtrl()->requestPointLight(pActor, pos, color, intensity, duration, distRef);
     }
 
     void resetPointLight() {

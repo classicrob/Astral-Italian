@@ -91,7 +91,12 @@ bool BossStinkBugActionFlyHigh::receiveMsgPlayerAttack(u32 msg, HitSensor* pSend
     return false;
 }
 
-// NONMATCHING: register allocation/instruction order (target hoists &host->_EC into a callee-saved reg before getSensorPos)
+namespace {
+inline const TVec3f& getStinkBugFlyingFront(const BossStinkBug* host) {
+    return host->mFront;
+}
+}
+
 bool BossStinkBugActionFlyHigh::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (getHost()->isSensorBody(pReceiver)) {
         if ((isNerve(GET_NERVE(BossStinkBugActionFlyHigh, BossStinkBugActionFlyHighNrvFly)) ||
@@ -102,9 +107,9 @@ bool BossStinkBugActionFlyHigh::receiveOtherMsg(u32 msg, HitSensor* pSender, Hit
             return true;
         }
     } else if (isEnableAttack() && (MR::isMsgWallTouch(msg) || MR::isMsgCeilTouch(msg))) {
+        const TVec3f& rFront = getStinkBugFlyingFront(getHost());
         BossStinkBug* pStinkBug = getHost();
-            const TVec3f& rFront = pStinkBug->mFront;
-            if (MR::isFaceToTargetDegree(pStinkBug, *MR::getSensorPos(pSender), rFront, 45.0f)) {
+        if (MR::isFaceToTargetDegree(pStinkBug, *MR::getSensorPos(pSender), rFront, 45.0f)) {
             if (MR::sendMsgEnemyAttackStrongToDir(pSender, pReceiver, getHost()->mFront * 50.0f)) {
                 if (isNerve(GET_NERVE(BossStinkBugActionFlyHigh, BossStinkBugActionFlyHighNrvGroundRun))) {
                     getHost()->validateCollisionHitOnly();

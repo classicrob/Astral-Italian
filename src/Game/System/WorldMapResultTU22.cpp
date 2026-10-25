@@ -37,20 +37,11 @@ void WorldMapResultStateWait::kill() {
     mIsDead = true;
 }
 
-// NONMATCHING: timer/count update scheduled in a different order (10 insns differ) (FP order/grouping checked: no FP instructions).
 void WorldMapResultStateWait::control() {
     mHost->updateParts();
 
-    s32 count = mTargetSet - 1;
-    s32 sign = static_cast< u32 >(count) >> 31;
-    mTargetSet = count & (sign - 1);
-
-    s32 timer = mTimer + 1;
-    s32 next = 1000;
-    if (timer < 1000) {
-        next = timer;
-    }
-    mTimer = next;
+    mTargetSet = MR::max(mTargetSet - 1, 0);
+    mTimer = MR::min(mTimer + 1, 1000);
 
     if (mTimer > 40) {
         mHost->requestAppearCoinsAndLives();

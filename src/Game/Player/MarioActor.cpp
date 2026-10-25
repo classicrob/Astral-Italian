@@ -4396,7 +4396,11 @@ void MarioActor::drawIndirect() const {
     drawSpinEffect();
 }
 
-// NONMATCHING: compiler merges equivalent Face0 branches; verified pooled string addresses.
+inline void hideFirstPersonMarioFace(J3DModel* model, const char* joint) {
+    MR::hideJoint(model, joint);
+}
+
+// NONMATCHING: actor/model register allocation; verified pooled string addresses.
 void MarioActor::drawMarioModel() const {
     if (isAllHidden()) {
         return;
@@ -4465,7 +4469,7 @@ void MarioActor::drawMarioModel() const {
         MR::hideJoint(model, "HandR0");
         MR::hideJoint(model, "HandL0");
         if (mAllModel->mCurrentModel >= 7) {
-            MR::hideJoint(model, "Face0");
+            hideFirstPersonMarioFace(model, "Face0");
         } else {
             MR::hideJoint(model, "Face0");
         }
@@ -13396,7 +13400,7 @@ s32 MarioActor::fn_803D8490() const {
     return 1;
 }
 
-// NONMATCHING: registers, pooled color/bias addressing, equivalent color packing and redundant target branches.
+// NONMATCHING: model/material register allocation and pooled color/bias addressing.
 void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
     J3DMaterial* mat;
     J3DModelX* m = static_cast<J3DModelX*>(MR::getJ3DModel(mSearchLight));
@@ -13436,21 +13440,23 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     if (ok) {
         m->simpleDrawShape(mat);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_A1, GX_CA_A0, GX_CA_RASA, GX_CA_ZERO);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_DIVIDE_2, GX_TRUE, GX_TEVPREV);
-        u32 i = 0;
-        do {
-            const GXColorS10 c1 = {255, 255, 255, 0};
-            const GXColorS10 c2 = {255, 255, 255, 4};
-            m->setDrawView(i + 1);
-            GXColorS10 d = c1;
-            d.a = (u8)(s32)(f * (f32)mConst->getTable()->mSearchLightBlurAlpha[i]);
-            GXSetTevColorS10(GX_TEVREG0, d);
-            GXSetTevColorS10(GX_TEVREG1, c2);
-            m->simpleDrawShape(mat);
-            i++;
-        } while (i < 3);
+    } else {
+        return;
     }
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_A1, GX_CA_A0, GX_CA_RASA, GX_CA_ZERO);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_DIVIDE_2, GX_TRUE, GX_TEVPREV);
+    u32 i = 0;
+    do {
+        const GXColorS10 c1 = {255, 255, 255, 0};
+        const GXColorS10 c2 = {255, 255, 255, 4};
+        m->setDrawView(i + 1);
+        GXColorS10 d = c1;
+        d.a = (u8)(s32)(f * (f32)mConst->getTable()->mSearchLightBlurAlpha[i]);
+        GXSetTevColorS10(GX_TEVREG0, d);
+        GXSetTevColorS10(GX_TEVREG1, c2);
+        m->simpleDrawShape(mat);
+        i++;
+    } while (i < 3);
 }
 
 void MarioActor::fn_803D8A30(s32 a, TVec3f& v) {

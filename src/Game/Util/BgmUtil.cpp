@@ -460,9 +460,12 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: regalloc/order (target keeps the string base in r31 and hoists the sceneMgr store) (FP order/grouping checked: no FP instructions).
+    inline void setStarChancePlayerMode(AudSceneMgr* manager) {
+        manager->mIsNewPlayerMode = true;
+    }
+
     JAISoundHandle* startStarChanceBGM(bool param1) {
-        AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
+        setStarChancePlayerMode(AudWrap::getSceneMgr());
         clearBgmQueue();
 
         if (isPlayerDead()) {
@@ -470,14 +473,17 @@ namespace MR {
         }
 
         if (isEqualStageName("VsKoopaLv1Galaxy") || isEqualStageName("VsKoopaGravityGalaxy") || isEqualStageName("VsKoopaLv3Galaxy") || (isEqualStageName("QuicksandGalaxy") && getCurrentScenarioNo() == 1)) {
-            return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("STM_STAR_CHANCE_3"), false, -1);
+            const char* name = "STM_STAR_CHANCE_3";
+            return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name), false, -1);
         }
 
         if (param1) {
-            return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("MBGM_STAR_CHANCE_2"), false, -1);
+            const char* name = "MBGM_STAR_CHANCE_2";
+            return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name), false, -1);
         }
 
-        return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("MBGM_STAR_CHANCE"), false, -1);
+        const char* name = "MBGM_STAR_CHANCE";
+        return AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(name), false, -1);
     }
 
     JAISoundHandle* startStarChanceBGM2(bool param1) {

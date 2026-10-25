@@ -80,7 +80,12 @@ bool BossStinkBugActionGround::receiveMsgPlayerAttack(u32 msg, HitSensor* pSende
     return false;
 }
 
-// NONMATCHING: register allocation/instruction order (target hoists &host->_EC into a callee-saved reg before getSensorPos)
+namespace {
+inline const TVec3f& getStinkBugGroundFront(const BossStinkBug* host) {
+    return host->mFront;
+}
+}
+
 bool BossStinkBugActionGround::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (getHost()->isSensorBody(pReceiver)) {
         if (isEnableShakeStart() && MR::isMsgFloorTouch(msg)) {
@@ -91,8 +96,8 @@ bool BossStinkBugActionGround::receiveOtherMsg(u32 msg, HitSensor* pSender, HitS
     } else if (MR::isMsgWallTouch(msg) || MR::isMsgCeilTouch(msg)) {
         if (isNerve(GET_NERVE(BossStinkBugGroundBattle, BossStinkBugActionGroundNrvRun)) ||
             isNerve(GET_NERVE(BossStinkBugGroundBattle, BossStinkBugActionGroundNrvShakeOffRun))) {
+            const TVec3f& rFront = getStinkBugGroundFront(getHost());
             BossStinkBug* pStinkBug = getHost();
-            const TVec3f& rFront = pStinkBug->mFront;
             if (MR::isFaceToTargetDegree(pStinkBug, *MR::getSensorPos(pSender), rFront, 45.0f)) {
                 TVec3f railPosFrontCoord;
                 MR::calcRailPosFrontCoord(&railPosFrontCoord, getHost(), 2000.0f);

@@ -48,7 +48,8 @@ void BossBussunStateDemo::exeDemo() {
             kill();
         }
     } else {
-        if (MR::tryEndDemo(mHost, mDemoName, MR::isActionEnd(mHost))) {
+        BossBussun* host = mHost;
+        if (MR::tryEndDemo(host, mDemoName, MR::isActionEnd(host))) {
             MR::endAnimCamera(mHost, mHost->mCameraInfo, mDemoName, 0, true);
             MR::showPlayer();
             mHost->mSequencer->startCamera();

@@ -182,15 +182,15 @@ void UnbabaSlim::updateRotatingBaseMtx() {
     MR::setBaseTRMtx(this, mtx);
 }
 
-// NONMATCHING: sUnbabaVec base address is materialized before the getJointMtx call in the target (instruction order only)
 void UnbabaSlim::calcHeadDrawMtx() {
+    const TVec3f* vectors = sUnbabaVec;
     mMtx.setInline(MR::getJointMtx(this, "Head"));
-    MR::addTransMtxLocal(mMtx, sUnbabaVec[2]);
-    MR::preScaleMtx(mMtx, sUnbabaVec[1] * 5.0f);
+    MR::addTransMtxLocal(mMtx, vectors[2]);
+    MR::preScaleMtx(mMtx, vectors[1] * 5.0f);
     static const GXColor color = {0x8C, 0x28, 0x00, 0x87};
     mVolumeDrawer->setColor(color);
     mVolumeDrawer->setDrawPasses(2);
-    mVolumeDrawer->setScale(sUnbabaVec[3]);
+    mVolumeDrawer->setScale(vectors[3]);
 }
 
 void UnbabaSlim::initRotator(const JMapInfoIter& rIter) {

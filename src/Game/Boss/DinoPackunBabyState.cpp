@@ -27,22 +27,25 @@ DinoPackunBabyState::DinoPackunBabyState(DinoPackunBaby* pHost, const char* pNam
 void DinoPackunBabyState::init() {
     JMapInfo* pCsv = MR::tryCreateCsvParser(MR::getResourceHolder(mHost), "%s.bcsv", sWalkStateCsvName);
     if (pCsv != nullptr) {
+        DinoPackunBabyStateParam& param = mParam;
         const char* pChaseParam = nullptr;
         const char* pEscapeParam = nullptr;
         const char* pBreakCrystal = nullptr;
-        readStateString(&mParam.mActionName, pCsv, mStateName, "ActionName");
-        MR::getCsvDataS32ByElement(&mParam.mDuration, pCsv, "StateName", mStateName, "StateStep");
+        readStateString(&param.mActionName, pCsv, mStateName, "ActionName");
+        const char* durationField = "StateStep";
+        MR::getCsvDataS32ByElement(&param.mDuration, pCsv, "StateName", mStateName, durationField);
         readStateString(&pChaseParam, pCsv, mStateName, "ParamWalkToPlayer");
         readStateString(&pEscapeParam, pCsv, mStateName, "ParamEscapeFromPlayer");
-        MR::getCsvDataStrByElement(&pBreakCrystal, pCsv, "StateName", mStateName, "IsBreakCrystal");
+        const char* breakField = "IsBreakCrystal";
+        MR::getCsvDataStrByElement(&pBreakCrystal, pCsv, "StateName", mStateName, breakField);
         if (pBreakCrystal != nullptr && pBreakCrystal[0] == 'o') {
-            mParam.mIsBreakCrystal = true;
+            param.mIsBreakCrystal = true;
         }
         if (pChaseParam != nullptr) {
-            mParam.mChaseMoveParam = reinterpret_cast<const MR::ActorMoveParam*>(MR::getActorParamMove(mHost, pChaseParam));
+            param.mChaseMoveParam = reinterpret_cast<const MR::ActorMoveParam*>(MR::getActorParamMove(mHost, pChaseParam));
         }
         if (pEscapeParam != nullptr) {
-            mParam.mEscapeMoveParam = reinterpret_cast<const MR::ActorMoveParam*>(MR::getActorParamMove(mHost, pEscapeParam));
+            param.mEscapeMoveParam = reinterpret_cast<const MR::ActorMoveParam*>(MR::getActorParamMove(mHost, pEscapeParam));
         }
     }
     initNerve(&NrvDinoPackunBabyState::DinoPackunBabyStateNrvWait::sInstance, 0);

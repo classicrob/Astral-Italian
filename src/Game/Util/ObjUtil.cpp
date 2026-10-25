@@ -639,6 +639,14 @@ JMapInfo* MR::createCsvParserFromFile(const char* pArchive, const char* pFormat,
 }
 
 // NONMATCHING: equivalent common null-result branch arrangement
+static inline void* loadStageCsvEntry(const char* archive, const char* fileName) {
+    if (!MR::isFileExistOnDisc(archive, false)) {
+        return nullptr;
+    }
+    JKRArchive* mounted = MR::mountArchive(archive, nullptr, true);
+    return mounted->getResource(QUESTIONMARK_MAGIC, fileName);
+}
+
 const JMapInfo* MR::tryCreateStageCsvParser(const char* pStage, const char* pSuffix, const char* pFormat, va_list list) {
         char fileName[0x100];
         char archive[0x100];
@@ -648,13 +656,7 @@ const JMapInfo* MR::tryCreateStageCsvParser(const char* pStage, const char* pSuf
         }
 
         snprintf(archive, 0x100, "/StageData/%s/%s%s.arc", pStage, pStage, pSuffix);
-        void* pEntry;
-        if (!MR::isFileExistOnDisc(archive, false)) {
-            pEntry = nullptr;
-        } else {
-            JKRArchive* pArchive = MR::mountArchive(archive, nullptr, true);
-            pEntry = pArchive->getResource(QUESTIONMARK_MAGIC, fileName);
-        }
+        void* pEntry = loadStageCsvEntry(archive, fileName);
         if (pEntry == nullptr) {
             return nullptr;
         }

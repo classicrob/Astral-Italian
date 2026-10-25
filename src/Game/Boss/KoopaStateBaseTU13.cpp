@@ -46,8 +46,7 @@ void KoopaStateLastDamage::appear() {
     MR::calcKoopaBattleWorldPos(&mTargetPos, localPos);
     if (mIsFinal) {
         mHost->mBattleQuat.getZDir(front);
-        TVec3f pos = mStartPos - front * 3000.0f;
-        mTargetPos.set< f32 >(pos);
+        mTargetPos.set< f32 >(mStartPos - front * 3000.0f);
     }
 }
 

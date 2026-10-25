@@ -265,16 +265,14 @@ void KoopaJrCastleCannonShock::shoot(MtxPtr pMtx, const f32& rSpeed) {
     mScale = scale;
 }
 
-// NONMATCHING: f64 clamp result: target re-stores mScale.x from the unrounded double after frsp (CSE differs)
 void KoopaJrCastleCannonShock::exeGrow() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Shot");
         MR::startBtk(this, "ElectricBullet");
     }
     mScale.x += 0.5f;
-    f64 v = MR::clamp(mScale.x, 1.0f, 6.0f);
-    mScale.x = v;
-    f32 w = v;
+    mScale.x = MR::clamp(mScale.x, 1.0f, 6.0f);
+    f32 w = mScale.x;
     mScale.y = w;
     mScale.z = w;
     MR::setSensorRadius(this, "Body", 75.0f * w);
@@ -312,14 +310,12 @@ void KoopaJrCastleCannonShock::exeFly() {
     }
 }
 
-// NONMATCHING: f64 calcNerveEaseOutValue result: target stores mScale.x unrounded, ours CSEs the frsp copy
 void KoopaJrCastleCannonShock::exeShrink() {
     if (MR::isFirstStep(this)) {
         MR::invalidateHitSensors(this);
     }
-    f64 v = MR::calcNerveEaseOutValue(this, 8, mScaleAtTransition, 1.0f);
-    mScale.x = v;
-    f32 w = v;
+    mScale.x = MR::calcNerveEaseOutValue(this, 8, mScaleAtTransition, 1.0f);
+    f32 w = mScale.x;
     mScale.y = w;
     mScale.z = w;
     MR::setSensorRadius(this, "Body", 75.0f * w);

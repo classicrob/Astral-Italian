@@ -160,10 +160,22 @@ void ImageEffectDirector::setBloomNormalParams(ImageEffectArea* pArea) {
 }
 
 // NONMATCHING: equivalent integer argument register scheduling.
+inline void setPostFogMinRange(u32 value, ImageEffectStateImpl::StatePostFog* const& state) {
+    state->setMinRange(value);
+}
+
+inline void setPostFogMaxRange(u32 value, ImageEffectStateImpl::StatePostFog* const& state) {
+    state->setMaxRange(value);
+}
+
+inline void setPostOutlineIntensity(u32 value, ImageEffectStateImpl::StatePostOutline* const& state) {
+    state->setIntensity(value);
+}
+
 void ImageEffectDirector::setPostFogParams(ImageEffectArea* area) {
     PostFogArea* fog = static_cast<PostFogArea*>(area);
-    mStatePostFog->setMinRange(fog->getMinRange());
-    mStatePostFog->setMaxRange(fog->getMaxRange());
+    setPostFogMinRange(fog->getMinRange(), mStatePostFog);
+    setPostFogMaxRange(fog->getMaxRange(), mStatePostFog);
     mStatePostFog->setAlpha(fog->getAlpha());
     mStatePostFog->setRed(fog->getRed());
     mStatePostFog->setGreen(fog->getGreen());
@@ -276,7 +288,7 @@ void ImageEffectDirector::updateAuto() {
         setState(mStatePostFog);
         break;
     case ImageEffectArea::IMAGE_EFFECT_TYPE_POST_OUTLINE:
-        mStatePostOutline->setIntensity(static_cast<PostOutlineArea*>(pEffectArea)->getIntensity());
+        setPostOutlineIntensity(static_cast<PostOutlineArea*>(pEffectArea)->getIntensity(), mStatePostOutline);
         setState(mStatePostOutline);
         break;
     default:

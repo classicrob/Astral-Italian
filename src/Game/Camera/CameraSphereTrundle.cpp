@@ -46,6 +46,10 @@ inline TVec3f scaleSphereTrundleOffset(const TVec3f& direction, f32 distance) {
     return offset;
 }
 
+inline f32 calcSphereTrundleHalfAngle(f32 angle) {
+    return 0.5f * angle;
+}
+
 CameraTargetObj* CameraSphereTrundle::calc() {
     TVec3f sp58;
     CameraLocalUtil::makeWatchPoint(&sp58, this, CameraLocalUtil::getTarget(this), 0.0066666668f);
@@ -79,7 +83,7 @@ CameraTargetObj* CameraSphereTrundle::calc() {
 
     PSVECCrossProduct(&mUp, &mFront, &mSide);
 
-    f32 angle = 0.5f * mAngle;
+    f32 angle = calcSphereTrundleHalfAngle(mAngle);
     sp30.toTvec()->scale((f32)sin(angle), mSide);
     sp30.w = (f32)cos(angle);
 

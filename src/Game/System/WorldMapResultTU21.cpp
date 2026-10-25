@@ -71,24 +71,29 @@ void WorldMapResultStateTicoRouteCreate::updateRoutePosition(f32 pT) {
     MR::setPosition(mHost->getRocket(), mPos * pT + (mPos + lbl_8072BB20) * (1.0f - pT));
 }
 
-// NONMATCHING: independent subtraction/FMR scheduling (FP operand order/grouping checked).
+inline f32 invertTicoZoomRate(f32 rate) { return 1.0f - rate; }
+
+inline f32 calcTicoZoomScale(f32 inRate) {
+    f32 half = 0.5f;
+    f32 one = 1.0f;
+    f32 base = one - half;
+    f32 scale = one - inRate;
+    scale *= half;
+    scale = base + scale;
+    return scale;
+}
+
 void WorldMapResultStateTicoRouteCreate::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(mHost->getRocket(), "ZoomInTico", -1, -1, -1);
     }
 
     f32 rate = MR::calcNerveRate(this, 30);
-    f32 eased = MR::getEaseInOutValue(1.0f - rate, 0.0f, 1.0f, 1.0f);
+    f32 eased = MR::getEaseInOutValue(invertTicoZoomRate(rate), 0.0f, 1.0f, 1.0f);
     updateRoutePosition(eased);
 
     f32 inRate = MR::calcNerveEaseInRate(this, 30);
-    f32 one = 1.0f;
-    f32 half = 0.5f;
-    f32 base = one - half;
-    f32 scale = one - inRate;
-    scale *= half;
-    scale = base + scale;
-    MR::setScale(mHost->getRocket(), scale);
+    MR::setScale(mHost->getRocket(), calcTicoZoomScale(inRate));
 
     if (MR::isStep(this, 20)) {
         MR::turnOnDepthOfField(false);

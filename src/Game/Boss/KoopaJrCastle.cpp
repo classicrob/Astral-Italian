@@ -140,7 +140,6 @@ void KoopaJrCastle::control() {
     MR::calcMtxFromGravityAndZAxis(&mBaseMtx, this, mFrontVec);
 }
 
-// NONMATCHING: vector temporary stack slots and saved registers.
 void KoopaJrCastle::exeBattle() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
@@ -148,8 +147,7 @@ void KoopaJrCastle::exeBattle() {
     }
     if (MR::updateActorState(this)) {
         MR::requestAppearPowerStar(this, mPosition - mGravity * 1600.0f);
-        TVec3f cam(mStartPos + mGravity * -1000.0f);
-        mCameraPos = cam;
+        mCameraPos = mStartPos + mGravity * -1000.0f;
         mCapsule->kill();
         mHead->kill();
         mBody->kill();

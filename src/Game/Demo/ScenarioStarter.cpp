@@ -46,9 +46,9 @@ namespace {
 namespace {
     class ScenarioStarterFollowValidater : public BaseMatrixFollowValidater {
     public:
-        typedef bool (ScenarioStarter::*Func)() const;
+        typedef bool (ScenarioStarter::*Func)(s32) const;
         ScenarioStarterFollowValidater(ScenarioStarter* host, Func func) : mHost(host), mFunc(func) {}
-        virtual bool isValid(s32) const { return (mHost->*mFunc)(); }
+        virtual bool isValid(s32 id) const { return (mHost->*mFunc)(id); }
         ScenarioStarter* mHost;
         Func mFunc;
     };
@@ -487,7 +487,7 @@ void ScenarioStarter::getStartPos(TVec3f* pos) {
     pos->set(MR::getRailPointPosStart(this));
 }
 
-bool ScenarioStarter::isFollowValid() const {
+bool ScenarioStarter::isFollowValid(s32) const {
     bool valid = false;
     if (!MR::isDead(this) && !isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterWaitScenarioCameraEnd))
         && !isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterShowWelcomeLayout))) {

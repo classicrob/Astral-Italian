@@ -463,7 +463,7 @@ bool TalkMessageCtrl::isNearPlayer(f32 distance) const {
     if (distance <= 0.0f) {
         distance = mTalkDistance;
         if (mTalkState == TalkMessageState_EnableStart) {
-            distance = mTalkDistance + 50.0f;
+            distance += 50.0f;
         }
     }
 
@@ -473,7 +473,8 @@ bool TalkMessageCtrl::isNearPlayer(f32 distance) const {
     }
 
     TVec3f v3;
-    f32 f2 = MR::vecKillElement(v2 - *MR::getPlayerCenterPos(), mHostActor->mGravity, &v3);
+    const TVec3f& gravity = mHostActor->mGravity;
+    f32 f2 = MR::vecKillElement(v2 - *MR::getPlayerCenterPos(), gravity, &v3);
 
     if (!(MR::abs(f2) > distance) && v3.squared() < distance * distance) {
         TalkMessageInfo* info = &mNodeCtrl->mMessageInfo;

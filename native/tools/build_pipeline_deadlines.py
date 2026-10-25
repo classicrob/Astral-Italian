@@ -121,13 +121,16 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
         for result in data['stage_results']:
             stage = result['stage']
             item = {'stage': stage, 'admitted': False, 'provenance': str(path.resolve())}
+            item['raw_recording_passed'] = result.get('passed')
             item['previous_failed_attempts'] = attempts.get(stage, []).copy()
             attempts.setdefault(stage, []).append(str(path.resolve()))
             results.append(item)
             try:
                 if stage == 'Unknown':
                     raise ValueError('protocol3 bootstrap scope unqualified; Unknown keeps first-use fallback')
-                if not result['passed'] or result['warm_disagreements'] or result['cold_disagreements']:
+                cold_arms = [r for r in result['arms'] if r.get('cold_confirmation')]
+                only_old_cold_definition = bool(cold_arms) and bool(result.get('cold_disagreements')) and all(r['passed'] for r in result['arms']) and not result['warm_disagreements']
+                if (not result['passed'] and not only_old_cold_definition) or result['warm_disagreements']:
                     raise ValueError('recording stage failed or warm/cold groups disagreed')
                 warm = [r for r in result['arms'] if r['name'] in ('warm-1', 'warm-2')]
                 if len(warm) != 2 or any(not r['passed'] for r in warm): raise ValueError('two valid warm captures required')
@@ -193,11 +196,15 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                     launch = json.loads((folder / 'launch.json').read_text())
                     if launch['exe_sha256'] != arm['recording_exe_sha256'] or launch['renderer_key'] != identity[2] or launch.get('cold_namespace') is not True:
                         raise ValueError('cold confirmation build/namespace binding mismatch')
-                    cold = recording.observations(folder / 'first-use.jsonl', stage)
-                    diff = recording.disagreements(maps[0][stage], cold)
-                    cold_checks.append({'capture_sha256': arm['capture_sha256'], 'disagreements': diff})
-                    if diff: raise ValueError('raw cold confirmation frame groups differ')
+                    pairs = [recording.qualify_cold(path.parent / stage / w['name'] / 'first-use.jsonl',
+                                                    path.parent / stage / w['name'] / 'route.tape.json',
+                                                    folder / 'first-use.jsonl', folder / 'route.tape.json', stage) for w in warm]
+                    cold_checks.append({'capture_sha256': arm['capture_sha256'], 'policy': recording.COLD_POLICY,
+                                        'disagreements': pairs[0]['exact_phase_offset_disagreements'],
+                                        'warm_pair_qualifications': pairs, 'passed': all(p['passed'] for p in pairs)})
+                    if not all(p['passed'] for p in pairs): raise ValueError('raw cold confirmation phase/offset groups differ')
                 item['cold_confirmation_checks'] = cold_checks
+                item['cold_definition_requalified'] = only_old_cold_definition and bool(cold_checks)
                 values = {int(k, 16): v for k, v in maps[0][stage].items()}
                 rows, closure = close_manifest(seeds, output, stage, values)
                 item['manifest_closure'] = closure
@@ -252,7 +259,7 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
     required = expected if expected is not None else planned - {'Unknown', 'FileSelect'}
     missing = sorted(required - admitted)
     permitted = set(fallback_stages)
-    if permitted - planned or permitted & admitted or permitted - required:
+    if permitted - set(attempts) or permitted & admitted or permitted - required:
         raise ValueError('explicit fallback must name an attempted, unqualified required stage')
     cold_stages = sorted(r['stage'] for r in results if r['admitted'] and r.get('cold_confirmation_checks'))
     result = {'version': 1, 'passed': not (set(missing) - permitted) and existing_unchanged and global_unchanged
@@ -264,7 +271,8 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
               'all_database_rows_unchanged': unchanged, 'all_existing_rows_and_ranks_byte_identical': existing_unchanged,
               'global_rows_unchanged': global_unchanged,
               'planned_stages': sorted(planned), 'admitted_stages': sorted(admitted), 'missing_or_failed_stages': missing,
-              'expected_stages': sorted(required), 'unrecorded_stages': sorted(required - planned),
+              'expected_stages': sorted(required), 'attempted_stages': sorted(attempts),
+              'unrecorded_stages': sorted(required - set(attempts)),
               'frontend_recording_failures': sorted((planned - admitted) & {'Unknown', 'FileSelect'}),
               'stage_results': results, 'frontend_results': front_results, 'provenance': provenance_bindings,
               'source_seed_dir': str(seeds), 'output_seed_dir': str(output),

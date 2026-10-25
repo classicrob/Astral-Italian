@@ -39,6 +39,9 @@ class Build(unittest.TestCase):
             (folder / 'first-use.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in capture))
             (folder / 'app.log').write_text('[input-script] done after 970 frames\n')
             (folder / 'frames.csv').write_text('frame,pipeline_wait_ms\n1,0.000\n')
+            (folder / 'route.tape.json').write_text(json.dumps({'complete':True,'seams':491,
+                'ready_seams':[{'stage':'A','scenario':1,'row':480}],
+                'play_ready_seams':[{'stage':'A','scenario':1,'row':484}]}))
             (folder / 'launch.json').write_text(json.dumps({'exe_sha256': '4'*64, 'renderer_key': '3'*64, 'environment': {}}))
             self.arms.append({'passed': True, 'name': name, 'recording_exe_sha256': '4'*64, 'renderer_key': '3'*64,
                               'checks': dict(valid_capture=True, no_pipeline_waits=True, no_pop_in=True)})
@@ -158,7 +161,7 @@ class Build(unittest.TestCase):
         path.write_text(''.join(json.dumps(r)+'\n' for r in rows)); self.rehash(3)
         result = self.run_build()
         self.assertFalse(result['passed'])
-        self.assertIn('raw cold confirmation frame groups differ', result['stage_results'][0]['reason'])
+        self.assertIn('raw cold confirmation phase/offset groups differ', result['stage_results'][0]['reason'])
 
     def test_raw_cold_equal_pair_admitted(self):
         import shutil
@@ -184,6 +187,37 @@ class Build(unittest.TestCase):
     def test_unrecorded_stage_cannot_be_explicit_fallback(self):
         with self.assertRaisesRegex(ValueError,'attempted, unqualified'):
             self.run_build(expected=['A','B'],fallback=['B'])
+
+    def test_planned_unstarted_stage_does_not_count_as_attempt(self):
+        self.data['stages_planned']=['A','B']
+        result=self.run_build(expected=['A','B'])
+        self.assertEqual(result['attempted_stages'],['A'])
+        self.assertEqual(result['unrecorded_stages'],['B'])
+
+    def test_planned_unstarted_stage_cannot_be_waived(self):
+        self.data['stages_planned']=['A','B']
+        with self.assertRaisesRegex(ValueError,'attempted, unqualified'):
+            self.run_build(expected=['A','B'],fallback=['B'])
+
+    def test_cold_native_clock_qualification_keeps_original_fail(self):
+        import shutil
+        folder=self.batch/'A/cold-confirm';shutil.copytree(self.batch/'A/warm-1',folder)
+        arm=dict(self.arms[0],name='cold-confirm',cold_confirmation=True);self.arms.append(arm)
+        launch=json.loads((folder/'launch.json').read_text());launch['cold_namespace']=True
+        (folder/'launch.json').write_text(json.dumps(launch))
+        path=folder/'first-use.jsonl';rows=[json.loads(l) for l in path.read_text().splitlines()]
+        rows[3]['frame']+=27;rows[3]['relative_frame']+=27;rows[-1]['clock_last_frame']+=27
+        path.write_text(''.join(json.dumps(r)+'\n' for r in rows));self.rehash(3)
+        path=folder/'route.tape.json';side=json.loads(path.read_text());side['seams']+=27
+        side['ready_seams'][0]['row']+=27;side['play_ready_seams'][0]['row']+=27;path.write_text(json.dumps(side))
+        self.data['stage_results'][0].update(passed=False,cold_disagreements={'000000000000000c':[1,28]})
+        result=self.run_build(require_cold=True)
+        self.assertTrue(result['passed']);item=result['stage_results'][0]
+        self.assertFalse(item['raw_recording_passed']);self.assertTrue(item['cold_definition_requalified'])
+        q=item['cold_confirmation_checks'][0]['warm_pair_qualifications']
+        self.assertEqual(len(q),2)
+        self.assertEqual(len(q[0]['raw_absolute_disagreements']),1)
+        self.assertEqual(q[0]['exact_phase_offset_disagreements'],{})
 
     def test_retry_cannot_replace_success(self):
         path=self.batch/'PROVENANCE.json';path.write_text(json.dumps(self.data))

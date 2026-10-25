@@ -1009,3 +1009,21 @@ requested endpoint and the actual observed tail, including quit latency. No
 capture rows are trimmed. Admission requires the actual target map's native
 Game/End ready seam, normal completion, neutral input, no departure, progressing
 recording clock, no warm pipeline waits/pop-in and exact full warm maps.
+
+Cold qualification uses `native-init-end-and-play-ready-v1` (PORT ruling,
+2026-10-24). Absolute packet IDs include asynchronous loading loops. Configs
+first used before the native init-End seam retain their explicit stage-origin
+packet offsets; configs first used at or after init-End use signed packet
+offsets from the first native play-ready seam. Both anchors come from the
+retained native `route.tape.json`; packet coordinates are route rows plus1.
+Every config must match exactly in phase and offset against BOTH warm runs.
+Missing/ambiguous anchors, changed phase or any offset difference fail closed.
+Raw absolute mismatches and original FAIL results remain in the intake beside
+the new qualification. Yoshi's extra27 cold loading packets do not become a
+guessed correction: the explicit native clocks independently establish equality.
+
+PFD1 still contains the unchanged, agreed WARM packet-frame values. The runtime
+uses them only to order groups and break same-frame ties by cost; it never tests
+the current frame or waits until a deadline. The anchored cold definition
+therefore changes neither emitted frames nor scheduling order. No new recording
+executable, renderer identity or sidecar format is needed for this intake rule.

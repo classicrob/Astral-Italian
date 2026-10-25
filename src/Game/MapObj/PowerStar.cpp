@@ -848,10 +848,11 @@ void PowerStar::exeStageClearDemo() {
         ::appearAndStartAction(mPowerStarModelObj, getStarGetAnimCameraName());
 
         bool isGrandStar = mIsGrandStar;
+        s32 color = mColor;
         const char* pBaseName = isGrandStar ? "GrandStarGet" : "PowerStarGet";
         ModelObj* pModel = mPowerStarModelObj;
         char buf2[0x40];
-        MR::emitEffect(pModel, ::makeBronzeName(buf2, sizeof(buf2), pBaseName, mColor, isGrandStar));
+        MR::emitEffect(pModel, ::makeBronzeName(buf2, sizeof(buf2), pBaseName, color, isGrandStar));
 
         bool isSupportPlay = MR::isSupportPlayActive();
         bool isKoopaVs3 = false;

@@ -16,12 +16,13 @@ PenguinMaster::PenguinMaster(const char* pName) : NPCActor(pName) {
 void PenguinMaster::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("PenguinMaster");
     caps.setDefault();
-    caps.mMessageOffset = TVec3f(0.0f, 400.0f, 0.0f);
     caps.mReactionNerve = GET_NERVE(PenguinMaster, PenguinMasterNrvReaction);
+    caps.mMessageOffset = TVec3f(0.0f, 400.0f, 0.0f);
     initialize(rIter, caps, "PenguinMaster", nullptr, nullptr);
 
-    mParam._1C = "Talk";
+    const char* talkAction = "Talk";
     mParam._14 = "Wait";
+    mParam._1C = talkAction;
     mParam._18 = nullptr;
     mParam._20 = nullptr;
     mParam._0 = false;

@@ -39,6 +39,14 @@ void AttackRockRide::setHostZDir(const TVec3f* pVec) {
 }
 
 // NONMATCHING: Only stack temporary slot offsets differ (calls, operands and registers match).
+namespace {
+    inline TVec3f addRideMovement(const TVec3f& position, const TVec3f& movement) {
+        TVec3f sum(position);
+        sum.add(movement);
+        return sum;
+    }
+}
+
 void AttackRockRide::initRush() {
     MR::getPlayerQuatAndPos(&mQuat0, &mRidePos);
     this->mPlayerMove.set(MR::getPlayerLastMove()->scaleInline(0.9f));
@@ -46,9 +54,7 @@ void AttackRockRide::initRush() {
     MR::calcDirToPlayer(&this->mStartDir, this->mHost);
     TVec3f playerMove = *MR::getPlayerLastMove();
     const TVec3f& hostPos = this->mHost->mPosition;
-    TVec3f sum(this->mRidePos);
-    sum.add(playerMove);
-    TVec3f dir = sum - hostPos;
+    TVec3f dir = addRideMovement(this->mRidePos, playerMove) - hostPos;
     MR::normalizeOrZero(&dir);
     this->mRotAngle = MR::diffAngleAbs(this->mStartDir, dir);
     this->mRotAngleSum = 0.0f;

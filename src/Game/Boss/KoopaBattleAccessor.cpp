@@ -167,6 +167,23 @@ void KoopaBattleCamera::updateQuat() {
 }
 
 // NONMATCHING: stack-slot permutation of the TVec3f temporaries only (171 words, same calls/constants)
+namespace {
+    inline void calcKoopaCameraPosition(TVec3f* camPos, const TVec3f& target, const TVec3f& baseDiff, const TVec3f& rHostPos, const TVec3f& negFront) {
+    TVec3f back(negFront);
+    TVec3f baseDir;
+    back *= 2400.0f;
+    MR::normalizeOrZero(&baseDir, baseDiff);
+    f32 hostDot = baseDir.dot(rHostPos);
+    f32 backDot = baseDir.dot(back);
+    f32 t = ((1500.0f + hostDot) - baseDir.dot(target)) / backDot;
+    if (0.0f <= t && t <= 1.0f) {
+        camPos->set< f32 >(target + back * t);
+    } else {
+        camPos->set< f32 >(target + negFront * 2400.0f);
+    }
+    }
+}
+
 void KoopaBattleCamera::applyCamera() {
     TVec3f front;
     front.set< f32 >(2.0f * (mQuat.x * mQuat.z) + 2.0f * (mQuat.w * mQuat.y), 2.0f * (mQuat.y * mQuat.z) - 2.0f * (mQuat.w * mQuat.x),
@@ -187,25 +204,10 @@ void KoopaBattleCamera::applyCamera() {
     TVec3f base;
     TVec3f camPos;
     MR::getKoopaBattleBasePos(&base);
-    TVec3f baseDiff = base - mHost->mPosition;
+    const TVec3f& baseDiff = base - mHost->mPosition;
     const TVec3f& rHostPos = mHost->mPosition;
     TVec3f negFront = -front;
-    TVec3f back(negFront);
-    TVec3f baseDir;
-    back *= 2400.0f;
-    MR::normalizeOrZero(&baseDir, baseDiff);
-    f32 hostDot = baseDir.dot(rHostPos);
-    f32 backDot = baseDir.dot(back);
-    f32 t = ((1500.0f + hostDot) - baseDir.dot(target)) / backDot;
-    if (0.0f <= t && t <= 1.0f) {
-        TVec3f scaled(back);
-        scaled *= t;
-        camPos.set< f32 >(target + scaled);
-    } else {
-        TVec3f scaled2(negFront);
-        scaled2 *= 2400.0f;
-        camPos.set< f32 >(target + scaled2);
-    }
+    calcKoopaCameraPosition(&camPos, target, baseDiff, rHostPos, negFront);
     MR::setProgrammableCameraParam(mHost, target, camPos, up);
 }
 

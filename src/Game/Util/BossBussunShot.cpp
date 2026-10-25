@@ -77,6 +77,14 @@ void BossBussunSequencer::updateCamera() {
 }
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+namespace {
+    inline void calcNormalizedFrameAxis(TVec3f* axis, const TVec3f& toPlayer, const TVec3f& up, f32 dist) {
+        TVec3f dir(toPlayer);
+        dir *= 1.0f / dist;
+        PSVECCrossProduct(&dir, &up, axis);
+    }
+}
+
 void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     const TVec3f& gravity = mHost->mGravity;
     bool isPlayerBelow = gravity.dot(*MR::getPlayerGravity()) > 0.0f;
@@ -93,10 +101,8 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     }
 
     TVec3f up(isNear ? mUpVec : -mUpVec);
-    TVec3f dir(toPlayer);
-    dir *= 1.0f / dist;
     TVec3f axis;
-    PSVECCrossProduct(&dir, &up, &axis);
+    calcNormalizedFrameAxis(&axis, toPlayer, up, dist);
     if (MR::normalizeOrZero(&axis)) {
         MR::makeAxisVerticalZX(&axis, up);
     }

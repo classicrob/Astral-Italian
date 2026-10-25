@@ -1582,18 +1582,20 @@ void __wudNandFlushCallback(u32 result) {
 // saved GPRs/instruction scheduling; calls, byte extents, state transitions and
 // ordered 16-bit checksum operations agree with the target. Two source forms.
 u8 __wudGetDevInfoFromWiiFit(void) {
+    const char* path = "/title/00010004/52464e4a/data/RPHealth.dat";
+    const char* gameName = "RFNJ";
     u8 nextState = 3;
     u8 zero[16] = {0};
     u32 checksum;
-    u32 sum;
     u16 inverse;
+    u32 sum;
     u32 i;
     const u16* word;
 
     if (_nandBusy) {
         return 3;
     }
-    if (_wiiFitWork == NULL || ((uintptr_t)_wiiFitWork & 31) != 0) {
+    if (!_wiiFitWork || ((uintptr_t)_wiiFitWork & 31) != 0) {
         OSPanic("WUD.c", 2745,
                 "Error: the workarea for synchronizing WBC pairing information is not allocated.\n");
     }
@@ -1606,7 +1608,7 @@ u8 __wudGetDevInfoFromWiiFit(void) {
         if (SCGetProductGameRegion() == 0) {
             _nandBusy = 1;
             _wiiFitChecksum = 0;
-            NANDOpenAsync("/title/00010004/52464e4a/data/RPHealth.dat", &_wiiFitFileInfo,
+            NANDOpenAsync(path, &_wiiFitFileInfo,
                           NAND_ACCESS_READ, __wudNandResultCallback, &_wiiFitCommandBlock);
         } else {
             _nandState = 6;
@@ -1647,7 +1649,7 @@ u8 __wudGetDevInfoFromWiiFit(void) {
             _nandState = 5;
             break;
         }
-        if (memcmp(OSGetAppGamename(), "RFNJ", 4) != 0 &&
+        if (memcmp(OSGetAppGamename(), gameName, 4) != 0 &&
             memcmp(_wiiFitPairingData.record.bytes.linkKey, zero, sizeof(LINK_KEY)) == 0) {
             _nandState = 5;
             break;

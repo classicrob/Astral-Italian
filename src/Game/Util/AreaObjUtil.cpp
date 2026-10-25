@@ -270,6 +270,14 @@ waterResolved:
         return false;
     }
 
+    inline TVec3f calcWaterRayPosition(const TVec3f& start, const TVec3f& direction, f32 rate) {
+        TVec3f scaled(direction);
+        scaled.scale(rate);
+        TVec3f hit(start);
+        hit += scaled;
+        return hit;
+    }
+
     bool func_80062320(const WaterArea* area, TVec3f* a, TVec3f* b) {
         if (static_cast<u32>(area->mFormType) <= 1) {
             TVec3f start;
@@ -283,10 +291,7 @@ waterResolved:
             if (0.0f == dot) return false;
             f32 rate = (cube->mBounding.f.y - start.y) / dot;
             if (rate < 0.0f) return false;
-            TVec3f scaled(end);
-            scaled.scale(rate);
-            TVec3f hit(start);
-            hit += scaled;
+            TVec3f hit = calcWaterRayPosition(start, end, rate);
             return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
                    hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
         }
@@ -306,10 +311,7 @@ waterResolved:
             if (0.0f == dot) return false;
             f32 rate = (cube->mBounding.i.y - start.y) / dot;
             if (rate < 0.0f) return false;
-            TVec3f scaled(end);
-            scaled.scale(rate);
-            TVec3f hit(start);
-            hit += scaled;
+            TVec3f hit = calcWaterRayPosition(start, end, rate);
             return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
                    hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
         }

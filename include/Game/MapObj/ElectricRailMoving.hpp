@@ -10,7 +10,7 @@ class ElectricRailMovingPoint : public LiveActor {
 public:
     ElectricRailMovingPoint(const char* pName = "移動電撃レール点");
 
-    virtual ~ElectricRailMovingPoint();
+    virtual ~ElectricRailMovingPoint() {}
     virtual void init(const JMapInfoIter&);
     virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);

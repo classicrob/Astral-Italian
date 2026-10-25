@@ -4676,6 +4676,12 @@ void Mario::checkBump() {
     }
 }
 
+namespace {
+inline f32 calcHorizontalAngleToAirGravity(Mario* mario, const TVec3f& normal, const TVec3f& opposite) {
+    return MR::diffAngleAbsHorizontal(normal, opposite, mario->getAirGravityVec());
+}
+}
+
 void Mario::startBump(const TVec3f& rVec) {
     if ((getTrans() - rVec).length() >= 100.0f) {
         return;
@@ -4687,8 +4693,7 @@ void Mario::startBump(const TVec3f& rVec) {
     MR::vecKillElement(*norm, *grav, &v21);
 
     if (!MR::normalizeOrZero(&v21)) {
-        const TVec3f& opposite = -v21;
-        if (MR::diffAngleAbsHorizontal(mFrontVec, opposite, getAirGravityVec()) > 0.52359879f) {
+        if (calcHorizontalAngleToAirGravity(this, mFrontVec, -v21) > 0.52359879f) {
             TVec3f v20;
             if (MR::vecKillElement(getTrans() - rVec, getAirGravityVec(), &v20) > 0.0f) {
                 return;
@@ -4898,8 +4903,7 @@ void Mario::createAtField(bool force, f32 radius) {
                 }
 
                 if (hit->isCollisionAtEdge()) {
-                    const TVec3f& opposite = -*triangle->getNormal(0);
-                    if (MR::diffAngleAbsHorizontal(mJumpVec, opposite, getAirGravityVec()) < 0.7853982f) {
+                    if (calcHorizontalAngleToAirGravity(this, mJumpVec, -*triangle->getNormal(0)) < 0.7853982f) {
                         continue;
                     }
                 }

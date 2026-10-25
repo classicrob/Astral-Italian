@@ -34,13 +34,20 @@ enum {
     TAMAKORO_BGM_2_ID = 0x100000A,
 };
 
+namespace {
+    inline const TamakoroBgmInfo* findBgmInfo(const char* name) {
+        for (s32 i = 0; i < sBgmInfoCount; ++i) {
+            if (MR::isEqualString(sBgmInfo[i].mName, name)) {
+                return &sBgmInfo[i];
+            }
+        }
+        return nullptr;
+    }
+}
+
 void AudTamakoroBgmCtrl::init(const char* name) {
     mSteps = 0;
-    const TamakoroBgmInfo* info = nullptr;
-    for (s32 i = 0; i < sBgmInfoCount; ++i) {
-        if (MR::isEqualString(sBgmInfo[i].mName, name)) { info = &sBgmInfo[i]; break; }
-    }
-    mInfo = info;
+    mInfo = findBgmInfo(name);
     mTempoRateMin = mInfo->mMinTempo / mInfo->mBaseTempo;
     mTempoRateMax = mInfo->mMaxTempo / mInfo->mBaseTempo;
     mTempoRateVeryHigh = mInfo->mVeryHighTempo / mInfo->mBaseTempo;

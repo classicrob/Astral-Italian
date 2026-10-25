@@ -1447,17 +1447,19 @@ namespace MR {
         pDst->set(scaled);
     }
 
-    // NONMATCHING: register/stack or instruction scheduling (FP order/grouping proven by default rdclass a).
+    inline TVec3f calcScaledDirection(const TVec3f& direction, f32 scale) {
+        TVec3f normal;
+        MR::normalizeOrZero(&normal, direction);
+        TVec3f scaled(normal);
+        scaled.scale(scale);
+        return scaled;
+    }
+
     void calcVelocityMoveToTarget3D(TVec3f* pDst, LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
         TVec3f diff(rTarget);
         JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
 
-        TVec3f normal;
-        MR::normalizeOrZero(&normal, diff);
-
-        TVec3f scaled(normal);
-        scaled.scale(scale);
-        pDst->set(scaled);
+        pDst->set(calcScaledDirection(diff, scale));
     }
 
     void addVelocityMoveToDirection3D(LiveActor* pActor, const TVec3f& rDir, f32 scale) {

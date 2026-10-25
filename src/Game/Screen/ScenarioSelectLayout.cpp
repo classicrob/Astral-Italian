@@ -439,8 +439,9 @@ ScenarioSelectStar* ScenarioSelectLayout::getSelectedStar() const {
 
 // NONMATCHING: register allocation and floating-point instruction scheduling differ.
 void ScenarioSelectLayout::calcWorldPositionFromScreenPos(TVec3f* pWorldPos, const TVec2f& rScreenPos, f32 depth) const {
+    f32 fovy;
     f32 height = static_cast< s32 >(JUTVideo::getManager()->getEfbHeight());
-    f32 fovy = mCameraContext->getFovy() * (PI / 180.0f);
+    fovy = mCameraContext->getFovy() * (PI / 180.0f);
     f32 focalLength = (height * 0.5f) / MR::tan(fovy * 0.5f);
     f32 distance;
 

@@ -419,7 +419,14 @@ void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-// NONMATCHING: Vector expression temporary stack slots differ.
+namespace {
+    inline void emitHammerHitEffect(LiveActor* actor, const TVec3f& position) {
+        MR::tryRumblePadMiddle(actor, WPAD_CHAN0);
+        MR::emitEffectHit(actor, position, nullptr);
+        MR::stopScene(8);
+    }
+}
+
 bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     MR::isEqualSensor(pReceiver, this, "Body");
     MR::isEqualSensor(pReceiver, this, "blow");
@@ -443,10 +450,7 @@ bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
             MR::stopScene(8);
             setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock));
         } else {
-            const TVec3f& hitMtx = *MR::getSensorPos(pReceiver) * temp + *MR::getSensorPos(pSender) * (1.0f - temp);
-            MR::tryRumblePadMiddle(this, WPAD_CHAN0);
-            MR::emitEffectHit(this, hitMtx, nullptr);
-            MR::stopScene(8);
+            emitHammerHitEffect(this, *MR::getSensorPos(pReceiver) * temp + *MR::getSensorPos(pSender) * (1.0f - temp));
             setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill));
         }
         ScoreAttackFunction::scoreByAttack(this, msg, nullptr);

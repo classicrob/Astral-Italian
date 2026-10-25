@@ -159,10 +159,12 @@ s32 Wanwan::getType(const JMapInfoIter& rIter) {
     if (MR::isEqualObjectName(rIter, "WanwanRollingMini")) {
         return 1;
     }
-    if (MR::isEqualObjectName(rIter, "WanwanRollingGold")) {
-        return 2;
+    bool isGold = MR::isEqualObjectName(rIter, "WanwanRollingGold");
+    s32 type = 0;
+    if (isGold) {
+        type = 2;
     }
-    return 0;
+    return type;
 }
 
 s32 Wanwan::getAppearStarPieceNum(Rock::Type type) {
@@ -171,6 +173,14 @@ s32 Wanwan::getAppearStarPieceNum(Rock::Type type) {
 }
 
 // NONMATCHING: stack slot order of toRail/g temporaries
+namespace {
+    inline void calcWanwanRailVelocity(TVec3f* velocity, const LiveActor* actor) {
+        TVec3f toRail(MR::getRailPos(actor));
+        JMathInlineVEC::PSVECSubtract(&toRail, &actor->mPosition, &toRail);
+        MR::vecKillElement(toRail, actor->mGravity, velocity);
+    }
+}
+
 void Wanwan::control() {
     if (!isNerve(&NrvWanwan::WanwanNrvAppearSign::sInstance) && !isNerve(&NrvWanwan::WanwanNrvBreak::sInstance)) {
         bool inMove;
@@ -214,9 +224,7 @@ void Wanwan::control() {
             mFallVel.zero();
         }
         if (isNerve(&NrvWanwan::WanwanNrvMove::sInstance)) {
-            TVec3f toRail(MR::getRailPos(this));
-            JMathInlineVEC::PSVECSubtract(&toRail, &mPosition, &toRail);
-            MR::vecKillElement(toRail, mGravity, &mVelocity);
+            calcWanwanRailVelocity(&mVelocity, this);
             TVec3f g(mGravity);
             g.scale(mGravityAcceleration);
             JMathInlineVEC::PSVECAdd(&mFallVel, &g, &mFallVel);

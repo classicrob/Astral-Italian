@@ -365,6 +365,12 @@ cflags_jsys = [
 ]
 
 cflags_jsys_jaudio = [*cflags_jsys, "-ipa file", "-sym on"]
+# JAudio2 DSP glue (osdsp/osdsp_task/dsptask/dspproc) is an older-compiler object in the linked DOL, as in SMG1/Petari.
+cflags_jsys_jasdsp = [flag for flag in cflags_jsys if flag != "-enc SJIS"] + [
+    "-func_align 32",
+    "-rostr",
+    "-inline noauto",
+]
 cflags_jsys_jpa = [*cflags_jsys, "-ipa file"]
 
 
@@ -805,10 +811,30 @@ config.libs = [
             Object(NonMatching, "JSystem/JAudio2/JASDSPInterface.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JASDriverIF.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JASSoundParams.cpp"),
-            Object(NonMatching, "JSystem/JAudio2/osdsp_task.cpp", extra_cflags=["-rostr"]),
-            Object(NonMatching, "JSystem/JAudio2/osdsp.cpp", extra_cflags=["-rostr"]),
-            Object(NonMatching, "JSystem/JAudio2/dsptask.cpp", extra_cflags=["-rostr"]),
-            Object(NonMatching, "JSystem/JAudio2/dspproc.cpp", extra_cflags=["-rostr"]),
+            Object(
+                NonMatching,
+                "JSystem/JAudio2/osdsp_task.cpp",
+                cflags=cflags_jsys_jasdsp,
+                mw_version="GC/2.7",
+            ),
+            Object(
+                NonMatching,
+                "JSystem/JAudio2/osdsp.cpp",
+                cflags=cflags_jsys_jasdsp,
+                mw_version="GC/2.7",
+            ),
+            Object(
+                NonMatching,
+                "JSystem/JAudio2/dsptask.cpp",
+                cflags=cflags_jsys_jasdsp,
+                mw_version="GC/2.7",
+            ),
+            Object(
+                NonMatching,
+                "JSystem/JAudio2/dspproc.cpp",
+                cflags=cflags_jsys_jasdsp,
+                mw_version="GC/2.7",
+            ),
             Object(NonMatching, "JSystem/JAudio2/JAIAudible.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JAIAudience.cpp"),
             Object(NonMatching, "JSystem/JAudio2/JAISe.cpp"),
@@ -1067,7 +1093,7 @@ config.libs = [
             Object(NonMatching, "Game/LiveActor/LiveActorGroup.cpp"),
             Object(NonMatching, "Game/LiveActor/LiveActorGroupArray.cpp"),
             Object(NonMatching, "Game/LiveActor/LodCtrl.cpp"),
-            Object(NonMatching, "Game/LiveActor/RailRider.cpp"),
+            Object(NonMatching, "Game/LiveActor/RailRider.cpp", extra_cflags=["-opt noloop"]),
             Object(NonMatching, "Game/LiveActor/Spine.cpp"),
             Object(NonMatching, "Game/AreaObj/AreaObjContainer.cpp"),
             Object(NonMatching, "Game/AreaObj/AreaObjFollower.cpp"),
@@ -1624,7 +1650,7 @@ config.libs = [
             Object(NonMatching, "Game/Ride/PlantStalk.cpp"),
             Object(NonMatching, "Game/Ride/Pole.cpp"),
             Object(NonMatching, "Game/Ride/SledRopePoint.cpp"),
-            Object(NonMatching, "Game/Ride/SphereAccelSensorController.cpp"),
+            Object(NonMatching, "Game/Ride/SphereAccelSensorController.cpp", extra_cflags=["-opt nocse"]),
             Object(NonMatching, "Game/Ride/SphereController.cpp"),
             Object(NonMatching, "Game/Ride/SpherePadController.cpp"),
             Object(NonMatching, "Game/Ride/SwingRope.cpp"),
@@ -2127,7 +2153,7 @@ config.libs = [
             Object(NonMatching, "Game/AudioLib/AudSoundObject_Kawamura.cpp"),
             Object(NonMatching, "Game/AudioLib/AudSoundObject_Takezawa.cpp"),
             Object(NonMatching, "Game/AudioLib/AudSoundObject_Gohara.cpp"),
-            Object(NonMatching, "Game/AudioLib/AudSpeakerWrap.cpp"),
+            Object(NonMatching, "Game/AudioLib/AudSpeakerWrap.cpp", extra_cflags=["-rostr"]),
             Object(NonMatching, "Game/AudioLib/AudSystem.cpp"),
             Object(NonMatching, "Game/AudioLib/AudSystemVolumeController.cpp"),
             Object(NonMatching, "Game/AudioLib/AudTrackController.cpp"),
@@ -3114,6 +3140,7 @@ config.libs = [
                 "RVL_SDK/vf/pf_str.c",
                 mw_version="GC/3.0a3",
                 cflags=cflags_sdk_gc,
+                extra_cflags=["-func_align 16"],
             ),
             Object(NonMatching, "RVL_SDK/vf/pf_w_clib.c"),
             Object(
@@ -3354,7 +3381,7 @@ config.libs = [
     RVLLibGC(
         "ai",
         [
-            Object(NonMatching, "RVL_SDK/ai/ai.c"),
+            Object(NonMatching, "RVL_SDK/ai/ai.c", extra_cflags=["-func_align 16"]),
         ],
     ),
     RVLLib(

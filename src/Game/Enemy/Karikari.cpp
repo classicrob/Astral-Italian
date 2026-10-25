@@ -147,15 +147,20 @@ void Karikari::applyEnvironmentInfluenceToVelocity() {
 }
 
 // NONMATCHING: vector temporary stack-slot order.
+namespace {
+    inline TVec3f calcKarikariStarPiecePosition(const TVec3f& up, const TVec3f& position) {
+        TVec3f pos(up);
+        pos.scale(80.0f);
+        pos += position;
+        return pos;
+    }
+}
+
 void Karikari::killedInFrozenState() {
     MR::deleteEffect(this, "KarikariCrystalLight");
     MR::emitEffect(this, "KarikariCrystalBreak");
     MR::startActionSound(this, "EmKarikariBlow");
-    TVec3f up = -mGravity;
-    TVec3f pos(up);
-    pos.scale(80.0f);
-    pos += mPosition;
-    MR::appearStarPiece(this, pos, 3, 10.0f, 40.0f, false);
+    MR::appearStarPiece(this, calcKarikariStarPiecePosition(-mGravity, mPosition), 3, 10.0f, 40.0f, false);
     makeActorDead();
     MR::stopScene(::sStopSceneTime);
 }
@@ -618,17 +623,9 @@ void Karikari::exeBlowOut() {
 
     if (MR::isBinded(this) || MR::isGreaterStep(this, ::sBlowOutTime)) {
         if (isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOut))) {
-            TVec3f up = -mGravity;
-            TVec3f pos(up);
-            pos.scale(80.0f);
-            pos += mPosition;
-            MR::appearStarPiece(this, pos, 1, 10.0f, 40.0f, false);
+            MR::appearStarPiece(this, calcKarikariStarPiecePosition(-mGravity, mPosition), 1, 10.0f, 40.0f, false);
         } else {
-            TVec3f up = -mGravity;
-            TVec3f pos(up);
-            pos.scale(80.0f);
-            pos += mPosition;
-            MR::appearStarPiece(this, pos, 3, 10.0f, 40.0f, false);
+            MR::appearStarPiece(this, calcKarikariStarPiecePosition(-mGravity, mPosition), 3, 10.0f, 40.0f, false);
         }
         kill();
     }

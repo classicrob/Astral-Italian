@@ -574,7 +574,3 @@ void ElectricRailMoving::exeFreeze() {
 
 ElectricRailMoving::~ElectricRailMoving() {
 }
-
-ElectricRailMovingPoint::~ElectricRailMovingPoint() {
-}
-

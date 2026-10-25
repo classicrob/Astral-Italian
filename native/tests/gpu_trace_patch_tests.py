@@ -40,6 +40,28 @@ def strip_gates(changed):
         changed = changed[:start] + changed[position + 1:]
     return changed
 
+
+def operation_tokens(changed):
+    # This erasure is deliberately limited to the existing trace gates, includes
+    # and startup configuration. No MonitorWait code is removed here.
+    changed = changed.replace('#include <petari/gpu_trace.hpp>\n', '').replace('#include "gpu_trace_dawn.hpp"\n', '')
+    changed = changed.replace('namespace GpuTrace = PetariNative::GpuTrace;\n', '')
+    changed = changed.replace('    PetariNative::GpuTrace::configure(std::getenv("PETARI_PIPELINE_DIAG"), std::getenv("PETARI_GPU_TRACE"),\n        std::getenv("PETARI_GPU_TRACE_BINDING_SHA256"));\n', '')
+    changed = changed.replace('PresentStats::enabled() || PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)', 'PresentStats::enabled()')
+    changed = strip_gates(changed)
+    return re.sub(r'\s+', '', changed)
+
+def committed_source(revision, path):
+    return subprocess.check_output(['git', 'show', revision + ':' + path], cwd=ROOT, text=True)
+
+# PORT approved these functional monitor changes independently of tracing. Only
+# this one path gets that exact, immutable native baseline. Keep the earlier
+# trace-only erasure proof as well; never skip the path or remove MonitorWait
+# lines by name/pattern. Any ungated token outside this approved revision fails.
+MONITOR_PATH = 'native/platform/os/os_thread.cpp'
+TRACE_ONLY_REVISION = 'e2f71c485c794bd9283f58f962a1baff08045379'
+APPROVED_MONITOR_REVISION = '0970356053d0d1f3a52bba72711151f6b339a365'
+
 class TracePatchTests(unittest.TestCase):
     def test_pinned_frame_worker_present(self):
         upstream = Path(sys.argv[1])
@@ -88,8 +110,8 @@ class TracePatchTests(unittest.TestCase):
         self.assertIn('return ::PetariNative::FrameTelemetry::nowNs();', header)
 
     def test_off_hooks_preserve_native_operation_tokens(self):
-        # Strip only our gated statements/includes. Every pre-existing token in
-        # these actual native paths must remain exactly the baseline token stream.
+        # Strip only our gated statements/includes. Every native operation must
+        # match the pinned baseline, including the separately approved K/R delta.
         # git show is read-only; this test compiles/runs no fixture.
         for path in ['native/gx/efb_recording.inc', 'native/gx/efb_frame.inc',
                      'native/gx/efb_snapshot.cpp', 'native/platform/gx_sync/gx_sync.cpp',
@@ -100,12 +122,25 @@ class TracePatchTests(unittest.TestCase):
                      'native/platform/os/os_alarm.cpp', 'native/gx/pipeline_worker.inc']:
             original = subprocess.check_output(['git', 'show', '7fcc610c:' + path], cwd=ROOT, text=True)
             changed = (ROOT / path).read_text()
-            changed = changed.replace('#include <petari/gpu_trace.hpp>\n', '').replace('#include "gpu_trace_dawn.hpp"\n', '')
-            changed = changed.replace('namespace GpuTrace = PetariNative::GpuTrace;\n', '')
-            changed = changed.replace('    PetariNative::GpuTrace::configure(std::getenv("PETARI_PIPELINE_DIAG"), std::getenv("PETARI_GPU_TRACE"),\n        std::getenv("PETARI_GPU_TRACE_BINDING_SHA256"));\n', '')
-            changed = changed.replace('PresentStats::enabled() || PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)', 'PresentStats::enabled()')
-            changed = strip_gates(changed)
-            self.assertEqual(re.sub(r'\s+', '', original), re.sub(r'\s+', '', changed), path)
+            if path == MONITOR_PATH:
+                trace_only = committed_source(TRACE_ONLY_REVISION, path)
+                self.assertEqual(re.sub(r'\s+', '', original), operation_tokens(trace_only),
+                                 'original trace-only OS hook-erasure proof')
+                original = committed_source(APPROVED_MONITOR_REVISION, path)
+            self.assertEqual(operation_tokens(original), operation_tokens(changed), path)
+
+    def test_monitor_baseline_rejects_ungated_changes(self):
+        approved = committed_source(APPROVED_MONITOR_REVISION, MONITOR_PATH)
+        expected = operation_tokens(approved)
+        # Both the old semaphore path and the approved experimental path remain
+        # protected. An ungated trace operation must also remain visible.
+        for before, after in [
+                ('semaphore_signal(wake)', 'semaphore_signal(MACH_PORT_NULL)'),
+                ('MonitorWait::waitCritical(ns, forcedPending)', 'MonitorWait::waitCritical(ns, false)'),
+                ('MonitorWait::configure();', 'MonitorWait::configure(); PetariNative::GpuTrace::nextId();')]:
+            self.assertEqual(approved.count(before), 1, before)
+            self.assertNotEqual(expected, operation_tokens(approved.replace(before, after)), before)
+        self.assertEqual(expected, operation_tokens(approved + '\nPETARI_GPU_TRACE(PetariNative::GpuTrace::nextId());\n'))
 
     def test_observer_is_guarded(self):
         source = (ROOT / 'native/gx/efb_frame.inc').read_text()

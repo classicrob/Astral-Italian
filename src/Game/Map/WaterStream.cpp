@@ -80,16 +80,33 @@ bool WaterStream::isInWater(const TVec3f& rPos) const {
 }
 
 // NONMATCHING: regalloc; temporary stack allocation and FP scheduling
+inline f32 calcWaterStreamBottomAngle(f32 distance, f32 width) {
+    f32 angle = distance / width;
+    angle *= 3.1415927f;
+    return angle * 0.5f;
+}
+
+inline TVec3f calcWaterStreamSurface(const TVec3f& position, const TVec3f& gravity, f32 depth) {
+    TVec3f scaled(gravity);
+    scaled.scale(depth);
+    TVec3f surface(position);
+    surface.sub(scaled);
+    return surface;
+}
+
 bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, WaterInfo* pInfo) const {
     TVec3f nearest;
     TVec3f nearestDir;
-    f32 nearestRate = calcNearestPos(rPos, &nearest, &nearestDir, NULL);
-    f32 width = mWidth * calcCurrentWidthRate(nearestRate);
+    f32 width;
+    {
+        f32 nearestRate = calcNearestPos(rPos, &nearest, &nearestDir, NULL);
+        width = mWidth * calcCurrentWidthRate(nearestRate);
 
-    TVec3f flow;
-    calcStreamVec(rPos, nearest, nearestRate, TVec3f(nearestDir), width, &flow);
-    pInfo->mStreamVec.set(flow);
-    pInfo->mWaveHeight = calcWaveHeight(rPos, nearestRate, &pInfo->mSurfaceNormal);
+        TVec3f flow;
+        calcStreamVec(rPos, nearest, nearestRate, TVec3f(nearestDir), width, &flow);
+        pInfo->mStreamVec.set(flow);
+        pInfo->mWaveHeight = calcWaveHeight(rPos, nearestRate, &pInfo->mSurfaceNormal);
+    }
 
     TVec3f toPos(rPos);
     toPos.sub(nearest);
@@ -97,11 +114,10 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     if (mIsReversed) {
         width *= 2.0f;
     }
-    f32 angle = PSVECMag(&toPos) / width;
-    angle *= 3.1415927f;
-    angle *= 0.5f;
-    pInfo->mBottomDepth = width * MR::cos(angle) + depth;
+    f32 angle = calcWaterStreamBottomAngle(PSVECMag(&toPos), width);
+    f32 bottomHeight = width * MR::cos(angle);
     f32 edgeBase = mIsReversed ? width : 0.0f;
+    pInfo->mBottomDepth = bottomHeight + depth;
     pInfo->mCamWaterDepth = -depth + edgeBase;
 
     TVec3f gravity = rGravity;
@@ -109,11 +125,7 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     pInfo->mSurfaceNormal.set(-gravity);
 
     f32 camDepth = pInfo->mCamWaterDepth;
-    TVec3f scaled = rGravity;
-    scaled.scale(camDepth);
-    TVec3f surf(rPos);
-    surf.sub(scaled);
-    pInfo->mSurfacePos.set(surf);
+    pInfo->mSurfacePos.set(calcWaterStreamSurface(rPos, rGravity, camDepth));
 
     TVec3f dist(rPos);
     dist.sub(nearest);

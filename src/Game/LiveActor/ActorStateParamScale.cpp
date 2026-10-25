@@ -156,8 +156,12 @@ void ActorStateParamScale::resetHostVelocity() {
     pHost->mVelocity.z = mSavedVel.z;
 }
 
+inline void saveParamScaleVelocity(TVec3f& saved, const LiveActor& host) {
+    saved = host.mVelocity;
+}
+
 void ActorStateParamScale::calcHostVelocity() {
-    mSavedVel = mHost->mVelocity;
+    saveParamScaleVelocity(mSavedVel, *mHost);
     f32 speed = mIsOnSwitch ? mSpeedOn : mSpeedOff;
     mHost->mVelocity.scale(speed);
 }

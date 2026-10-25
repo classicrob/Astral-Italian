@@ -160,8 +160,16 @@ void WoodLogBridge::makeActorDead() {
 
 // NONMATCHING: 95%; stack slot order / reg alloc of the temporaries (fn_8032BB00 in target)
 // NONMATCHING: loop-invariant FPR allocation order (f21-f31) differs; instruction stream otherwise identical
+namespace {
+    inline TVec3f scaleBridgeSway(const TVec3f& vector, f32 scale) {
+        TVec3f result(vector);
+        result.scale(scale);
+        return result;
+    }
+}
+
 void applySway(LiveActorGroup* pGroup, const TVec3f* pVecA, const TVec3f* pVecB, f32 min, f32 max) NO_INLINE {
-    f32 range = max - min;
+    f32 amplitudeRange = max - min;
     f32 cNear = 100.0f;
     f32 cFar = 1500.0f;
     for (s32 i = 0; i < pGroup->getObjNum(); i++) {
@@ -169,7 +177,7 @@ void applySway(LiveActorGroup* pGroup, const TVec3f* pVecA, const TVec3f* pVecB,
         TVec3f diff = *MR::getPlayerPos() - pActor->mPosition;
         MR::vecKillElement(diff, *pVecA, &diff);
         f32 sinVal = MR::sinDegree(180.0f * ((f32)i / (f32)(pGroup->getObjNum() - 1)));
-        f32 amp = min + sinVal * range;
+        f32 amp = min + sinVal * amplitudeRange;
         f32 mag = PSVECMag(&diff);
         f32 t = (cFar - (mag - cNear)) / (cFar - cNear);
         if (t < 0.0f) {
@@ -178,7 +186,7 @@ void applySway(LiveActorGroup* pGroup, const TVec3f* pVecA, const TVec3f* pVecB,
             t = 1.0f;
         }
         f32 ease = MR::getEaseInValue(t, 0.0f, 1.0f, 1.0f);
-        pActor->mVelocity.add(pVecB->scaleInline(ease).scaleInline(amp));
+        pActor->mVelocity.add(scaleBridgeSway(scaleBridgeSway(*pVecB, ease), amp));
     }
 }
 

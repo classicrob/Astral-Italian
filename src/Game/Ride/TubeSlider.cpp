@@ -570,6 +570,10 @@ void TubeSlider::startJump(f32 power) {
 }
 
 // NONMATCHING: fmuls operand order on int-to-float conversions
+inline f32 scaleTubeSliderSlip(f32 value, f32 factor) {
+    return value * factor;
+}
+
 bool TubeSlider::updateOnGround() {
     if (updatePlayer())
         return true;
@@ -592,11 +596,11 @@ bool TubeSlider::updateOnGround() {
     s32 slipPitch = (s32)(mForwardSpeed * (f32)pitchScale);
     s32 slipVol = MR::clamp((s32)(mForwardSpeed * (f32)volScale) + 600, 0, 1000);
     if (curveVol > 170)
-        slipPitch -= (s32)(0.4f * (f32)curveVol);
+        slipPitch -= (s32)(scaleTubeSliderSlip((f32)curveVol, 0.4f));
 
     if (!isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRide)) && !isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideLand))) {
-        slipPitch = (s32)(0.4f * (f32)slipPitch);
-        curveVol = (s32)(0.4f * (f32)slipPitch);
+        slipPitch = (s32)(scaleTubeSliderSlip((f32)slipPitch, 0.4f));
+        curveVol = (s32)(scaleTubeSliderSlip((f32)slipPitch, 0.4f));
     }
 
     if (curveVol > 170)

@@ -79,16 +79,19 @@ void AttackRockRide::initRush() {
 }
 
 // NONMATCHING: Store/load scheduling of mRotAngleSum/mRotAngle and FPR allocation differ (same calls and operands).
+inline f32 calcAttackRockRushRate(s32 step, s32 frames) {
+    return (f32)step / (f32)frames;
+}
+
 void AttackRockRide::updateRush() {
     if (this->mIsRush) {
-        f32 a = this->mRotAngle;
-        f32 sum = this->mRotAngleSum + a;
-        this->mRotAngleSum = sum;
-        f32 t = (f32)this->mRushStep / (f32)this->mRushFrames;
-        this->mRotAngle = a * 0.95f;
-        f32 invT = 1.0f - t;
+        f32 invT;
+        f32 t = calcAttackRockRushRate(this->mRushStep, this->mRushFrames);
+        invT = 1.0f - t;
+        this->mRotAngleSum += this->mRotAngle;
+        this->mRotAngle *= 0.95f;
         TVec3f rotated;
-        MR::rotateVecRadian(&rotated, this->mStartDir, this->mRotAxis, sum * invT);
+        MR::rotateVecRadian(&rotated, this->mStartDir, this->mRotAxis, this->mRotAngleSum * invT);
         TVec3f blend;
         MR::vecBlendSphere(&blend, this->mStartDir, this->mTargetDir, t);
         MR::normalizeOrZero(&blend);

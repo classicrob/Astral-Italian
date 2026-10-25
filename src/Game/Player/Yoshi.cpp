@@ -1542,14 +1542,14 @@ void Yoshi::fn_80410570(f32 amount) {
     if (!MR::normalizeOrZero(&direction)) {
         TVec3f front;
         mBaseMtx.getZDir(front);
-        JMAVECScaleAdd(gravity, &front, &front, -gravity->dot(front));
+        JMAVECScaleAdd(gravity, &front, &front, -mGravity.dot(front));
         if (!MR::normalizeOrZero(&front)) {
             TVec3f position;
             mBaseMtx.getTrans(position);
             TVec3f cross;
             PSVECCrossProduct(&front, &direction, &cross);
             f32 angle = front.angle(direction);
-            if (cross.dot(*gravity) < 0.0f) angle = -angle;
+            if (cross.dot(mGravity) < 0.0f) angle = -angle;
             TQuat4f rotation;
             rotation.setRotate(mGravity, angle * amount);
             TPos3f matrix;
@@ -1644,7 +1644,7 @@ void Yoshi::fn_80410BA0() {
     if (mMovementVelocity.dot(mGravity) > 50.0f) {
         const TVec3f* gravity = &mGravity;
         JMAVECScaleAdd(gravity, &mMovementVelocity, &mMovementVelocity, -gravity->dot(mMovementVelocity));
-        mMovementVelocity.add(*gravity * 50.0f);
+        mMovementVelocity.add(mGravity * 50.0f);
     }
 }
 

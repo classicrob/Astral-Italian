@@ -40,6 +40,12 @@ void CameraSphereTrundle::reset() {
 }
 
 // NONMATCHING: equivalent temporary/copy layout and register scheduling.
+inline TVec3f scaleSphereTrundleOffset(const TVec3f& direction, f32 distance) {
+    TVec3f offset(direction);
+    offset.scale(distance);
+    return offset;
+}
+
 CameraTargetObj* CameraSphereTrundle::calc() {
     TVec3f sp58;
     CameraLocalUtil::makeWatchPoint(&sp58, this, CameraLocalUtil::getTarget(this), 0.0066666668f);
@@ -83,13 +89,7 @@ CameraTargetObj* CameraSphereTrundle::calc() {
     CameraLocalUtil::setWatchPos(this, sp58);
     CameraLocalUtil::setWatchUpVec(this, CameraLocalUtil::getTarget(this)->getUpVec());
 
-    TVec3f sp8(sp20);
-    sp8.scale(mDist);
-
-    TVec3f sp14(sp58);
-    sp14 += sp8;
-
-    CameraLocalUtil::setPos(this, sp14);
+    CameraLocalUtil::setPos(this, sp58 + scaleSphereTrundleOffset(sp20, mDist));
     CameraLocalUtil::setUpVec(this, mUp);
 
     return CameraLocalUtil::getTarget(this);

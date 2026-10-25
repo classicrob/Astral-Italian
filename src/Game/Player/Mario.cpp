@@ -5607,11 +5607,10 @@ void Mario::checkAllWall(const TVec3f& rPosition) {
         if (!MR::isNearZero(distance, 0.001f)) {
             delta.setLength(radius - distance);
             f32 penetration = -delta.dot(*mFrontWallTriangle->getNormal(0));
-            f32 amount;
-            if (penetration > 2.0f) amount = 2.0f;
-            else amount = 0.0f;
+            if (penetration > 2.0f) distance = 2.0f;
+            else distance = 0.0f;
             TVec3f pushVec(*mFrontWallTriangle->getNormal(0));
-            pushVec.scale(amount);
+            pushVec.scale(distance);
             push(pushVec);
         }
     }
@@ -5638,9 +5637,9 @@ bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& 
     TVec3f fromBase(hit->mHitPos);
     fromBase.sub(position);
     MR::normalizeOrZero(&fromBase);
+    bool inFront = false;
     bool result = false;
     bool slip = false;
-    bool inFront = false;
     bool flat = false;
     if (angle >= mActor->getConst().getTable()->mFlatAngle && direction.dot(mFrontVec) > 0.0f) flat = true;
     if (flat && fromBase.dot(mFrontVec) > 0.0f) inFront = true;

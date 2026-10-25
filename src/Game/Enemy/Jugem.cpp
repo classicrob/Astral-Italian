@@ -77,6 +77,33 @@ static void turnJugemFrontToTarget(TVec3f* pFront, LiveActor* pActor, const TVec
 
 // NONMATCHING: vector temporary stack slots and velocity pointer register reuse differ
 // moveJugemKeepingHeight (static): fly toward pTarget keeping a height above the ground, with velocity clamping.
+inline TVec3f clampJugemHeightVelocity(const TVec3f& velocity, const TVec3f& gravity) {
+    f32 vDot = velocity.dot(gravity);
+    TVec3f vH;
+    TVec3f vGrav;
+    TVec3f gravScaled(gravity);
+    gravScaled *= vDot;
+    vGrav = gravScaled;
+    TVec3f horizontal(velocity);
+    horizontal -= vGrav;
+    vH = horizontal;
+    if (PSVECMag(&vGrav) > 23.0f) {
+        TVec3f tmp(gravity);
+        tmp *= 23.0f;
+        vGrav = tmp;
+    }
+    if (PSVECMag(&vH) > 23.0f) {
+        PSVECMag(&vH);
+        PSVECNormalize(&vH, &vH);
+        TVec3f tmp(vH);
+        tmp *= 23.0f;
+        vH = tmp;
+    }
+    TVec3f sum(vGrav);
+    sum += vH;
+    return sum;
+}
+
 static void moveJugemKeepingHeight(LiveActor* pActor, const TVec3f& rTarget, bool useShadow, f32 rate, f32 height, f32 maxDist, f32 speed, f32 shadowParam) {
     MR::attenuateVelocity(pActor, 0.97f);
     TVec3f toTarget(rTarget);
@@ -99,30 +126,8 @@ static void moveJugemKeepingHeight(LiveActor* pActor, const TVec3f& rTarget, boo
     } else {
         MR::addVelocityKeepHeight(pActor, rTarget, height, speed);
     }
-    f32 vDot = pActor->mVelocity.dot(pActor->mGravity);
-    TVec3f vGrav;
-    TVec3f gravScaled(pActor->mGravity);
-    gravScaled *= vDot;
-    vGrav = gravScaled;
-    TVec3f vH;
-    TVec3f horizontal(pActor->mVelocity);
-    horizontal -= vGrav;
-    vH = horizontal;
-    if (PSVECMag(&vGrav) > 23.0f) {
-        TVec3f tmp(pActor->mGravity);
-        tmp *= 23.0f;
-        vGrav = tmp;
-    }
-    if (PSVECMag(&vH) > 23.0f) {
-        PSVECMag(&vH);
-        PSVECNormalize(&vH, &vH);
-        TVec3f tmp(vH);
-        tmp *= 23.0f;
-        vH = tmp;
-    }
-    TVec3f sum(vGrav);
-    sum += vH;
-    pActor->mVelocity = sum;
+    TVec3f* velocity = &pActor->mVelocity;
+    *velocity = clampJugemHeightVelocity(*velocity, pActor->mGravity);
 }
 
 // findJugemNearestRailPoint (static): returns the index of the rail point nearest to pPos and writes that point to pOut.

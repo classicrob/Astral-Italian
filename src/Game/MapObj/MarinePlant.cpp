@@ -122,6 +122,14 @@ void MarinePlant::initMember(const JMapInfoIter& rIter) {
 }
 
 // NONMATCHING: saved registers, stack slots, and independent setup scheduling differ.
+namespace {
+    inline TVec3f calcMarinePlantAcross(const TVec3f& up, f32 sine) {
+        TVec3f across(up);
+        across.scale(sine);
+        return across;
+    }
+}
+
 s32 MarinePlant::calcMemberSpread(TVec3f* pOut, const TVec3f& gravity, const TVec3f& side, const TVec3f& up) {
     pOut->set<int>(0, 0, 0);
     s32 ring = 0;
@@ -135,9 +143,7 @@ s32 MarinePlant::calcMemberSpread(TVec3f* pOut, const TVec3f& gravity, const TVe
         TVec3f dir(side);
         dir.scale(JMath::sSinCosTable.cosRadian(angle));
         f32 sine = JMath::sSinCosTable.sinRadian(angle);
-        TVec3f across(up);
-        across.scale(sine);
-        dir += across;
+        dir += calcMarinePlantAcross(up, sine);
         dir.scale(radius);
         TVec3f pos(mPosition);
         pos += dir;

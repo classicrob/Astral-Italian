@@ -4,6 +4,12 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/LiveActor/ActorAnimKeeper.hpp"
 
+namespace {
+    inline f32 calcFrameDelta(f32 target, f32 current) {
+        return target - current;
+    }
+}
+
 SyncBckEffectChecker::SyncBckEffectChecker(XanimePlayer* pPlayer, ActorAnimKeeper* keeper)
     : mPlayer(pPlayer), mAnimKeeper(keeper), mPrevFrame(), mIsReset(), mIsCreateEnabled(), mCurrentBckName(), mPrevBckName(), mCurrentAnimName(), mPrevAnimName() {
 }
@@ -53,7 +59,7 @@ bool SyncBckEffectChecker::isCreate(const SyncBckEffectInfo* info, bool checkFra
     if (mIsReset) {
         if (ctrl->getRate() != 0.0f && MR::isNearZero(frame + ctrl->getRate() - ctrl->getFrame())) return true;
         f32 zero = 0.0f;
-        f32 delta = frame - ctrl->getFrame();
+        f32 delta = calcFrameDelta(frame, ctrl->getFrame());
         return zero <= delta && delta < ctrl->getRate();
     }
     return checkPass(frame);

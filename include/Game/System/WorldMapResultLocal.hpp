@@ -147,7 +147,7 @@ public:
         mWorldData->startAllPointingAnim();
     }
 
-    JMapInfo* createParser(const char*) const;
+    JMapInfo* createParser(const char*);
     s32 getNodeNum() const NO_INLINE;
     WorldMapResultNode* getNode(s32) const;
     bool isNodeValid(s32) const NO_INLINE;

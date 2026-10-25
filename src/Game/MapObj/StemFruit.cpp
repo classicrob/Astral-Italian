@@ -556,6 +556,12 @@ void StemFruitChild::updateSensorOffset() {
 
 // Target outlines vector subtraction; quaternion arithmetic and temporary slots also differ.
 // NONMATCHING: TQuat4f slot (target 0x8 below the delta/offset temps, ours 0x20) and inline setQuat/concat fmul scheduling
+inline TQuat4f calcStemFruitCrashRotation(const TVec3f& up, const TVec3f& playerUp) {
+    TQuat4f rotation;
+    rotation.setRotate(up, playerUp);
+    return rotation;
+}
+
 void StemFruitChild::exeHipDropCrash() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
@@ -569,9 +575,7 @@ void StemFruitChild::exeHipDropCrash() {
         rotate.identity();
         TVec3f playerUp;
         JGeometry::negateInternal(&MR::getPlayerGravity()->x, &playerUp.x);
-        TQuat4f rotation;
-        rotation.setRotate(up, playerUp);
-        rotate.setQuat(rotation);
+        rotate.setQuat(calcStemFruitCrashRotation(up, playerUp));
         rotate.concat(base);
         rotate.getEuler(mRotation);
         mRotation.x *= 57.2957763671875f;

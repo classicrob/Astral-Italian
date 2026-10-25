@@ -259,6 +259,13 @@ void ActorItemGenerator::appearItemToDirection(ActorItemGeneratorEntry* pEntry, 
 }
 
 // fn_8022B7E0
+inline TVec3f calcItemCoinVelocity(const TVec3f& source) {
+    TVec3f velocity;
+    velocity = source;
+    velocity.scale(0.6f);
+    return velocity;
+}
+
 void ActorItemGenerator::appearItemToVelocity(ActorItemGeneratorEntry* pEntry, const TVec3f* pPos, const TVec3f* pVel) {
     const ActorItemTableEntry* pTable = &sItemTable[pEntry->mTableIndex];
     if (pTable == NULL) {
@@ -266,10 +273,7 @@ void ActorItemGenerator::appearItemToVelocity(ActorItemGeneratorEntry* pEntry, c
     }
     switch (pTable->mKind) {
     case 1: {
-        TVec3f vel;
-        vel = *pVel;
-        vel.scale(0.6f);
-        MR::appearCoinToVelocity(mActor, *pPos, vel, pTable->mValue);
+        MR::appearCoinToVelocity(mActor, *pPos, calcItemCoinVelocity(*pVel), pTable->mValue);
         break;
     }
     case 2:

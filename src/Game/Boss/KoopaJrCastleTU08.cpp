@@ -139,7 +139,9 @@ void KoopaJrCastleStateBattle::exeBattle4() {
         case 1:
             if (KoopaJrCastleFunction::tryStartDemo("DemoPowerUpKoopaJrCastle", nullptr))
                 setNerve(&KoopaJrCastleStateBattleNrvE::sInstance);
-            break;
+            return;
+        default:
+            return;
         }
         return;
     }

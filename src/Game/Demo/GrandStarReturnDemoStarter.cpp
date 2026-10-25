@@ -172,9 +172,7 @@ void GrandStarReturnDemoStarter::exeMove() {
         MR::startGrandStarReturnBGMIfNotUnlocked();
     }
     const char* part = cDemoMovePartName;
-    s32 total = MR::getDemoPartTotalStep(part);
-    s32 step = MR::getDemoPartStep(part);
-    mReturnDemoRailMove->update(step + 1, total);
+    mReturnDemoRailMove->update(MR::getDemoPartStep(part) + 1, MR::getDemoPartTotalStep(part));
     MR::startLevelSoundPlayer("SE_PM_LV_SPIN_DRV_FLY", -1);
     TVec3f direction;
     calcOffsetStarToCore(&direction);

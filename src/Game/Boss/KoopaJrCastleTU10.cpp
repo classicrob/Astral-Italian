@@ -36,6 +36,8 @@ void KoopaJrCastleDominate::init(const JMapInfoIter&) {
 }
 
 // NONMATCHING: floating-point register allocation and vector temporary scheduling
+extern const f32 sDominateLaunchGravity;
+
 bool KoopaJrCastleDominate::tryBindPlayer(LiveActor* binder, HitSensor* sensor, const TVec3f* pos, s32 cancelStep) {
     if (MR::isOnGroundPlayer() && !MR::isPlayerInRush()) {
         MR::tryRumblePadMiddle(this, 0);
@@ -50,7 +52,7 @@ bool KoopaJrCastleDominate::tryBindPlayer(LiveActor* binder, HitSensor* sensor, 
         MR::vecKillElement(diff, gravity, &horizontal);
         f32 height = diff.dot(gravity);
         f32 speed = mLaunchSpeed;
-        f32 time = (-speed + MR::fastSqrtf(speed * speed + (2.0f * 0.7f) * height)) / -0.7f;
+        f32 time = (-speed + MR::fastSqrtf(speed * speed + (2.0f * sDominateLaunchGravity) * height)) / -sDominateLaunchGravity;
         TVec3f negGravity(-gravity);
         TVec3f verticalVelocity(negGravity);
         verticalVelocity.scale(speed);
@@ -136,3 +138,5 @@ void KoopaJrCastleDominate::updateBaseMtx() {
 }
 
 KoopaJrCastleDominate::~KoopaJrCastleDominate() {}
+
+extern const f32 sDominateLaunchGravity = 0.7f;

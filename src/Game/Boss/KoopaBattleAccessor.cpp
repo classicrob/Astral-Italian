@@ -270,6 +270,12 @@ void KoopaLastBattleCamera::updateQuat() {
 }
 
 // NONMATCHING: stack-slot permutation of the TVec3f temporaries only
+inline TVec3f calcKoopaLastCameraBack(const TVec3f& front) {
+    TVec3f back(front);
+    back *= -1800.0f;
+    return back;
+}
+
 void KoopaLastBattleCamera::applyCamera() {
     TVec3f front;
     mQuat.getZDir(front);
@@ -279,9 +285,7 @@ void KoopaLastBattleCamera::applyCamera() {
     offset *= 150.0f;
     TVec3f target;
     target.set< f32 >(mPlayerPos + offset);
-    TVec3f back(front);
-    back *= -1800.0f;
     TVec3f camPos;
-    camPos.set< f32 >(target + back);
+    camPos.set< f32 >(target + calcKoopaLastCameraBack(front));
     MR::setProgrammableCameraParam(mHost, target, camPos, up);
 }

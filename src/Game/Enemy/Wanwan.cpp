@@ -886,6 +886,10 @@ void Wanwan::exeGoalIn() {
 }
 
 // NONMATCHING: Euler-angle fp register allocation (f0..f3)
+inline f32 calcWanwanBreakDegrees(f32 angle) {
+    return 57.29578f * angle;
+}
+
 void Wanwan::exeBreak() {
     if (MR::isFirstStep(this)) {
         if (mType != 2 && !mIsAtGoal && (mModel == nullptr || isInClippingRange())) {
@@ -907,15 +911,9 @@ void Wanwan::exeBreak() {
         mtx.concat(rot, mtx);
         TVec3f euler;
         mtx.getEulerXYZ(euler);
-        f32 x = euler.x;
-        f32 y = euler.y;
-        f32 z = euler.z;
-        x = 57.29578f * x;
-        y = 57.29578f * y;
-        z = 57.29578f * z;
-        mModel->mRotation.x = x;
-        mModel->mRotation.y = y;
-        mModel->mRotation.z = z;
+        mModel->mRotation.x = calcWanwanBreakDegrees(euler.x);
+        mModel->mRotation.y = calcWanwanBreakDegrees(euler.y);
+        mModel->mRotation.z = calcWanwanBreakDegrees(euler.z);
         mModel->appear();
         MR::invalidateClipping(mModel);
         MR::startAction(mModel, "Break");

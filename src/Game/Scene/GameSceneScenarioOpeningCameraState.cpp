@@ -40,8 +40,8 @@ bool GameSceneScenarioOpeningCameraState::isDone() const {
 }
 
 void GameSceneScenarioOpeningCameraState::start() {
-    const char* stage;
     s32 scenario;
+    const char* stage;
     MR::stopSceneForScenarioOpeningCamera();
     MR::hidePlayer();
     MR::startStartAnimCamera();
@@ -49,7 +49,8 @@ void GameSceneScenarioOpeningCameraState::start() {
     MR::forceOpenWipeFade();
     MR::forceToFrameCinemaFrame();
     MR::startSubBGM("BGM_JG_START_CAMERA_DEMO", false);
-    if (AudStageBgmTable::isFirstVisitStart(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
+    scenario = MR::getCurrentScenarioNo();
+    if (AudStageBgmTable::isFirstVisitStart(MR::getCurrentStageName(), scenario)) {
         scenario = MR::getCurrentScenarioNo();
         stage = MR::getCurrentStageName();
         // The target passes the scene controller in the ignored first argument.

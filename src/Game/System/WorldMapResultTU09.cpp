@@ -137,6 +137,10 @@ void WorldMapResultStateEnterHome::exeEnter() {
 }
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+inline f32 calcHomeExitScale(f32 inverseRate, f32 range) {
+    return (1.0f - range) + (1.0f - inverseRate) * range;
+}
+
 void WorldMapResultStateEnterHome::exeExit() {
     if (MR::isFirstStep(this)) {
         MR::setImageEffectControlAuto();
@@ -146,10 +150,7 @@ void WorldMapResultStateEnterHome::exeExit() {
     }
 
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    f32 inv;
-    f32 range = lbl_807E3140;
-    inv = 1.0f - rate;
-    f32 scale = (1.0f - range) + (1.0f - inv) * range;
+    f32 scale = calcHomeExitScale(1.0f - rate, lbl_807E3140);
     MR::setScale(mHost->getRocket(), scale);
 
     if (MR::isGreaterEqualStep(this, 30)) {

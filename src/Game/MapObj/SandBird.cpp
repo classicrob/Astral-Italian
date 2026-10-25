@@ -152,16 +152,18 @@ void SandBird::exeCruise() {
     MR::startActionSound(this, "Move", -1, -1, -1);
 
     MR::getCurrentRailPointArg0NoInit(this, &mRailCoordPrev);
-    f32 railCoord = mRailCoord;
-    if (railCoord < mRailCoordPrev) {
+    f32 railCoord;
+    f32 targetCoord = mRailCoordPrev;
+    railCoord = mRailCoord;
+    if (railCoord < targetCoord) {
         railCoord += 0.1f;
-        if (railCoord > mRailCoordPrev) {
-            railCoord = mRailCoordPrev;
+        if (railCoord > targetCoord) {
+            railCoord = targetCoord;
         }
     } else {
         railCoord -= 0.1f;
-        if (railCoord < mRailCoordPrev) {
-            railCoord = mRailCoordPrev;
+        if (railCoord < targetCoord) {
+            railCoord = targetCoord;
         }
     }
     mRailCoord = railCoord;

@@ -150,7 +150,8 @@ void KoopaJrRobot::kill() {
     if (!MR::isDead(mHeadModel)) {
         mHeadModel->kill();
     }
-    std::for_each(&mHandL, &mHandL + 2, std::mem_fun(&LiveActor::kill));
+    LiveActor** handsEnd = &mHandL + 2;
+    std::for_each(&mHandL, handsEnd, std::mem_fun(&LiveActor::kill));
     std::for_each(mFollowers, mFollowers + 5, std::mem_fun(&LiveActor::kill));
     LiveActor::kill();
 }

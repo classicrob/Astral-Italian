@@ -276,8 +276,8 @@ void PullTargetDrawer::pushPlayerFromBridge() {
     TVec3f local(*MR::getPlayerCenterPos());
     inv.mult(local, local);
     if (local.z > 0.0f) return;
-    if (__fabsf(local.x) > 370.0f) return;
-    if (__fabsf(local.y) > 215.0f) return;
+    if (MR::abs(local.x) > 370.0f) return;
+    if (MR::abs(local.y) > 215.0f) return;
     local.z = 0.0f;
     jointMtx.mult(local, local);
     MR::pushPlayer(local - *MR::getPlayerCenterPos());

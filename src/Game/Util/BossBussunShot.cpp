@@ -35,6 +35,12 @@ void BossBussunSequencer::endCamera() {
 }
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+inline TVec3f scaleBussunCameraFront(const TVec3f& direction) {
+    TVec3f front(direction);
+    front *= 1700.0f;
+    return front;
+}
+
 void BossBussunSequencer::updateCamera() {
     TVec3f rotA;
     TVec3f rotB;
@@ -68,11 +74,8 @@ void BossBussunSequencer::updateCamera() {
     vec *= offset;
     MR::vecBlend(&vec, vec, mCamPos, 0.03f);
     mCamPos = vec;
-    blendPos.add(vec);
-    TVec3f front(mCamFront);
-    front *= 1700.0f;
-    TVec3f eye(blendPos);
-    eye.add(front);
+    blendPos += mCamPos;
+    TVec3f eye = blendPos + scaleBussunCameraFront(mCamFront);
     MR::setProgrammableCameraParam(mHost, blendPos, eye, mCamUp);
 }
 

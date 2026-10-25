@@ -279,11 +279,12 @@ bool WorldMapAccessPanel::isPlayerNearAccessGround() {
     f32 dist2 = MR::calcDistanceToPlayer(hitPos2);
     bool inRange = dist < radius || dist2 < radius2;
 
-    // NONMATCHING: branch layout (target emits the isOnGroundPlayer call block before the "return false" block)
-    bool onGround = false;
-    if (inRange)
-        onGround = MR::isOnGroundPlayer();
-    return onGround;
+    switch (inRange) {
+    case false:
+        return false;
+    default:
+        return MR::isOnGroundPlayer();
+    }
 }
 
 bool WorldMapAccessPanel::isPlayerOutOfRange() {

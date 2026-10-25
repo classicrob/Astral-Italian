@@ -236,7 +236,14 @@ bool PatakuriBig::receiveOtherMsg(u32, HitSensor*, HitSensor*) {
     return false;
 }
 
-// NONMATCHING: stack slot order of the TVec3f temporaries (only stack offsets differ)
+namespace {
+    inline TVec3f addBodyOffset(const TVec3f& base, const TVec3f& offset) {
+        TVec3f result(base);
+        result.add(offset);
+        return result;
+    }
+}
+
 TVec3f PatakuriBig::calcBigBodyOffsetPos(PatakuriBig* pPatakuri) {
     TVec3f bodyRoot;
     TVec3f bodyBody;
@@ -248,12 +255,7 @@ TVec3f PatakuriBig::calcBigBodyOffsetPos(PatakuriBig* pPatakuri) {
     MR::extractMtxTrans(MR::getJointMtx(pPatakuri, "Root"), &actorRoot);
     MR::extractMtxTrans(MR::getJointMtx(pPatakuri, "Body"), &actorBody);
 
-    TVec3f diffActor = actorBody - actorRoot;
-    TVec3f diffBody = bodyBody - bodyRoot;
-    TVec3f base = pPatakuri->mPosition - diffBody;
-    TVec3f result(base);
-    result.add(diffActor);
-    return result;
+    return addBodyOffset(pPatakuri->mPosition - (bodyBody - bodyRoot), actorBody - actorRoot);
 }
 
 void PatakuriBig::exeBigRail() {

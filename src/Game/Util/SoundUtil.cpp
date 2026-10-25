@@ -35,6 +35,10 @@
 
 
 namespace {
+    inline void stopNamedSound(AudSoundObject* pObject, const char* pName, u32 frames) {
+        JAISoundID id = AudSingletonHolder<AudSoundNameConverter>::get()->getSoundID(pName);
+        pObject->stopSound(id, frames);
+    }
 };  // namespace
 
 namespace MR {
@@ -260,16 +264,13 @@ namespace MR {
     // NONMATCHING: same non-const getSoundID symbol as startSound(char)
     void stopSound(const LiveActor* pActor, const char* pName, u32 param3) {
         AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
-        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+        stopNamedSound(pSoundObject, pName, param3);
 
-        pSoundObject->stopSound(id, param3);
-
+        AudSoundObject* pChild;
         s32 count = getActorSoundObjectCount(pActor);
         for (s32 i = 0; i < count; i++) {
-            AudSoundObject* pChild = getActorSoundObjectAt(pActor, i);
-            JAISoundID childId = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
-
-            pChild->stopSound(childId, param3);
+            pChild = getActorSoundObjectAt(pActor, i);
+            stopNamedSound(pChild, pName, param3);
         }
     }
 

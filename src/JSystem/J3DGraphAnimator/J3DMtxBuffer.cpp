@@ -179,15 +179,15 @@ static f32 J3DUnit01[] = {0.0f, 1.0f};
 
 void J3DMtxBuffer::calcWeightEnvelopeMtx() {
 #ifdef __MWERKS__
+    int i;
+    int max;
     __REGISTER MtxPtr weightAnmMtx;
     __REGISTER MtxPtr worldMtx;
     __REGISTER MtxPtr invMtx;
     __REGISTER f32 weight;
+    int mixNum;
     int idx;
     int j;
-    int mixNum;
-    int i;
-    int max;
     u16* indices;
     __REGISTER f32* weights;
     u8* pScale;
@@ -201,7 +201,6 @@ void J3DMtxBuffer::calcWeightEnvelopeMtx() {
     __REGISTER f32 var_f7;
     __REGISTER f32 var_f8;
     __REGISTER f32 var_f9;
-    __REGISTER f32 var_f9b;
     __REGISTER f32 var_f10;
     __REGISTER f32 var_f11;
     __REGISTER f32 var_f12;
@@ -214,6 +213,7 @@ void J3DMtxBuffer::calcWeightEnvelopeMtx() {
     __REGISTER f32 var_f26;
     __REGISTER f32 var_f25;
     __REGISTER f32 var_f24;
+    __REGISTER f32 var_f9b;
     __REGISTER f32* var_r7 = J3DUnit01;
 
     i = -1;

@@ -663,8 +663,8 @@ void Nyoropon::updateBodyWaveMatrices(f32 ampScale) {
     if (mFrame > period) {
         mFrame = 0;
     }
-    TVec3f out[7];
     TVec3f outDir[7];
+    TVec3f out[7];
     for (s32 i = 0; i < 7; i++) {
         TVec3f next(i == 6 ? mPoints[i] : mPoints[i + 1]);
         TVec3f prev(i == 0 ? mPoints[i] : mPoints[i - 1]);

@@ -81,6 +81,10 @@ bool MapPartsSeesaw2AxisRotator::receiveMsg(u32 msg) {
 }
 
 // NONMATCHING: inline Rodrigues arithmetic scheduling, FPR allocation and temporary stack order.
+inline f32 calcSeesawTiltRadians(f32 angle) {
+    return angle * 0.017453292f;
+}
+
 void MapPartsSeesaw2AxisRotator::rotate() {
     TVec3f position = *MR::getPlayerPos();
     mBaseMtxInv.mult(position, position);
@@ -92,7 +96,7 @@ void MapPartsSeesaw2AxisRotator::rotate() {
 
     TPos3f tilt;
     tilt.identity();
-    tilt.setRotate(axis, mRotateAngle * 0.017453292f);
+    tilt.setRotate(axis, calcSeesawTiltRadians(mRotateAngle));
     TPos3f target;
     target.concat(mBaseMtx, tilt);
     target.zeroTrans();

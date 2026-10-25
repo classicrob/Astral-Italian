@@ -11,6 +11,10 @@
 
 namespace {
     extern char sBurnSound[];
+
+    inline void addItemHeight(TVec3f* pPosition, const TVec3f& up, f32 height) {
+        *pPosition += up * height;
+    }
 };  // namespace
 
 namespace NrvCandlestand {
@@ -290,7 +294,7 @@ void Candlestand::appearItem() {
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);
 
-    position += upVec * height;
+    addItemHeight(&position, upVec, height);
 
     if (mItem == -1) {
         angle = ::getParam(mObjectName)->mCoinAngle;

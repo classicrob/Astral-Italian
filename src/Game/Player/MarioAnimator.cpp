@@ -489,6 +489,10 @@ void MarioAnimator::update() {
 }
 
 // NONMATCHING: saved-register assignment and reuse of the unchanged animation-state byte.
+inline bool isSameWalkAnimationState(const u8& current, const u8& previous) {
+    return current == previous;
+}
+
 void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
     const char* queuedAnimation;
     bool shouldStart = false;
@@ -509,7 +513,7 @@ void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
     }
 
     // Check animation state transition
-    if (_14 == _15) {
+    if (isSameWalkAnimationState(_14, _15)) {
         if (_14 != 0) {
             if (!getPlayer()->fn_803A9690(pAnimName)) {
                 goto startBas;

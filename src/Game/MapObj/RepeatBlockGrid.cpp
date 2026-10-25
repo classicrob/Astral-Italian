@@ -219,6 +219,12 @@ void RepeatBlockShadowDrawer::loadModelDrawMtx() const {
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
 }
 
+namespace {
+    inline const TVec3f* getShadowPoint(const TVec3f* points, const s32& index) {
+        return points + index;
+    }
+}
+
 void RepeatBlockShadowDrawer::drawShape() const {
     if (mHasHead) {
         drawBox(mHeadPoints);
@@ -227,7 +233,7 @@ void RepeatBlockShadowDrawer::drawShape() const {
         drawBox(mTailPoints);
     }
     for (s32 i = 0; i < mPointNum; i++) {
-        drawBox(&mPoints[i * 8]);
+        drawBox(getShadowPoint(mPoints, i * 8));
     }
 }
 

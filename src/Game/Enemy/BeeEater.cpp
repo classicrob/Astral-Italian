@@ -158,6 +158,19 @@ void BeeEater::control() {
 }
 
 // NONMATCHING: quaternion matrix instruction scheduling and curve temporary stack allocation.
+namespace {
+    inline void updateBeeEaterSegmentDirection(BeeEater* actor, s32 index) {
+        TVec3f direction = actor->mBody->mJointCtrls[index + 1]->mPos - actor->mBody->mJointCtrls[index]->mPos;
+        actor->mBody->mJointCtrls[index]->setBeeEaterJointDirection(&direction);
+    }
+
+    inline TVec3f scaleBeeEaterCurve(const TVec3f& vector, f32 scale) {
+        TVec3f result(vector);
+        result.scale(scale);
+        return result;
+    }
+}
+
 void BeeEater::calcAndSetBaseMtx() {
     TPos3f mtx;
     mtx.setQuat(mRot);
@@ -202,21 +215,13 @@ void BeeEater::calcAndSetBaseMtx() {
         f32 b = u * (3.0f * t * u);
         f32 c = u * (3.0f * t * t);
         f32 d = t * (t * t);
-        TVec3f p3(mCurveEnd);
-        p3.scale(d);
-        TVec3f p2(mCurveControl2);
-        p2.scale(c);
-        TVec3f p1(mCurveControl1);
-        p1.scale(b);
-        TVec3f p0(mCurveStart);
-        p0.scale(a);
-        TVec3f pos = p0 + p1 + p2 + p3;
+        TVec3f pos = scaleBeeEaterCurve(mCurveStart, a) + scaleBeeEaterCurve(mCurveControl1, b) +
+                     scaleBeeEaterCurve(mCurveControl2, c) + scaleBeeEaterCurve(mCurveEnd, d);
         mBody->mJointCtrls[i]->mPos.set(pos);
     }
     mBody->mJointCtrls[0]->setBeeEaterJointDirection(&mUpVec);
     for (s32 i = 1; i < count - 1; i++) {
-        TVec3f dir = mBody->mJointCtrls[i + 1]->mPos - mBody->mJointCtrls[i]->mPos;
-        mBody->mJointCtrls[i]->setBeeEaterJointDirection(&dir);
+        updateBeeEaterSegmentDirection(this, i);
     }
     mBody->mJointCtrls[count - 1]->setBeeEaterJointDirection(&endUp);
 }

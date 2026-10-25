@@ -101,8 +101,7 @@ f32 WorldMapResultBox::calcCameraDistance() const {
 
 static const char sMapArcFormat[] = "WorldMap%02d.arc";
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling) (FP order/grouping checked: no FP instructions).
-JMapInfo* WorldMapResultWorld::createParser(const char* pFile) const {
+JMapInfo* WorldMapResultWorld::createParser(const char* pFile) {
     char arc[0x40];
     snprintf(arc, 0x40, sMapArcFormat, mWorldId);
     return MR::createCsvParserFromFile(arc, pFile);

@@ -5,6 +5,14 @@
 #include "Game/Util.hpp"
 #include "Game/Util/MathUtil.hpp"
 
+inline const TVec3f& getPlantPointUp(const PlantPoint* point) {
+    return point->mUp;
+}
+
+inline const TVec3f& getPlantRailPosition(const RailRider* rider) {
+    return rider->mCurPos;
+}
+
 PlantRailInfo::PlantRailInfo(const JMapInfoIter& rIter, f32 speed) : mRailSpeed(speed), mNumPlantPoints(), mPlantPoints(), mRailRider() {
     mRailRider = new RailRider(rIter);
     mRailRider->setSpeed(mRailSpeed);
@@ -20,7 +28,7 @@ PlantRailInfo::PlantRailInfo(const JMapInfoIter& rIter, f32 speed) : mRailSpeed(
 
     mRailRider->setCoord(mRailRider->getTotalLength());
 
-    PlantPoint* point = new PlantPoint(mRailRider->mCurPos, getPlantPoint(mNumPlantPoints - 2)->mUp, 1.0f);
+    PlantPoint* point = new PlantPoint(getPlantRailPosition(mRailRider), getPlantPointUp(getPlantPoint(mNumPlantPoints - 2)), 1.0f);
     s32 index = mNumPlantPoints - 1;
     mPlantPoints[index] = point;
 

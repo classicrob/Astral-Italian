@@ -32,6 +32,14 @@ namespace NrvDinoPackunBabyDemo {
     DinoPackunBabyDemoNrvDemo DinoPackunBabyDemoNrvDemo::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvDinoPackunBabyDemo
 
+void DinoPackunBabyShell::init(const JMapInfoIter& rIter) {
+    PartsModel::init(rIter);
+    mModelMtx.set(getBaseMtx());
+    const char* modelName = "シェル壊れ";
+    mModel = new BreakModel(this, modelName, "DinoPackunBabyShellBreak", mModelMtx, "Break");
+    mModel->initWithoutIter();
+}
+
 DinoPackunBabyDemo::DinoPackunBabyDemo(DinoPackunBaby* pHost, const char* pName)
     : ActorStateBase< DinoPackunBaby >(pName, pHost), mDemoName(pName), mPlayerBck(nullptr), mModel(nullptr), mIsRestoreShells(false),
       mIsPuppetEnd(true) {
@@ -123,14 +131,6 @@ DinoPackunBabyShell::DinoPackunBabyShell(LiveActor* pHost, const char* pName, co
 #ifndef GALAXY_NATIVE
 inline PartsModel::~PartsModel() {}
 #endif
-
-void DinoPackunBabyShell::init(const JMapInfoIter& rIter) {
-    PartsModel::init(rIter);
-    mModelMtx.set(getBaseMtx());
-    const char* modelName = "シェル壊れ";
-    mModel = new BreakModel(this, modelName, "DinoPackunBabyShellBreak", mModelMtx, "Break");
-    mModel->initWithoutIter();
-}
 
 void DinoPackunBabyShell::kill() {
     LiveActor::kill();

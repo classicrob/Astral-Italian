@@ -79,15 +79,16 @@ void Tico::initBase(const JMapInfoIter& rIter, s32 color) {
     caps.mDropItemOnSupportTicoSpin = true;
     caps.mWaitNerve = GET_NERVE(Tico, TicoNrvWait);
 
-    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault; mPointingAction=cNPCPointingDefault;
-    mReactionAction = "Spin";
+    const char* reaction;
+    setDefaults2();
+    reaction = "Spin";
+    mReactionAction = reaction;
     mSpinAttackRange = 1000.0f;
     mParam._14 = "Wait";
     mParam._18 = "Wait";
     mParam._1C = "Talk";
     mParam._20 = "Talk";
-    mRailMoveAction = "Fly";
-    mRailTalkAction = "Fly";
+    setTalkAction("Fly");
     mRailMoveSpeed = 8.0f;
     mRailMoveAccel = 0.2f;
     mParam._C = 0.5f;

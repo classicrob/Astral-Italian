@@ -426,9 +426,13 @@ bool ItemDrill::checkDrillStart() {
     return false;
 }
 
+inline f32 clampDrillDepth(f32 depth, f32 limit) {
+    return depth >= limit ? limit : depth;
+}
+
 bool ItemDrill::tryAlignToTriangle(Triangle* pTri, const TVec3f& rDir) {
     f32 limit = 30.0f * static_cast< f32 >(getNerveStep());
-    f32 dist = (mDrillDepth >= limit) ? limit : mDrillDepth;
+    f32 dist = clampDrillDepth(mDrillDepth, limit);
 
     TVec3f start;
     start.setLength(rDir, 60.0f);

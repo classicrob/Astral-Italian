@@ -146,9 +146,8 @@ void TreasureBoxCracked::control() {
 
 void TreasureBoxCracked::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isHalfOpen() && MR::isSensorPlayerOrRide(pReceiver)) {
-        const TVec3f* pSenderPos = MR::getSensorPos(pSender);
         TVec3f direction;
-        direction.sub(*MR::getSensorPos(pReceiver), *pSenderPos);
+        direction.sub(*MR::getSensorPos(pReceiver), *MR::getSensorPos(pSender));
         MR::normalize(&direction);
         TVec3f front;
         MR::calcFrontVec(&front, this);

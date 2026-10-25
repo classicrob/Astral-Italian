@@ -54,12 +54,10 @@ void ScatterFireBallLava::kill() {
 void ScatterFireBallLava::attackSensor(HitSensor* sender, HitSensor* receiver) {
     if (MR::isSensorPlayer(receiver) && MR::isOnGroundPlayer()) {
         MR::calcGravity(this);
-        const TVec3f* playerPos;
         TVec3f up = -mGravity;
         f32 along;
         f32 across;
-        playerPos = MR::getPlayerPos();
-        MR::func_8003DEF0(&along, &across, MR::getSensorPos(sender), playerPos, &up);
+        MR::func_8003DEF0(&along, &across, MR::getSensorPos(sender), MR::getPlayerPos(), &up);
         if (across < 10.0f && along < mRadius - cMargin) MR::sendMsgEnemyAttackFire(receiver, sender);
     }
 }

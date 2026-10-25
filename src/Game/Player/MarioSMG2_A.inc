@@ -3971,9 +3971,10 @@ void Mario::fn_803A11A0(TVec3f* arg) {
 
 // NONMATCHING: floating-point register allocation.
 void Mario::fn_803A1240(f32* a, f32* b) {
-    f32 vertical = *b;
+    f32 vertical;
+    f32 absVertical = MR::abs(*b);
+    vertical = *b;
     const MarioConstTable* table = mActor->getConst().getTable();
-    f32 absVertical = MR::abs(vertical);
     if (absVertical > table->mStickMarginYstart) {
         f32 horizontal = *a;
         f32 margin = table->mStickMarginX;
@@ -4622,16 +4623,16 @@ s32 Mario::fn_803A2D80() {
 
 void Mario::fn_803A2EF0() {
     if (this->checkSquat(false)) {
-        this->_436 = 0;
         this->mWalkSpeed = 5.0f;
+        this->_436 = 0;
         this->_434 = 0xB4;
         this->playSound("スペシャルダッシュ強", -1);
         this->playSound("ダッシュ加速強成功", -1);
         this->playSound("声物ジャンプ", -1);
         return;
     }
-    this->_436 = 0;
     this->mWalkSpeed = 2.0f;
+    this->_436 = 0;
     this->_434 = 0x3C;
     this->playSound("スペシャルダッシュ弱", -1);
     this->playSound("声物ジャンプ", -1);

@@ -1340,18 +1340,18 @@ namespace MR {
         normalize(pA2);
     }
 
-    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+    inline void setNormalizedRotationRadians(LiveActor* pActor, f32 x, f32 y, f32 z) {
+        const f32 k = 57.295780181884766f;
+        f32 zDegree = z * k;
+        f32 yDegree = y * k;
+        f32 xDegree = x * k;
+        MR::setRotation(pActor, MR::normalizeAngleDegree(xDegree), MR::normalizeAngleDegree(yDegree), MR::normalizeAngleDegree(zDegree));
+    }
+
     void setRotationFromQuat(LiveActor* pActor, const TQuat4f& rQuat) {
         rQuat.getEuler(pActor->mRotation);
 
-        const f32 k = 57.295780181884766f;
-        f32 zDegree = pActor->mRotation.z * k;
-        f32 yDegree = pActor->mRotation.y * k;
-        f32 xDegree = pActor->mRotation.x * k;
-        f32 z = MR::normalizeAngleDegree(zDegree);
-        f32 y = MR::normalizeAngleDegree(yDegree);
-        f32 x = MR::normalizeAngleDegree(xDegree);
-        MR::setRotation(pActor, x, y, z);
+        setNormalizedRotationRadians(pActor, pActor->mRotation.x, pActor->mRotation.y, pActor->mRotation.z);
     }
 
     void setQuatUpNoSupport(LiveActor* pActor, const TVec3f& rUp) {

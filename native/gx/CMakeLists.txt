@@ -623,7 +623,7 @@ if(_petari_build_testing)
     add_executable(petari_pipeline_cache_dir_tests "${CMAKE_SOURCE_DIR}/native/tools/pipeline_cache_dir_tests.cpp"
         "${CMAKE_SOURCE_DIR}/native/app/pipeline_cache_dir.cpp")
     target_compile_features(petari_pipeline_cache_dir_tests PRIVATE cxx_std_20)
-    target_link_libraries(petari_pipeline_cache_dir_tests PRIVATE SQLite::SQLite3)
+    target_link_libraries(petari_pipeline_cache_dir_tests PRIVATE petari_pipeline_cache_identity)
     add_test(NAME native_pipeline_cache_dir COMMAND petari_pipeline_cache_dir_tests)
     set_tests_properties(native_pipeline_cache_dir PROPERTIES TIMEOUT 15)
     add_executable(petari_pipeline_overlay_tests "${CMAKE_SOURCE_DIR}/native/tools/pipeline_overlay_tests.cpp")

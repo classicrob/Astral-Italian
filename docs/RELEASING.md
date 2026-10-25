@@ -18,6 +18,12 @@ publishes anything: a person reviews the draft on GitHub and presses Publish.
 4. `Info.plist` identity stays `dev.petari.Petari` / executable `Petari`; the release script sets version, source commit,
    `LSMinimumSystemVersion`, the games category and copies the license and third-party notices into the bundle.
 
+5. **Audio: zero underruns on the functional gates** (from 5.4.3 on). The normal-route and full-star gate runs must run with
+   real audio (CoreAudio reports present, as in the tape arms) and report **0 underrun frames**; any underrun fails the run, with no
+   tolerance and no rerun-until-clean. Added 2026-10-25 (head): retained M1 runs of the 5.4.2 source (00221126) showed underruns that
+   passed unnoticed because these gates did not check audio (normal-r3 108 frames; fullstar-r2 1,088; fullstar-r3 16,914 over 8
+   reports), and 5.4.2's notes carry it as a known limit.
+
 ## Build the package
 
 ```sh

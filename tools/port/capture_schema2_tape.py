@@ -25,6 +25,18 @@ def tree(p):
     return {str(f.relative_to(p)): sha(f) for f in sorted(p.rglob('*')) if f.is_file()}
 
 
+def inventory(p):
+    """All fixture bytes and xattrs; no attribute is removed or rewritten."""
+    attrs = {}
+    for f in [p, *sorted(p.rglob('*'))]:
+        need(not f.is_symlink(), 'fixture symlink is unsupported')
+        names = subprocess.check_output(['/usr/bin/xattr', str(f)], text=True).splitlines()
+        values = {name: ''.join(subprocess.check_output(['/usr/bin/xattr', '-p', '-x', name, str(f)], text=True).split()).lower()
+                  for name in sorted(names)}
+        if values: attrs['.' if f == p else f.relative_to(p).as_posix()] = values
+    return dict(files=tree(p), xattrs=attrs)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--app', type=Path, required=True)
@@ -33,6 +45,7 @@ def main(argv=None):
     ap.add_argument('--tape', type=Path, required=True)
     ap.add_argument('--out', type=Path, required=True)
     ap.add_argument('--user-seed', type=Path)
+    ap.add_argument('--fixture-receipt', type=Path, help='require every source/copied fixture byte and xattr to match this receipt')
     ap.add_argument('--stage', default='')
     ap.add_argument('--scenario', type=int, default=1)
     ap.add_argument('--bound', type=float, default=600)
@@ -63,6 +76,12 @@ def main(argv=None):
     need(sha(exe) == perf_sha, 'PREP does not bind app exe')
     before_app = tree(a.app); before_tape = tree(a.tape)
     before_seed = tree(a.user_seed) if a.user_seed else {}
+    fixture_binding = None
+    if a.fixture_receipt:
+        need(a.user_seed is not None, 'fixture receipt requires a user seed')
+        receipt = json.loads(a.fixture_receipt.read_text())
+        fixture_binding = {k: receipt[k] for k in ('files', 'xattrs')}
+        need(inventory(a.user_seed) == fixture_binding, 'fixture differs from certified bytes/xattrs')
     warm_binding = None
     if a.warm_from:
         a.warm_from = a.warm_from.resolve()
@@ -75,13 +94,15 @@ def main(argv=None):
                             result_sha256=sha(a.warm_from/'RESULT.json'), cache_hashes=tree(a.warm_from/'cache'))
     a.out.mkdir(parents=True, mode=0o700)
     user = a.out/'user'
-    if a.user_seed: shutil.copytree(a.user_seed, user, copy_function=shutil.copy2)
+    if a.user_seed:
+        subprocess.run(['/usr/bin/ditto', '--rsrc', '--extattr', str(a.user_seed), str(user)], check=True)
     else: user.mkdir()
     need(tree(user) == before_seed, 'private user copy differs')
+    if fixture_binding: need(inventory(user) == fixture_binding, 'private fixture copy xattrs differ')
     if a.warm_from:
         shutil.copytree(a.warm_from/'cache', a.out/'cache', copy_function=shutil.copy2)
         need(tree(a.out/'cache') == warm_binding['cache_hashes'], 'warm cache copy differs')
-    env = {k: v for k, v in os.environ.items() if not k.startswith('PETARI_')}
+    env = {k: v for k, v in os.environ.items() if not k.startswith(('PETARI_', 'ASTRAL_', 'DYLD_', 'THRPROBE_'))}
     env.update(ASTRAL_TAPE='off', PETARI_MODS=mods_env(meta['mods']),
                SDL_AUDIO_DRIVER='coreaudio' if a.real_audio else 'dummy',
                PETARI_CACHE_DIR=str(a.out/'cache'), PETARI_FRAME_CSV=str(a.out/'frames.csv'), PETARI_FRAME_STATS='1',
@@ -101,6 +122,9 @@ def main(argv=None):
                   nice=0, bound_seconds=a.bound, host_input_used=False, locks='caller holds heavy then native',
                   allow_incomplete=a.allow_incomplete, warm_from=warm_binding,
                   cache_policy='private copied cache, same Metal bundle namespace' if a.warm_from else 'fresh private cache; caller certifies cold Metal namespace',
+                  fixture_receipt=str(a.fixture_receipt.resolve()) if a.fixture_receipt else None,
+                  fixture_receipt_sha256=sha(a.fixture_receipt) if a.fixture_receipt else None,
+                  fixture_all_bytes_and_xattrs_verified=fixture_binding is not None,
                   source_sha256={p.name: sha(p) for p in (Path(__file__), Path(__file__).with_name('tape_phase_audit.py'))})
     process = dict(exit=None, timed_out=False)
     start = time.monotonic()
@@ -126,6 +150,7 @@ def main(argv=None):
         checks.update(process_normal=process['exit'] == 0 and not process['timed_out'],
                       app_unchanged=before_app == tree(a.app), tape_unchanged=before_tape == tree(a.tape),
                       fixture_unchanged=not a.user_seed or before_seed == tree(a.user_seed),
+                      fixture_xattrs_unchanged=not fixture_binding or inventory(a.user_seed) == fixture_binding,
                       warm_source_unchanged=not a.warm_from or warm_binding['cache_hashes'] == tree(a.warm_from/'cache'))
         need(all(checks.values()), 'process or immutable binding failed')
         proof = qualify(a.tape, a.out, a.out/'replay/divergence.json', a.out/'read-map.jsonl')

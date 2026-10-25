@@ -155,3 +155,31 @@ their exact original fixtures/mods/replay_env. Omit `--stage` for boot-launched
 routes and omit `--require-pointer-evidence` for non-pointer cases. These audits
 must cover each scene/overlay/resume in the table. Retain all RESULT, launch,
 process, native report, route, KPD/actions, read-map and PREP/build bindings.
+
+## Detached M1 map proof driver
+
+`tools/port/run_tape_anchors543.py --plan-only --out NEW_OWNED_DIR` freezes the
+Python harness and records a finite 16-arm plan without preparing apps or
+launching a process. After SOL A's explicit release message, save that release
+as a receipt and launch from bash at nice0:
+
+```sh
+python3 -B tools/port/run_tape_anchors543.py --detach \
+  --out "$TAPE_PROOF_OUT" --release-receipt "$TAPE_RELEASE_RECEIPT"
+```
+
+The child uses nohup + setsid, detached stdio, and no outer heavy lock. Every arm
+acquires heavy then native, proves the quiet/load precondition, and uses only
+B's perfm1b Metal namespace. All five perf copies retain exact original/PREP,
+resource and source hashes; references remain labelled test instruments and
+legacy controls remain legacy-v1 observations. A legacy failure is retained,
+never replaced. A failed strict conversion or schema2 dependency stops the plan
+without a retry. Both byte and xattr inventories of the certified fixture and
+its private ditto copy must match; no attributes are removed or rewritten.
+
+Conversions observe90s. Since the resulting complete schema2 tape also contains
+that recorded neutral tail, schema2 replays observe120s to retain the entire
+strict prefix followed by a positive neutral post-roll. This is explicit in the
+plan and receipt; >=90s, pointer30/3 and warm audio50reports/0underruns remain
+unchanged. Converted tapes are never trimmed. Only the initial qualified captures
+serve as canonical tapes for the matrix and reciprocal/candidate replay.

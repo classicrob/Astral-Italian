@@ -78,15 +78,18 @@ def prepare(source, target, kind, expected):
         reference_is_test_instrument=kind=='server-instrumented-reference',owner='SOL B thr_65jasku4ah'))
 
 
-def plan(out):
+def plan(out, controls_only=False, candidate=None, reference072=None, reference002=None):
     need(ROOT.resolve() in out.parents and not out.exists(), 'fresh owned output required')
-    candidates=list((ROOT/'candidates').glob('67d09ac0*'));need(len(candidates)==1,'one exact candidate required')
     builds={
         'legacy072':(ROOT/'candidates/07223918','frozen-control','07223918'),
-        'legacy002':(ROOT/'candidates/00221126','frozen-control','00221126'),
-        'ref072':(ROOT/'references/ref543-072-5b110d41','server-instrumented-reference','5b110d41'),
-        'ref002':(ROOT/'references/ref543-002-2a553c0d','server-instrumented-reference','2a553c0d'),
-        'candidate':(candidates[0],'server-candidate','67d09ac0')}
+        'legacy002':(ROOT/'candidates/00221126','frozen-control','00221126')}
+    if not controls_only:
+        need(candidate is not None and reference072 is not None and reference002 is not None,
+             'explicit metadata-corrected candidate/reference directories required')
+        for key,directory,kind in [('ref072',reference072,'server-instrumented-reference'),
+                                   ('ref002',reference002,'server-instrumented-reference'),
+                                   ('candidate',candidate,'server-candidate')]:
+            builds[key]=(directory,kind,json.loads((directory/'BUILD.json').read_text())['source'])
     out.mkdir(parents=True);harness=out/'harness';harness.mkdir()
     sources=[Path(__file__),HERE/'capture_schema2_tape.py',HERE/'tape_phase_audit.py',HERE/'replay_tape.py',Path(common.__file__),Path(common.__file__).with_name('promotion54m.py')]
     for source in sources: shutil.copy2(source,harness/source.name)
@@ -98,19 +101,20 @@ def plan(out):
     for build in ('legacy072','legacy002'):
         fresh=add(build+'-fresh',build,'legacy',SOURCE)
         add(build+'-warm',build,'legacy',SOURCE,fresh)
-    canonical072=add('convert-ref072','ref072','conversion',SOURCE)
-    canonical002=add('convert-ref002','ref002','conversion',SOURCE)
-    for build in ('ref072','ref002'):
-        fresh=add('matrix-'+build+'-fresh',build,'schema2',canonical072)
-        add('matrix-'+build+'-warm',build,'schema2',canonical072,fresh)
-    fresh=add('reciprocal-ref002-to-ref072-fresh','ref072','schema2',canonical002)
-    add('reciprocal-ref002-to-ref072-warm','ref072','schema2',canonical002,fresh)
-    for label,tape in (('072',canonical072),('002',canonical002)):
-        fresh=add('candidate-from'+label+'-fresh','candidate','schema2',tape)
-        add('candidate-from'+label+'-warm','candidate','schema2',tape,fresh)
+    if not controls_only:
+        canonical072=add('convert-ref072','ref072','conversion',SOURCE)
+        canonical002=add('convert-ref002','ref002','conversion',SOURCE)
+        for build in ('ref072','ref002'):
+            fresh=add('matrix-'+build+'-fresh',build,'schema2',canonical072)
+            add('matrix-'+build+'-warm',build,'schema2',canonical072,fresh)
+        fresh=add('reciprocal-ref002-to-ref072-fresh','ref072','schema2',canonical002)
+        add('reciprocal-ref002-to-ref072-warm','ref072','schema2',canonical002,fresh)
+        for label,tape in (('072',canonical072),('002',canonical002)):
+            fresh=add('candidate-from'+label+'-fresh','candidate','schema2',tape)
+            add('candidate-from'+label+'-warm','candidate','schema2',tape,fresh)
     write(out/'PLAN.json',dict(status='planned-not-launched',builds={k:dict(source=str(v[0]),kind=v[1],expected=v[2]) for k,v in builds.items()},
         arms=arms,nice=0,bundle=OWN,heavy_then_native=[str(HEAVY),str(NATIVE)],no_outer_lock=True,
-        no_retries=True,canonical_selection='one strict conversion per reference, fail closed; no failure substituted',
+        no_retries=True,legacy_controls_only=controls_only,canonical_selection='one strict conversion per reference, fail closed; no failure substituted',
         schema2_observation='120s minimum to retain full 90s converted prefix AND a positive neutral tail; original >=90s/50audio/0underrun predicates unchanged',
         source_hashes={p.name:sha(p) for p in harness.iterdir()},acceptance_claimed=False))
 
@@ -216,9 +220,12 @@ def run(out, release):
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--out',required=True,type=Path)
     modes=p.add_mutually_exclusive_group(required=True);modes.add_argument('--plan-only',action='store_true');modes.add_argument('--run',action='store_true');modes.add_argument('--arm');modes.add_argument('--detach',action='store_true')
-    p.add_argument('--release-receipt',type=Path);a=p.parse_args();out=a.out.resolve()
+    p.add_argument('--release-receipt',type=Path);p.add_argument('--legacy-controls-only',action='store_true')
+    p.add_argument('--candidate-dir',type=Path);p.add_argument('--reference072-dir',type=Path);p.add_argument('--reference002-dir',type=Path)
+    p.add_argument('--notify-thread',help='authorised milestone recipient; one message at final completion/stop only')
+    a=p.parse_args();out=a.out.resolve()
     try:
-        if a.plan_only:plan(out);return 0
+        if a.plan_only:plan(out,a.legacy_controls_only,a.candidate_dir,a.reference072_dir,a.reference002_dir);return 0
         if a.arm:return arm(out,a.arm)
         need(a.release_receipt is not None,'release receipt required')
         if a.detach:
@@ -226,12 +233,25 @@ def main():
             need(not (out/'DETACHED.json').exists(),'no second launch/resume')
             need(os.getpriority(os.PRIO_PROCESS,0)==0,'detached launch must inherit nice0')
             command=['/usr/bin/nohup',sys.executable,'-B',str(out/'harness'/Path(__file__).name),'--run','--out',str(out),'--release-receipt',str(release)]
+            if a.notify_thread:command+=['--notify-thread',a.notify_thread]
             with (out/'detached-driver.log').open('xb') as log:
                 child=subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,start_new_session=True,close_fds=True)
             write(out/'DETACHED.json',dict(pid=child.pid,command=command,nice=os.getpriority(os.PRIO_PROCESS,child.pid),start=time.time(),
                 release_receipt=str(release),release_sha256=sha(release),method='bash parent; nohup + setsid via start_new_session; all fds detached'))
             print(child.pid,flush=True);return 0
-        return run(out,a.release_receipt.resolve())
+        status=run(out,a.release_receipt.resolve())
+        if a.notify_thread:
+            need(re.fullmatch(r'thr_[a-z0-9]+',a.notify_thread),'invalid milestone recipient')
+            final=out/'DRIVER.json' if status==0 else out/'STOPPED.json'
+            value=json.loads(final.read_text());rows=value.get('completed',[])
+            text='SOL B543 tape driver '+('COMPLETE' if status==0 else 'STOPPED fail-closed')+'; '+str(len(rows))+' actual completed arms.\n'
+            text+='Receipt: '+str(final)+'\n'
+            for row in rows:text+=row['arm']['name']+': '+('PASS' if row['passed'] else 'FAIL')+'; '+str(Path(row['arm']['out'])/'RESULT.json')+'\n'
+            text+='No acceptance claim by this driver. Legacy controls retain legacy-v1 behavior; no source failure replaced. Detailed mechanism review follows from retained raw reports.\n'
+            message=out/'MILESTONE.txt';message.write_text(text)
+            notification=subprocess.run(['bb','thread','tell',a.notify_thread,'--message-file',str(message)],capture_output=True,text=True)
+            write(out/'NOTIFICATION.json',dict(exit=notification.returncode,stdout=notification.stdout,stderr=notification.stderr,recipient=a.notify_thread))
+        return status
     except BaseException as exc:
         if out.is_dir():write(out/('ARM-ERROR-'+a.arm+'.json' if a.arm else 'DRIVER-ERROR.json'),dict(error=str(exc),traceback=traceback.format_exc(),time=time.time()))
         raise

@@ -161,18 +161,17 @@ void MiniRouteLineList::deleteLineEffect(s32 a, s32 b) {
     }
 }
 
-void MiniRouteLineList::setLineEffectTico(s32 a, s32 b) {
-    MiniRouteLine* pLine = findLine(a, b);
-    if (pLine != nullptr) {
-        pLine->mEffectName = "ProgressTico";
-    }
-}
 
 void MiniRouteLineList::setLineHidden(s32 a, s32 b) {
     MiniRouteLine* pLine = findLine(a, b);
     if (pLine != nullptr) {
         pLine->mHidden = true;
     }
+}
+
+inline void setMiniRouteLineEndpoints(MiniRouteLine* line, s32 from, s32 to) {
+    line->mFrom = from;
+    line->mTo = to;
 }
 
 void MiniRouteLineList::load(s32 worldId) {
@@ -183,9 +182,11 @@ void MiniRouteLineList::load(s32 worldId) {
     }
     mNum = num;
     mLines = new MiniRouteLine*[num];
+    s32 i = 0;
     if (mNum > 0) {
-        for (s32 i = 0; i < mNum; i++) {
-            MiniRouteLine* pLine = new MiniRouteLine("ポイントリンク", mWorld);
+        const char* lineName = "ポイントリンク";
+        for (; i < mNum; i++) {
+            MiniRouteLine* pLine = new MiniRouteLine(lineName, mWorld);
             s32 pointA;
             s32 pointB;
             s32 closeScenario;
@@ -204,11 +205,8 @@ void MiniRouteLineList::load(s32 worldId) {
                 MR::getCsvDataStr(&pColorChange, pCsv, "IsColorChange", i);
             }
             MR::getCsvDataStr(&pSubRoute, pCsv, "IsSubRoute", i);
-            pLine->mFrom = pointA;
-            pLine->mTo = pointB;
-            WorldMapResultNode* pNodeB = mWorld->getNode(pointB);
-            WorldMapResultNode* pNodeA = mWorld->getNode(pointA);
-            pLine->setup(pNodeA->mPos, pNodeB->mPos);
+            setMiniRouteLineEndpoints(pLine, pointA, pointB);
+            pLine->setup(mWorld->getNode(pointA)->mPos, mWorld->getNode(pointB)->mPos);
             pLine->setCondition(pCloseStage, closeScenario, pFlag);
             if (*pSubRoute == 'o') {
                 pLine->mHidden = true;
@@ -222,6 +220,14 @@ void MiniRouteLineList::load(s32 worldId) {
         }
     }
 }
+
+void MiniRouteLineList::setLineEffectTico(s32 a, s32 b) {
+    MiniRouteLine* pLine = findLine(a, b);
+    if (pLine != nullptr) {
+        pLine->mEffectName = "ProgressTico";
+    }
+}
+
 
 MiniRouteLine* MiniRouteLineList::findLine(s32 a, s32 b) {
     MiniRouteLine* pLine;

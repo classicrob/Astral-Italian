@@ -22,7 +22,8 @@ CameraSubjective::CameraSubjective(const char* pName) : Camera(pName), mAngleVel
 void CameraSubjective::reset() {
     mAngle.zero();
 
-    CameraLocalUtil::setPos(this, CameraLocalUtil::getTarget(this)->getPosition() + CameraLocalUtil::getTarget(this)->getUpVec() * ::sHeight);
+    const TVec3f& position = CameraLocalUtil::getTarget(this)->getPosition() + CameraLocalUtil::getTarget(this)->getUpVec() * ::sHeight;
+    CameraLocalUtil::setPos(this, position);
 
     mMtx.setXDir(CameraLocalUtil::getTarget(this)->getSideVec());
     mMtx.setYDir(CameraLocalUtil::getTarget(this)->getUpVec());
@@ -32,7 +33,6 @@ void CameraSubjective::reset() {
     mAngleVel.zero();
 }
 
-// NONMATCHING: saved registers and vector temporary addresses.
 CameraTargetObj* CameraSubjective::calc() {
     TVec2f accel(0.0f, 0.0f);
 

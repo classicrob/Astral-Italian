@@ -33,7 +33,32 @@ namespace {
     extern const f32 sTelephotoScale;
 };  // namespace
 
-// NONMATCHING: stack layout of the three matrices and saved-register allocation differ (instruction sequence and constants agree)
+inline f32 calcPlayerMicMatrix(TPos3f& micMtx, const TVec3f& playerPos, const TPos3f& cameraMtx) {
+    f32 rate;
+    if (MR::getFovy() < 20.0f) {
+        rate = 0.45f * sTelephotoScale;
+    } else {
+        rate = 0.45f;
+    }
+    TPos3f invMtx;
+    invMtx.set(cameraMtx);
+    TVec3f cameraPos;
+    cameraPos.set<f32>(cameraMtx(0, 3), cameraMtx(1, 3), cameraMtx(2, 3));
+    TVec3f cameraRight;
+    cameraRight.set<f32>(cameraMtx(0, 0), cameraMtx(1, 0), cameraMtx(2, 0));
+    TVec3f difference = playerPos - cameraPos;
+    f32 along = difference.dot(cameraRight);
+    cameraRight *= along;
+    TVec3f target = playerPos - cameraRight;
+    TVec3f micPos;
+    JMAVECLerp(&target, &cameraPos, &micPos, rate);
+    invMtx.mMtx[0][3] = micPos.x;
+    invMtx.mMtx[1][3] = micPos.y;
+    invMtx.mMtx[2][3] = micPos.z;
+    micMtx.invert(invMtx);
+    return PSVECDistance(&micPos, &playerPos);
+}
+
 void AudCameraWatcher::movement() {
     if (MR::isDemoActive() || MR::isStageStateScenarioOpeningCamera() || MR::isExecScenarioStarter() || MR::isFirstPersonCamera()) {
         MR::setMicMtx(const_cast< TPos3f& >(MR::getCameraViewMtx()), 0);
@@ -42,29 +67,7 @@ void AudCameraWatcher::movement() {
     } else {
         TPos3f micMtx;
         TPos3f cameraMtx = MR::getCameraInvViewMtx();
-        TVec3f playerPos(*MR::getPlayerCenterPos());
-        f32 rate;
-        if (MR::getFovy() < 20.0f) {
-            rate = 0.45f * sTelephotoScale;
-        } else {
-            rate = 0.45f;
-        }
-        TPos3f invMtx;
-        invMtx.set(cameraMtx);
-        TVec3f cameraPos;
-        cameraPos.set<f32>(cameraMtx(0, 3), cameraMtx(1, 3), cameraMtx(2, 3));
-        TVec3f cameraRight;
-        cameraRight.set<f32>(cameraMtx(0, 0), cameraMtx(1, 0), cameraMtx(2, 0));
-        f32 along = (playerPos - cameraPos).dot(cameraRight);
-        cameraRight *= along;
-        TVec3f target = playerPos - cameraRight;
-        TVec3f micPos;
-        JMAVECLerp(&target, &cameraPos, &micPos, rate);
-        invMtx.mMtx[0][3] = micPos.x;
-        invMtx.mMtx[1][3] = micPos.y;
-        invMtx.mMtx[2][3] = micPos.z;
-        micMtx.invert(invMtx);
-        mPlayerMicDistance = PSVECDistance(&micPos, &playerPos);
+        mPlayerMicDistance = calcPlayerMicMatrix(micMtx, TVec3f(*MR::getPlayerCenterPos()), cameraMtx);
         MR::setMicMtx(micMtx, 0);
         AudWrap::getSystem()->setCameraRate(mPlayerMicDistance / 1300.0f);
     }

@@ -24,6 +24,12 @@ void decrementPauseBlurDelayCount(PauseBlur* pBlur) {
 }
 
 // Blur sequence, drawn in several passes depending on the timer.
+namespace {
+    inline s32 getBlurRowOffset(s32 stride, s32 row) {
+        return stride * row;
+    }
+}
+
 void drawBlurTexture(const PauseBlur* pBlur) {
     ImageEffectLocalUtil::setupDrawTexture();
     ImageEffectLocalUtil::capture(pBlur->mTexture1, pBlur->mResolution, 0, GX_TF_RGB565, false, 0);
@@ -36,10 +42,10 @@ void drawBlurTexture(const PauseBlur* pBlur) {
 
     s32 n = pBlur->mTimer - 1;
     s32 offsetRow = n / pBlur->mHalfResolution;
-    s32 offset = (n - offsetRow * pBlur->mHalfResolution) + pBlur->mHalfResolution * pBlur->mResolution * offsetRow;
+    s32 offset = (n % pBlur->mHalfResolution) + getBlurRowOffset(pBlur->mHalfResolution * pBlur->mResolution, offsetRow);
 
     ImageEffectLocalUtil::setTextureMap(GX_TEXMAP1);
-    ImageEffectLocalUtil::drawTexture(pBlur->mTexture2, pBlur->mHalfResolution * pBlur->mResolution, offset, 255,
+    ImageEffectLocalUtil::drawTexture(pBlur->mTexture2, pBlur->mResolution * pBlur->mHalfResolution, offset, 255,
                                       ImageEffectLocalUtil::TexDrawType_0, GX_TEXMAP1);
 
     ImageEffectLocalUtil::capture(pBlur->mTexture2, pBlur->mResolution, 0, GX_TF_RGB565, false, 0);

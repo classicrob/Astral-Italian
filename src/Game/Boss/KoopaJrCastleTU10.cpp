@@ -38,6 +38,22 @@ void KoopaJrCastleDominate::init(const JMapInfoIter&) {
 // NONMATCHING: floating-point register allocation and vector temporary scheduling
 extern const f32 sDominateLaunchGravity;
 
+inline void makeDominateLaunchMtx(TPos3f* mtx, const TVec3f& front, const TVec3f& gravity, const TVec3f& position) {
+    MR::makeMtxFrontUpPos(mtx, front, -gravity, position);
+}
+
+inline TVec3f calcDominateVelocity(const TVec3f& gravity, const TVec3f& horizontal, f32 speed, f32 time) {
+    TVec3f negGravity(-gravity);
+    TVec3f verticalVelocity(negGravity);
+    verticalVelocity.scale(speed);
+    TVec3f negHorizontal(-horizontal);
+    TVec3f horizontalVelocity(negHorizontal);
+    horizontalVelocity.scale(1.0f / time);
+    TVec3f velocity(horizontalVelocity);
+    velocity += verticalVelocity;
+    return velocity;
+}
+
 bool KoopaJrCastleDominate::tryBindPlayer(LiveActor* binder, HitSensor* sensor, const TVec3f* pos, s32 cancelStep) {
     if (MR::isOnGroundPlayer() && !MR::isPlayerInRush()) {
         MR::tryRumblePadMiddle(this, 0);
@@ -53,18 +69,11 @@ bool KoopaJrCastleDominate::tryBindPlayer(LiveActor* binder, HitSensor* sensor, 
         f32 height = diff.dot(gravity);
         f32 speed = mLaunchSpeed;
         f32 time = (-speed + MR::fastSqrtf(speed * speed + (2.0f * sDominateLaunchGravity) * height)) / -sDominateLaunchGravity;
-        TVec3f negGravity(-gravity);
-        TVec3f verticalVelocity(negGravity);
-        verticalVelocity.scale(speed);
-        TVec3f negHorizontal(-horizontal);
-        TVec3f horizontalVelocity(negHorizontal);
-        horizontalVelocity.scale(1.0f / time);
-        TVec3f velocity(horizontalVelocity);
-        velocity += verticalVelocity;
+        TVec3f velocity(calcDominateVelocity(gravity, horizontal, speed, time));
         TVec3f front(-horizontal);
         MR::normalizeOrZero(&front);
         TPos3f mtx;
-        MR::makeMtxFrontUpPos(&mtx, front, -mGravity, mPosition);
+        makeDominateLaunchMtx(&mtx, front, mGravity, mPosition);
         mtx.getEuler(mRotation);
         mRotation.x *= 57.295776f;
         mRotation.y *= 57.295776f;

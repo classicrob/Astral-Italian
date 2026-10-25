@@ -293,7 +293,8 @@ void CrystalCage::initMapToolInfo(const JMapInfoIter& rIter) {
 }
 
 void CrystalCage::initModel() {
-    MR::makeMtxUpNoSupportPos(&mBaseMtx, -mGravity, mBasePos);
+    const TVec3f& basePos = mBasePos;
+    MR::makeMtxUpNoSupportPos(&mBaseMtx, -mGravity, basePos);
 
     if (mCrystalCageType == 2) {
         mBreakObj = MR::createModelObjMapObjStrongLight("クリスタルケージ[大]壊れモデル", "CrystalCageLBreak", (MtxPtr)&mBaseMtx);

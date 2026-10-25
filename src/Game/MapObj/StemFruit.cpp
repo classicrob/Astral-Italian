@@ -562,6 +562,10 @@ inline TQuat4f calcStemFruitCrashRotation(const TVec3f& up, const TVec3f& player
     return rotation;
 }
 
+inline void setStemFruitCrashRotation(TPos3f& matrix, const TQuat4f& rotation) {
+    matrix.setQuat(rotation);
+}
+
 void StemFruitChild::exeHipDropCrash() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
@@ -575,7 +579,7 @@ void StemFruitChild::exeHipDropCrash() {
         rotate.identity();
         TVec3f playerUp;
         JGeometry::negateInternal(&MR::getPlayerGravity()->x, &playerUp.x);
-        rotate.setQuat(calcStemFruitCrashRotation(up, playerUp));
+        setStemFruitCrashRotation(rotate, calcStemFruitCrashRotation(up, playerUp));
         rotate.concat(base);
         rotate.getEuler(mRotation);
         mRotation.x *= 57.2957763671875f;

@@ -36,13 +36,15 @@ void CameraPadOrbitCtrl::updateRotation(const TVec3f& up, const TVec3f&, const T
         mAngle -= 0.08f;
         if (mAngle <= mTargetAngle) { mAngle = mTargetAngle; mRotating = false; }
     }
+    f32 angle = mAngle - previous;
     TVec3f offset = *pos - watch;
     TQuat4f rotation;
-    f32 halfAngle = (mAngle - previous) * 0.5f;
+    f32 halfAngle = angle * 0.5f;
     rotation.toTvec()->scale(sin(halfAngle), up);
     rotation.w = cos(halfAngle);
     rotation.transform(offset);
-    *pos = watch + offset;
+    const TVec3f& updatedPosition = watch + offset;
+    *pos = updatedPosition;
 }
 void CameraPadOrbitCtrl::updateInput(const TVec3f& up, const TVec3f& front, const TVec3f& watch, TVec3f* pos) {
     f32 roundAngle = 0.7853981852531433f;

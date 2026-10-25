@@ -273,16 +273,16 @@ u32 AudRhythmSeqParser::passRegCommand(JASTrack* pTrack, int numArgs) {
     return passCommand(pTrack, pTrack->getSeqCtrl()->readByte(), width);
 }
 
-// NONMATCHING: prologue copies of this/pTrack are emitted in swapped order (99.9%)
 u32 AudRhythmSeqParser::passCommand(JASTrack* pTrack, u8 cmdCode, u16 widths) {
     // TODO: this needs cleanup
+    JASTrack* track = pTrack;
     u32 ret = 0;
 
     Command* cmd;
     if (cmdCode != 0xB0) {
         cmd = &sCmdInfo[cmdCode - 0xA0];
     } else {
-        cmd = &sExtCmdInfo[pTrack->getSeqCtrl()->readByte()];
+        cmd = &sExtCmdInfo[track->getSeqCtrl()->readByte()];
     }
 
     s32 readType = cmd->argWidths | widths;
@@ -292,16 +292,16 @@ u32 AudRhythmSeqParser::passCommand(JASTrack* pTrack, u8 cmdCode, u16 widths) {
         u32 arg = 0;
         switch (readType & 3) {
         case 0:
-            arg = pTrack->getSeqCtrl()->readByte();
+            arg = track->getSeqCtrl()->readByte();
             break;
         case 1:
-            arg = pTrack->getSeqCtrl()->read16();
+            arg = track->getSeqCtrl()->read16();
             break;
         case 2:
-            arg = pTrack->getSeqCtrl()->read24();
+            arg = track->getSeqCtrl()->read24();
             break;
         case 3:
-            arg = readReg(pTrack, pTrack->getSeqCtrl()->readByte());
+            arg = readReg(track, track->getSeqCtrl()->readByte());
             break;
         }
         args[i] = arg;
@@ -314,13 +314,13 @@ u32 AudRhythmSeqParser::passCommand(JASTrack* pTrack, u8 cmdCode, u16 widths) {
 
         switch (cmdCode) {
         case 0xC5: {  // cmdRet
-            if (!retTmp(pTrack)) {
-                pTrack->getSeqCtrl()->mReader.jump(pTrack->getSeqCtrl()->getSeqReader()->getStackPtr(pTrack->getSeqCtrl()->mReader.mNumStacks - 1));
+            if (!retTmp(track)) {
+                track->getSeqCtrl()->mReader.jump(track->getSeqCtrl()->getSeqReader()->getStackPtr(track->getSeqCtrl()->mReader.mNumStacks - 1));
             }
             break;
         }
         case 0xC3: {  // cmdCall
-            callTmp(pTrack, args[0]);
+            callTmp(track, args[0]);
             break;
         }
         case 0xC7: {  // cmdJump
@@ -328,11 +328,11 @@ u32 AudRhythmSeqParser::passCommand(JASTrack* pTrack, u8 cmdCode, u16 widths) {
             if (func == nullptr) {
                 return 0;
             }
-            execCommand(pTrack, func, cmd->numArgs, args);
+            execCommand(track, func, cmd->numArgs, args);
             break;
         }
         case 0xF0:  // cmdWait
-            ret = pTrack->getSeqCtrl()->mReader.readMidiValue();
+            ret = track->getSeqCtrl()->mReader.readMidiValue();
             break;
         case 0xF1:  // cmdWaitByte
             ret = args[0];

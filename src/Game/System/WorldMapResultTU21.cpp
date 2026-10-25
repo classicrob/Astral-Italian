@@ -111,7 +111,6 @@ void WorldMapResultStateTicoRouteCreate::exeWait() {
     }
 }
 
-// NONMATCHING: the comet-name pointer loads are scheduled differently (target keeps the 0x94 chain first) (FP order/grouping checked: no FP instructions).
 void WorldMapResultStateTicoRouteCreate::exeReturn() {
     if (MR::isFirstStep(this)) {
         mHost->startDemo();
@@ -124,9 +123,8 @@ void WorldMapResultStateTicoRouteCreate::exeReturn() {
     }
 
     if (MR::isGreaterStep(this, 100)) {
-        MiniTicoMaster* pCreator = mTicoCreator;
-        GameSequenceFunction::setTicoFatStarPieceId(pCreator->mUnkA0);
-        GameSequenceFunction::setTicoFatStarPieceRequirement(*pCreator->mUnk94);
+        GameSequenceFunction::setTicoFatStarPieceId(mTicoCreator->mUnkA0);
+        GameSequenceFunction::setTicoFatStarPieceRequirement(*mTicoCreator->mUnk94);
         mHost->enterCurrentGalaxy();
         MR::startStarPointerModeDemo(mHost);
         MR::startActionSound(mHost->getRocket(), "TicoReturnHomeWipeIn", -1, -1, -1);

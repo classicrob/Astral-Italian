@@ -37,15 +37,23 @@ LavaFloater::LavaFloater(const char* pName)
 LavaFloater::~LavaFloater() {
 }
 
-// NONMATCHING: FloaterFloatingForceTypeNormal is 0x60 in ours vs __nw(0x68) in SMG2 (shared header); register allocation of rIter/this differs.
+inline bool needsLavaFloaterProjection(const char* name) {
+    const char* const names[] = {"LavaHomeFloaterB", "LavaFloatingStepA", "LavaFloatingStepB", "LavaFloatingStepC",
+                                 "LavaFloatingStepD", "FloaterOtakingFloaterA", "LavaYoshiActionFloaterA", "LavaFloaterTrapezoid"};
+
+    return MR::isExistString(name, names, 8);
+}
+
+inline bool usesLavaFloaterObjectSound(const char* name) {
+    const char* const names2[] = {"LavaFloaterTrapezoid", "LavaYoshiActionFloaterA"};
+    return MR::isExistString(name, names2, 2);
+}
+
 void LavaFloater::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::getObjectName(&mObjectName, rIter);
 
-    const char* const names[] = {"LavaHomeFloaterB", "LavaFloatingStepA", "LavaFloatingStepB", "LavaFloatingStepC",
-                                 "LavaFloatingStepD", "FloaterOtakingFloaterA", "LavaYoshiActionFloaterA", "LavaFloaterTrapezoid"};
-
-    if (MR::isExistString(mObjectName, names, 8)) {
+    if (needsLavaFloaterProjection(mObjectName)) {
         MR::initActor(this, rIter, mObjectName, true);
         mMtxSetter = MR::initDLMakerProjmapEffectMtxSetter(this);
         MR::newDifferedDLBuffer(this);
@@ -56,8 +64,7 @@ void LavaFloater::init(const JMapInfoIter& rIter) {
     initEffectKeeper(0, nullptr, false);
     MR::setEffectHostSRT(this, ::cEffectName, &_A0, &mRotation, nullptr);
 
-    const char* const names2[] = {"LavaFloaterTrapezoid", "LavaYoshiActionFloaterA"};
-    _B0 = MR::isExistString(mObjectName, names2, 2);
+    _B0 = usesLavaFloaterObjectSound(mObjectName);
     if (_B0) {
         initSound(4, mObjectName, nullptr, TVec3f(0.0f));
     } else {

@@ -83,6 +83,12 @@ void MapPartsRailRotator::rotateBetweenPoints(s32 point, f32 time) {
     }
 }
 
+namespace {
+    inline TVec3f getRailRotationRadians(const LiveActor* actor, f32 factor) {
+        return actor->mRotation * factor;
+    }
+}
+
 void MapPartsRailRotator::updateHostRotateMtx() {
     if (mHostRotateMtx != nullptr) {
         PSMTXCopy(mHostRotateMtx, _2C.toMtxPtr());
@@ -90,7 +96,7 @@ void MapPartsRailRotator::updateHostRotateMtx() {
         _2C.set(mHost->getBaseMtx());
         _2C.zeroTrans();
     } else {
-        _2C.setEuler(mHost->mRotation * (PI / 180.0f));
+        _2C.setEuler(getRailRotationRadians(mHost, PI / 180.0f));
     }
 }
 

@@ -16,16 +16,6 @@
 #include "Game/Player/YoshiFunction.hpp"
 
 
-namespace {
-    // Shared name pool: object name, fly object name, demo object name (Shift-JIS, +0x1C), model name and joint name.
-    char sNamePool[] = "NeedlePlant\0"
-                       "NeedlePlantFly\0\0"
-                       "\x83\x67\x83\x51\x90\x41\x95\xA8\x8E\x63\x8A\x5B"
-                       "\0\0\0\0\0\0\0\0"
-                       "NeedlePlantHill\0"
-                       "Needle1\0";
-}  // namespace
-
 namespace NrvNeedlePlant {
     NEW_NERVE(NeedlePlantNrvWait, NeedlePlant, Wait);
     NEW_NERVE(NeedlePlantNrvShake, NeedlePlant, Shake);
@@ -56,13 +46,12 @@ NeedlePlant::NeedlePlant(const char* pName)
     : LiveActor(pName), mYoshiLockOn(nullptr), mDemoObj(nullptr), mTargetPos(0.0f, 0.0f, 0.0f), mObjArg0(-1), mUnkA8(0.0f), mIsFly(false) {}
 
 void NeedlePlant::init(const JMapInfoIter& rIter) {
-    char* pNames = sNamePool;
     MR::initActor(this, rIter, false);
 
     bool isShadow = false;
-    if (MR::isObjectName(rIter, pNames)) {
+    if (MR::isObjectName(rIter, "NeedlePlant")) {
         isShadow = true;
-    } else if (MR::isObjectName(rIter, pNames + 12)) {
+    } else if (MR::isObjectName(rIter, "NeedlePlantFly")) {
         MR::getJMapInfoArg1NoInit(rIter, &isShadow);
         mIsFly = true;
     }
@@ -71,8 +60,8 @@ void NeedlePlant::init(const JMapInfoIter& rIter) {
         MR::invalidateShadow(this, nullptr);
     }
 
-    if (MR::isObjectName(rIter, pNames)) {
-        mDemoObj = reinterpret_cast<LiveActor*>(MR::createDemoObj(pNames + 28, pNames + 48, nullptr));
+    if (MR::isObjectName(rIter, "NeedlePlant")) {
+        mDemoObj = reinterpret_cast<LiveActor*>(MR::createDemoObj("\x83\x67\x83\x51\x90\x41\x95\xA8\x8E\x63\x8A\x5B", "NeedlePlantHill", nullptr));
         MR::copyTransRotate(this, mDemoObj);
         mDemoObj->makeActorDead();
     }
@@ -84,8 +73,7 @@ void NeedlePlant::init(const JMapInfoIter& rIter) {
         MR::declareCoin(this, 1);
     }
 
-    TVec3f offset(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, MR::getJointMtx(this, pNames + 64), offset);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, MR::getJointMtx(this, "Needle1"), TVec3f(0.0f));
     initNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait), 0);
     makeActorAppeared();
 }

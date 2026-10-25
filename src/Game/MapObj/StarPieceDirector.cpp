@@ -548,8 +548,8 @@ void StarPieceShooter::control() {
 }
 
 bool StarPieceShooter::shoot() {
-    HitSensor* pSensor;
     StarPiece* const deadStarPiece = MR::getDeadStarPiece();
+    HitSensor* pSensor;
 
     if (deadStarPiece == nullptr) {
         return false;

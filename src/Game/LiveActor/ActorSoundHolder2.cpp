@@ -9,6 +9,10 @@
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/VectorUtil.hpp"
 
+static inline const ActionSoundData* findActorSoundData(LiveActor* actor, const char* name) {
+    return MR::getActionSoundData(actor, name);
+}
+
 ActorSoundHolder::ActorSoundHolder(LiveActor* pActor, s32 count, const char* pName,
                                  const TVec3f* pPosition, const TVec3f& rLocalPosition)
     : mSoundObject(nullptr), mActionSoundKeeper(nullptr), mPosition(nullptr), mPositionMtx(nullptr),
@@ -25,7 +29,7 @@ ActorSoundHolder::ActorSoundHolder(LiveActor* pActor, s32 count, const char* pNa
         mSoundObject = new AudAnmSoundObject(&pActor->mPosition, count, MR::getCurrentHeap());
     }
 
-    const ActionSoundData* data = MR::getActionSoundData(pActor, pName);
+    const ActionSoundData* data = findActorSoundData(pActor, pName);
     if (data != nullptr) {
         mActionSoundKeeper = new ActorActionSoundKeeper(pActor, mSoundObject, data);
     }

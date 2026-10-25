@@ -172,58 +172,55 @@ void WaterPlant::initPlant() {
 WaterPlant::PlantData::PlantData() {
 }
 
-// NONMATCHING: regalloc
 void WaterPlant::initPlantAfterPlacement() {
-    const TVec3f* gravity = &mGravity;
+    const TVec3f* gravity;
     s32 index = 0;
     TPos3f mtx;
     mtx.identity();
     MR::makeMtxRotateY(mtx, 15.0f);
     TVec3f vec(0.0f, 0.0f, 1.0f);
 
-    int i = 0;
-    if (mPlantNum > 0) {
-        for (; i < mPlantNum; i++) {
-            f32 randomZ;
-            f32 randomBounds = mAreaRadius;
-            TVec3f* currentPlantPos = &mPlantDataArray[i].mPosition;
-            for (int j = 0; j < ::sPlantAddTime; j++) {
-                randomZ = MR::getRandom(-randomBounds, randomBounds) + mPosition.z;
-                currentPlantPos->set< f32 >(MR::getRandom(-randomBounds, randomBounds) + mPosition.x, mPosition.y,
-                                            randomZ);
+    gravity = &mGravity;
+    for (int i = 0; i < mPlantNum; i++) {
+        f32 randomZ;
+        f32 randomBounds = mAreaRadius;
+        TVec3f* currentPlantPos = &mPlantDataArray[i].mPosition;
+        for (int j = 0; j < ::sPlantAddTime; j++) {
+            randomZ = MR::getRandom(-randomBounds, randomBounds) + mPosition.z;
+            currentPlantPos->set< f32 >(MR::getRandom(-randomBounds, randomBounds) + mPosition.x, mPosition.y,
+                                        randomZ);
 
-                MR::calcGravity(this, *currentPlantPos);
-                TVec3f offset(*gravity);
-                offset.scale(500.0f);
-                currentPlantPos->sub(offset);
-                if (MR::calcMapHitAlongDirection(*currentPlantPos, currentPlantPos, *gravity, nullptr, nullptr, nullptr, nullptr, 1000.0f)) {
-                    break;
-                }
+            MR::calcGravity(this, *currentPlantPos);
+            TVec3f offset(*gravity);
+            offset.scale(500.0f);
+            currentPlantPos->sub(offset);
+            if (MR::calcMapHitAlongDirection(*currentPlantPos, currentPlantPos, *gravity, nullptr, nullptr, nullptr, nullptr, 1000.0f)) {
+                break;
             }
-
-            mPlantDataArray[i].mRotation.set(vec);
-            mPlantDataArray[i].mSpinSwingDir.zero();
-            mPlantDataArray[i].mTempSpinSwingDir.zero();
-            mPlantDataArray[i].mSpinWaveSwingVec1.zero();
-            mPlantDataArray[i].mSpinWaveSwingVec2.zero();
-            mPlantDataArray[i].mSpinWaveSwingVec3.zero();
-            mPlantDataArray[i].mSpinWaveTimer = 0;
-            mPlantDataArray[i].mSpinWaveSwingTimer = 0;
-            mPlantDataArray[i].mSpinSwingStrength = 0.0f;
-
-            f32 random = MR::getRandom(mHeight, 2.0f * mHeight);
-            mPlantDataArray[i].mHeight1 = random * ::sHeightRate0;
-            mPlantDataArray[i].mHeight2 = random * ::sHeightRate1;
-            mPlantDataArray[i].mHeight3 = random;
-
-            mPlantDataArray[i].mSwingStrength1 = &::getWaterPlantDrawInit()->mSwingPosTable[index + 6];
-            mPlantDataArray[i].mSwingStrength2 = &::getWaterPlantDrawInit()->mSwingPosTable[index + 3];
-            mPlantDataArray[i].mSwingStrength3 = &::getWaterPlantDrawInit()->mSwingPosTable[index];
-
-            index = (index + ::sSwingPosTableSize - 4) % (::sSwingPosTableSize - 6 - 1);
-
-            mtx.mult(vec, vec);
         }
+
+        mPlantDataArray[i].mRotation.set(vec);
+        mPlantDataArray[i].mSpinSwingDir.zero();
+        mPlantDataArray[i].mTempSpinSwingDir.zero();
+        mPlantDataArray[i].mSpinWaveSwingVec1.zero();
+        mPlantDataArray[i].mSpinWaveSwingVec2.zero();
+        mPlantDataArray[i].mSpinWaveSwingVec3.zero();
+        mPlantDataArray[i].mSpinWaveTimer = 0;
+        mPlantDataArray[i].mSpinWaveSwingTimer = 0;
+        mPlantDataArray[i].mSpinSwingStrength = 0.0f;
+
+        f32 random = MR::getRandom(mHeight, 2.0f * mHeight);
+        mPlantDataArray[i].mHeight1 = random * ::sHeightRate0;
+        mPlantDataArray[i].mHeight2 = random * ::sHeightRate1;
+        mPlantDataArray[i].mHeight3 = random;
+
+        mPlantDataArray[i].mSwingStrength1 = &::getWaterPlantDrawInit()->mSwingPosTable[index + 6];
+        mPlantDataArray[i].mSwingStrength2 = &::getWaterPlantDrawInit()->mSwingPosTable[index + 3];
+        mPlantDataArray[i].mSwingStrength3 = &::getWaterPlantDrawInit()->mSwingPosTable[index];
+
+        index = (index + ::sSwingPosTableSize - 4) % (::sSwingPosTableSize - 6 - 1);
+
+        mtx.mult(vec, vec);
     }
 }
 

@@ -22,8 +22,8 @@ void DynamicCollisionObj::syncCollision() {
     mParts->updateBoundingSphereRange(mScale);
 }
 
-// NONMATCHING: regalloc only; the target recomputes i * sizeof(TVec3f) for mPos[i] instead of reusing the mFaceNormals[i] offset
 void DynamicCollisionObj::updateTriangle() {
+    s32 edge0, edge1;
     s32 normalidx = 0;
 
     for (u16 i = 0; i < mTriangleNum; i++) {
@@ -49,9 +49,11 @@ void DynamicCollisionObj::updateTriangle() {
             continue;
         }
 
-        TVec3f cross2 = (-a).cross(cross);
-        TVec3f cross3 = b.cross(cross);
-        TVec3f cross4 = c.cross(cross);
+        TVec3f cross2, cross3, cross4;
+        const TVec3f& opposite = -a;
+        cross2.cross(opposite, cross);
+        cross3.cross(b, cross);
+        cross4.cross(c, cross);
 
         MR::normalizeOrZero(&cross2);
         MR::normalizeOrZero(&cross3);
@@ -59,9 +61,9 @@ void DynamicCollisionObj::updateTriangle() {
 
         mKCLFile->mPos[i] = Vertex1;
         mKCLFile->mNorms[(u16)normalidx] = cross;
-        s32 edge0 = (u16)normalidx + 1;
+        edge0 = (u16)normalidx + 1;
         mKCLFile->mNorms[edge0] = cross2;
-        s32 edge1 = (u16)normalidx + 2;
+        edge1 = (u16)normalidx + 2;
         mKCLFile->mNorms[edge1] = cross3;
         s32 edge2 = (u16)normalidx + 3;
         mKCLFile->mNorms[edge2] = cross4;

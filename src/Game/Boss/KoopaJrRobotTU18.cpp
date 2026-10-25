@@ -58,7 +58,7 @@ bool KoopaJrRobotQuakeWave::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
     return false;
 }
 
-void KoopaJrRobotQuakeWave::start(f32 param) {
+void KoopaJrRobotQuakeWave::start(f32 param, const TVec3f&) {
     _B8 = 0.0f;
     _BC = 0.0f;
     _B4 = param;

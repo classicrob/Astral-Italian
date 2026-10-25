@@ -31,7 +31,6 @@ CamTranslatorBase* CameraBehind::createTranslator() {
     return new CamTranslatorBehind(this);
 }
 
-// NONMATCHING: regalloc (target keeps the temp vector addresses in callee-saved regs)
 void CameraBehind::calcPosAndUp(f32 accel) {
     TVec3f watchpos = CameraLocalUtil::getWatchPos(this);
 
@@ -51,8 +50,7 @@ void CameraBehind::calcPosAndUp(f32 accel) {
     MR::polarToCrossDegree(watchPoint, &pos, mDist, mAngleX, mAngleY);
 
     matrix.mult(pos, pos);
-    TVec3f prevPos = CameraLocalUtil::getPos(this) * (1.0f - accel);
-    pos = pos * accel + prevPos;
+    pos = pos * accel + CameraLocalUtil::getPos(this) * (1.0f - accel);
 
     CameraLocalUtil::setPos(this, pos);
     CameraLocalUtil::setWatchUpVec(this, TVec3f(0.0f, 1.0f, 0.0f));

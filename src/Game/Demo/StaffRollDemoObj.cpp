@@ -65,18 +65,20 @@ void StaffRollDemoObj::init(const JMapInfoIter& rIter) {
 }
 
 // NONMATCHING: regalloc and stack scheduling
-void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
-    LiveActor* sky = nullptr;
-    s32 childNum = MR::getChildObjNum(rIter);
+static inline LiveActor* createStaffRollSky(const JMapInfoIter& iter) {
+    s32 childNum = MR::getChildObjNum(iter);
     for (s32 i = 0; i < childNum; i++) {
-        const char* pName = nullptr;
-        MR::getChildObjName(&pName, rIter, i);
-        if (MR::isEqualString(pName, "StaffRollSky")) {
-            sky = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
-            break;
+        const char* name = nullptr;
+        MR::getChildObjName(&name, iter, i);
+        if (MR::isEqualString(name, "StaffRollSky")) {
+            return static_cast<LiveActor*>(NameObjFactory::initChildObj(iter, i));
         }
     }
-    mChildA = sky;
+    return nullptr;
+}
+
+void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
+    mChildA = createStaffRollSky(rIter);
     mActorArray.mArr = new LiveActor*[3];
     mActorArray.mMaxSize = 3;
     s32 actorNum = MR::getChildObjNum(rIter);

@@ -2005,7 +2005,7 @@ namespace MR {
 #ifdef GALAXY_NATIVE
         pActor->mBinder->_1EC._2 = false;
 #else
-        *(u8*)&pActor->mBinder->_1EC &= ~0x20;
+        pActor->mBinder->_1EC._2 = false;
 #endif
     }
 

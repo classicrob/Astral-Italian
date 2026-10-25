@@ -489,7 +489,7 @@ public:
     virtual void attackSensor(HitSensor*, HitSensor*);  // fn_800E4B40
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);  // fn_800E4C80
 
-    void start(f32);        // fn_800E4D00
+    void start(f32, const TVec3f&);        // fn_800E4D00
     void setParam(s32);     // fn_800E4DB0
     void exeHide();         // fn_800E4DC0
     void exeSign();         // fn_800E4E20

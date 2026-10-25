@@ -394,11 +394,14 @@ bool KoopaJrCastleBody::calcBodyGear1(TPos3f* pMtx, const JointControllerInfo&) 
     return true;
 }
 
-// NONMATCHING: negative-axis load scheduling and one extra register move
+inline TVec3f scaleGearRotationToCycle(const TVec3f& rotation) {
+    s32 stepMax = 500;
+    return rotation / (f32)stepMax;
+}
+
 bool KoopaJrCastleBody::calcBodyGear2(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
-    s32 stepMax = 500;
-    TVec3f rotation = (-sAxisY * 360.0f * (f32)mGearStep) / (f32)stepMax;
+    TVec3f rotation = scaleGearRotationToCycle(-sAxisY * 360.0f * (f32)mGearStep);
     Mtx rot;
     PSMTXIdentity(rot);
     MR::makeMtxRotate(rot, rotation);

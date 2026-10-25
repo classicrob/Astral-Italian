@@ -578,7 +578,6 @@ bool MarioLauncher::doEject() {
     return true;
 }
 
-// NONMATCHING: gravity temporary register lifetimes differ.
 bool MarioLauncher::doFlight() {
     bool isInAttractor = false;
 
@@ -596,8 +595,7 @@ bool MarioLauncher::doFlight() {
     currGrav = mShell->mGravity;
     attract *= (1.0f - ::sGravityRatio);
     currGrav *= ::sGravityRatio;
-    const TVec3f& newGravity = attract + currGrav;
-    mShell->mGravity = newGravity;
+    mShell->mGravity = attract + currGrav;
 
     if (isInAttractor != mIsInAttractor) {
         mIsInAttractor = isInAttractor;

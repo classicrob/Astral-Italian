@@ -137,7 +137,7 @@ bool KoopaJrRobot::tryAttackMapSensorsAroundJoint(const char* pJoint, const TVec
     MR::extractMtxTrans(mtx.toMtxPtr(), &origin);
     TVec3f gravity = -negGravity;
     s32 num = 12;
-    for (s32 i = 0; i < num; i++) {
+    for (s32 i = 0; i < 12; i++) {
         TVec3f v;
         MR::vecKillElement(xDir, negGravity, &v);
         MR::normalize(&v);

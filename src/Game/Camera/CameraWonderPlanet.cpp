@@ -45,7 +45,6 @@ void CameraWonderPlanet::reset() {
     mRotateFrame = 0;
 }
 
-// NONMATCHING: saved registers and vector temporary addresses.
 CameraTargetObj* CameraWonderPlanet::calc() {
     // FIXME
     TVec3f currWatchPos = CameraLocalUtil::getWatchPos(this);
@@ -86,16 +85,15 @@ CameraTargetObj* CameraWonderPlanet::calc() {
     frontRot.transform(up);
 
     TVec3f offset = pos - watchPos;
-    TVec3f* offsetPtr = &offset;
-    f32 dist = offsetPtr->length();
+    f32 dist = offset.length();
 
     if (dist < mDistMin) {
-        offsetPtr->setLength(mDistMin);
+        offset.setLength(mDistMin);
     } else if (dist > mDistMax) {
-        offsetPtr->setLength(mDistMax);
+        offset.setLength(mDistMax);
     }
 
-    pos.set(watchPos + *offsetPtr);
+    pos.set(watchPos + offset);
     CameraLocalUtil::setPos(this, pos);
     CameraLocalUtil::setWatchPos(this, watchPos);
     CameraLocalUtil::setUpVec(this, up);

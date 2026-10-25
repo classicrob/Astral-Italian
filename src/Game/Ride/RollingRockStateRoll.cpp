@@ -483,8 +483,9 @@ void RollingRockStateRoll::startMove() {
 
 // NONMATCHING: vector temporary placement and register allocation differ.
 void RollingRockStateRoll::changeState(s32 type) {
+    TVec3f* pVel;
     RollingRock* pHost = mHost;
-    TVec3f* pVel = &pHost->mVelocity;
+    pVel = &pHost->mVelocity;
     switch (type) {
     case 0: {
         TVec3f front(pHost->mFront);
@@ -508,7 +509,8 @@ void RollingRockStateRoll::changeState(s32 type) {
             MR::vecKillElement(pHost->mVelocity, up, &side);
             MR::normalizeOrZero(&side);
             side.negate();
-            pVel->set((side.scaleInline(sReflectSideRate) + up.scaleInline(1.0f - sReflectSideRate)).scaleInline(18.0f));
+            const TVec3f& reflected = side.scaleInline(sReflectSideRate) + up.scaleInline(1.0f - sReflectSideRate);
+            pVel->set(reflected.scaleInline(18.0f));
         }
         break;
     case 4:

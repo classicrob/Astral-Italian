@@ -37,7 +37,6 @@ ShootingStar::ShootingStar(const char* pName)
       mWaitForNextShootTime(::sWaitForNextShootTime), mFallHeight(::sFallHeight) {
 }
 
-// NONMATCHING: the two listener FunctorV0M temporaries are copied 3x in the target (extra stack copies around listenStageSwitchOnOffAppear); ours copies once.
 void ShootingStar::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "ShootingStar", false);
     MR::connectToSceneMapObj(this);
@@ -69,7 +68,7 @@ void ShootingStar::init(const JMapInfoIter& rIter) {
     MR::initShadowVolumeSphere(this, 30.0f);
 
     if (MR::initUseStageSwitchReadAppear(this, rIter)) {
-        MR::listenStageSwitchOnOffAppear(this, MR::FunctorV0M< ShootingStar*, void (ShootingStar::*)() >(this, &ShootingStar::appearPreShooting), MR::FunctorV0M< LiveActor*, void (LiveActor::*)() >(this, &LiveActor::kill));
+        MR::listenStageSwitchOnOffAppear(this, MR::Functor_Inline(this, &ShootingStar::appearPreShooting), MR::Functor_Inline<LiveActor>(this, &LiveActor::kill));
         makeActorDead();
     } else {
         makeActorAppeared();

@@ -146,8 +146,8 @@ void Gesso::control() {
     MR::calcDirToPlayer(&playerDirection, this);
     MR::turnVecToVecCosOnPlane(&mUp, mTargetUp, mFront, MR::cosDegree(0.5f));
     if (mVelocity.dot(mPushVelocity) < 0.0f) {
-        const TVec3f& rVelocity = mVelocity;
-        mVelocity.scaleAdd(-mPushVelocity.dot(rVelocity), mPushVelocity, rVelocity);
+        TVec3f& rVelocity = mVelocity;
+        rVelocity.scaleAdd(-mPushVelocity.dot(rVelocity), mPushVelocity, rVelocity);
     }
 
     mVelocity.add(mPushVelocity);

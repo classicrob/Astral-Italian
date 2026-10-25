@@ -323,14 +323,18 @@ void ElectricRailMoving::setVertexAttribute(int a2, int a3, f32 a4, f32 a5, f32 
 
     gravity.negate();
 
-    if (a3 > 0) {
-        f32 height = 100.0f * a3;
-        position += gravity * height;
-    }
-
     TVec3f axis1;
     TVec3f axis2;
-    TVec3f negRailDirection = -railDirection;
+    TVec3f negRailDirection;
+
+    if (a3 > 0) {
+        f32 height = 100.0f * a3;
+        TVec3f heightOffset(gravity);
+        heightOffset.scale(height);
+        position += heightOffset;
+    }
+
+    negRailDirection.negate(railDirection);
 
     if (MR::isSameDirection(gravity, negRailDirection)) {
         MR::makeAxisCrossPlane(&axis1, &axis2, negRailDirection);

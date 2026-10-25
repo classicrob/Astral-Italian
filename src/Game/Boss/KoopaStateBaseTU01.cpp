@@ -125,7 +125,6 @@ void KoopaStateAttackQuake::exeStraightPunch() {
     }
 }
 
-// NONMATCHING: the target calls KoopaJrRobotQuakeWave::start(f32, const TVec3f&) with a second (unused) arg = &mHost->mPosition; our header's start(f32) has one parameter (4 insns)
 void KoopaStateAttackQuake::exeStraightPunchLoop() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "StraightPunchLoop");
@@ -136,12 +135,12 @@ void KoopaStateAttackQuake::exeStraightPunchLoop() {
         }
         if (mMode == 3) {
             for (s32 i = 0; i < 3; i++) {
-                mQuakeWaves[i]->start(60.0f * i);
+                mQuakeWaves[i]->start(60.0f * i, mHost->mPosition);
             }
         }
         if (mMode == 4) {
             for (s32 i = 0; i < 4; i++) {
-                mQuakeWaves[i]->start(45.0f * i);
+                mQuakeWaves[i]->start(45.0f * i, mHost->mPosition);
             }
         }
         mVolumeDrawer->setScaleUpRate(6);

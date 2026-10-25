@@ -63,6 +63,11 @@ void BgmChangeArea::init(const JMapInfoIter& rIter) {
     MR::connectToSceneAreaObj(this);
 }
 
+static inline bool isCurrentStageBgmId(u32 id) {
+    const u32 current = AudWrap::getBgmMgr()->mCurrentBGM[AudBgmMgr::BgmType_Stage];
+    return current == id;
+}
+
 // NONMATCHING: argument and BGM-id locals use different registers; conditions and calls agree.
 void BgmChangeArea::movement() {
     if (!isValid()) {
@@ -111,7 +116,7 @@ void BgmChangeArea::movement() {
                 scenario = MR::getCurrentScenarioNo();
                 bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg1);
                 if (bgmId != 0xFFFFFFFF) {
-                    if (AudWrap::getBgmMgr()->mCurrentBGM[AudBgmMgr::BgmType_Stage] == bgmId && MR::isPlayingStageBgm()) {
+                    if (isCurrentStageBgmId(bgmId) && MR::isPlayingStageBgm()) {
                         break;
                     }
                     AudWrap::startStageBgm(bgmId, false, -1);
@@ -138,7 +143,7 @@ void BgmChangeArea::movement() {
                 scenario = MR::getCurrentScenarioNo();
                 bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg2);
                 if (bgmId != 0xFFFFFFFF) {
-                    if (AudWrap::getBgmMgr()->mCurrentBGM[AudBgmMgr::BgmType_Stage] == bgmId && MR::isPlayingStageBgm()) {
+                    if (isCurrentStageBgmId(bgmId) && MR::isPlayingStageBgm()) {
                         break;
                     }
                     AudWrap::setNextIdStageBgm(bgmId);

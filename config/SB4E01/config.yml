@@ -8,6 +8,7 @@ mw_comment_version: 14
 ldscript_template: config/SB4E01/ldscript.lcf
 
 block_relocations:
+- source: .data:0x8071AD20
 - source: .data:0x8070B820
 - source: .data:0x8070B8A0
 - source: .data:0x807053B8

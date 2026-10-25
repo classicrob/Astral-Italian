@@ -70,7 +70,7 @@ namespace JMath {
         _1000 = TAngleConstant_< T >::RADIAN_DEG090() / 2;
     }
 
-    TSinCosTable< 14, f32 > sSinCosTable;
-    TAtanTable< 1024, f32 > sAtanTable;
-    TAsinAcosTable< 1024, f32 > sAsinAcosTable;
+    TSinCosTable< 14, f32 > sSinCosTable __attribute__((aligned(32)));
+    TAtanTable< 1024, f32 > sAtanTable __attribute__((aligned(32)));
+    TAsinAcosTable< 1024, f32 > sAsinAcosTable __attribute__((aligned(32)));
 }

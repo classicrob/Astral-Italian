@@ -12,7 +12,7 @@ A native Apple Silicon Mac port of Super Mario Galaxy 2, built on the community 
 
 ### Known limits
 - Not a full-game completion claim: free movement and mission coverage are partial. Switch 2 Pro Controller does not work yet; Switch Pro layouts are untested with a physical pad.
-- On an M1, a warm relaunch shows more slow frames on the title screen than 5.4.1 (37 frames over 50 ms in the first 300 s, 5.4.1: 3; longest 150 ms; pacing, not compile work). A fix is planned.
+- On M1-class Macs the title screen can show intermittent bursts of slow frames on a relaunch (in our measurements 7-41 frames over 50 ms in the first 5 minutes, worst 70-600 ms); 5.4.1 shows the same intermittently, so it is not new in this build.
 - Rare gameplay stalls remain: one 258 ms frame in the VsKoopaLv1 Bowser battle galaxy and one 111 ms frame on the first visit to Sky Station.
 - The cold-start menu can still be slightly less even than 5.4.1 on some runs, though its worst frames are far better.
 - A direct boot into World 8's map galaxy crashes (not reachable in normal play).

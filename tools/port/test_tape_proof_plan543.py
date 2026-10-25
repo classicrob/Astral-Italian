@@ -10,6 +10,26 @@ from test_tape_power_audit import fixture as power_fixture
 from capture_schema2_tape import sha
 
 class ProofBindings(unittest.TestCase):
+    def test_native_plan_has_no_legacy_conversion_and_all_arms_bind_policy(self):
+        root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
+        with tempfile.TemporaryDirectory(prefix='native-plan-',dir=root) as temporary:
+            base=Path(temporary);builds=[]
+            for name in ('candidate','ref072','ref002'):
+                d=base/name;d.mkdir();builds.append(d)
+                (d/'BUILD.json').write_text(json.dumps(dict(source=name,build_host='SERVER' if name=='ref072' else 'M1',
+                    native_tests_passed=True,candidate_suite_passed=True)))
+            out=base/'plan'
+            plan(out,candidate=builds[0],reference072=builds[1],reference002=builds[2],schema2_only=True,power_protocol=True,native_script=True)
+            spec=json.loads((out/'PLAN.json').read_text())
+            self.assertEqual(spec['neutral_tail_policy'],'native-neutral-controls-v1')
+            self.assertEqual(len(spec['arms']),11)
+            self.assertEqual(spec['arms'][0]['name'],'record-native-ref072')
+            self.assertEqual(spec['arms'][0]['kind'],'native-recording')
+            self.assertTrue(spec['arms'][0]['tape'].endswith('worldmap-native543.script'))
+            self.assertFalse(any(a['kind'] in ('legacy','conversion') or 'tape-worldmap-54v2' in a['tape'] for a in spec['arms']))
+            self.assertIn('native-neutral-controls-v1.json',spec['source_hashes'])
+            self.assertEqual(spec['builds']['ref072']['kind'],'server-instrumented-reference')
+
     def test_power_conversion_native_report_is_bound_to_legacy_source(self):
         root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
         with tempfile.TemporaryDirectory(prefix='power-source-binding-',dir=root) as temporary:

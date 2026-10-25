@@ -105,16 +105,14 @@ def event_offset(report,event):
     return report['input_phases'][event['phase_id']]['frame_offset']
 
 
-def audit_session_controls(source_meta,meta,source_rows,rows,reads,report):
+def audit_session_controls(source_meta,meta,source_rows,rows,reads,report,neutral_policy="single-bootstrap-v1"):
     events=power_events(meta)
     if not events:return None
     tail=next((e for e in events if e['kind']=='neutral-tail-begin'),None)
     power=events[-1]
     if tail:
-        for read in reads:
-            if tail['before_input_frame']<=read['frame']<=power['after_route_row']:
-                need(payload(read)==payload(bootstrap(read['channel'],read['capacity'])),
-                     'non-neutral raw read inside declared observation tail')
+        from native_tape_record543 import audit_tail
+        audit_tail(meta,reads,neutral_policy)
     if source_meta.get('session_control_protocol'):
         original=power_events(source_meta);control=report.get('session_control') or {}
         need(len(events)==len(original)==len(control.get('events',[])),'captured control count differs')
@@ -385,7 +383,7 @@ def audit_native(report, meta):
         need(seen.get('checkpoints_required') == seen.get('checkpoints_checked') == len(want['checkpoints']), 'native map checkpoint accounting differs')
 
 
-def qualify(source, capture, report_path, map_path):
+def qualify(source, capture, report_path, map_path,neutral_policy="single-bootstrap-v1"):
     source, capture = Path(source), Path(capture)
     original_meta = load_meta(source/'route.tape.json')
     meta = load_meta(capture/'route.tape.json')
@@ -407,7 +405,7 @@ def qualify(source, capture, report_path, map_path):
     proof['exact_mod_action_frames'] = audit_actions(parse_actions((source/'route.actions').read_text()),
         actual_actions, mapping, original_meta['seams'], meta['seams'])
     checkpoints = audit_play_ready(original_meta, source_rows, meta, rows, report)
-    controls = audit_session_controls(original_meta,meta,source_rows,rows,actual,report)
+    controls = audit_session_controls(original_meta,meta,source_rows,rows,actual,report,neutral_policy)
     need(proof['exact_recorded_reads'] > 0, 'no source inputs captured')
     need(meta['kpd_reads'] == len(actual), 'capture metadata read count differs')
     for seg in report['segments']:
@@ -419,7 +417,7 @@ def qualify(source, capture, report_path, map_path):
     files += [(capture/n) for n in ('route.csv', 'route.kpd', 'route.tape.json', 'route.actions')]
     files += [Path(report_path), Path(map_path)]
     return dict(passed=True, source_schema=original_meta['schema'], captured_schema=2,
-                source_policy=report['anchor_policy'], policy=POLICY, **summary, **proof, play_ready_checkpoints=checkpoints,
+                source_policy=report['anchor_policy'], policy=POLICY, neutral_tail_policy=neutral_policy, **summary, **proof, play_ready_checkpoints=checkpoints,
                 session_control_proof=controls,
                 captured_phase_inputs=input_phase_evidence(meta, actual),
                 captured_non_interactive_gaps=input_gap_evidence(meta, actual),

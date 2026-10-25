@@ -1,0 +1,15 @@
+{
+  "policy": "native-neutral-controls-v1",
+  "origin": "native scripted schema-2 recording only; explicit plan, launch and proof lineage",
+  "tolerance": 0,
+  "buttons": "core hold/trig/release and extension button masks exactly zero",
+  "sticks_and_triggers": "every core/extension stick or trigger magnitude exactly zero, no deadzone; rest sign bits must remain byte-identical",
+  "motion": "core acc_speed, Nunchuk acc_speed and MPLS angular velocity exactly zero; every accel/gravity field byte-identical to first recorded rest sample",
+  "pointer": "dpd_valid_fg invalid/left for every sample",
+  "sample_constancy": "all 240 bytes per channel equal that channel's first tail sample, including extension union, MPLS and unk_EC",
+  "sample_field_exemptions": [],
+  "connection_constancy": ["probe", "device", "error", "capacity"],
+  "advancing_read_envelope_only": ["frame", "ordinal", "returned", "sample_count"],
+  "replay": "every retained raw byte/sample/connection compared exactly; no substitutions, normalization or metadata edits",
+  "legacy_conversion": "single-bootstrap-v1 remains unchanged"
+}

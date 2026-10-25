@@ -5,13 +5,17 @@
 #include <JSystem/JSupport/JSUMemoryInputStream.hpp>
 #include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
 
+namespace {
+    inline void clearWorldMapFlags(u8* flag, u8* end) {
+        do {
+            *flag = 0;
+            flag++;
+        } while (flag < end);
+    }
+}
+
 GameDataWorldMapStorage::GameDataWorldMapStorage() {
-    u8* pFlag = mPointFlag;
-    u8* pEnd = &mCurrentWorldNo;
-    do {
-        *pFlag = 0;
-        pFlag++;
-    } while (pFlag < pEnd);
+    clearWorldMapFlags(mPointFlag, &mCurrentWorldNo);
     initializeData();
 }
 

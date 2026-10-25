@@ -100,11 +100,18 @@ void WanwanCreator::create() {
     }
 }
 
-void WanwanCreator::exeActive() {
-    bool once = false;
-    if (mInterval < 0 || mType == 2) {
-        once = true;
+namespace {
+    inline bool isSingleWanwanCreation(const WanwanCreator& creator) {
+        bool once = false;
+        if (creator.mInterval < 0 || creator.mType == 2) {
+            once = true;
+        }
+        return once;
     }
+}
+
+void WanwanCreator::exeActive() {
+    bool once = isSingleWanwanCreation(*this);
     if (once || mTimer % mInterval == 0) {
         create();
         once = false;

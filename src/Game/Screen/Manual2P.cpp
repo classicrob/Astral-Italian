@@ -26,6 +26,10 @@ namespace NrvManual2P {
 #define MANUAL_NERVE(name) (&NrvManual2P::name::sInstance)
 
 namespace {
+    inline void initManualFrameCtrl(s16 frame, J3DFrameCtrl* const& controller) {
+        controller->init(frame);
+    }
+
     s32 countMessage(const char* pName) {
         s32 count = 0;
         char messageID[0x80];
@@ -66,7 +70,7 @@ void Manual2P::init(const JMapInfoIter& rIter) {
     mPageNum = ::countMessage("2PGuidance");
     MR::startPaneAnimAndSetFrameAndStop(this, "RightButton", "ButtonWait", 0.0f, 0);
     mButtonFrameCtrl = new J3DFrameCtrl;
-    mButtonFrameCtrl->init(static_cast<s16>(MR::getPaneAnimFrameMax(this, "RightButton", 0)));
+    initManualFrameCtrl(MR::getPaneAnimFrameMax(this, "RightButton", 0), mButtonFrameCtrl);
     mLeftPaneCtrl->mFrameCtrl = mButtonFrameCtrl;
     mRightPaneCtrl->mFrameCtrl = mButtonFrameCtrl;
 }

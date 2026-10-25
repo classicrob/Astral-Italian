@@ -71,6 +71,10 @@ namespace {
         {0},
     };
 
+    inline bool isEventFlagIndexValid(s32 index, const s32& length) {
+        return index < length;
+    }
+
     struct GameEventFlagSortLt {
         bool operator()(GameEventFlagTableInstance::Key& key1, GameEventFlagTableInstance::Key& key2) {
             return (key1.mHashCode < key2.mHashCode) ? true : false;
@@ -137,7 +141,7 @@ void GameEventFlagTableInstance::initSortTable() {
     mSortTable = new GameEventFlagTableInstance::Key[GameEventFlagTable::getTableSize()];
     mLength = GameEventFlagTable::getTableSize();
 
-    for (int i = 0; i < mLength; i++) {
+    for (int i = 0; isEventFlagIndexValid(i, mLength); i++) {
         const GameEventFlag* pFlag = GameEventFlagTable::getFlag(i);
 
         mSortTable[i].mFlag = pFlag;

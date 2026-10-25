@@ -48,9 +48,19 @@ bool MessageSystem::isExistMessage(const char* pMessageId, const MessageData* pD
     return isFound;
 }
 
+namespace {
+    inline bool isExistGameMessageInHolder(const char* messageId, const GameSystemObjHolder& holder, s32 index) {
+        return MessageSystem::isExistMessage(messageId, holder.mMessageHolder->mGameMessageDatas[index]);
+    }
+
+    inline bool isExistSceneMessageInHolder(const char* messageId, const GameSystemObjHolder& holder, s32 index) {
+        return MessageSystem::isExistMessage(messageId, holder.mMessageHolder->mSceneCommonMessageDatas[index]);
+    }
+}
+
 bool MessageSystem::isExistGameMessage(const char* pMessageId) {
     for (s32 i = 0; i < MR::getGameSystemObjHolder()->mMessageHolder->mGameMessageNum; i++) {
-        if (isExistMessage(pMessageId, MR::getGameSystemObjHolder()->mMessageHolder->mGameMessageDatas[i])) {
+        if (isExistGameMessageInHolder(pMessageId, *MR::getGameSystemObjHolder(), i)) {
             return true;
         }
     }
@@ -60,7 +70,7 @@ bool MessageSystem::isExistGameMessage(const char* pMessageId) {
 
 bool MessageSystem::isExistSceneMessage(const char* pMessageId) {
     for (s32 i = 0; i < MR::getGameSystemObjHolder()->mMessageHolder->mSceneCommonMessageNum; i++) {
-        if (isExistMessage(pMessageId, MR::getGameSystemObjHolder()->mMessageHolder->mSceneCommonMessageDatas[i])) {
+        if (isExistSceneMessageInHolder(pMessageId, *MR::getGameSystemObjHolder(), i)) {
             return true;
         }
     }

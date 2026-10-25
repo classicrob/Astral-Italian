@@ -289,13 +289,19 @@ DemoAstroPlanet::DemoAstroPlanet(const char* pName, MtxPtr pMtx)
     }
 }
 
+namespace {
+    inline void initAstroPlanetJoint(DemoAstroPlanet* planet, const char* jointName,
+                                    const JointControlDelegator< DemoAstroPlanet >::func& calcFunc) {
+        JointControlDelegator< DemoAstroPlanet >* pDelegator = new JointControlDelegator< DemoAstroPlanet >(planet, calcFunc, NULL);
+        MR::setJointControllerParam(pDelegator, planet, jointName);
+        planet->mJointController = pDelegator;
+    }
+}
+
 void DemoAstroPlanet::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "DemoAstroPlanet", false);
-
     JointControlDelegator< DemoAstroPlanet >::func calcFunc = &DemoAstroPlanet::calcJointMatrix;
-    JointControlDelegator< DemoAstroPlanet >* pDelegator = new JointControlDelegator< DemoAstroPlanet >(this, calcFunc, NULL);
-    MR::setJointControllerParam(pDelegator, this, "Model");
-    mJointController = pDelegator;
+    initAstroPlanetJoint(this, "Model", calcFunc);
 
     makeActorAppeared();
 }

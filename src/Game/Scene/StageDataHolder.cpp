@@ -22,6 +22,11 @@
 template JMapInfoIter JMapInfo::findElement< s32 >(const char*, s32, int) const;
 
 namespace {
+    inline void initSelectedStageLayers(u32 scenarioLayers, StageDataArchiveHolder* const& archive,
+                                       MR::BothDirList<JMapInfo>* list, const char* directory, const u32& commonLayers) {
+        archive->initLayerJmpInfo(list, directory, commonLayers | scenarioLayers);
+    }
+
     static const char* cLayerDirName[0x11] = {"Common", "LayerA", "LayerB", "LayerC", "LayerD", "LayerE", "LayerF", "LayerG", "LayerH",
                                               "LayerI", "LayerJ", "LayerK", "LayerL", "LayerM", "LayerN", "LayerO", "LayerP"};
 };  // namespace
@@ -450,10 +455,12 @@ JMapInfoIter StageDataHolder::makeCurrentMarioJMapInfoIter() const {
 }
 
 void StageDataHolder::initAllLayerJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir) {
+    const char* pStageName;
     s32 scenarioNo = MR::getCurrentScenarioNo();
-    const char* pStageName = mStageName;
+    pStageName = mStageName;
     u32 commonLayers = ScenarioDataFunction::getCurrentCommonLayers(pStageName);
-    mArchiveHolder->initLayerJmpInfo(pList, pDir, commonLayers | ScenarioDataFunction::getCurrentScenarioLayers(pStageName, scenarioNo));
+    initSelectedStageLayers(ScenarioDataFunction::getCurrentScenarioLayers(pStageName, scenarioNo), mArchiveHolder,
+                            pList, pDir, commonLayers);
 }
 
 void StageDataHolder::initTableData() {

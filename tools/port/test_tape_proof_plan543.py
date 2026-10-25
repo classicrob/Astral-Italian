@@ -16,7 +16,7 @@ class ProofBindings(unittest.TestCase):
             for name in ('candidate','ref072','ref002'):
                 directory=base/name;directory.mkdir();builds.append(directory)
                 (directory/'BUILD.json').write_text(json.dumps(dict(source=name,build_host='M1',
-                    native_tests_passed=True,full_ctest_passed=True)))
+                    native_tests_passed=True,candidate_suite_passed=True)))
             out=base/'plan'
             plan(out,candidate=builds[0],reference072=builds[1],reference002=builds[2],
                  schema2_only=True,power_protocol=True)
@@ -30,7 +30,7 @@ class ProofBindings(unittest.TestCase):
                 if a['name'].startswith('reciprocal'):
                     self.assertEqual(a['tape'],str(out/'runs/matrix-ref002-fresh'))
             (builds[0]/'BUILD.json').write_text(json.dumps(dict(source='bad',build_host='M1',
-                native_tests_passed=True,full_ctest_passed=False)))
+                native_tests_passed=True,candidate_suite_passed=False)))
             with self.assertRaises(RuntimeError):
                 plan(base/'bad',candidate=builds[0],reference072=builds[1],reference002=builds[2],
                      schema2_only=True,power_protocol=True)

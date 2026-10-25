@@ -140,7 +140,7 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
             if power_protocol:
                 need(build_metadata.get('build_host')=='M1' and build_metadata.get('native_tests_passed') is True,
                      'power proof requires tested M1 builds')
-                if key=='candidate':need(build_metadata.get('full_ctest_passed') is True,'candidate requires full ctest')
+                if key=='candidate':need(build_metadata.get('candidate_suite_passed') is True,'candidate requires the PORT-defined candidate admission suite')
                 kind='M1-instrumented-reference' if key.startswith('ref') else 'M1-candidate'
             builds[key]=(directory,kind,build_metadata['source'])
     out.mkdir(parents=True);harness=out/'harness';harness.mkdir()

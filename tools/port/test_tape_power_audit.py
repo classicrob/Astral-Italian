@@ -54,8 +54,7 @@ class PowerAudit(unittest.TestCase):
         with self.assertRaises(ValueError):audit_inputs(canonical,actual,[],report,meta)
 
     def test_duplicate_json_ordering_cannot_be_silently_selected(self):
-        root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
-        with tempfile.TemporaryDirectory(prefix='power-json-unit-',dir=root) as temp:
+        with tempfile.TemporaryDirectory(prefix='power-json-unit-') as temp:
             path=Path(temp)/'meta.json';text=json.dumps(fixture())
             path.write_text(text.replace('"after_route_row": 5','"after_route_row": 5, "after_route_row": 5'))
             with self.assertRaises(ValueError):load_meta(path)

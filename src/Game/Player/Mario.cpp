@@ -3177,13 +3177,11 @@ void Mario::fn_803896E0() {
 }
 
 namespace {
-    inline TVec3f calcSlipCorrection(const TVec3f& difference, f32 component) {
-        TVec3f half(difference);
-        half *= 0.5f;
+    inline void applySlipCorrection(TVec3f& velocity, const TVec3f& half, f32 component) {
         f32 magnitude = MR::abs(component);
         TVec3f correction(half);
         correction *= magnitude;
-        return correction;
+        velocity += correction;
     }
 }
 
@@ -3196,7 +3194,7 @@ void Mario::fn_803897A0() {
         return;
     }
     f32 component = MR::vecKillElement(mVelocity, *_460->getNormal(0), &mVelocity);
-    mVelocity += calcSlipCorrection(_368 - *_460->getNormal(0), component);
+    applySlipCorrection(mVelocity, (_368 - *_460->getNormal(0)) * 0.5f, component);
 }
 
 // NONMATCHING: independent load scheduling and temporary/register allocation.
@@ -3480,7 +3478,7 @@ void Mario::fn_8038A560(f32 (*arg1)[4], s32 arg2) {
     }
 }
 
-// NONMATCHING: temporary/register allocation and discarded comparison bookkeeping.
+// NONMATCHING: comparison-result register allocation.
 void Mario::fn_8038A600() {
     HitSensor* sensor = mActor->_470;
     if (isAnimationRun("投げ")) {
@@ -3506,18 +3504,20 @@ void Mario::fn_8038A600() {
             TVec3f projected;
             MR::vecKillElement(direction, up, &projected);
             if (!MR::normalizeOrZero(&projected)) {
+                f32 zero;
                 f32 angle = JMAAcosRadian(projected.dot(front));
                 TVec3f cross;
                 PSVECCrossProduct(&front, &projected, &cross);
                 if (cross.dot(up) < 0.0f) {
                     angle = -angle;
                 }
-                JMAAcosRadian(projected.dot(direction));
+                f32 pitchAngle = JMAAcosRadian(projected.dot(direction));
                 bool positive = direction.dot(up) >= 0.0f;
                 bool narrow = MR::abs(angle) < 1.5707964f;
-                bool differs = positive != narrow;
-                (void)differs;
-                f32 zero = 0.0f;
+                if (!(narrow ^ positive)) {
+                    pitchAngle = -pitchAngle;
+                }
+                zero = 0.0f;
                 f32 limit = 0.1f * this->_406;
                 if (limit > 1.0471976f) {
                     limit = 1.0471976f;
@@ -4740,7 +4740,36 @@ void Mario::checkBaseTransPoint() {
     for(u32 i=0;i<count;i++) fn_8038E1A0(fn_803B2AA0(i),inside);
 }
 
-// NONMATCHING: the wall-contact push-out is approximated
+namespace {
+inline void resolveMarioWallContact(Mario& mario, const HitInfo* hit, const TVec3f& normal, s32 inside) {
+    f32 alignment = normal.dot(mario._368);
+    if (!MR::isNearZero(alignment, 0.3f) || inside != 0) {
+        TVec3f movement(mario._16C);
+        MR::normalizeOrZero(&movement);
+        TVec3f inward = -normal;
+        if (!(movement.dot(inward) < 0.707f)) {
+            f32 approach = mario._16C.dot(normal);
+            if (!(MR::abs(approach) < hit->mDistance) && !MR::isNearZero(hit->mDistance, 1.01f)) {
+                const TVec3f& position = mario.mPosHolder->mPos;
+                TVec3f offset(hit->mHitPos);
+                offset -= position;
+                if (!(offset.dot(mario.mHeadVec) < 0.0f)) {
+                    f32 pushDistance = hit->mDistance - 1.0f;
+                    TVec3f push(normal);
+                    push *= pushDistance;
+                    mario.addTrans(push);
+                    u32 flags = mario.mMovementStates.mLowWord;
+                    if (!((flags >> 30) & 1) && (flags >> 31) != 0 && !mario.isRising() && normal.dot(*mario.getGravityVec()) < -0.99f) {
+                        mario.addVelocity(mario.mFrontVec, 5.0f);
+                    }
+                }
+            }
+        }
+    }
+}
+}
+
+// NONMATCHING: wall-response vector stack slots.
 void Mario::fn_8038E1A0(const HitInfo* hit, s32 inside) {
     const Triangle* tri = &hit->mParentTriangle;
     if (MR::isThroughPolygon(tri) || this->isThroughWall(tri)) {
@@ -4751,30 +4780,7 @@ void Mario::fn_8038E1A0(const HitInfo* hit, s32 inside) {
         return;
     }
     const TVec3f& normal = *tri->getNormal(0);
-    f32 alignment = normal.dot(this->_368);
-    if (!MR::isNearZero(alignment, 0.3f) || inside != 0) {
-        TVec3f movement(this->_16C);
-        MR::normalizeOrZero(&movement);
-        TVec3f inward = -normal;
-        if (!(movement.dot(inward) < 0.707f)) {
-            f32 approach = this->_16C.dot(normal);
-            if (!(MR::abs(approach) < hit->mDistance) && !MR::isNearZero(hit->mDistance, 1.01f)) {
-                const TVec3f& position = this->mPosHolder->mPos;
-                TVec3f offset(hit->mHitPos);
-                offset -= position;
-                if (!(offset.dot(this->mHeadVec) < 0.0f)) {
-                    f32 pushDistance = hit->mDistance - 1.0f;
-                    TVec3f push(normal);
-                    push *= pushDistance;
-                    this->addTrans(push);
-                    u32 flags = this->mMovementStates.mLowWord;
-                    if (!((flags >> 30) & 1) && (flags >> 31) != 0 && !this->isRising() && normal.dot(*this->getGravityVec()) < -0.99f) {
-                        this->addVelocity(this->mFrontVec, 5.0f);
-                    }
-                }
-            }
-        }
-    }
+    resolveMarioWallContact(*this, hit, normal, inside);
 }
 
 void Mario::checkHeadPoint() {
@@ -5630,22 +5636,32 @@ void Mario::fn_803912D0(const HitInfo* hit, const TVec3f& normal, const TVec3f& 
     }
 }
 
-// NONMATCHING: register allocation and position-reference load scheduling.
+namespace {
+inline bool isMarioWallSlopeSteep(Mario& mario, const TVec3f& normal, const TVec3f& direction, const TVec3f& fromBase, f32 angle) {
+    bool flat;
+    bool inFront;
+    bool slip;
+    bool result;
+    result = false;
+    slip = false;
+    inFront = false;
+    flat = false;
+    if (angle >= mario.mActor->getConst().getTable()->mFlatAngle && direction.dot(mario.mFrontVec) > 0.0f) flat = true;
+    if (flat && fromBase.dot(mario.mFrontVec) > 0.0f) inFront = true;
+    if (inFront && mario.calcAngleD(normal) <= mario.mActor->getConst().getTable()->mSlipAngle) slip = true;
+    if (slip && MR::diffAngleAbs(mario._368, normal) > 30.0f) result = true;
+    return result;
+}
+}
+
+// NONMATCHING: position-reference register allocation.
 bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& direction) {
     f32 angle = 180.0f * (marioAcos(-getGravityVec()->dot(normal)) / 3.14159f);
     const TVec3f& position = mPosHolder->mPos;
     TVec3f fromBase(hit->mHitPos);
     fromBase.sub(position);
     MR::normalizeOrZero(&fromBase);
-    bool inFront = false;
-    bool result = false;
-    bool slip = false;
-    bool flat = false;
-    if (angle >= mActor->getConst().getTable()->mFlatAngle && direction.dot(mFrontVec) > 0.0f) flat = true;
-    if (flat && fromBase.dot(mFrontVec) > 0.0f) inFront = true;
-    if (inFront && calcAngleD(normal) <= mActor->getConst().getTable()->mSlipAngle) slip = true;
-    if (slip && MR::diffAngleAbs(_368, normal) > 30.0f) result = true;
-    return result;
+    return isMarioWallSlopeSteep(*this, normal, direction, fromBase, angle);
 }
 
 bool Mario::isThroughWall(const Triangle* pTriangle) const {

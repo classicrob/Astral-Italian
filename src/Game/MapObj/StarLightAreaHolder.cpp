@@ -1,16 +1,14 @@
-#pragma auto_inline off
 #include "Game/MapObj/StarLightAreaHolder.hpp"
 #include "Game/MapObj/ClipArea.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
-StarLightAreaHolder::StarLightAreaHolder(const char* name) : DeriveActorGroup<ClipArea>(name,64), mReceivers(), mReceiverCount(0) {
+StarLightAreaHolder::StarLightAreaHolder(const char* name) : DeriveActorGroup<ClipArea>(name,64), mReceivers() {
     mReceivers.init(256);
 }
-// NONMATCHING: target retains an impossible null check on the array member address.
 StarLightAreaHolder::~StarLightAreaHolder() {}
 void StarLightAreaHolder::init(const JMapInfoIter&) { MR::connectToSceneAreaObj(this); }
 void StarLightAreaHolder::movement() {
-    const s32 count = mReceiverCount;
+    const s32 count = mReceivers.mCount;
     for (s32 i=0; i<count; i++) {
         HitSensor* sensor = mReceivers[i];
         if (isInStarLight(*MR::getSensorPos(sensor))) MR::sendArbitraryMsg(0xCD,sensor,MR::getMessageSensor());
@@ -26,7 +24,7 @@ bool StarLightAreaHolder::isInStarLight(const TVec3f& position) {
 }
 bool StarLightAreaHolder::tryRegisterReceiver(HitSensor* sensor) {
     if (!MR::isInAreaObj("ClipDrawArea",*MR::getSensorPos(sensor))) return false;
-    mReceivers[mReceiverCount++] = sensor;
+    mReceivers[mReceivers.mCount++] = sensor;
     return true;
 }
 namespace MR {

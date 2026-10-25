@@ -26,6 +26,7 @@ public:
     void exeOpen();
     void exeOpenEnd();
     void exeDemoCamera();
+    void exeDemoPuppet();
     void exeDemoIn();
     void exeDemoEnd();
 

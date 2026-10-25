@@ -285,11 +285,6 @@ Game/Util/ObjUtil.cpp:
 	.sdata      start:0x807CF407 end:0x807CF408 skip
 	.sdata2     start:0x807D70B0 end:0x807D70D8
 
-Game/Util/PlayerGhostData.cpp:
-	.data       start:0x8065EE40 end:0x80669070
-	.sdata      start:0x807CF408 end:0x807CF40D
-	.sdata      start:0x807CF40D end:0x807CF410 skip
-
 Game/Util/ParabolicPath.cpp:
 	.text       start:0x8004EA20 end:0x8004EFA0
 	.rodata     start:0x80645268 end:0x80645270
@@ -297,10 +292,13 @@ Game/Util/ParabolicPath.cpp:
 
 Game/Util/PlayerUtil.cpp:
 	.text       start:0x8004EFA0 end:0x80051970
-	.data       start:0x80669070 end:0x80669148
-	.sdata      start:0x807CF410 end:0x807CF413
+	.data       start:0x8065EE40 end:0x80669141
+	.sdata      start:0x807CF408 end:0x807CF413
 	.sdata      start:0x807CF413 end:0x807CF418 skip
 	.sdata2     start:0x807D70E8 end:0x807D7108
+
+auto_07_80669141_data:
+	.data       start:0x80669141 end:0x80669148 align:1
 
 Game/Util/RailGraphUtil.cpp:
 	.text       start:0x80051970 end:0x80051F20
@@ -1981,6 +1979,9 @@ Game/Boss/KoopaJrRobotTU18.cpp:
 auto_10_807D184C_sbss:
 	.sbss       start:0x807D184C end:0x807D1850 align:4
 
+auto_09_807CF5F4_sdata:
+	.sdata      start:0x807CF5F4 end:0x807CF5F8 align:4
+
 Game/Boss/KoopaJrRobotTU19.cpp:
 	.text       start:0x800E50A0 end:0x800E58D0
 	.ctors      start:0x80643F10 end:0x80643F14
@@ -1993,6 +1994,7 @@ auto_10_807D185C_sbss:
 Game/Boss/KoopaJrRobotTU20.cpp:
 	.text       start:0x800E58D0 end:0x800E5C90
 	.ctors      start:0x80643F14 end:0x80643F18
+	.data       start:0x80676F38 end:0x80677010
 	.sbss       start:0x807D1860 end:0x807D186C
 
 auto_10_807D186C_sbss:
@@ -2001,11 +2003,16 @@ auto_10_807D186C_sbss:
 Game/Boss/KoopaSealField.cpp:
 	.text       start:0x800E5C90 end:0x800E6800
 	.ctors      start:0x80643F18 end:0x80643F1C
+	.data       start:0x80677010 end:0x80677278
+	.sdata      start:0x807CF5F8 end:0x807CF5FC
 	.sbss       start:0x807D1870 end:0x807D188C
 	.sdata2     start:0x807D8698 end:0x807D86A0
 
 auto_10_807D188C_sbss:
 	.sbss       start:0x807D188C end:0x807D1890 align:4
+
+auto_09_807CF5FC_sdata:
+	.sdata      start:0x807CF5FC end:0x807CF600 align:4
 
 Game/Boss/KoopaStateBase.cpp:
 	.text       start:0x800E6800 end:0x800E68C0
@@ -5016,9 +5023,15 @@ auto_09_807CFA2C_sdata:
 
 Game/LiveActor/ActorPadAndCameraCtrl.cpp:
 	.text       start:0x8022A020 end:0x8022A580
-	.data       start:0x80694890 end:0x80694978
-	.sdata      start:0x807CFA30 end:0x807CFA38
+	.data       start:0x80694890 end:0x80694973
+	.sdata      start:0x807CFA30 end:0x807CFA34
 	.sdata2     start:0x807DC358 end:0x807DC360
+
+auto_09_807CFA34_sdata:
+	.sdata      start:0x807CFA34 end:0x807CFA38 align:4
+
+auto_07_80694973_data:
+	.data       start:0x80694973 end:0x80694978 align:1
 
 Game/LiveActor/ActionScreenBlurCtrl.cpp:
 	.text       start:0x8022A580 end:0x8022A8D0
@@ -5725,24 +5738,11 @@ Game/Map/AnmModelSwitchMove.cpp:
 	.text       start:0x80261E10 end:0x80261FD0
 
 Game/Map/ProductMapCreator.cpp:
-	.text       start:0x80261FD0 end:0x802630D0
+	.text       start:0x80261FD0 end:0x80263410
 	.rodata     start:0x80648EF8 end:0x80649070
-	.data       start:0x8069957C end:0x80699598
-	.sdata2     start:0x807DC954 end:0x807DC95C
-
-Game/Effect/EffectObj10x10x10SyncClipping.cpp:
-	.text       start:0x802630D0 end:0x80263130
-	.sdata2     start:0x807DC95C end:0x807DC960
-
-Game/Effect/EffectObj50x50x10SyncClipping.cpp:
-	.text       start:0x80263130 end:0x80263190
-	.sdata2     start:0x807DC96C end:0x807DC970
-
-Game/Effect/EffectObj20x20x10SyncClipping.cpp:
-	.text       start:0x80263190 end:0x80263230
-
-Game/Effect/EffectObjR1000F50.cpp:
-	.text       start:0x802633B0 end:0x80263410
+	.data       start:0x80699140 end:0x80699598
+	.sdata      start:0x807CFB70 end:0x807CFB78
+	.sdata2     start:0x807DC950 end:0x807DC978
 
 Game/Effect/EffectObjR1500F400.cpp:
 	.text       start:0x80263410 end:0x80263590

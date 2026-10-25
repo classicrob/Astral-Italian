@@ -1,4 +1,1 @@
-#include "Game/Effect/EffectObjR1000F50.hpp"
-
-EffectObjR1000F50::~EffectObjR1000F50() {
-}
+// Factory-instantiated effect definitions are in Game/Map/ProductMapCreator.cpp.

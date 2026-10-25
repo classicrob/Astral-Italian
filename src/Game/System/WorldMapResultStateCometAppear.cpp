@@ -3,11 +3,10 @@
 #include "Game/System/WorldMapResultLocal.hpp"
 
 WorldMapResultStateCometAppear::WorldMapResultStateCometAppear(WorldMapResultCommand* pHost)
-    : ActorStateBase< WorldMapResultCommand >("State[コメット飛来]", pHost), mDone(false), mComet(nullptr), mNames(), mNum(0),
+    : ActorStateBase< WorldMapResultCommand >("State[コメット飛来]", pHost), mDone(false), mComet(nullptr), mNames(),
       mCurrent(0), mFrom(0.0f, 0.0f, 0.0f), mTo(0.0f, 0.0f, 100.0f) {
 }
 
-// NONMATCHING: regalloc; target retains redundant null check for embedded owned array (FP order/grouping checked: no FP instructions).
 WorldMapResultStateCometAppear::~WorldMapResultStateCometAppear() {
 }
 
@@ -45,8 +44,8 @@ void WorldMapResultStateCometAppear::init() {
                 const char* pName = accessor.getName();
 
                 if (GameSequenceFunction::isNewlyOpenedGalaxyAtResult(pName)) {
-                    s32 idx = mNum;
-                    mNum = idx + 1;
+                    s32 idx = mNames.mCount;
+                    mNames.mCount = idx + 1;
                     mNames[idx] = pName;
                     mHost->endGalaxyPointingAnim(pName, idx);
                 }
@@ -88,7 +87,7 @@ void WorldMapResultStateCometAppear::kill() {
 }
 
 bool WorldMapResultStateCometAppear::hasComets() const {
-    return mNum > 0;
+    return mNames.mCount > 0;
 }
 
 const char* WorldMapResultStateCometAppear::getCurrentComet() const {
@@ -175,7 +174,7 @@ void WorldMapResultStateCometAppear::exeMove() {
     if (MR::isGreaterEqualStep(this, 150)) {
         u32 next = mCurrent + 1;
 
-        if (next < mNum) {
+        if (next < mNames.mCount) {
             mCurrent = next;
             WorldMapResultCommand* pHost = mHost;
             s32 world = WorldMapFunction::getGalaxyWorldNo(getCurrentComet());

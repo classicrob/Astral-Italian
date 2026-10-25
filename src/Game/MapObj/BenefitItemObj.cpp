@@ -44,7 +44,7 @@ namespace NrvBenefitItemObj {
 };  // namespace NrvBenefitItemObj
 
 namespace {
-    static f32 cSpdRotateY = JGeometry::TUtil< f32 >::PI() / 60.0f;
+    static const f32 cSpdRotateY = JGeometry::TUtil< f32 >::PI() / 60.0f;
 };  // namespace
 
 BenefitItemObj::BenefitItemObj(const char* pName, const char* pModelName)

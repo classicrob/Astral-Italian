@@ -109,6 +109,6 @@ public:
 class AnmModelSwitchMoveInvalidateCollision : public AnmModelSwitchMove {
 public:
     AnmModelSwitchMoveInvalidateCollision(const char* name) : AnmModelSwitchMove(name) {}
-    virtual ~AnmModelSwitchMoveInvalidateCollision();
-    virtual bool isInvalidateCollision() const;
+    virtual ~AnmModelSwitchMoveInvalidateCollision() {}
+    virtual bool isInvalidateCollision() const { return true; }
 };

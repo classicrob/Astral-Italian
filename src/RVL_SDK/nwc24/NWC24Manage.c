@@ -7,7 +7,7 @@ typedef enum { NWC24_LIB_CLOSED, NWC24_LIB_OPENED, NWC24_LIB_OPENED_BY_TOOL, NWC
 
 typedef enum { NWC24_FAIL_SFL = 1 << 0, NWC24_FAIL_DL_TASK = 1 << 1, NWC24_FAIL_FATAL = 1 << 2 } NWC24FailFlag;
 
-const char* __NWC24Version = "<< RVL_SDK - NWC24 	release build: Dec 10 2007 10:02:25 (0x4199_60831) >>";
+const char* __NWC24Version = "<< RVL_SDK - NWC24 	release build: Jun  9 2009 11:59:51 (0x4199_60831) >>";
 
 NWC24iWork* NWC24WorkP = NULL;
 
@@ -137,6 +137,7 @@ static NWC24Err NWC24OpenLibInternal(NWC24iWork* pWork, NWC24LibState state) {
     case NWC24_ERR_INTERNAL_IPC:
     case NWC24_ERR_NAND_CORRUPT:
     case NWC24_ERR_INPROGRESS:
+    case NWC24_ERR_VER_MISMATCH:
     case NWC24_ERR_BUSY:
     case NWC24_ERR_MUTEX:
     case NWC24_ERR_FILE_OTHER:

@@ -160,13 +160,11 @@ void TeresaAtomic::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFrontVec);
 }
 
-// NONMATCHING: same inlined TVec3 operator- pointer-register residue (&ret in callee-saved reg in the target).
 bool TeresaAtomic::isPlayerFacingTeresa() {
     TVec3f front;
     MR::getPlayerFrontVec(&front);
     TVec3f* pPlayerPos = MR::getPlayerPos();
-    TVec3f diff = this->mPosition - *pPlayerPos;
-    return MR::diffAngleAbs(front, diff) < 0.87266463f;
+    return MR::diffAngleAbs(front, mPosition - *pPlayerPos) < 0.87266463f;
 }
 
 bool TeresaAtomic::isEnableAttack() const {

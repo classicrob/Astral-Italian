@@ -1485,7 +1485,6 @@ config.libs = [
             Object(NonMatching, "Game/MapObj/ChangeAlphaObj.cpp"),
             Object(NonMatching, "Game/MapObj/ChangeRoom.cpp"),
             Object(NonMatching, "Game/MapObj/ChimneyEntryObj.cpp"),
-            Object(NonMatching, "Game/MapObj/ClipAreaShapeCone.cpp"),
             Object(NonMatching, "Game/MapObj/CloudSea.cpp"),
             Object(NonMatching, "Game/MapObj/CloudStep.cpp"),
             Object(NonMatching, "Game/MapObj/CoinAppearSpot.cpp"),

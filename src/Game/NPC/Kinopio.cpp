@@ -1,4 +1,3 @@
-// NONMATCHING: init callback lifetime/register allocation and scalar versus paired-single stores; faceToPlayer register allocation; other residuals are literal aliases.
 #pragma auto_inline off
 
 #include "Game/NPC/Kinopio.hpp"
@@ -580,9 +579,7 @@ void Kinopio::faceToVector(const TVec3f& rDirection, f32 turnLimit) {
 }
 
 void Kinopio::faceToPlayer(f32 turnLimit) {
-    TVec3f direction(*MR::getPlayerPos());
-    direction.sub(mPosition);
-    faceToVector(direction, turnLimit);
+    faceToVector(*MR::getPlayerPos() - mPosition, turnLimit);
 }
 
 void Kinopio::faceToDefault(f32 turnLimit) {

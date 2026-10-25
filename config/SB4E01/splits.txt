@@ -74,10 +74,13 @@ Game/Util/ActorSwitchUtil.cpp:
 
 Game/Util/BgmUtil.cpp:
 	.text       start:0x8001AC70 end:0x8001C430
-	.data       start:0x8065D278 end:0x8065D5B0
+	.data       start:0x8065D278 end:0x8065D5AF
 	.sdata      start:0x807CF338 end:0x807CF339
 	.sdata      start:0x807CF339 end:0x807CF340 skip
 	.sdata2     start:0x807D6D90 end:0x807D6DB0
+
+auto_07_8065D5AF_data:
+	.data       start:0x8065D5AF end:0x8065D5B0 align:1
 
 Game/Util/BitArray.cpp:
 	.text       start:0x8001C430 end:0x8001C530
@@ -6217,10 +6220,7 @@ Game/MapObj/ClipAreaMovable.cpp:
 	.data       start:0x8069DC98 end:0x8069DD20
 
 Game/MapObj/ClipAreaShape.cpp:
-	.text       start:0x80286EA0 end:0x802876E0
-
-Game/MapObj/ClipAreaShapeCone.cpp:
-	.text       start:0x802876E0 end:0x80287790
+	.text       start:0x80286EA0 end:0x80287790
 
 Game/MapObj/ClipFieldFillDraw.cpp:
 	.text       start:0x80287790 end:0x80287D20

@@ -21,8 +21,10 @@ namespace NrvUnbabaSlim {
     UnbabaSlimNrvEatEnd UnbabaSlimNrvEatEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvUnbabaSlim
 
-// NONMATCHING: static initialization differs in scheduling and literal-base register setup.
-TVec3f sUnbabaVec[4] = {TVec3f(0.0f, 4500.0f, 600.0f), TVec3f(1.1f, 1.25f, 1.1f), TVec3f(100.0f, -150.0f, 0.0f), TVec3f(0.08f, 0.08f, 0.08f)};
+TVec3f sGroundOffset(0.0f, 4500.0f, 600.0f);
+TVec3f sHeadScale(1.1f, 1.25f, 1.1f);
+TVec3f sHeadOffset(100.0f, -150.0f, 0.0f);
+TVec3f sVolumeScale(0.08f, 0.08f, 0.08f);
 
 void NrvUnbabaSlim::UnbabaSlimNrvWait::execute(Spine* pSpine) const {
     static_cast< UnbabaSlim* >(pSpine->mExecutor)->exeWait();
@@ -110,7 +112,7 @@ void UnbabaSlim::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "UnbabaSlim");
     }
-    if (probeGroundAt(&sUnbabaVec[0])) {
+    if (probeGroundAt(&sGroundOffset)) {
         setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEatStart::sInstance);
     }
 }
@@ -130,7 +132,7 @@ void UnbabaSlim::exeEat() {
         mEatCount = 1;
     }
     if (MR::isGreaterStep(this, 15)) {
-        TVec3f sp8(sUnbabaVec[0]);
+        TVec3f sp8(sGroundOffset);
         sp8.z = -sp8.z;
         if (!probeGroundAt(&sp8)) {
             if (mEatCount == 0) {
@@ -183,14 +185,13 @@ void UnbabaSlim::updateRotatingBaseMtx() {
 }
 
 void UnbabaSlim::calcHeadDrawMtx() {
-    const TVec3f* vectors = sUnbabaVec;
     mMtx.setInline(MR::getJointMtx(this, "Head"));
-    MR::addTransMtxLocal(mMtx, vectors[2]);
-    MR::preScaleMtx(mMtx, vectors[1] * 5.0f);
+    MR::addTransMtxLocal(mMtx, sHeadOffset);
+    MR::preScaleMtx(mMtx, sHeadScale * 5.0f);
     static const GXColor color = {0x8C, 0x28, 0x00, 0x87};
     mVolumeDrawer->setColor(color);
     mVolumeDrawer->setDrawPasses(2);
-    mVolumeDrawer->setScale(vectors[3]);
+    mVolumeDrawer->setScale(sVolumeScale);
 }
 
 void UnbabaSlim::initRotator(const JMapInfoIter& rIter) {

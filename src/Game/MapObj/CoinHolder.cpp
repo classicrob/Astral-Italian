@@ -88,17 +88,12 @@ bool CoinHolder::hopCoin(const NameObj* pObj, const TVec3f& rPosition, const TVe
     return false;
 }
 
-// NONMATCHING: vector-constructor argument setup order differs.
 bool CoinHolder::appearCoinPop(const NameObj* pObj, const TVec3f& rPosition, s32 count) {
     TVec3f gravity;
     MR::calcGravityVector(this, rPosition, &gravity, nullptr, 0);
     TVec3f velocity = -gravity * ::sCoinVelVertical;
 
-    f32 randomVelocity = 0.0f;
-    if (count != 1) {
-        randomVelocity = ::sRandomizeVel;
-    }
-    return appearCoin(pObj, rPosition, velocity, count, -1, -1, randomVelocity);
+    return appearCoin(pObj, rPosition, velocity, count, -1, -1, count == 1 ? 0.0f : ::sRandomizeVel);
 }
 
 bool CoinHolder::appearCoinPopToDirection(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rDirection, s32 count) {
@@ -115,11 +110,7 @@ bool CoinHolder::appearCoinAgainstGravity(const NameObj* pObj, const TVec3f& rPo
 }
 
 bool CoinHolder::appearCoinToVelocity(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity, s32 count) {
-    f32 randomVelocity = 0.0f;
-    if (count != 1) {
-        randomVelocity = ::sRandomizeVel;
-    }
-    return appearCoin(pObj, rPosition, rVelocity, count, -1, -1, randomVelocity);
+    return appearCoin(pObj, rPosition, rVelocity, count, -1, -1, count == 1 ? 0.0f : ::sRandomizeVel);
 }
 
 bool CoinHolder::appearCoinCircle(const NameObj* pObj, const TVec3f& rPosition, s32 count) {

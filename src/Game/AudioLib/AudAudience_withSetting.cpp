@@ -1,13 +1,16 @@
 #include "Game/AudioLib/AudAudience.hpp"
 #include "Game/AudioLib/AudWrap.hpp"
 
-// NONMATCHING: load CSE and instruction scheduling differ; ordered rate formulas and fields agree.
+inline void calcDistanceRates(const JAUAudience3DSetting& setting, f32& priorityRate, f32& fxMixRate) {
+    priorityRate = setting.mPriorityDownRange / (setting.mFarDistance - setting.mNearDistance);
+    fxMixRate = (setting.mMaxFxMix - setting.mMinFxMix) / (setting.mFarDistance - setting.mNearDistance);
+}
+
 void AudAudience_withSetting::updateSetting() {
     mFrontDolbyRate = (mSetting.mMinDolby - mSetting.mCenterDolby) / mSetting.mFrontDolbyZ;
     mBehindDolbyRate = (mSetting.mMaxDolby - mSetting.mCenterDolby) / mSetting.mBehindDolbyZ;
     mVolumeRate = (mSetting.mMinVolume - 1.0f) / (mSetting.mFarDistance * mCameraRate - mSetting.mNearDistance);
-    mPriorityRate = mSetting.mPriorityDownRange / (mSetting.mFarDistance - mSetting.mNearDistance);
-    mFxMixRate = (mSetting.mMaxFxMix - mSetting.mMinFxMix) / (mSetting.mFarDistance - mSetting.mNearDistance);
+    calcDistanceRates(mSetting, mPriorityRate, mFxMixRate);
 }
 
 AudAudience_withSetting::AudAudience_withSetting() {

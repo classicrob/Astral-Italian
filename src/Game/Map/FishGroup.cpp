@@ -52,16 +52,38 @@ Fish::~Fish() {
 FishGroup::~FishGroup() {
 }
 
-// NONMATCHING: explicit RNG sequencing preserves the DOL draw order on native compilers; initializer stores move earlier.
+#ifdef GALAXY_NATIVE
+namespace {
+    inline TVec3f makeFollowPosOffset() {
+        const f32 z = MR::getRandom(-sFollowPosOffsetMax, sFollowPosOffsetMax);
+        const f32 y = MR::getRandom(-sFollowPosOffsetMax, sFollowPosOffsetMax);
+        const f32 x = MR::getRandom(-sFollowPosOffsetMax, sFollowPosOffsetMax);
+        return TVec3f(x, y, z);
+    }
+}
+
+#endif
+
+void Fish::calcAndSetBaseMtx() {
+    TPos3f mtx;
+    mtx.identity();
+    MR::makeMtxFrontUp(&mtx, mFront, -mGravity);
+    mtx.setTrans(mPosition);
+    MR::setBaseTRMtx(this, mtx);
+}
+
 Fish::Fish(const char* pName, FishGroup* pGroup, int fishType, bool canEscape)
     : LiveActor(pName), mGroup(pGroup), mFishType(fishType), mCanEscape(canEscape), mFollowPos(0.0f, 0.0f, 0.0f),
-      mFollowPosOffset(0.0f, 0.0f, 0.0f), mFront(1.0f, 0.0f, 0.0f), mDistanceToApproach(), mTimeToSearchPlayer(), mStepToMove(), mEscapePos() {
-    const f32 z = MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax);
-    const f32 y = MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax);
-    const f32 x = MR::getRandom(-::sFollowPosOffsetMax, ::sFollowPosOffsetMax);
-    mFollowPosOffset.set(x, y, z);
-    mDistanceToApproach = MR::getRandom(::sDistanceToApproachMin, ::sDistanceToApproachMax);
-    mTimeToSearchPlayer = MR::getRandom(::sTimeToSearchPlayerMin, ::sTimeToSearchPlayerMax);
+#ifdef GALAXY_NATIVE
+      mFollowPosOffset(makeFollowPosOffset()),
+#else
+      mFollowPosOffset(MR::getRandom(-sFollowPosOffsetMax, sFollowPosOffsetMax),
+                       MR::getRandom(-sFollowPosOffsetMax, sFollowPosOffsetMax),
+                       MR::getRandom(-sFollowPosOffsetMax, sFollowPosOffsetMax)),
+#endif
+      mFront(1.0f, 0.0f, 0.0f),
+      mDistanceToApproach(MR::getRandom(sDistanceToApproachMin, sDistanceToApproachMax)),
+      mTimeToSearchPlayer(MR::getRandom(sTimeToSearchPlayerMin, sTimeToSearchPlayerMax)), mStepToMove(), mEscapePos() {
 }
 
 void Fish::init(const JMapInfoIter& rIter) {
@@ -206,14 +228,6 @@ void Fish::control() {
             MR::showModel(this);
         }
     }
-}
-
-void Fish::calcAndSetBaseMtx() {
-    TPos3f mtx;
-    mtx.identity();
-    MR::makeMtxFrontUp(&mtx, mFront, -mGravity);
-    mtx.setTrans(mPosition);
-    MR::setBaseTRMtx(this, mtx);
 }
 
 bool Fish::tryEscapeFromPlayer() {

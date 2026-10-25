@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Enemy/BegomanSpike.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"

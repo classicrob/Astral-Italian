@@ -225,6 +225,7 @@ namespace NrvKoopaJrCastleElectric {
 }  // namespace NrvKoopaJrCastleElectric
 
 namespace NrvKoopaJrCastleFireBar {
+    extern char sCenterSound[];
     class KoopaJrCastleFireBarNrvA : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
@@ -238,7 +239,7 @@ namespace NrvKoopaJrCastleFireBar {
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleFireBar* a = reinterpret_cast< KoopaJrCastleFireBar* >(pSpine->mExecutor);
             MR::isFirstStep(a);
-            MR::startActionSound(a, "OjLvFireBarCenter", -1, -1, -1);
+            MR::startActionSound(a, sCenterSound, -1, -1, -1);
         }
         static KoopaJrCastleFireBarNrvB sInstance;
     };

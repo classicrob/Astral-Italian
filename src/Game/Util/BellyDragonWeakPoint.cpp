@@ -2,16 +2,18 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
+namespace { extern char sBellyWeakWait[]; extern char sBellyWeakChance[]; }
+
 // Nerve execute bodies are inlined into their NEW_NERVE execute (defined before the classes); the others are thunks.
 inline void BellyDragonWeakPoint::exeWaitC() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Wait");
+        MR::startAction(this, sBellyWeakWait);
     }
 }
 
 inline void BellyDragonWeakPoint::exeChance() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Chance");
+        MR::startAction(this, sBellyWeakChance);
     }
 }
 
@@ -76,9 +78,11 @@ bool BellyDragonWeakPoint::isAttackable() {
     return true;
 }
 
+namespace { char sBellyWeakWait[] = "Wait"; }
+
 void BellyDragonWeakPoint::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, "Wait");
+        MR::tryStartActionNotPlaying(this, sBellyWeakWait);
     }
     MR::startActionSound(this, "Fly", -1, -1, -1);
     if (mPart->mIsLv2) {
@@ -86,9 +90,11 @@ void BellyDragonWeakPoint::exeWait() {
     }
 }
 
+namespace { char sBellyWeakChance[] = "Chance"; }
+
 void BellyDragonWeakPoint::exeBurn() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Wait");
+        MR::startAction(this, sBellyWeakWait);
     }
     MR::startActionSound(this, "Fly", -1, -1, -1);
     if (mPart->mIsLv2) {

@@ -137,10 +137,12 @@ void KoopaJrCastleFireBar::control() {
     }
 }
 
+namespace NrvKoopaJrCastleFireBar { char sCenterSound[] = "OjLvFireBarCenter"; }
+
 void KoopaJrCastleFireBar::exeExtend() {
     mCurrentLength += 25.0f;
     mCurrentLength = MR::clamp(mCurrentLength, 0.0f, mMaxLength);
-    MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);
+    MR::startActionSound(this, NrvKoopaJrCastleFireBar::sCenterSound, -1, -1, -1);
     if (mCurrentLength >= mMaxLength) {
         setNerve(&NrvKoopaJrCastleFireBar::KoopaJrCastleFireBarNrvB::sInstance);
     }
@@ -150,7 +152,7 @@ void KoopaJrCastleFireBar::exeExtend() {
 void KoopaJrCastleFireBar::exeScaleUp() {
     MR::isFirstStep(this);
     mScaleRate = MR::calcNerveEaseInRate(this, 60);
-    MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);
+    MR::startActionSound(this, NrvKoopaJrCastleFireBar::sCenterSound, -1, -1, -1);
 }
 
 #pragma dont_inline off

@@ -624,7 +624,11 @@ Game/AreaObj/CollisionArea.cpp:
 
 Game/AreaObj/CubeCameraArea.cpp:
 	.text       start:0x800739A0 end:0x80073DF0
+	.data       start:0x8066AA10 end:0x8066AA9B
 	.sbss       start:0x807D0E08 end:0x807D0E0C
+
+gap_07_8066AA9B_data:
+	.data       start:0x8066AA9B end:0x8066AAA0 align:1
 
 Game/AreaObj/CumulativeTimerSwitchArea.cpp:
 	.text       start:0x80073DF0 end:0x80073F60
@@ -1104,6 +1108,7 @@ Game/Util/BellyDragonArmWait.cpp:
 Game/Util/BellyDragonWeakPoint.cpp:
 	.text       start:0x80097900 end:0x80097F50
 	.ctors      start:0x80643D94 end:0x80643D98
+	.data       start:0x8066D550 end:0x8066D668
 	.sdata      start:0x807CF4F0 end:0x807CF4F4
 	.sbss       start:0x807D0F60 end:0x807D0F74
 
@@ -1734,6 +1739,7 @@ Game/Boss/KoopaJrCastleTU06.cpp:
 	.text       start:0x800D2380 end:0x800D3510
 	.ctors      start:0x80643E94 end:0x80643E98
 	.rodata     start:0x806472C0 end:0x806472D0
+	.data       start:0x80674C48 end:0x80674D80
 	.sbss       start:0x807D15C8 end:0x807D15D4
 
 auto_10_807D15D4_sbss:
@@ -6063,6 +6069,7 @@ auto_10_807D37B4_sbss:
 Game/MapObj/BendSwanpPlanet.cpp:
 	.text       start:0x802759D0 end:0x80275E60
 	.ctors      start:0x80644310 end:0x80644314
+	.data       start:0x8069BD30 end:0x8069BE80
 	.sbss       start:0x807D37B8 end:0x807D37CC
 	.sdata2     start:0x807DCCB8 end:0x807DCCBC
 
@@ -6472,9 +6479,14 @@ Game/MapObj/DashRing.cpp:
 	.sdata      start:0x807CFC08 end:0x807CFC0C
 
 Game/MapObj/DrillHole.cpp:
-	.text       start:0x802948F0 end:0x80294EC0
+	.text       start:0x802948F0 end:0x80294B30
 	.ctors      start:0x8064439C end:0x806443A0
+	.data       start:0x8069F310 end:0x8069F3A8
 	.sbss       start:0x807D3A28 end:0x807D3A30
+
+Game/MapObj/DrillHoleHolder.cpp:
+	.text       start:0x80294B30 end:0x80294EC0
+	.data       start:0x8069F3A8 end:0x8069F410
 
 Game/MapObj/DrumTrampoline.cpp:
 	.text       start:0x80294EC0 end:0x80295440
@@ -7928,6 +7940,10 @@ Game/MapObj/SpinDriver.cpp:
 
 Game/MapObj/SpinDriverCamera.cpp:
 	.text       start:0x8030DBE0 end:0x8030E1D0
+	.data       start:0x806AE730 end:0x806AE757
+
+gap_07_806AE757_data:
+	.data       start:0x806AE757 end:0x806AE758 align:1
 
 Game/MapObj/SpinDriverPathDrawer.cpp:
 	.text       start:0x8030E1D0 end:0x8030F3E0
@@ -12740,7 +12756,7 @@ JSystem/JKernel/JKRThread.cpp:
 	.text       start:0x80504C40 end:0x80505280 align:16
 	.ctors      start:0x80644AF8 end:0x80644AFC
 	.data       start:0x807046F0 end:0x80704700
-	.bss        start:0x8072BBBC end:0x8072BC08
+	.bss        start:0x8072BBB0 end:0x8072BC08
 	.sbss       start:0x807D6150 end:0x807D6158
 
 JSystem/JKernel/JKRAram.cpp:
@@ -13789,7 +13805,7 @@ JSystem/JAudio2/JASReport.cpp:
 JSystem/JAudio2/JASCmdStack.cpp:
 	.text       start:0x80584FD0 end:0x80585200 align:16
 	.ctors      start:0x80644B30 end:0x80644B34
-	.bss        start:0x8077B8AC end:0x8077B8D0
+	.bss        start:0x8077B8A0 end:0x8077B8D0
 
 JSystem/JAudio2/JASTrack.cpp:
 	.text       start:0x80585200 end:0x80587CA0 align:16

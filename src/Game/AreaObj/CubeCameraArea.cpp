@@ -61,7 +61,7 @@ s32 CubeCameraArea::getAreaPriority() const {
     return mObjArg2;
 }
 
-const char* CubeCameraArea::getManagerName() const {
+inline const char* CubeCameraArea::getManagerName() const {
     return "CubeCamera";
 }
 

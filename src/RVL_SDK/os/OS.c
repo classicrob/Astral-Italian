@@ -44,12 +44,12 @@ extern u8   __ArenaHi[];
 extern u8   __ArenaLo[];
 extern u32  __DVDLongFileNameFlag;
 extern u32  __PADSpec;
-static BOOL AreWeInitialized = FALSE;
 OSExecParams __OSRebootParams;
 static char GameNameBuffer[5];
-static f64 ZeroF;
-static f32 ZeroPS[2];
 static __OSExceptionHandler* OSExceptionTable;
+static BOOL AreWeInitialized;
+static f32 ZeroPS[2];
+static f64 ZeroF;
 
 
 static void OSExceptionInit(void);

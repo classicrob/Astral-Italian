@@ -9,6 +9,11 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/MultiEventCamera.hpp"
 
+namespace {
+    char sSpinDriverTargetName[] = "カメラターゲットダミー";
+    char sSpinDriverAppearEvent[] = "出現イベント用";
+}
+
 SpinDriverCamera::SpinDriverCamera() : mCamera(), mTargetMtx(), mCameraInfo(), mAppearCameraFrame() {
 }
 
@@ -17,13 +22,13 @@ void SpinDriverCamera::startAppearCamera(LiveActor* pActor, const TVec3f& a2, co
         return;
     }
 
-    mAppearCameraFrame = MR::getMultiActorCameraFrames(pActor, mCameraInfo, "出現イベント用");
+    mAppearCameraFrame = MR::getMultiActorCameraFrames(pActor, mCameraInfo, sSpinDriverAppearEvent);
 
     if (mAppearCameraFrame <= 0) {
         return;
     }
 
-    MR::startMultiActorCameraTargetOther(pActor, mCameraInfo, "出現イベント用", CameraTargetArg(mTargetMtx));
+    MR::startMultiActorCameraTargetOther(pActor, mCameraInfo, sSpinDriverAppearEvent, CameraTargetArg(mTargetMtx));
 
     TPos3f upPos;
     MR::makeMtxUpFrontPos(&upPos, a2, a3, a4);
@@ -39,7 +44,7 @@ void SpinDriverCamera::endAppearCamera(LiveActor* pActor) {
         return;
     }
 
-    MR::endMultiActorCamera(pActor, mCameraInfo, "出現イベント用", false);
+    MR::endMultiActorCamera(pActor, mCameraInfo, sSpinDriverAppearEvent, false);
 }
 
 s32 SpinDriverCamera::getAppearCameraFrames() const {
@@ -112,7 +117,7 @@ bool SpinDriverCamera::isUseAppearCamera(LiveActor* pActor) const {
         return false;
     }
 
-    return MR::getMultiActorCameraFrames(pActor, mCameraInfo, "出現イベント用") > 0;
+    return MR::getMultiActorCameraFrames(pActor, mCameraInfo, sSpinDriverAppearEvent) > 0;
 }
 
 void SpinDriverCamera::init(const JMapInfoIter& rIter, LiveActor* pActor) {
@@ -129,7 +134,7 @@ void SpinDriverCamera::init(const JMapInfoIter& rIter, LiveActor* pActor) {
     mCamera->setUp(pActor->mName, new ActorCameraInfo(rIter), arg3);
     mCamera->setEndCameraTypeAtLanding();
 
-    mTargetMtx = new CameraTargetMtx("カメラターゲットダミー");
+    mTargetMtx = new CameraTargetMtx(sSpinDriverTargetName);
 }
 
 void SpinDriverCamera::initAppearCamera(const JMapInfoIter& rIter, LiveActor* pActor) {
@@ -139,7 +144,7 @@ void SpinDriverCamera::initAppearCamera(const JMapInfoIter& rIter, LiveActor* pA
         return;
     }
 
-    MR::initMultiActorCamera(pActor, rIter, &mCameraInfo, "出現イベント用");
+    MR::initMultiActorCamera(pActor, rIter, &mCameraInfo, sSpinDriverAppearEvent);
 
-    mAppearCameraFrame = MR::getMultiActorCameraFrames(pActor, mCameraInfo, "出現イベント用");
+    mAppearCameraFrame = MR::getMultiActorCameraFrames(pActor, mCameraInfo, sSpinDriverAppearEvent);
 }

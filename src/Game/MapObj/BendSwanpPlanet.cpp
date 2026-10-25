@@ -3,6 +3,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include <cstdio>
+namespace { extern char sBendWaitC[]; }
 namespace NrvBendSwanpPlanet {
 NEW_NERVE(BendSwanpPlanetNrvWaitA, BendSwanpPlanet, WaitA);
 NEW_NERVE(BendSwanpPlanetNrvMoveA, BendSwanpPlanet, MoveA);
@@ -10,7 +11,7 @@ NEW_NERVE(BendSwanpPlanetNrvWaitB, BendSwanpPlanet, WaitB);
 NEW_NERVE(BendSwanpPlanetNrvMoveB, BendSwanpPlanet, MoveB);
 class BendSwanpPlanetNrvWaitC : public Nerve {
 public:
-    virtual void execute(Spine* spine) const { LiveActor* actor = static_cast<LiveActor*>(spine->mExecutor); if (MR::isFirstStep(actor)) MR::startAction(actor, "WaitC"); }
+    virtual void execute(Spine* spine) const { LiveActor* actor = static_cast<LiveActor*>(spine->mExecutor); if (MR::isFirstStep(actor)) MR::startAction(actor, sBendWaitC); }
     static BendSwanpPlanetNrvWaitC sInstance;
 };
 BendSwanpPlanetNrvWaitC BendSwanpPlanetNrvWaitC::sInstance;
@@ -37,8 +38,15 @@ void BendSwanpPlanet::init(const JMapInfoIter& iter) {
     initNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvWaitA::sInstance);
     makeActorAppeared();
 }
-void BendSwanpPlanet::exeWaitA() { if (MR::isFirstStep(this)) MR::startAction(this, "WaitA"); if (MR::isOnSwitchA(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvMoveA::sInstance); }
-void BendSwanpPlanet::exeMoveA() { if (MR::isFirstStep(this)) MR::startAction(this, "MoveA"); if (MR::isActionEnd(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvWaitB::sInstance); }
-void BendSwanpPlanet::exeWaitB() { if (MR::isFirstStep(this)) MR::startAction(this, "WaitB"); if (MR::isOnSwitchB(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvMoveB::sInstance); }
-void BendSwanpPlanet::exeMoveB() { if (MR::isFirstStep(this)) MR::startAction(this, "MoveB"); if (MR::isActionEnd(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvWaitC::sInstance); }
+namespace {
+    char sBendWaitA[] = "WaitA";
+    char sBendMoveA[] = "MoveA";
+    char sBendWaitB[] = "WaitB";
+    char sBendMoveB[] = "MoveB";
+    char sBendWaitC[] = "WaitC";
+}
+void BendSwanpPlanet::exeWaitA() { if (MR::isFirstStep(this)) MR::startAction(this, sBendWaitA); if (MR::isOnSwitchA(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvMoveA::sInstance); }
+void BendSwanpPlanet::exeMoveA() { if (MR::isFirstStep(this)) MR::startAction(this, sBendMoveA); if (MR::isActionEnd(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvWaitB::sInstance); }
+void BendSwanpPlanet::exeWaitB() { if (MR::isFirstStep(this)) MR::startAction(this, sBendWaitB); if (MR::isOnSwitchB(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvMoveB::sInstance); }
+void BendSwanpPlanet::exeMoveB() { if (MR::isFirstStep(this)) MR::startAction(this, sBendMoveB); if (MR::isActionEnd(this)) setNerve(&NrvBendSwanpPlanet::BendSwanpPlanetNrvWaitC::sInstance); }
 BendSwanpPlanet::~BendSwanpPlanet() {}

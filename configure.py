@@ -1497,6 +1497,7 @@ config.libs = [
             Object(NonMatching, "Game/MapObj/CymbalsStep.cpp"),
             Object(NonMatching, "Game/MapObj/DashFruit.cpp"),
             Object(NonMatching, "Game/MapObj/DrillHole.cpp"),
+            Object(NonMatching, "Game/MapObj/DrillHoleHolder.cpp"),
             Object(NonMatching, "Game/MapObj/DrumTrampoline.cpp"),
             Object(NonMatching, "Game/MapObj/ElectricPressure.cpp"),
             Object(NonMatching, "Game/MapObj/ElectricRail2Point.cpp"),

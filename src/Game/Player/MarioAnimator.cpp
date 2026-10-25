@@ -44,8 +44,17 @@ extern XanimeBckTable3 marioRideDoubleAnimeTable[];
 extern XanimeBckTable4 marioRideTripleAnimeTable[];
 
 #ifndef GALAXY_NATIVE
+namespace {
+    char animName807D0030[] = "Run";
+}
 #include "../src/Game/Player/MarioAnimatorTables.inc"
 #endif
+
+namespace {
+    char animName807D0038[] = "Hip";
+    extern char animName806DC3F8[];
+}
+const char* jname_chest = animName806DC3F8;
 
 namespace {
     // Original writable walk-state table at 0x806DC0F8.
@@ -863,7 +872,6 @@ u16 MarioAnimator::getUpperJointID() const {
     return MR::getJointIndex(mActor, animName806DC100);
 }
 
-const char* jname_chest = animName806DC3F8;
 #pragma push
 #pragma opt_propagation off
 // NONMATCHING: string-pool materialization, saved registers, and scheduling.
@@ -984,7 +992,7 @@ void MarioAnimator::clearAllJointTransform() {
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
-        u8 hipIdx = MR::getJointIndex(mActor, "Hip");
+        u8 hipIdx = MR::getJointIndex(mActor, animName807D0038);
         XjointTransform* jt = core->getJointTransform(hipIdx);
         jt->mLocalRotationMtx = nullptr;
     }

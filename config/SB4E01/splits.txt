@@ -491,8 +491,11 @@ Game/Animation/BckCtrl.cpp:
 	.rodata     start:0x806452B8 end:0x806452C0
 	.data       start:0x80669E38 end:0x80669E86
 	.data       start:0x80669E86 end:0x80669E88 skip
-	.sdata      start:0x807CF428 end:0x807CF438
+	.sdata      start:0x807CF428 end:0x807CF431
 	.sdata2     start:0x807D7298 end:0x807D72A0
+
+gap_09_807CF431_sdata:
+	.sdata      start:0x807CF431 end:0x807CF438 align:1
 
 Game/Animation/BpkPlayer.cpp:
 	.text       start:0x80069D70 end:0x80069DD0
@@ -981,7 +984,10 @@ Game/AudioLib/AudBgmParamTable.cpp:
 	.text       start:0x80089920 end:0x8008A370
 	.data       start:0x8066BEB0 end:0x8066BF6A
 	.data       start:0x8066BF6A end:0x8066BF70 skip
-	.sdata      start:0x807CF4D0 end:0x807CF4E0
+	.sdata      start:0x807CF4D0 end:0x807CF4DD
+
+gap_09_807CF4DD_sdata:
+	.sdata      start:0x807CF4DD end:0x807CF4E0 align:1
 
 Game/AudioLib/AudStageUseResourceList.cpp:
 	.text       start:0x8008A370 end:0x8008A560
@@ -5059,16 +5065,25 @@ Game/LiveActor/ActorCameraInfo.cpp:
 Game/LiveActor/ActorHitReactionCtrl.cpp:
 	.text       start:0x8022AC00 end:0x8022AF90
 	.data       start:0x806949F8 end:0x80694AA0
-	.sdata      start:0x807CFA40 end:0x807CFA48
+	.sdata      start:0x807CFA40 end:0x807CFA44
 	.sdata2     start:0x807DC360 end:0x807DC364
 
 auto_11_807DC364_sdata2:
 	.sdata2     start:0x807DC364 end:0x807DC368 align:4
 
+gap_09_807CFA44_sdata:
+	.sdata      start:0x807CFA44 end:0x807CFA48 align:4
+
 Game/LiveActor/ActorReactionHelper.cpp:
 	.text       start:0x8022AF90 end:0x8022B0E0
-	.data       start:0x80694AA0 end:0x80694AC0
-	.sdata      start:0x807CFA48 end:0x807CFA58
+	.data       start:0x80694AA0 end:0x80694ABD
+	.sdata      start:0x807CFA48 end:0x807CFA53
+
+gap_09_807CFA53_sdata:
+	.sdata      start:0x807CFA53 end:0x807CFA58 align:1
+
+gap_07_80694ABD_data:
+	.data       start:0x80694ABD end:0x80694AC0 align:1
 
 Game/LiveActor/ActorItemGenerator.cpp:
 	.text       start:0x8022B0E0 end:0x8022BCA0
@@ -7091,7 +7106,10 @@ Game/MapObj/MapObjActorInitInfo.cpp:
 	.rodata     start:0x80649570 end:0x80649590
 	.data       start:0x806A5E50 end:0x806A6053
 	.data       start:0x806A6053 end:0x806A6058 skip
-	.sdata2     start:0x807DDC88 end:0x807DDCA0
+	.sdata2     start:0x807DDC88 end:0x807DDC9C
+
+gap_11_807DDC9C_sdata2:
+	.sdata2     start:0x807DDC9C end:0x807DDCA0 align:4
 
 Game/MapObj/MapObjConnector.cpp:
 	.text       start:0x802CC2F0 end:0x802CC690
@@ -9352,7 +9370,7 @@ Game/Player/MarioAnimator.cpp:
 	.text       start:0x803DC9D0 end:0x803E1940
 	.rodata     start:0x8064BDB8 end:0x8064BDC0
 	.data       start:0x806C8C68 end:0x806DC3F0
-	.sdata      start:0x807D0038 end:0x807D0040
+	.sdata      start:0x807D0030 end:0x807D0040
 	.sbss       start:0x807D4E60 end:0x807D4E68
 	.sdata2     start:0x807DFE18 end:0x807DFE4C
 
@@ -12049,8 +12067,11 @@ Game/System/GrandGalaxyMapGalaxyHolder.cpp:
 	.data       start:0x80700A38 end:0x80700AB4
 	.data       start:0x80700AB4 end:0x80700AB8 skip
 	.bss        start:0x8072B900 end:0x8072B910
-	.sdata      start:0x807D04D0 end:0x807D04D8
+	.sdata      start:0x807D04D0 end:0x807D04D4
 	.sdata2     start:0x807E1A18 end:0x807E1A28
+
+gap_09_807D04D4_sdata:
+	.sdata      start:0x807D04D4 end:0x807D04D8 align:4
 
 Game/System/GrandGalaxyMapSequence.cpp:
 	.text       start:0x804E0438 end:0x804E0B40
@@ -14835,9 +14856,12 @@ auto_09_807D0CD4_sdata:
 	.sdata      start:0x807D0CD4 end:0x807D0CD8 align:4
 
 RVL_SDK/bte/bta_sys_cfg.c:
-	.sdata      start:0x807D0CD8 end:0x807D0CE0
+	.sdata      start:0x807D0CD8 end:0x807D0CDC
 	.sdata2     start:0x807E29C8 end:0x807E29CE
 	.sdata2     start:0x807E29CE end:0x807E29D0 skip
+
+gap_09_807D0CDC_sdata:
+	.sdata      start:0x807D0CDC end:0x807D0CE0 align:4
 
 auto_06_8065B31C_rodata:
 	.rodata     start:0x8065B31C end:0x8065B320 align:4

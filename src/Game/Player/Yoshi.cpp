@@ -2304,127 +2304,127 @@ YoshiVelocityAdjustment::YoshiVelocityAdjustment() : mMinimum(0.0f) {
 }
 
 
-void NrvYoshi::YoshiNrv80413A10::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413A10::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040EBF0();
 }
 
-void NrvYoshi::YoshiNrv80413A00::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413A00::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040EB60();
 }
 
-void NrvYoshi::YoshiNrv804139F0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804139F0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040EAE0();
 }
 
-void NrvYoshi::YoshiNrv804139E0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804139E0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E9E0();
 }
 
-void NrvYoshi::YoshiNrv804139D0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804139D0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E8F0();
 }
 
-void NrvYoshi::YoshiNrv804139C0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804139C0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E820();
 }
 
-void NrvYoshi::YoshiNrv804139B0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804139B0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E750();
 }
 
-void NrvYoshi::YoshiNrv804139A0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804139A0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E660();
 }
 
-void NrvYoshi::YoshiNrv80413990::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413990::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E350();
 }
 
-void NrvYoshi::YoshiNrv80413980::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413980::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E230();
 }
 
-void NrvYoshi::YoshiNrv80413970::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413970::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E160();
 }
 
-void NrvYoshi::YoshiNrv80413960::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413960::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E080();
 }
 
-void NrvYoshi::YoshiNrv80413950::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413950::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040DFB0();
 }
 
-void NrvYoshi::YoshiNrv80413940::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413940::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040DF10();
 }
 
-void NrvYoshi::YoshiNrv80413930::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413930::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040DE20();
 }
 
-void NrvYoshi::YoshiNrv80413920::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413920::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040DDA0();
 }
 
-void NrvYoshi::YoshiNrv80413910::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413910::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040DC20();
 }
 
-void NrvYoshi::YoshiNrv80413900::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413900::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040DB10();
 }
 
-void NrvYoshi::YoshiNrv804138F0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804138F0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D9F0();
 }
 
-void NrvYoshi::YoshiNrv804138E0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804138E0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D8E0();
 }
 
-void NrvYoshi::YoshiNrv804138D0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804138D0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D7F0();
 }
 
-void NrvYoshi::YoshiNrv804138C0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804138C0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D6E0();
 }
 
-void NrvYoshi::YoshiNrv804138B0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804138B0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D5B0();
 }
 
-void NrvYoshi::YoshiNrv804138A0::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv804138A0::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D380();
 }
 
-void NrvYoshi::YoshiNrv80413890::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413890::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D260();
 }
 
-void NrvYoshi::YoshiNrv80413880::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413880::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040D130();
 }
 
-void NrvYoshi::YoshiNrv80413870::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413870::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040CFC0();
 }
 
-void NrvYoshi::YoshiNrv80413860::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413860::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040CF50();
 }
 
-void NrvYoshi::YoshiNrv80413850::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413850::execute(Spine* spine) const {
     static_cast<Yoshi*>(spine->mExecutor)->fn_8040E2D0();
 }
 
-void NrvYoshi::YoshiNrv80413840::execute(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413840::execute(Spine* spine) const {
     MR::setStageBGMStateBit(8);
 }
 
-void NrvYoshi::YoshiNrv80413840::executeOnEnd(Spine* spine) const {
+inline void NrvYoshi::YoshiNrv80413840::executeOnEnd(Spine* spine) const {
     Yoshi* actor = static_cast<Yoshi*>(spine->mExecutor);
     actor->fn_8040F370();
     MR::validateHitSensors(actor);

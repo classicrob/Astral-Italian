@@ -317,6 +317,10 @@ void DodoryuStateLv1::catchHipDrop() {
     }
 }
 
+inline const TVec3f& getDodoryuAttackSensorPosition(const HitSensor& sensor) {
+    return sensor.mPosition;
+}
+
 bool DodoryuStateLv1::catchPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     bool isAppear = isNerve(GET_NERVE_ANON(DodoryuStateLv1NrvAppearStart)) || isNerve(GET_NERVE_ANON(DodoryuStateLv1NrvAppear)) ||
                     isNerve(GET_NERVE_ANON(DodoryuStateLv1NrvAppearEnd));
@@ -346,7 +350,7 @@ bool DodoryuStateLv1::catchPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
-        _98.set(pReceiver->mPosition - pSender->mPosition);
+        _98.set(getDodoryuAttackSensorPosition(*pReceiver) - pSender->mPosition);
 
         if (!calcVerticalizedDir(&_98, _98)) {
             mHost->mBaseMtx.getZDir(_98);

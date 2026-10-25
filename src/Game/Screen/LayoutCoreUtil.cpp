@@ -62,7 +62,10 @@ namespace LayoutCoreUtil {
         return pUserData;
     }
 
-    // NONMATCHING: register allocation and equivalent single/double load of the initial 1.0 scale.
+    inline CustomTagProcessor* getTextBoxProcessor(const nw4r::lyt::TextBox& textBox) {
+        return static_cast<CustomTagProcessor*>(textBox.mpTagProcessor);
+    }
+
     void setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg) {
         CustomTagProcessor* processor;
         wchar_t buffer[512];
@@ -70,7 +73,7 @@ namespace LayoutCoreUtil {
         u16 length = MR::getStringLengthWithMessageTag(buffer);
         pTextBox->SetString(buffer, 0, length);
 
-        processor = static_cast<CustomTagProcessor*>(pTextBox->mpTagProcessor);
+        processor = getTextBoxProcessor(*pTextBox);
         f32 initialScale = 1.0f;
         processor->setFontScale(initialScale);
 

@@ -31,10 +31,10 @@ void YoshiTargetMark::exeDisappear() {
 }
 // NONMATCHING: the compiler folds the target's conditional jump and following unconditional jump.
 void YoshiTargetMark::disappear() {
-    if (!MR::isDead(this)) {
-        if (isNerve(&YoshiTargetMarkNrvDisappear::sInstance)) return;
-        setNerve(&YoshiTargetMarkNrvDisappear::sInstance);
+    if (MR::isDead(this) || isNerve(&YoshiTargetMarkNrvDisappear::sInstance)) {
+        return;
     }
+    setNerve(&YoshiTargetMarkNrvDisappear::sInstance);
 }
 void YoshiTargetMark::control() {
     if (MR::isPlayerInRushOrDemoOrTalk()) {

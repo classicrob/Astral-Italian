@@ -97,15 +97,22 @@ void MapPartsRotator::cancelSignalMotion() {
 }
 
 // NONMATCHING: source/destination pointer registers differ in the inline rotation copy.
+inline const TVec3f& getMapPartsHostRotation(const LiveActor& host) {
+    return host.mRotation;
+}
+
 void MapPartsRotator::updateBaseHostMtx() {
-    mBaseHostMtx.setEuler(mHost->mRotation * (PI / 180.0f));
+    mBaseHostMtx.setEuler(getMapPartsHostRotation(*mHost) * (PI / 180.0f));
 }
 
 bool MapPartsRotator::isMoving() const {
     return isNerve(GET_NERVE(MapPartsRotator, HostTypeRotate));
 }
 
-// NONMATCHING: equivalent multiplication operand order differs.
+inline f32 signedRotateSpeedSquared(f32 speedSquared, f32 direction) {
+    return speedSquared * direction;
+}
+
 void MapPartsRotator::updateVelocity() {
     if (MR::isNearZero(mRotateAngle) || isAccelTypeConstantSpeed()) {
         if (mRotateAccelType != 2) mRotateSpeed = 0.01f * _18;
@@ -121,7 +128,7 @@ void MapPartsRotator::updateVelocity() {
     f32 speed = _18;
     if (mRotateAccelType != 2) speed *= 0.01f;
     f32 direction = MR::sign(speed);
-    f32 rotateAccel = (speed * speed * direction) / mRotateAngle;
+    f32 rotateAccel = signedRotateSpeedSquared(speed * speed, direction) / mRotateAngle;
     bool invert;
 
     if (isRotateClockwise()) {

@@ -51,8 +51,8 @@ MiniRouteLine::MiniRouteLine(const char* pName, WorldMapResultWorld*) : LiveActo
 }
 
 namespace {
-    inline f32 calcRouteRadius(f32 scale) {
-        return 1000.0f * (scale * 0.5f);
+    inline f32 calcRouteRadius(f32 scale, f32 half) {
+        return 1000.0f * (scale * half);
     }
 
     inline TVec3f scaleRouteSide(const TVec3f& side, f32 scale) {
@@ -92,8 +92,8 @@ void MiniRouteLine::init(const JMapInfoIter&) {
     TVec3f sideVec;
     MR::calcSideVec(&sideVec, this);
     mCenter.set(mPosition + scaleRouteSide(scaleRouteSide(scaleRouteSide(sideVec, mScale.x), 0.5f), 1000.0f));
-    MR::setClippingTypeSphere(this, calcRouteRadius(mScale.x), &mCenter);
-    MR::setClippingTypeSphere(mShadowActor, calcRouteRadius(mScale.x), &mCenter);
+    MR::setClippingTypeSphere(this, calcRouteRadius(mScale.x, 0.5f), &mCenter);
+    MR::setClippingTypeSphere(mShadowActor, calcRouteRadius(mScale.x, 0.5f), &mCenter);
     MR::startAction(this, "Close");
     MR::startAction(mEffectActor, "Open");
     MR::startBrk(mEffectActor, "Normal");
@@ -120,13 +120,16 @@ void MiniRouteLine::kill() {
     mEffectActor->kill();
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+inline void setRouteEffectMatrix(ProjmapEffectMtxSetter* const& setter, const TPos3f& mtx) {
+    setter->mEffectMtx.set(mtx);
+}
+
 void MiniRouteLine::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     TPos3f mtx;
     MR::makeMtxTR(mtx, this);
     mtx.invert(mtx);
-    mMtxSetter->mEffectMtx.set(mtx);
+    setRouteEffectMatrix(mMtxSetter, mtx);
 }
 
 void MiniRouteLine::setCondition(const char* pStage, s32 starNum, const char* pFlag) {

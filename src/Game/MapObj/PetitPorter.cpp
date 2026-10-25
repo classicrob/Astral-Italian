@@ -123,10 +123,14 @@ void PetitPorter::exeAppear() {
 }
 
 // NONMATCHING: the angle-speed addition loads its operands into reversed floating-point registers.
+inline f32 acceleratePetitPorter(f32 speed, f32 acceleration) {
+    return speed + acceleration;
+}
+
 void PetitPorter::exeWait() {
     if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
         f32 speed = mAngleSpeed;
-        f32 t = speed + 0.2f;
+        f32 t = acceleratePetitPorter(speed, 0.2f);
         f32 limit = 3.6f;
         mAngleSpeed = (t >= limit) ? limit : t;
     } else {

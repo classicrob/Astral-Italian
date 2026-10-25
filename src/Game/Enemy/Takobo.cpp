@@ -200,6 +200,12 @@ void Takobo::exeIdle() {
 }
 
 // NONMATCHING: vector temporaries occupy different stack slots; calls, constants and branches match.
+namespace {
+    inline f32 scaleTakoboMoveDuration(f32 steps, f32 scale) {
+        return steps * scale;
+    }
+}
+
 void Takobo::exeMove() {
     if (MR::isFirstStep(this)) {
         f32 dir;
@@ -209,7 +215,7 @@ void Takobo::exeMove() {
             dir = -1.0f;
         }
         mTargetPos = mStartPos - (mSideVec * mSpeed) * dir;
-        mMoveStep = (s32)((f32)(s32)((mTargetPos - mPosition).length() / mMoveRange) * 1.3f);
+        mMoveStep = (s32)scaleTakoboMoveDuration((f32)(s32)((mTargetPos - mPosition).length() / mMoveRange), 1.3f);
     }
     f32 fall = MR::calcGravitySpeedAbs(this);
     if (MR::isBindedGround(this)) {

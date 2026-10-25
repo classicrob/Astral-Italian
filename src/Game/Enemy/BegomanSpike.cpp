@@ -609,6 +609,10 @@ bool BegomanSpike::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor*
     return false;
 }
 
+inline const TVec3f& getBegomanSpikeGravity(const BegomanSpike& actor) {
+    return actor.mGravity;
+}
+
 bool BegomanSpike::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return true;
@@ -656,7 +660,7 @@ bool BegomanSpike::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
         MR::normalize(&direction);
         mFaceVec.set(direction);
         direction *= ::sBlowVel;
-        direction.sub(mGravity * ::sBlowVerticalVel);
+        direction.sub(getBegomanSpikeGravity(*this) * ::sBlowVerticalVel);
         mVelocity = direction;
         return true;
     }

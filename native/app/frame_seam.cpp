@@ -789,7 +789,7 @@ void openFirstFrame() {
     startTiming();
     if (gTiming.frames) {
         std::fprintf(stderr, "[gx startup frame mapping] prep_csv_first=1 prep_csv_last=%llu game_csv_offset=%llu route_offset=0 policy=continuous-intervals\n",
-            (unsigned long long)gTiming.frames, (unsigned long long)gTiming.frames);
+            (unsigned long long)gTiming.frames, (unsigned long long)(gTiming.frames + 1));
     }
     startSmoke();
     if (gPresent.composeFrame == nullptr) {

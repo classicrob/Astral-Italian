@@ -579,8 +579,7 @@ void Nyoropon::updateBodySegments(f32 pushA, f32 pushB, f32 ampScale) {
     f32 n = MR::normalize(mPoints[0].y, 0.0f, 200.0f);
     mVel.y += MR::clamp(1.0f - n, 0.0f, 1.0f) * 0.1f;
     mPoints[0] += mVel;
-    TVec3f seg = mPoints[0] - mPoints[6];
-    f32 nn = MR::normalize(PSVECMag(&seg), 0.0f, 500.0f);
+    f32 nn = MR::normalize((mPoints[0] - mPoints[6]).length(), 0.0f, 500.0f);
     f32 slack = 1.0f - nn;
     f32 shift = slack * (5.0f * -MR::sign(mTarget.x));
     for (s32 i = 1; i < 7; i++) {
@@ -602,8 +601,9 @@ void Nyoropon::updateBodySegments(f32 pushA, f32 pushB, f32 ampScale) {
         f32 nb = MR::normalize(m2, 0.0f, 2.0f * scale);
         f32 bendRate = 1.0f - nb;
         MR::normalizeOrZero(&d2);
+        f32 segmentRate = 1.0f - (0.16666667f * (f32)k2);
         TVec3f perp2(-d2.y, d2.x, 0.0f);
-        f32 bend = (1.0f - (0.16666667f * (f32)k2)) * (100.0f * bendRate);
+        f32 bend = segmentRate * (100.0f * bendRate);
         f32 hh = (0.5f * m2) + (0.5f * bend);
         f32 sq = (scale * scale) - (hh * hh);
         f32 s = MR::fastSqrtf(sq);
@@ -628,8 +628,7 @@ void Nyoropon::updateBodySegments(f32 pushA, f32 pushB, f32 ampScale) {
     MR::normalizeOrZero(&dir5);
     TVec3f up(0.0f, 1.0f, 0.0f);
     MR::clampVecAngleDeg(&dir5, up, 30.0f);
-    TVec3f nv = mPoints[6] + dir5 * (cBodyHeight / cSegmentCount);
-    TVec3f off = nv - mPoints[5];
+    TVec3f off = mPoints[6] + dir5 * (cBodyHeight / cSegmentCount) - mPoints[5];
     for (s32 i = 0; i < 6; i++) {
         mPoints[i] += off;
     }

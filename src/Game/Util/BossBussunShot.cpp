@@ -77,12 +77,21 @@ void BossBussunSequencer::updateCamera() {
 }
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+namespace {
+    inline void calcNormalizedFrameAxis(TVec3f* axis, const TVec3f& toPlayer, const TVec3f& up, f32 dist) {
+        TVec3f dir(toPlayer);
+        dir *= 1.0f / dist;
+        PSVECCrossProduct(&dir, &up, axis);
+    }
+}
+
 void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     const TVec3f& gravity = mHost->mGravity;
     bool isPlayerBelow = gravity.dot(*MR::getPlayerGravity()) > 0.0f;
     bool isNear = isNearHeight(80.0f);
     TVec3f toPlayer;
     MR::calcVecFromPlayerHorizon(&toPlayer, mHost, &mUpVec);
+    f32 turn;
     f32 dist = PSVECMag(&toPlayer);
     f32 angle;
     if (isPlayerBelow) {
@@ -92,10 +101,8 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     }
 
     TVec3f up(isNear ? mUpVec : -mUpVec);
-    TVec3f dir(toPlayer);
-    dir *= 1.0f / dist;
     TVec3f axis;
-    PSVECCrossProduct(&dir, &up, &axis);
+    calcNormalizedFrameAxis(&axis, toPlayer, up, dist);
     if (MR::normalizeOrZero(&axis)) {
         MR::makeAxisVerticalZX(&axis, up);
     }
@@ -107,7 +114,6 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
         MR::normalize(&mSideVec);
         prevSide.set(mSideVec);
     } else {
-        f32 turn;
         if (isPlayerBelow) {
             turn = 5.0f;
         } else {
@@ -116,11 +122,7 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
         if (turn > 0.0f) {
             TVec3f target(mSideVec.dot(toPlayer) > 0.0f ? toPlayer : -toPlayer);
             target *= 1.0f / dist;
-            TVec3f yAxis;
-            yAxis.x = 0.0f;
-            yAxis.y = 1.0f;
-            yAxis.z = 0.0f;
-            MR::turnVecToVecDegree(&mSideVec, mSideVec, target, turn, yAxis);
+            MR::turnVecToVecDegree(&mSideVec, mSideVec, target, turn, TVec3f(0, 1, 0));
             JMAVECScaleAdd(&mUpVec, &mSideVec, &mSideVec, -mUpVec.dot(mSideVec));
             MR::normalize(&mSideVec);
         }

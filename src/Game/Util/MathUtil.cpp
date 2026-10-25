@@ -10,6 +10,10 @@
 #include <JSystem/JMath/JMAFloatConversion.hpp>
 #endif
 
+#ifndef GALAXY_NATIVE
+const Vec gZeroVec = {0.0f, 0.0f, 0.0f};
+#endif
+
 namespace {
     f32* gAcosTable;
 };

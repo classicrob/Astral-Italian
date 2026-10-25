@@ -147,8 +147,8 @@ void GameSequenceMarioFaceShipEvent::init() {
 
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameSequenceMarioFaceShipEvent::appear() {
-    bool isGrandStarVsKoopa = false;
     mIsDead = false;
+    bool isGrandStarVsKoopa = false;
     if (GameSequenceFunction::hasStageResultSequence()) {
         if (GameSequenceFunction::isClearedGrandStarVsKoopaLv3GalaxyAtResult()) {
             isGrandStarVsKoopa = true;

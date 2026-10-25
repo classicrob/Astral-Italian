@@ -498,8 +498,7 @@ void Mario::checkHang() {
         }
 
         direction = -*mBackWallTriangle->getNormal(0);
-        const TVec3f& opposite = -direction;
-        if (MR::diffAngleAbsHorizontal(normal, opposite, getAirGravityVec()) > 0.08726647f) {
+        if (calcHorizontalAngleToAirGravity(this, normal, -direction) > 0.08726647f) {
             return;
         }
 
@@ -579,8 +578,7 @@ void Mario::checkHang() {
         }
 
         direction = -*mSideWallTriangle->getNormal(0);
-        const TVec3f& opposite = -direction;
-        if (MR::diffAngleAbsHorizontal(normal, opposite, getAirGravityVec()) > 0.08726647f) {
+        if (calcHorizontalAngleToAirGravity(this, normal, -direction) > 0.08726647f) {
             return;
         }
 
@@ -5792,6 +5790,13 @@ bool Mario::checkSidePressPre() {
 }
 
 // NONMATCHING: temporary/register allocation; canonical SMG2 strike records and gates recovered.
+namespace {
+inline void calcPressHorizontalOffset(Mario* mario, const TVec3f& delta, TVec3f* horizontal) {
+    MR::isNearZero(mario->mAirGravityVec, 0.001f);
+    MR::vecKillElement(delta, mario->mAirGravityVec, horizontal);
+}
+}
+
 bool Mario::checkSidePress() {
     TVec3f position;
     if (isStatusActive(MarioStatus_Hang)) {
@@ -5908,11 +5913,8 @@ bool Mario::checkSidePress() {
                     if (previousFloorCode != _95C->getCode(mGroundPolygon) && MR::isSensorPressObj(mGroundPolygon->mSensor) &&
                         mVerticalSpeed >= 200.0f) {
                         mDrawStates.mBits.mBit21 = 1;
-                        TVec3f delta(mShadowPos);
-                        delta -= mGroundPos;
-                        MR::isNearZero(mAirGravityVec, 0.001f);
                         TVec3f horizontal;
-                        MR::vecKillElement(delta, mAirGravityVec, &horizontal);
+                        calcPressHorizontalOffset(this, mShadowPos - mGroundPos, &horizontal);
                         horizontal.setLength(10.0f);
                         addVelocity(horizontal);
                         return false;

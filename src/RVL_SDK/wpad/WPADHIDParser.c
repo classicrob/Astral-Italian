@@ -1436,6 +1436,7 @@ static const u8 checkZeroData[21] = {0};
 void __parse_ext_data(s32 chan, WPADStatus* p_status, u8 mode, u8* data, u8 len) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADStatus* parseStatus = p_status;
+    WPADControlBlock* p_cal;
     s8 currentError;
     s16 x, y, value;
     u16 i;
@@ -1474,11 +1475,12 @@ void __parse_ext_data(s32 chan, WPADStatus* p_status, u8 mode, u8* data, u8 len)
         WPADiDecode(chan, p_cb->extensionData, p_cb->extensionDataLength, 0);
         switch ((u32)p_cb->devType) {
         case WPAD_DEV_FREESTYLE:
+            p_cal = _wpdcb[chan];
             FS_REPORT->fsStickX = p_cb->extensionData[0];
             FS_REPORT->fsStickY = p_cb->extensionData[1];
-            FS_REPORT->fsAccX = (s16)((s16)((s16)((s16)(p_cb->extensionData[2] << 2) & (s16)~3) | (s16)((p_cb->extensionData[5] >> 2) & 3)) - p_cb->extConf.fs.acc_0g.x);
-            FS_REPORT->fsAccY = (s16)((s16)((s16)((s16)(p_cb->extensionData[3] << 2) & (s16)~3) | (s16)((p_cb->extensionData[5] >> 4) & 3)) - p_cb->extConf.fs.acc_0g.y);
-            FS_REPORT->fsAccZ = (s16)((s16)((s16)((s16)(p_cb->extensionData[4] << 2) & (s16)~3) | (s16)(p_cb->extensionData[5] >> 6)) - p_cb->extConf.fs.acc_0g.z);
+            FS_REPORT->fsAccX = (s16)((s16)((s16)((s16)(p_cb->extensionData[2] << 2) & (s16)~3) | (s16)((p_cb->extensionData[5] >> 2) & 3)) - p_cal->extConf.fs.acc_0g.x);
+            FS_REPORT->fsAccY = (s16)((s16)((s16)((s16)(p_cb->extensionData[3] << 2) & (s16)~3) | (s16)((p_cb->extensionData[5] >> 4) & 3)) - p_cal->extConf.fs.acc_0g.y);
+            FS_REPORT->fsAccZ = (s16)((s16)((s16)((s16)(p_cb->extensionData[4] << 2) & (s16)~3) | (s16)(p_cb->extensionData[5] >> 6)) - p_cal->extConf.fs.acc_0g.z);
             parseStatus->button |= ((~p_cb->extensionData[5]) & 3) << 13;
             if (!p_cb->isSetStickOrigin) {
                 p_cb->isSetStickOrigin = 1;

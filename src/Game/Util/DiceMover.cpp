@@ -380,14 +380,19 @@ void DiceMoverAccumulator::addCollision(const TVec3f* center, const TVec3f* poin
     }
 }
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+namespace {
+    inline TQuat4f calcForceRotation(const TVec3f& direction, TVec3f target) {
+        DiceMoverUtil::normalizeComponents(&target.x, &target.y, &target.z);
+        TQuat4f quaternion;
+        quaternion.setRotate(direction, target);
+        return quaternion;
+    }
+}
+
 void DiceMoverAccumulator::addRotation(const TPos3f* frame, const TVec3f* direction, const TVec3f* force) {
     TPos3f rotation;
     rotation.identity();
-    TVec3f target(*direction + *force);
-    DiceMoverUtil::normalizeComponents(&target.x, &target.y, &target.z);
-    TQuat4f quaternion;
-    quaternion.setRotate(*direction, target);
-    rotation.setQuat(quaternion);
+    rotation.setQuat(calcForceRotation(*direction, *direction + *force));
     TVec3f x, y, z;
     const f32* data = reinterpret_cast<const f32*>(frame);
     f32 xz = data[11];

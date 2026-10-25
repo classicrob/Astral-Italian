@@ -1678,7 +1678,12 @@ void KPADInitEx(KPADUnifiedWpadStatus* uniBuf, u32 length) {
         kp->fsAccRevise = 0;
         if (length && uniBuf) {
             kp->externalRingLength = length >> 2;
+#ifdef GALAXY_NATIVE
             kp->externalRingBuf = uniBuf + (length >> 2) * chan;
+#else
+            kp->externalRingBuf = (KPADUnifiedWpadStatus*)((u8*)uniBuf +
+                (chan * (s32)sizeof(KPADUnifiedWpadStatus)) * (length >> 2));
+#endif
         } else {
             kp->externalRingLength = 0;
             kp->externalRingBuf = NULL;

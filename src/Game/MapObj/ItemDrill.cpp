@@ -200,7 +200,7 @@ void ItemDrill::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
     if (MR::isCurrentRushRockMario() || MR::isPlayerElementModeYoshi()) {
         MR::sendMsgPush(pReceiver, pSender);
-    } else if (MR::isPlayerCarryAny() && MR::getPlayerBodySensor() == pReceiver) {
+    } else if (MR::isPlayerCarryAny() && pReceiver == MR::getPlayerBodySensor()) {
         MR::startActionSound(this, "Disappear", -1, -1, -1);
         setNerve(GET_NERVE(ItemDrill, ItemDrillNrvHide));
     }
@@ -353,7 +353,7 @@ bool ItemDrill::startDrill() {
     mUnk20C = -1;
     if (isAdjusted) {
         TVec3f limitPos = mLimitPos->mPosition + gravity.scaleInline(50.0f);
-        TVec3f diff = playerPos - limitPos;
+        TVec3f diff = limitPos - playerPos;
         if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, playerPos, diff)) {
             mMtx12C.setTrans(mLimitPos->mPosition);
             mUnk20C = 0;

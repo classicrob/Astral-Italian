@@ -314,7 +314,13 @@ void BellyDragonUtil::setupDemoPose(BellyDragon* pHost, const char* pName) {
     MR::calcAnimDirect(pHost);
 }
 
-// NONMATCHING: stack layout and literal symbol names.
+namespace {
+    inline void setPositionFromMatrix(LiveActor* actor, const TPos3f& matrix) {
+        TVec3f position(matrix.mMtx[0][3], matrix.mMtx[1][3], matrix.mMtx[2][3]);
+        MR::setPosition(actor, position);
+    }
+}
+
 s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     if (!MR::tryStartDemoMarioPuppetable(pHost, pName)) {
         return 0;
@@ -331,8 +337,7 @@ s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     MR::offEntryDrawBuffer(pHost->mPod->mDecoration);
     const TPos3f& hostMtx = pHost->mPod->mHostMtx;
     pHost->mBaseMtx.set(hostMtx.mMtx);
-    TVec3f sp8(hostMtx.mMtx[0][3], hostMtx.mMtx[1][3], hostMtx.mMtx[2][3]);
-    MR::setPosition(pHost, sp8);
+    setPositionFromMatrix(pHost, hostMtx);
     MR::zeroVelocity(pHost);
     pHost->mBody->end();
     BellyDragonBodyPart* pBody = pHost->mBody->mHead;

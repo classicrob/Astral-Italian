@@ -168,9 +168,7 @@ void BeeEater::calcAndSetBaseMtx() {
 
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f upOffset(up);
-    upOffset.scale(76.0f);
-    TVec3f end = mPosition - upOffset;
+    TVec3f end = mPosition - up.scaleInline(76.0f);
     TVec3f baseUp(mUpVec);
     f32 distance = PSVECDistance(&end, &mBasePos);
     f32 length = distance / 3.0f;
@@ -187,24 +185,12 @@ void BeeEater::calcAndSetBaseMtx() {
         MR::normalizeOrZero(&endUp);
     }
     mCurveEnd.set(end);
-    TVec3f endOffset(endUp);
-    endOffset.scale(-(distance * 0.5f));
-    mCurveControl2.set(mCurveEnd + endOffset);
-    TVec3f baseOffset(baseUp);
-    baseOffset.scale(length);
-    mCurveControl1.set(mBasePos + baseOffset);
+    mCurveControl2.set(mCurveEnd + endUp.scaleInline(-(distance * 0.5f)));
+    mCurveControl1.set(mBasePos + baseUp.scaleInline(length));
     mCurveStart.set(mBasePos);
     if (blend > 0.0f) {
-        TVec3f step1(delta);
-        step1.scale(1.0f);
-        TVec3f third1(step1);
-        third1.scale(1.0f / 3.0f);
-        TVec3f control1 = mBasePos + third1;
-        TVec3f step2(delta);
-        step2.scale(2.0f);
-        TVec3f third2(step2);
-        third2.scale(1.0f / 3.0f);
-        TVec3f control2 = mBasePos + third2;
+        TVec3f control1 = mBasePos + delta.scaleInline(1.0f).scaleInline(1.0f / 3.0f);
+        TVec3f control2 = mBasePos + delta.scaleInline(2.0f).scaleInline(1.0f / 3.0f);
         MR::vecBlend(&mCurveControl1, mCurveControl1, control1, blend);
         MR::vecBlend(&mCurveControl2, mCurveControl2, control2, blend);
     }

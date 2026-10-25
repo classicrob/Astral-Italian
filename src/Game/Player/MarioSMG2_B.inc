@@ -236,6 +236,16 @@ bool Mario::isEnableSlopeMove() const {
 }
 
 // NONMATCHING: independent vector/gravity evaluation order and register scheduling.
+namespace {
+inline void removeAirGravity(Mario* mario, const TVec3f& direction, TVec3f* result) {
+    MR::vecKillElement(direction, mario->getAirGravityVec(), result);
+}
+
+inline void setSlipFront(Mario* mario, const TVec3f& direction) {
+    mario->setFrontVecKeepUpAngle(direction, mario->getActor()->getConst().getTable()->mSlipMoveTurnAngleRad);
+}
+}
+
 void Mario::slopeMove() {
     if (mActor->mHealth == 0) {
         return;
@@ -423,10 +433,7 @@ void Mario::slopeMove() {
 
         if (moveAngle > 0.0f) {
             TVec3f stack_134;
-            {
-                TVec3f opposite = -stack_17C;
-                MR::vecKillElement(opposite, getAirGravityVec(), &stack_134);
-            }
+            removeAirGravity(this, -stack_17C, &stack_134);
 
             if (MR::isNearZero(stack_17C) || (MR::isNearZero(stack_134) && !((mDrawStates.mWord >> 19) & 1U))) {
                 mMovementStates.mHighWord &= 0xEFFFFFFFU;
@@ -499,8 +506,7 @@ void Mario::slopeMove() {
 
                     if (_3C2 > 10 && isStickOn() && _16C.dot(stack_11C) > 0.0f) {
                         if (MR::diffAngleAbsHorizontal(-stack_11C, mFrontVec, *getGravityVec()) < 0.5235988f) {
-                            TVec3f opposite = -_16C;
-                            setFrontVecKeepUpAngle(opposite, getActor()->getConst().getTable()->mSlipMoveTurnAngleRad);
+                            setSlipFront(this, -_16C);
                         }
                     }
                 }

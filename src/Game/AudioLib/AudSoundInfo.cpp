@@ -45,8 +45,14 @@ u32 AudSoundInfo::getPlayCountLimit(u32 limitSw) const {
     return 0;
 }
 
+namespace {
+    inline u32 getSoundSwitches(const AudSoundInfo* info, JAISoundID soundID) {
+        return info->getSoundSw(soundID);
+    }
+}
+
 bool AudSoundInfo::isLimitCountPlaying(JAISoundID soundID) const {
-    u32 limitSw = getSoundSw(soundID) & 0x60;
+    u32 limitSw = getSoundSwitches(this, soundID) & 0x60;
     u32 max = getPlayCountLimit(limitSw);
     if (limitSw == 0) {
         return false;

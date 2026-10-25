@@ -223,9 +223,8 @@ bool Dreamer::isMakeAppear() const {
         }
     } else {
         result = false;
-        if (MR::isValidSwitchAppear(this) && MR::isOnSwitchAppear(this)) {
-            result = true;
-        } else if (GameSequenceFunction::isAllowDreamerMissNum(mMissNum)) {
+        if ((MR::isValidSwitchAppear(this) && MR::isOnSwitchAppear(this)) ||
+            GameSequenceFunction::isAllowDreamerMissNum(mMissNum)) {
             result = true;
         }
     }

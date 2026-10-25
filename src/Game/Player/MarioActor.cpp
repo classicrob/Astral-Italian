@@ -7132,7 +7132,12 @@ bool MarioActor::receiveMsgTaken(HitSensor* pSender, HitSensor* pReceiver) {
     return true;
 }
 
-// NONMATCHING: local vector stack slots and pooled literal offsets.
+namespace {
+inline bool tryWaterBounce(Mario* mario, TVec3f impulse) {
+    return mario->fn_803972D0(&impulse);
+}
+}
+
 bool MarioActor::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgTaken(msg)) return receiveMsgTaken(pSender, pReceiver);
     if (_934) {
@@ -7277,8 +7282,7 @@ bool MarioActor::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     case 0x4C: {
         mMario->touchWater();
         TVec3f horizontal;
-        TVec3f offset(*MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender));
-        MR::vecKillElement(offset, *mMario->getGravityVec(), &horizontal);
+        MR::vecKillElement(*MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender), *mMario->getGravityVec(), &horizontal);
         if (horizontal.length() >= MR::getSensorRadius(pSender)) {
             return receiveMsgPush(pSender, pReceiver);
         }
@@ -7286,8 +7290,7 @@ bool MarioActor::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
             getFrontVec(&horizontal);
             horizontal.negate();
         }
-        TVec3f impulse((-*mMario->getGravityVec() + horizontal) * 10.0f);
-        bool flowing = mMario->fn_803972D0(&impulse);
+        bool flowing = tryWaterBounce(mMario, (-*mMario->getGravityVec() + horizontal) * 10.0f);
         if (flowing) {
             mMario->playSound("水弾かれ", -1);
             mMario->playSound("声噴水ジャンプ", -1);

@@ -561,7 +561,7 @@ namespace GameDataFunction {
         getCurrentGameDataWorldMapStorage()->setPointFlag(index, bit, false);
     }
 
-    void setCurrentWorldId(u8 worldNo) {
+    void setCurrentWorldId(s32 worldNo) {
         getCurrentGameDataWorldMapStorage()->setCurrentWorldNo(worldNo);
     }
 

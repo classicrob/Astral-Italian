@@ -4,7 +4,6 @@
 #include "Game/Util.hpp"
 
 extern "C" void* __nw__FUl(u32);
-extern "C" const char lbl_8066C858[];
 extern "C" const f32 lbl_807D76F4;
 extern "C" const f32 lbl_807D76F8;
 extern "C" const f32 lbl_807D76FC;
@@ -30,10 +29,13 @@ bool isAttackNerve(LiveActor* pActor) {
 }
 
 void BellyDragon::init(const JMapInfoIter& rIter) {
-    mIsLv2 = MR::isObjectName(rIter, lbl_8066C858);
+    mIsLv2 = MR::isObjectName(rIter, "BellyDragonLv2");
     MR::initDefaultPos(this, rIter);
     MR::makeMtxTR(mBaseMtx.mMtx, this);
-    mFront.set< f32 >(mBaseMtx.mMtx[0][2], mBaseMtx.mMtx[1][2], mBaseMtx.mMtx[2][2]);
+    f32 frontZ = mBaseMtx.mMtx[2][2];
+    f32 frontY = mBaseMtx.mMtx[1][2];
+    f32 frontX = mBaseMtx.mMtx[0][2];
+    mFront.set< f32 >(frontX, frontY, frontZ);
     MR::initActor(this, rIter, false);
 
     mJointCtrl = new ActorJointCtrl(this);
@@ -45,35 +47,33 @@ void BellyDragon::init(const JMapInfoIter& rIter) {
     mArmA = new BellyDragonArm(this, 1);
     mArmB = new BellyDragonArm(this, 0);
 
-    BellyDragonState* pStateA = new BellyDragonState(this, lbl_8066C858 + 0x10, &lbl_807D76F4);
+    BellyDragonState* pStateA = new BellyDragonState(this, "DemoBattleStart", &lbl_807D76F4);
     pStateA->setOverlay();
-    BellyDragonState* pStateB = new BellyDragonState(this, lbl_8066C858 + 0x20, &lbl_807D76F8);
-    BellyDragonState* pStateC = new BellyDragonState(this, lbl_8066C858 + 0x2C, &lbl_807D76F8);
+    BellyDragonState* pStateB = new BellyDragonState(this, "DemoPowerUp", &lbl_807D76F8);
+    BellyDragonState* pStateC = new BellyDragonState(this, "DemoBattleEnd", &lbl_807D76F8);
     pStateC->clearActive();
 
-    MR::initActorState(this, pStateA, &NrvBellyDragon::BellyDragonNrvStart::sInstance, lbl_8066C858 + 0x10);
-    MR::initActorState(this, (ActorStateBaseInterface*)mArmA, &NrvBellyDragon::BellyDragonNrvFire::sInstance, lbl_8066C858 + 0x3C);
-    MR::initActorState(this, pStateB, &NrvBellyDragon::BellyDragonNrvShot::sInstance, lbl_8066C858 + 0x20);
-    MR::initActorState(this, (ActorStateBaseInterface*)mArmB, &NrvBellyDragon::BellyDragonNrvAttack::sInstance, lbl_8066C858 + 0x48);
-    MR::initActorState(this, pStateC, &NrvBellyDragon::BellyDragonNrvEnd::sInstance, lbl_8066C858 + 0x2C);
+    MR::initActorState(this, pStateA, &NrvBellyDragon::BellyDragonNrvStart::sInstance, "DemoBattleStart");
+    MR::initActorState(this, (ActorStateBaseInterface*)mArmA, &NrvBellyDragon::BellyDragonNrvFire::sInstance, "Battle1st");
+    MR::initActorState(this, pStateB, &NrvBellyDragon::BellyDragonNrvShot::sInstance, "DemoPowerUp");
+    MR::initActorState(this, (ActorStateBaseInterface*)mArmB, &NrvBellyDragon::BellyDragonNrvAttack::sInstance, "Battle2nd");
+    MR::initActorState(this, pStateC, &NrvBellyDragon::BellyDragonNrvEnd::sInstance, "DemoBattleEnd");
     MR::declarePowerStar(this);
 
     if (MR::tryRegisterDemoCast(this, rIter)) {
-        mDemoA = (LiveActor*)MR::createDemoObj(lbl_8066C858 + 0x54, lbl_8066C858 + 0x68, lbl_8066C858 + 0x78, NULL);
-        mDemoB = (LiveActor*)MR::createDemoObj(lbl_8066C858 + 0x88, lbl_8066C858 + 0x98, lbl_8066C858 + 0x78, NULL);
+        mDemoA = (LiveActor*)MR::createDemoObj("クッパＪｒポッド", "KoopaJrRobotPod", "DemoBellyDragon", NULL);
+        mDemoB = (LiveActor*)MR::createDemoObj("クッパＪｒ", "KoopaJr", "DemoBellyDragon", NULL);
 #ifdef GALAXY_NATIVE
         mDemoB->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
 #else
         ((s16*)mDemoB)[7] = ((s16*)this)[7];
 #endif
-        MR::resetPosition(mDemoA, lbl_8066C858 + 0xA0);
-        MR::resetPosition(mDemoB, lbl_8066C858 + 0xA0);
+        MR::resetPosition(mDemoA, "デモ位置（クッパＪｒ登場デモ）");
+        MR::resetPosition(mDemoB, "デモ位置（クッパＪｒ登場デモ）");
         mDemoA->makeActorDead();
         mDemoB->makeActorDead();
-        MtxPtr jointMtx = MR::getJointMtx(mDemoB, lbl_8066C858 + 0x108);
-        TVec3f talkOffset(0.0f, lbl_807D76FC, 0.0f);
-        MR::initDemoSheetTalkAnim(mDemoB, rIter, lbl_8066C858 + 0xC0, lbl_8066C858 + 0xE8, NULL, talkOffset, jointMtx);
-        MR::initTalkAnimDemoCast(mDemoA, rIter, lbl_8066C858 + 0xC0, lbl_8066C858 + 0xE8);
+        MR::initDemoSheetTalkAnim(mDemoB, rIter, "ベリードラゴンデモ（クッパＪｒ登場）", "DemoOpeningKoopaJrBellyDragon", NULL, TVec3f(0.0f, lbl_807D76FC, 0.0f), MR::getJointMtx(mDemoB, "Root"));
+        MR::initTalkAnimDemoCast(mDemoA, rIter, "ベリードラゴンデモ（クッパＪｒ登場）", "DemoOpeningKoopaJrBellyDragon");
         makeActorDead();
     } else {
         MR::useStageSwitchSyncAppear(this, rIter);

@@ -244,11 +244,10 @@ void BloomEffect::blurTexture(JUTTexture* pTexture, Mtx* pMtx, s32 param3, s32 p
 #pragma dont_inline on
 void BloomEffect::initBlurMtx(Mtx* pMtx, u32 count, f32 radius, f32 offset) const {
     f32 invAspect = 1.0f / MR::getAspect();
-    radius = -radius;
 
     for (u32 i = 0; i < count; i++) {
-        PSMTXTrans(pMtx[i], invAspect * (radius * MR::cos(offset + i * 6.2831855f / count)),
-                   radius * MR::sin(offset + i * 6.2831855f / count), 0.0f);
+        PSMTXTrans(pMtx[i], invAspect * (-radius * MR::cos(offset + i * 6.2831855f / count)),
+                   -radius * MR::sin(offset + i * 6.2831855f / count), 0.0f);
     }
 
     DCStoreRangeNoSync(pMtx, sizeof(Mtx) * count);

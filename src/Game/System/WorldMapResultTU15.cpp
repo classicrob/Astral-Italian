@@ -14,15 +14,36 @@ namespace MR {
     void forceOpenSystemWipeWhiteFade();
 }
 
-
-
 s32 sFirstCometAppearStep = 0;
-
-/// Camera vectors of the demo (8 entries, constructed in declaration order).
-extern TVec3f sGreenStarDemoCameraTable[8];
 
 /// Camera name of the demo ("グリーンスターデモカメラ").
 extern const char* sCameraName;
+
+namespace NrvWorldMapResultStateGreenStarDemo {
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoStart, WorldMapResultStateGreenStarDemo, Start);
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoShower, WorldMapResultStateGreenStarDemo, Shower);
+    void WorldMapResultStateGreenStarDemoWait::execute(Spine* pSpine) const {
+        WorldMapResultStateGreenStarDemo* pState = reinterpret_cast<WorldMapResultStateGreenStarDemo*>(pSpine->mExecutor);
+        if (MR::isGreaterEqualStep(pState, 120)) {
+            pState->setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoTalkStart));
+        }
+    }
+    WorldMapResultStateGreenStarDemoWait WorldMapResultStateGreenStarDemoWait::sInstance ATTRIBUTE_WEAK;
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoTalkStart, WorldMapResultStateGreenStarDemo, TalkStart);
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoTalk, WorldMapResultStateGreenStarDemo, Talk);
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoEnd, WorldMapResultStateGreenStarDemo, End);
+}
+
+namespace {
+    TVec3f sStartCameraTargetFrom(60000.0f, 30000.0f, 35000.0f);
+    TVec3f sStartCameraTargetTo(-65000.0f, 30000.0f, 35000.0f);
+    TVec3f sStartCameraPositionFrom(60000.0f, -3000.0f, 8000.0f);
+    TVec3f sStartCameraPositionTo(-65000.0f, -3000.0f, 8000.0f);
+    TVec3f sShowerCameraTargetFrom(40000.0f, 27627.0f, 33520.0f);
+    TVec3f sShowerCameraTargetTo(-50000.0f, 27627.0f, 33520.0f);
+    TVec3f sShowerCameraPositionFrom(40000.0f, 0.0f, -2000.0f);
+    TVec3f sShowerCameraPositionTo(-50000.0f, 0.0f, -2000.0f);
+}
 
 WorldMapResultStateGreenStarDemo::WorldMapResultStateGreenStarDemo(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[グリーンスター出現デモ]", pHost) {
     mComet = NULL;
@@ -82,9 +103,7 @@ void WorldMapResultStateGreenStarDemo::showComets() {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::exeStart() {
-    const TVec3f* cameraTable = sGreenStarDemoCameraTable;
     if (MR::isFirstStep(this)) {
         MR::forceOpenSystemWipeWhiteFade();
         MR::openWipeFade(60);
@@ -93,8 +112,8 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
         mComet->appear();
     }
     f32 rate = MR::calcNerveRate(this, 300);
-    TVec3f vec50 = cameraTable[1] * rate + cameraTable[0] * (1.0f - rate);
-    TVec3f vec44 = cameraTable[3] * rate + cameraTable[2] * (1.0f - rate);
+    TVec3f vec50 = sStartCameraTargetTo * rate + sStartCameraTargetFrom * (1.0f - rate);
+    TVec3f vec44 = sStartCameraPositionTo * rate + sStartCameraPositionFrom * (1.0f - rate);
     MR::setProgrammableCameraParam(sCameraName, vec44, vec50, TVec3f(0.0f, 1.0f, 0.0f), true);
     if (MR::isStep(this, 240)) {
         MR::closeWipeFade(60);
@@ -111,7 +130,6 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateGreenStarDemo::exeShower() {
-    const TVec3f* cameraTable = sGreenStarDemoCameraTable;
     if (MR::isFirstStep(this)) {
         showComets();
         MR::startGlobalEventCameraNoTarget(sCameraName, 0);
@@ -131,9 +149,9 @@ void WorldMapResultStateGreenStarDemo::exeShower() {
         }
     }
     TVec3f vec20;
-    calcRoutePos(&vec20, cameraTable[4], cameraTable[5], getNerveStep(), 500);
+    calcRoutePos(&vec20, sShowerCameraTargetFrom, sShowerCameraTargetTo, getNerveStep(), 500);
     TVec3f vec14;
-    calcRoutePos(&vec14, cameraTable[6], cameraTable[7], getNerveStep(), 500);
+    calcRoutePos(&vec14, sShowerCameraPositionFrom, sShowerCameraPositionTo, getNerveStep(), 500);
     MR::setProgrammableCameraParam(sCameraName, vec14, vec20, TVec3f(0.0f, 1.0f, 0.0f), true);
     MR::setProgrammableCameraParamFovy(sCameraName, 26.0f);
     if (MR::isStep(this, 500)) {
@@ -172,29 +190,4 @@ void WorldMapResultStateGreenStarDemo::exeEnd() {
 WorldMapResultStateGreenStarDemo::~WorldMapResultStateGreenStarDemo() {
 }
 
-namespace NrvWorldMapResultStateGreenStarDemo {
-    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoStart, WorldMapResultStateGreenStarDemo, Start);
-    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoShower, WorldMapResultStateGreenStarDemo, Shower);
-    void WorldMapResultStateGreenStarDemoWait::execute(Spine* pSpine) const {
-        WorldMapResultStateGreenStarDemo* pState = reinterpret_cast<WorldMapResultStateGreenStarDemo*>(pSpine->mExecutor);
-        if (MR::isGreaterEqualStep(pState, 120)) {
-            pState->setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoTalkStart));
-        }
-    }
-    WorldMapResultStateGreenStarDemoWait WorldMapResultStateGreenStarDemoWait::sInstance ATTRIBUTE_WEAK;
-    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoTalkStart, WorldMapResultStateGreenStarDemo, TalkStart);
-    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoTalk, WorldMapResultStateGreenStarDemo, Talk);
-    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoEnd, WorldMapResultStateGreenStarDemo, End);
-}
-
-TVec3f sGreenStarDemoCameraTable[8] = {
-    TVec3f(60000.0f, 30000.0f, 35000.0f),
-    TVec3f(-65000.0f, 30000.0f, 35000.0f),
-    TVec3f(60000.0f, -3000.0f, 8000.0f),
-    TVec3f(-65000.0f, -3000.0f, 8000.0f),
-    TVec3f(40000.0f, 27627.0f, 33520.0f),
-    TVec3f(-50000.0f, 27627.0f, 33520.0f),
-    TVec3f(40000.0f, 0.0f, -2000.0f),
-    TVec3f(-50000.0f, 0.0f, -2000.0f),
-};
 const char* sCameraName = "グリーンスターデモカメラ";

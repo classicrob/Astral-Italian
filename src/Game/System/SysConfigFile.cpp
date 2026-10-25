@@ -34,37 +34,43 @@ u32 SysConfigChunk::getSignature() const {
     return 'SYSC';
 }
 
-// NONMATCHING: regalloc and argument scheduling (FP order/grouping checked: no FP instructions).
 s32 SysConfigChunk::deserialize(const u8* buffer, u32 size) {
     BinaryDataContentAccessor accessor(const_cast<u8*>(buffer));
     u32 headerSize = accessor.getHeaderSize();
     u8* data = const_cast<u8*>(buffer) + headerSize;
     {
-        u8* value = static_cast<u8*>(accessor.getPointer("mIsEncouragePal60", data));
+        const char* name = "mIsEncouragePal60";
+        u8* value = static_cast<u8*>(accessor.getPointer(name, data));
         mEncouragedPal16 = value ? *value : 0;
     }
     {
-        OSTime* value = static_cast<OSTime*>(accessor.getPointer("mTimeSent", data));
+        const char* name = "mTimeSent";
+        OSTime* value = static_cast<OSTime*>(accessor.getPointer(name, data));
         mTimeSent = value ? *value : 0;
     }
     {
-        u32* value = static_cast<u32*>(accessor.getPointer("mSentBytes", data));
+        const char* name = "mSentBytes";
+        u32* value = static_cast<u32*>(accessor.getPointer(name, data));
         mSentBytes = value ? *value : 0;
     }
     {
-        u16* value = static_cast<u16*>(accessor.getPointer("mBankStarPieceNum", data));
+        const char* name = "mBankStarPieceNum";
+        u16* value = static_cast<u16*>(accessor.getPointer(name, data));
         mBackupCounters->mBankedStarPiece = value ? *value : 0;
     }
     {
-        u16* value = static_cast<u16*>(accessor.getPointer("mBankStarPieceMax", data));
+        const char* name = "mBankStarPieceMax";
+        u16* value = static_cast<u16*>(accessor.getPointer(name, data));
         mBackupCounters->mMaxBankedStarPiece = value ? *value : 0;
     }
     {
-        u8* value = static_cast<u8*>(accessor.getPointer("mGiftedPlayerLeft", data));
+        const char* name = "mGiftedPlayerLeft";
+        u8* value = static_cast<u8*>(accessor.getPointer(name, data));
         mBackupCounters->mSharedPlayerLeft = value ? *value : 0;
     }
     {
-        u16* value = static_cast<u16*>(accessor.getPointer("mGiftedFileNameHash", data));
+        const char* name = "mGiftedFileNameHash";
+        u16* value = static_cast<u16*>(accessor.getPointer(name, data));
         mBackupCounters->mPlayerLeftHash = value ? *value : 1;
     }
     mCurrentCounters->copyFrom(*mBackupCounters);
@@ -141,34 +147,41 @@ s32 SysConfigChunk::serialize(u8* buffer, u32) const {
     MR::copyMemory(buffer, header, mHeaderSerializer->getHeaderSize());
     u32 headerSize = mHeaderSerializer->getHeaderSize();
     BinaryDataContentAccessor accessor(static_cast<u8*>(mHeaderSerializer->mStream.mBuffer));
-    u8* data = buffer + headerSize;
+    buffer += headerSize;
     {
+        const char* name = "mIsEncouragePal60";
         u8 value = mEncouragedPal16;
-        *static_cast<u8*>(accessor.getPointer("mIsEncouragePal60", data)) = value;
+        *static_cast<u8*>(accessor.getPointer(name, buffer)) = value;
     }
     {
+        const char* name = "mTimeSent";
         OSTime value = mTimeSent;
-        *static_cast<OSTime*>(accessor.getPointer("mTimeSent", data)) = value;
+        *static_cast<OSTime*>(accessor.getPointer(name, buffer)) = value;
     }
     {
+        const char* name = "mSentBytes";
         u32 value = mSentBytes;
-        *static_cast<u32*>(accessor.getPointer("mSentBytes", data)) = value;
+        *static_cast<u32*>(accessor.getPointer(name, buffer)) = value;
     }
     {
+        const char* name = "mBankStarPieceNum";
         u16 value = mBackupCounters->mBankedStarPiece;
-        *static_cast<u16*>(accessor.getPointer("mBankStarPieceNum", data)) = value;
+        *static_cast<u16*>(accessor.getPointer(name, buffer)) = value;
     }
     {
+        const char* name = "mBankStarPieceMax";
         u16 value = mBackupCounters->mMaxBankedStarPiece;
-        *static_cast<u16*>(accessor.getPointer("mBankStarPieceMax", data)) = value;
+        *static_cast<u16*>(accessor.getPointer(name, buffer)) = value;
     }
     {
+        const char* name = "mGiftedPlayerLeft";
         u8 value = mBackupCounters->mSharedPlayerLeft;
-        *static_cast<u8*>(accessor.getPointer("mGiftedPlayerLeft", data)) = value;
+        *static_cast<u8*>(accessor.getPointer(name, buffer)) = value;
     }
     {
+        const char* name = "mGiftedFileNameHash";
         u16 value = mBackupCounters->mPlayerLeftHash;
-        *static_cast<u16*>(accessor.getPointer("mGiftedFileNameHash", data)) = value;
+        *static_cast<u16*>(accessor.getPointer(name, buffer)) = value;
     }
     return headerSize + mHeaderSerializer->getDataSize();
 }

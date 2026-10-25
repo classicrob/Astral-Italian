@@ -164,6 +164,16 @@ bool BombTeresa::rootTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& 
     return true;
 }
 
+namespace {
+    inline void scaleTongueMtx(TPos3f* mtx, f32 dist) {
+        TVec3f scale;
+        scale.x = 1.0f;
+        scale.y = dist;
+        scale.z = dist;
+        MR::preScaleMtx(mtx->toMtxPtr(), scale);
+    }
+}
+
 bool BombTeresa::endTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     if (mTongueBlendRate == 0.0f) {
         return false;
@@ -187,11 +197,7 @@ bool BombTeresa::endTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& r
     pos += side2 * -35.0f * mTongueBlendRate;
     pMtx->setTrans(pos);
     f32 dist = MR::getEaseInOutValue(MR::normalize(pos.distance(tonguePos), 400.0f, 1000.0f), 1.0f, 0.5f, 1.0f);
-    TVec3f scale;
-    scale.x = 1.0f;
-    scale.y = dist;
-    scale.z = dist;
-    MR::preScaleMtx(pMtx->toMtxPtr(), scale);
+    scaleTongueMtx(pMtx, dist);
     return true;
 }
 

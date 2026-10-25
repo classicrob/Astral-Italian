@@ -5,6 +5,15 @@
 
 KMPLSWork* kmplsWork;
 
+// Channel state address, formed before the kmplsWork null guard as in the original.
+// The port forms it without member access through a possibly-null work pointer.
+#ifdef GALAXY_NATIVE
+#define KMPLS_CHANNEL_STATE(chan) \
+    ((KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * (chan)))
+#else
+#define KMPLS_CHANNEL_STATE(chan) (&kmplsWork->channels[chan])
+#endif
+
 static s32 s_rateRange[3][3] = {
     {1600, 1600, 1600}, {1600, 1600, 1600}, {1600, 1600, 1600}
 };
@@ -15,7 +24,7 @@ static s32 s_rawRange[3][3] = {
 };
 
 void wpad_callback_func(s32 chan, s32 result) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     if (kmplsWork) {
         if (result == 0) {
             state->calibrationResult = 1;
@@ -27,7 +36,7 @@ void wpad_callback_func(s32 chan, s32 result) {
 }
 
 static void invalidate_calibration_history(s32 chan) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     if (kmplsWork) {
         u32 index = (state->historyHead + 255) & 255;
         state->history[2][index] = 0x80000000;
@@ -39,7 +48,7 @@ static void invalidate_calibration_history(s32 chan) {
 
 // NONMATCHING: Register allocation, null-check placement, and scheduling around the same calibration command/history invalidation.
 void work_calibration(s32 chan) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     if (kmplsWork) {
         if (state->calibrationResult == 0) {
             invalidate_calibration_history(chan);
@@ -67,7 +76,7 @@ BOOL KMPLSIsInit(void) {
 void dpd_revise_scale(s32 chan) {
     f32 x = 0.0f;
     if (kmplsWork) {
-        KMPLSState* state = &kmplsWork->channels[chan];
+        KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
         f32 y;
         f32 width;
         f32 height;
@@ -122,17 +131,15 @@ f32 move_mpls_orient(KMPLSState* state, Vec* direction, Vec* previous, Vec* chan
     return dot;
 }
 
-// NONMATCHING: Temporary matrices/vector copies, stack slots, and FP registers differ; aiming/height refresh, valid-report gate, ordered math-call inputs, and max-error branches are retained.
 f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, KPADStatus* context) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     f32 scale = 0.383864f;
     KPADMPLSDirection horizon;
-    KPADMPLSDirection rotation;
     KPADMPLSDirection intermediate;
+    KPADMPLSDirection rotation;
     Vec from;
     Vec desired;
     f32 length;
-    f32 errorX, errorY, errorZ;
     if (!kmplsWork) return 0.0f;
     if ((s32)kmplsWork->channels[chan].aimingMode != (s32)(u8)KPADIsEnableAimingMode(chan) ||
         kmplsWork->channels[chan].dpdYOffset != KPADGetSensorHeight(chan)) {
@@ -148,15 +155,12 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, KPADStatus* context) 
         horizon.Y.x = -context->horizon.y;
         horizon.Y.y = context->horizon.x;
         horizon.Y.z = 0.0f;
-        from = kmplsIdentity.Z;
-        horizon.Z = from;
-        desired = from;
+        from = desired = horizon.Z = kmplsIdentity.Z;
         desired.x = (-scale) * context->pos.x;
         __KMPLS_normalize_Fxyz(&desired);
         __KMPLS_make_vec_dir(&rotation, &from, &desired);
         __KMPLS_mult_dir(&rotation, &horizon, &intermediate);
-        from = intermediate.Z;
-        desired = from;
+        from = desired = intermediate.Z;
         length = (f32)sqrt(direction->Z.x * direction->Z.x + direction->Z.z * direction->Z.z);
         desired.x *= length;
         desired.z *= length;
@@ -168,21 +172,21 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, KPADStatus* context) 
         intermediate.X.x -= direction->X.x;
         intermediate.X.y -= direction->X.y;
         intermediate.X.z -= direction->X.z;
-        errorX = intermediate.X.z * intermediate.X.z + (intermediate.X.x * intermediate.X.x + intermediate.X.y * intermediate.X.y);
+        intermediate.X.x = intermediate.X.z * intermediate.X.z + (intermediate.X.x * intermediate.X.x + intermediate.X.y * intermediate.X.y);
         intermediate.Y.x -= direction->Y.x;
         intermediate.Y.y -= direction->Y.y;
         intermediate.Y.z -= direction->Y.z;
-        errorY = intermediate.Y.z * intermediate.Y.z + (intermediate.Y.x * intermediate.Y.x + intermediate.Y.y * intermediate.Y.y);
+        intermediate.Y.x = intermediate.Y.z * intermediate.Y.z + (intermediate.Y.x * intermediate.Y.x + intermediate.Y.y * intermediate.Y.y);
         intermediate.Z.x -= direction->Z.x;
         intermediate.Z.y -= direction->Z.y;
         intermediate.Z.z -= direction->Z.z;
-        errorZ = intermediate.Z.z * intermediate.Z.z + (intermediate.Z.x * intermediate.Z.x + intermediate.Z.y * intermediate.Z.y);
-        if (errorX > errorY) {
-            if (errorX > errorZ) return (f32)sqrt(errorX);
-            return (f32)sqrt(errorZ);
+        intermediate.Z.x = intermediate.Z.z * intermediate.Z.z + (intermediate.Z.x * intermediate.Z.x + intermediate.Z.y * intermediate.Z.y);
+        if (intermediate.X.x > intermediate.Y.x) {
+            if (intermediate.X.x > intermediate.Z.x) return (f32)sqrt(intermediate.X.x);
+            return (f32)sqrt(intermediate.Z.x);
         }
-        if (errorY > errorZ) return (f32)sqrt(errorY);
-        return (f32)sqrt(errorZ);
+        if (intermediate.Y.x > intermediate.Z.x) return (f32)sqrt(intermediate.Y.x);
+        return (f32)sqrt(intermediate.Z.x);
     }
     return 0.0f;
 }
@@ -235,13 +239,12 @@ void calc_mpls_dir(KMPLSState* state) {
 
 // NONMATCHING: Temporary vector/matrix stack slots and FP register lifetimes differ; all correction calls, ordered FP expressions, and cutoff branches are retained.
 f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* acceleration) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     Vec current;
     Vec desired;
     Vec normalized;
     KPADMPLSDirection rotation;
     KPADMPLSDirection result;
-    f32 tolerance;
     f32 lengthSquared;
     f32 length;
     f32 weight;
@@ -252,17 +255,11 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
     if (lengthSquared == 0.0f) return 0.0f;
     length = (f32)sqrt(lengthSquared);
     if (length < 1.0f) {
-        f32 low;
-        tolerance = state->accelMagnitudeTolerance;
-        low = 1.0f - tolerance;
-        if (length <= low) return 0.0f;
-        weight = (1.0f / tolerance) * (length - low);
+        if (length <= 1.0f - state->accelMagnitudeTolerance) return 0.0f;
+        weight = (1.0f / state->accelMagnitudeTolerance) * (length - (1.0f - state->accelMagnitudeTolerance));
     } else {
-        f32 high;
-        tolerance = state->accelMagnitudeTolerance;
-        high = 1.0f + tolerance;
-        if (length >= high) return 0.0f;
-        weight = (-1.0f / tolerance) * (length - high);
+        if (length >= 1.0f + state->accelMagnitudeTolerance) return 0.0f;
+        weight = (-1.0f / state->accelMagnitudeTolerance) * (length - (1.0f + state->accelMagnitudeTolerance));
     }
     weight *= weight;
     weight *= state->accelCorrectionRate;
@@ -292,7 +289,7 @@ f32 revise_dir_acc(s32 chan, KPADMPLSDirection* direction, const Vec* accelerati
 
 // NONMATCHING: Integer/FP register allocation, stack-slot choices, and equivalent signed/unsigned ring comparisons differ. Target history traversal, limits, invalid-sample handling, ordered filtering/integration, and callback behavior are retained.
 void read_mpls(s32 chan, s32 ringEnd, s32 count) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     s32 threshold[3];
     s32 historyWindow;
     u8 adjustZero;
@@ -300,7 +297,8 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
     f32 speed;
     s32 limits[3];
     s32 minimum[3];
-    if (count <= 0 || !kmplsWork) return;
+    if (count <= 0) return;
+    if (!kmplsWork) return;
     if (state->calibrating) {
         adjustZero = 1;
         window = state->calibrationWindow;
@@ -562,7 +560,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
 
 // NONMATCHING: Register/stack allocation and scheduling of the same six zero-scale tests, double conversion coefficients, and calibration/history stores.
 void set_calibration_data(s32 chan) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     if (kmplsWork) {
         f64 lowRate;
         f64 highRate;
@@ -590,7 +588,7 @@ void set_calibration_data(s32 chan) {
         state->rateConversion[1][2] = highRate / state->calibration[1].axis[2].scale;
         state->calibrationResult = 1;
         {
-            KMPLSState* current = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+            KMPLSState* current = KMPLS_CHANNEL_STATE(chan);
             if (kmplsWork) {
                 current->calibrating = 1;
                 current->calibrationWindow = 0.03f;
@@ -689,7 +687,7 @@ s32 get_mpls_data_z(KMPLSState* state, WPADMPStatus* report) {
 
 void KMPLSSetKpadRingBuffer(s32 chan, const KPADUnifiedWpadStatus* internalRing,
                           const KPADUnifiedWpadStatus* externalRing, u32 externalLength) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     if (kmplsWork) {
         state->internalRing = internalRing;
         state->externalRing = externalRing;
@@ -700,7 +698,7 @@ void KMPLSSetKpadRingBuffer(s32 chan, const KPADUnifiedWpadStatus* internalRing,
 // NONMATCHING: Initial null-check/address scheduling and literal references differ.
 void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
                const KPADStatus* context, f64 samplePeriod) {
-    KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+    KMPLSState* state = KMPLS_CHANNEL_STATE(chan);
     WPADDeviceType device;
     s32 mode;
     if (!kmplsWork) return;
@@ -715,7 +713,7 @@ void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
         }
     }
     {
-        KMPLSState* current = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+        KMPLSState* current = KMPLS_CHANNEL_STATE(chan);
         if (kmplsWork) {
             if (current->reportMode != mode) current->rateConversion[0][0] = 0.0;
             current->reportMode = mode;
@@ -734,7 +732,7 @@ void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
         if (state->calibrating) work_calibration(chan);
         if (state->orientationCorrection) {
             f32 trust;
-            KMPLSState* current = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
+            KMPLSState* current = KMPLS_CHANNEL_STATE(chan);
             if (!kmplsWork) {
                 trust = 0.0f;
             } else {

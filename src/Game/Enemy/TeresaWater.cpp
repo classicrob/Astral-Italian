@@ -70,8 +70,7 @@ void TeresaWater::exeMove() {
         if (!MR::getFirstPolyOnLineToMap(&hit, nullptr, start, mFront * 360.0f)) {
             MR::showModel(this);
             mIsInWall = false;
-            const TVec3f& effectPos = start + mFront * 360.0f;
-            MR::emitEffectHit(this, effectPos, "HideWall");
+            MR::emitEffectHit(this, start + mFront * 360.0f, "HideWall");
         }
     } else {
         TVec3f hit(0.0f);

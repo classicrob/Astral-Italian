@@ -210,7 +210,7 @@ void Dsp_Update_Request() {
 }
 
 int Dsp_Running_Check() {
-    return !(1 - DspRunningStatus);
+    return DspRunningStatus == 1 ? TRUE : FALSE;
 }
 
 void Dsp_Running_Start() {

@@ -82,9 +82,16 @@ namespace MR {
         const WaterArea* pArea = pInfo->mWaterArea;
         f32 depth;
 
-        switch (pArea->mFormType) {
-        case AreaForm::Type_Cube1:
-        case AreaForm::Type_Cube2: {
+        const s32 form = pArea->mFormType;
+        if (form == AreaForm::Type_Cylinder) goto waterCylinder;
+        if (AreaForm::Type_Cylinder <= form) goto waterUpperForm;
+        if (AreaForm::Type_Sphere <= form) goto waterSphere;
+        if (AreaForm::Type_Cube1 <= form) goto waterCube;
+        goto waterResolved;
+waterUpperForm:
+        if (AreaForm::Type_Bowl + 1 <= form) goto waterResolved;
+        goto waterBowl;
+waterCube: {
             TPos3f worldMtx;
             TRot3f rotationMtx;
             TVec3f up;
@@ -113,9 +120,9 @@ namespace MR {
                 pInfo->mStreamVec.scale(pArea->mObjArg0);
             }
 
-            break;
+            goto waterResolved;
         }
-        case AreaForm::Type_Sphere: {
+waterSphere: {
             TVec3f center(0.0f, 0.0f, 0.0f);
             pArea->getForm< AreaFormSphere >()->calcPos(&center);
             f32 radius = pArea->getForm< AreaFormSphere >()->mRadius;
@@ -133,13 +140,13 @@ namespace MR {
             MR::normalizeOrZero(&normal);
             pInfo->mSurfaceNormal.set(normal);
             pInfo->mSurfacePos.set(center + normal * radius);
-            break;
+            goto waterResolved;
         }
-        case AreaForm::Type_Bowl: {
+waterBowl: {
             depth = 0.0f;
-            break;
+            goto waterResolved;
         }
-        case AreaForm::Type_Cylinder: {
+waterCylinder: {
             TVec3f center(0.0f, 0.0f, 0.0f);
             TVec3f up(0.0f, 0.0f, 1.0f);
             pArea->getForm< AreaFormCylinder >()->calcPos(&center);
@@ -172,9 +179,9 @@ namespace MR {
                 pInfo->mStreamVec.scale(pArea->mObjArg0);
             }
 
-            break;
+            goto waterResolved;
         }
-        }
+waterResolved:
 
         if (!skipConnectedArea) {
             TVec3f checkPos(pInfo->getSurfacePos() - rGravity * 5.0f);
@@ -263,6 +270,14 @@ namespace MR {
         return false;
     }
 
+    inline TVec3f calcWaterRayPosition(const TVec3f& start, const TVec3f& direction, f32 rate) {
+        TVec3f scaled(direction);
+        scaled.scale(rate);
+        TVec3f hit(start);
+        hit += scaled;
+        return hit;
+    }
+
     bool func_80062320(const WaterArea* area, TVec3f* a, TVec3f* b) {
         if (static_cast<u32>(area->mFormType) <= 1) {
             TVec3f start;
@@ -276,10 +291,7 @@ namespace MR {
             if (0.0f == dot) return false;
             f32 rate = (cube->mBounding.f.y - start.y) / dot;
             if (rate < 0.0f) return false;
-            TVec3f scaled(end);
-            scaled.scale(rate);
-            TVec3f hit(start);
-            hit += scaled;
+            TVec3f hit = calcWaterRayPosition(start, end, rate);
             return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
                    hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
         }
@@ -299,10 +311,7 @@ namespace MR {
             if (0.0f == dot) return false;
             f32 rate = (cube->mBounding.i.y - start.y) / dot;
             if (rate < 0.0f) return false;
-            TVec3f scaled(end);
-            scaled.scale(rate);
-            TVec3f hit(start);
-            hit += scaled;
+            TVec3f hit = calcWaterRayPosition(start, end, rate);
             return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
                    hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
         }

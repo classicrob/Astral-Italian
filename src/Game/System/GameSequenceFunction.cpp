@@ -337,7 +337,7 @@ namespace GameSequenceFunction {
         requestChangeStageWorldMap();
     }
 
-    void requestChangeStageWorldMapMoveToWorld(u8 worldId) {
+    void requestChangeStageWorldMapMoveToWorld(s32 worldId) {
         if (worldId > GameDataFunction::getCurrentWorldId()) {
             PlayResultWorldMapHolder* pHolder = WORLD_MAP_HOLDER;
             pHolder->mEnterType = 2;
@@ -349,7 +349,7 @@ namespace GameSequenceFunction {
         requestChangeStageWorldMap();
     }
 
-    void requestChangeStageWorldMapEnterType4(u8 worldId) {
+    void requestChangeStageWorldMapEnterType4(s32 worldId) {
         PlayResultWorldMapHolder* pHolder = WORLD_MAP_HOLDER;
         pHolder->mEnterType = 4;
         GameDataFunction::setCurrentWorldId(worldId);

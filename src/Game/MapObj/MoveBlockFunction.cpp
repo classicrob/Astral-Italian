@@ -29,7 +29,7 @@ void MoveBlockFunction::setForward(bool forward) {
 // NONMATCHING: equivalent branch layout and rotation temporary register allocation.
 bool MoveBlockFunction::update() {
     f32 delta = 1.0f / mMoveStep;
-    if (mForward) {} else delta = -delta;
+    delta = mForward ? delta : -delta;
     mRate += delta;
     bool result = false;
     f32 limit = static_cast<f32>(mStep) / mReturnStep;
@@ -41,9 +41,9 @@ bool MoveBlockFunction::update() {
     mInitialRotation.transform(mMoveVec, offset);
     MR::vecScaleAdd(&position, &offset, mRate);
     mPosition.set<f32>(position);
-    f32 z = 0.017453292f * (mRotateVec.z * mRate);
-    f32 y = 0.017453292f * (mRotateVec.y * mRate);
     f32 x = 0.017453292f * (mRotateVec.x * mRate);
+    f32 y = 0.017453292f * (mRotateVec.y * mRate);
+    f32 z = 0.017453292f * (mRotateVec.z * mRate);
     z = KoopaJrRobotKillerLauncher::normalizeAngle(z);
     y = KoopaJrRobotKillerLauncher::normalizeAngle(y);
     x = KoopaJrRobotKillerLauncher::normalizeAngle(x);

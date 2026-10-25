@@ -95,14 +95,11 @@ void KoopaJrCastleCannonBall::exeMove() {
     }
     if (MR::isBinded(this)) {
         if (MR::isBindedGround(this)) {
-            HitSensor* sensor = getSensor(nullptr);
-            MR::sendMsgEnemyAttackElectric(MR::getGroundSensor(this), sensor);
+            MR::sendMsgEnemyAttackElectric(MR::getGroundSensor(this), getSensor(nullptr));
         } else if (MR::isBindedRoof(this)) {
-            HitSensor* sensor = getSensor(nullptr);
-            MR::sendMsgEnemyAttackElectric(MR::getRoofSensor(this), sensor);
+            MR::sendMsgEnemyAttackElectric(MR::getRoofSensor(this), getSensor(nullptr));
         } else if (MR::isBindedWall(this)) {
-            HitSensor* sensor = getSensor(nullptr);
-            MR::sendMsgEnemyAttackElectric(MR::getWallSensor(this), sensor);
+            MR::sendMsgEnemyAttackElectric(MR::getWallSensor(this), getSensor(nullptr));
         }
         breakLong(this);
         return;
@@ -111,8 +108,7 @@ void KoopaJrCastleCannonBall::exeMove() {
     TVec3f origin(mPosition + mDir * 150.0f - (mGravity * length) * 0.5f);
     TVec3f hitPos(0.0f);
     if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, origin, mGravity * length) && MR::getSensor(nullptr)) {
-        HitSensor* sensor = getSensor(nullptr);
-        if (MR::sendMsgEnemyAttackElectric(MR::getSensor(nullptr), sensor)) {
+        if (MR::sendMsgEnemyAttackElectric(MR::getSensor(nullptr), getSensor(nullptr))) {
             breakLong(this);
         }
     } else if (MR::isStep(this, 600)) kill();

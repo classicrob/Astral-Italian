@@ -54,8 +54,8 @@ namespace GameSequenceFunction {
     void requestChangeStageWorldMap();
     void requestChangeStageWorldMapEnterType0();
     void requestChangeStageWorldMapEnterType1();
-    void requestChangeStageWorldMapMoveToWorld(u8);
-    void requestChangeStageWorldMapEnterType4(u8);
+    void requestChangeStageWorldMapMoveToWorld(s32);
+    void requestChangeStageWorldMapEnterType4(s32);
     void requestChangeStageInStage(const char*);
 #ifdef GALAXY_NATIVE
     /// @brief Native startup jump (--stage): enter a galaxy scenario directly, as the game's own galaxy entries do.

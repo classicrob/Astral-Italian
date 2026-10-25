@@ -279,8 +279,8 @@ void KoopaJrCastleFireBar::updateChildPositions() {
             MR::normalize(&unit, dir);
             JMAVECScaleAdd(&unit, &mPosition, &cur, mInnerRadius);
             f32 halfSpacing = sFireBarSpacing * sFireBarHalf;
-            halfSpacing *= sFireBarScale;
-            JMAVECScaleAdd(&up, &cur, &cur, halfSpacing);
+            f32 scaledHalfSpacing = halfSpacing * sFireBarScale;
+            JMAVECScaleAdd(&up, &cur, &cur, scaledHalfSpacing);
         } else {
             JMathInlineVEC::PSVECAdd(&cur, &dir, &cur);
         }

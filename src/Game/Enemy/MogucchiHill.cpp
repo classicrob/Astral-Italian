@@ -40,9 +40,15 @@ MogucchiHillPiece::MogucchiHillPiece(const char* pName) : LiveActor(pName), mHos
     mBaseMtx.identity();
 }
 
-// NONMATCHING: sensor and sound vector temporary stack slots are exchanged.
+namespace {
+    inline void initHillPieceSound(LiveActor* actor) {
+        TVec3f soundOffset;
+        soundOffset.setAll<f32>(0.0f);
+        actor->initSound(1, "MogucchiHill", nullptr, soundOffset);
+    }
+}
+
 void MogucchiHillPiece::init(const JMapInfoIter& rIter) {
-    TVec3f soundOffset;
     MR::initActor(this, mModelName, false);
     MR::connectToSceneMapObjDecorationStrongLight(this);
     initHitSensor(1);
@@ -56,8 +62,7 @@ void MogucchiHillPiece::init(const JMapInfoIter& rIter) {
         MR::initLightCtrl(this);
     }
 
-    soundOffset.setAll<f32>(0.0f);
-    initSound(1, "MogucchiHill", nullptr, soundOffset);
+    initHillPieceSound(this);
     initNerve(GET_NERVE(MogucchiHillPiece, MogucchiHillPieceNrvWait));
     makeActorDead();
 }

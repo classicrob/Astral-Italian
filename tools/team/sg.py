@@ -2,13 +2,14 @@
 """Team helper for porting Petari (SMG1) code into this SMG2 decomp.
 
   sg.py units [PREFIX] [--top N]   rank units by unmatched bytes that have a Petari counterpart
-  sg.py unit UNIT                  build UNIT and list its functions: match %, size, Petari size/unit
-  sg.py diff UNIT SYMBOL           build UNIT and print the mismatching instructions of SYMBOL
+  sg.py unit UNIT [--report]        build UNIT and list its functions: match %, size, Petari size/unit
+  sg.py diff UNIT SYMBOL [--report] build UNIT and print the mismatching instructions of SYMBOL
   sg.py petari SYMBOL              where SYMBOL lives in Petari (unit, source file, size)
 
 UNIT may be "Game/AreaObj/AreaObj", "src/Game/AreaObj/AreaObj.cpp" or "main/Game/AreaObj/AreaObj".
 SYMBOL is a mangled name or a unique substring of one (mangled or demangled).
 Run from the repo root (or any worktree root). Petari reference: $PETARI (default ~/MacioGalaxy2-team/Petari).
+Use --report or SG_REPORT=1 for report-equivalent relocation scoring; default scoring is strict.
 """
 import bisect, json, os, re, subprocess, sys, tempfile, time
 from collections import defaultdict
@@ -120,15 +121,17 @@ def compile_unit(base):
         sys.exit("compile failed")
 
 
-def build_and_diff(u):
+def build_and_diff(u, report=False):
     x = ensure_configured(u)
     base = x.get("base_path")
     if base:
         compile_unit(base)
     fd, out = tempfile.mkstemp(suffix=".json")
     os.close(fd)
-    r = subprocess.run([f"{ROOT}/build/tools/objdiff-cli", "-L", "error", "diff", "-p", ROOT, "-u", "main/" + u, "-o", out],
-                       cwd=ROOT, capture_output=True, text=True)
+    cmd = [f"{ROOT}/build/tools/objdiff-cli", "-L", "error", "diff", "-p", ROOT, "-u", "main/" + u, "-o", out]
+    if report or os.environ.get("SG_REPORT") == "1":
+        cmd.extend(["-c", "functionRelocDiffs=none"])
+    r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(r.stderr)
     d = json.load(open(out))
@@ -178,8 +181,10 @@ def cmd_units(argv):
 
 
 def cmd_unit(argv):
+    report = "--report" in argv
+    argv = [arg for arg in argv if arg != "--report"]
     u = norm_unit(argv[0])
-    d, built = build_and_diff(u)
+    d, built = build_and_diff(u, report=report)
     left = d["left"]["symbols"]
     rows = []
     for s in left:
@@ -216,9 +221,11 @@ def fmt(i):
 
 
 def cmd_diff(argv):
+    report = "--report" in argv
+    argv = [arg for arg in argv if arg != "--report"]
     u = norm_unit(argv[0])
     want = argv[1]
-    d, _ = build_and_diff(u)
+    d, _ = build_and_diff(u, report=report)
     left, right = d["left"]["symbols"], d["right"]["symbols"]
     cands = [s for s in left if s.get("instructions") and (s["name"] == want or want in s["name"] or want in s.get("demangled_name", ""))]
     exact = [s for s in cands if s["name"] == want]

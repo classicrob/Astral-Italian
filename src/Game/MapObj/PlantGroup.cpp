@@ -252,10 +252,12 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
 
     spacing *= mScale.x;
     f32 angle = 0.0f;
+    f32 angleStep;
     f32 radius = 0.0f;
-    f32 angleStep = 2.0f * PI;
+    angleStep = 2.0f * PI;
     s32 ring = 0;
     s32 ringCount = 0;
+    s32 placedCount = 0;
     TVec3f sum(0.0f);
 
     for (s32 i = 0; i < mMemberCount; i++) {
@@ -263,9 +265,7 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
         offset.scale(MR::cos(angle));
         offset += rAxisY * MR::sin(angle);
         offset.scale(radius);
-        TVec3f pos(mPosition);
-        pos += offset;
-        sum += pos;
+        sum += mPosition + offset;
         angle += angleStep;
 
         if (angle >= 2.0f * PI) {
@@ -285,7 +285,6 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
     radius = 0.0f;
     ring = 0;
     ringCount = 0;
-    s32 placedCount = 0;
 
     for (s32 i = 0; i < mMemberCount; i++) {
         TVec3f offset(rAxisX);
@@ -295,13 +294,9 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
         TVec3f start(mPosition);
         start -= average;
         start += offset;
-        TVec3f up(rGravity);
-        up.scale(100.0f);
-        start -= up;
-        TVec3f ray(rGravity);
-        ray.scale(::sCheckLineLength);
+        start -= rGravity.scaleInline(100.0f);
 
-        bool hit = MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, nullptr, start, ray);
+        bool hit = MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, nullptr, start, rGravity.scaleInline(::sCheckLineLength));
         if (hit) {
             TVec3f* pPos = &mMembers[i]->mPosition;
             *pPos += -rGravity * _B4;

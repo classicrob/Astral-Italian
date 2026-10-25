@@ -81,8 +81,7 @@ void TeresaAtomic::init(const JMapInfoIter& rIter) {
         MR::declarePowerStar(this);
     }
     MR::calcGravity(this);
-    TVec3f offset = mGravity * -900.0f;
-    TVec3f pos = mPosition + offset;
+    TVec3f pos = mPosition + mGravity * -900.0f;
     MR::resetPosition(this, pos);
     mChildCount = 4;
     mChildParts = new PartsModel*[mChildCount];

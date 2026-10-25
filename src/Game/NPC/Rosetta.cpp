@@ -23,17 +23,19 @@ Rosetta::Rosetta(const char* pName) : NPCActor(pName) {
     mTakeOutStar = nullptr;
 }
 
-// NONMATCHING: string-pointer register allocation, store scheduling and stack frame size differ.
 void Rosetta::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("Rosetta");
     caps.setDefault();
     caps.mSwitchAppear = false;
     caps.mMakeActor = false;
     const char* turnAction = "Turn";
+    const char* talkAction;
     mParam._8 = 2.0f;
     mParam._14 = "WaitA";
+    talkAction = "TalkA";
     mParam._18 = turnAction;
-    mParam._1C = mParam._20 = "TalkA";
+    mParam._1C = talkAction;
+    mParam._20 = talkAction;
     mSpinAction = cNPCSpinDefault;
     mTrampledAction = cNPCTrampledDefault;
     mPointingAction = cNPCPointingDefault;

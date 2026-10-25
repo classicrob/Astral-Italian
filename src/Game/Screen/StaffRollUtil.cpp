@@ -112,8 +112,12 @@ namespace StaffRollUtil {
             if (*src == 0xE) {
                 *dst++ = *src++;
                 MessageEditorMessageTag tag(src);
-                for (s32 i = 0; i < static_cast<s32>(tag.getSkipLength()); i++) {
-                    *dst++ = *src++;
+                for (s32 i = 0; i < static_cast<s32>(tag.getSkipLength());) {
+                    wchar_t character = *src;
+                    i++;
+                    *dst = character;
+                    dst++;
+                    src++;
                 }
                 continue;
             }

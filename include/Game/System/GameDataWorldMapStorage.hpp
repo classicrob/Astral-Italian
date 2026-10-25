@@ -13,7 +13,7 @@ public:
     virtual s32 deserialize(const u8*, u32);
     virtual void initializeData();
 
-    void setCurrentWorldNo(u8);
+    void setCurrentWorldNo(s32);
     bool isOnPointFlag(s32, s32) const;      // SMG2 fn_804DE650 (provisional name)
     void setPointFlag(s32, s32, bool);       // SMG2 fn_804DE680 (provisional name)
 

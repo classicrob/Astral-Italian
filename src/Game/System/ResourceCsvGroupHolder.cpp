@@ -53,9 +53,10 @@ void ResourceCsvGroupHolder::initActionSoundGroups(){
         if(group->mCount==1)group->mStartIndex=i;
     }
 }
-// NONMATCHING: equivalent grouping branch arrangement.
 void ResourceCsvGroupHolder::initAutoEffectGroups(){
-    mAutoEffectCsv->attach(MR::receiveArchive(sEffectArchive)->getResource(sAutoEffectCsv));
+    const char* csv = sAutoEffectCsv;
+    JKRArchive* archive = MR::receiveArchive(sEffectArchive);
+    mAutoEffectCsv->attach(archive->getResource(csv));
     s32 count=MR::getCsvDataElementNum(mAutoEffectCsv);
     for(s32 i=0;i<count;++i){
         const char* name=NULL;

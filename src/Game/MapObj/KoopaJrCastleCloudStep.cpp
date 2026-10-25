@@ -152,13 +152,13 @@ bool KoopaJrCastleCloudStep::tryDie() {
     return false;
 }
 
-// NONMATCHING: saved registers for the result flag and gravity pointer are reversed.
 bool KoopaJrCastleCloudStep::updateWind() {
+    TVec3f* pGravity;
     bool ret = false;
     TVec3f dir(0.0f);
     f32 power = -1.0f;
     if (KoopaJrCastleWindFunction::calcWindInfo(&mPosition, &dir, &power)) {
-        TVec3f* pGravity = &mGravity;
+        pGravity = &mGravity;
         JMAVECScaleAdd(pGravity, &dir, &dir, -pGravity->dot(dir));
         if (!MR::isNearZero(dir, 0.001f)) {
             ret = true;

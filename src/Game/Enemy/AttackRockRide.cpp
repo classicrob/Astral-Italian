@@ -39,18 +39,22 @@ void AttackRockRide::setHostZDir(const TVec3f* pVec) {
 }
 
 // NONMATCHING: Only stack temporary slot offsets differ (calls, operands and registers match).
+namespace {
+    inline TVec3f addRideMovement(const TVec3f& position, const TVec3f& movement) {
+        TVec3f sum(position);
+        sum.add(movement);
+        return sum;
+    }
+}
+
 void AttackRockRide::initRush() {
     MR::getPlayerQuatAndPos(&mQuat0, &mRidePos);
-    TVec3f tmp(*MR::getPlayerLastMove());
-    tmp.scale(0.9f);
-    this->mPlayerMove.set(tmp);
+    this->mPlayerMove.set(MR::getPlayerLastMove()->scaleInline(0.9f));
     this->mDrift.set(this->mPlayerMove);
     MR::calcDirToPlayer(&this->mStartDir, this->mHost);
     TVec3f playerMove = *MR::getPlayerLastMove();
     const TVec3f& hostPos = this->mHost->mPosition;
-    TVec3f sum(this->mRidePos);
-    sum.add(playerMove);
-    TVec3f dir = sum - hostPos;
+    TVec3f dir = addRideMovement(this->mRidePos, playerMove) - hostPos;
     MR::normalizeOrZero(&dir);
     this->mRotAngle = MR::diffAngleAbs(this->mStartDir, dir);
     this->mRotAngleSum = 0.0f;
@@ -61,11 +65,7 @@ void AttackRockRide::initRush() {
     this->mRushStep = 0;
     this->mQuat1.set(this->mQuat0);
     MR::rotateVecRadian(&dir, this->mStartDir, this->mRotAxis, 10.0f * this->mRotAngle);
-    TVec3f up;
-    up.x = 0.0f;
-    up.y = 1.0f;
-    up.z = 0.0f;
-    MR::turnVecToVecDegree(&this->mTargetDir, this->mHostZDir, dir, 45.0f, up);
+    MR::turnVecToVecDegree(&this->mTargetDir, this->mHostZDir, dir, 45.0f, TVec3f(0, 1, 0));
     TVec3f side = this->mTargetDir - this->mStartDir;
     if (MR::isNearZero(side, 0.001f)) {
         MR::makeAxisVerticalZX(&side, this->mTargetDir);

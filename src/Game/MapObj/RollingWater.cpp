@@ -232,16 +232,21 @@ bool RollingWater::moveOnRail() {
     return MR::isRailReachedGoal(this);
 }
 
-// NONMATCHING: the two scaled-vector temporaries occupy reversed stack slots.
+namespace {
+    inline TVec3f calcScaledRollMoment(const TVec3f& moment, f32 ease) {
+        TVec3f acceleration(moment);
+        acceleration *= 0.2f;
+        TVec3f eased(acceleration);
+        eased *= ease;
+        return eased;
+    }
+}
+
 void RollingWater::updateRollMoment() {
     TVec3f moment;
     MR::calcMomentRollBall(&moment, mVelocity, (-mGravity), 125.0f);
     f32 ease = MR::calcNerveEaseInOutRate(this, 40);
-    TVec3f a(moment);
-    a *= 0.2f;
-    TVec3f b(a);
-    b *= ease;
-    mAddVel += b;
+    mAddVel += calcScaledRollMoment(moment, ease);
     mAddVel.x *= 0.9f;
     mAddVel.y *= 0.9f;
     mAddVel.z *= 0.9f;

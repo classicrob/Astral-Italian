@@ -1040,8 +1040,9 @@ void TrickRabbit::addKeepRouteRange(f32 f1, f32 f2, f32 f3) {
         stack_3C.set(*MR::getNextNodePosition(mRailGraphIter));
     }
 
+    TVec3f stack_30;
     TVec3f diffToTarget = stack_3C - mPosition;
-    TVec3f stack_30 = diffToTarget.killElement(mGravity);
+    stack_30.killElement(diffToTarget, mGravity);
     f32 scalar;
     MR::separateScalarAndDirection(&scalar, &stack_30, stack_30);
     f32 norm = MR::normalize(scalar, f2, f3);

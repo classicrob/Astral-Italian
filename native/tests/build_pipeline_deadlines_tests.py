@@ -292,20 +292,24 @@ class Build(unittest.TestCase):
             folder=self.batch/self.stage/f'warm-{index}';path=folder/'first-use.jsonl'
             rows=[json.loads(l) for l in path.read_text().replace('"A"','"FileSelect"').splitlines()]
             rows[3]['config']='000000000000000d'
-            rows[4:4]=[dict(rows[3],config='00000000000003e7',frame=482,relative_frame=2),
+            rows[4:4]=[dict(rows[3],config='4562580ba2df567a',frame=482,relative_frame=2),
                        dict(rows[3],config='000000000000000e',frame=482+index,relative_frame=2+index)]
             rows[-1].update(records=4,lookup_calls=5)
             path.write_text(''.join(json.dumps(r)+'\n' for r in rows))
-            (folder/'app.log').write_text(''.join(f'[gx stage config] stage=FileSelect config={k:016x} phase=menu\n' for k in (11,13,999))+
+            (folder/'app.log').write_text(''.join(f'[gx stage config] stage=FileSelect config={k:016x} phase=menu\n' for k in (11,13,int('4562580ba2df567a',16)))+
                 'Petari: quitting; close the window again to quit immediately\n[gx stage config] stage=FileSelect config=000000000000000e phase=menu\n')
             launch=json.loads((folder/'launch.json').read_text());launch['mode']='no-input-title'
             (folder/'launch.json').write_text(json.dumps(launch));self.rehash(index)
         self.bind_pack();result=self.run_build(expected=[]);item=result['stage_results'][0]
         self.assertTrue(item['admitted']);self.assertEqual(item['manifest_closure']['added_hashes'],['000000000000000d'])
-        self.assertEqual(item['uncovered_configs_absent_global'],['00000000000003e7'])
+        self.assertEqual(item['uncovered_configs_absent_global'],['4562580ba2df567a'])
         after=seedpack.database_rows(str(self.root/'out/FileSelect.db'))
         self.assertEqual(deadlines.read(self.root/'out/FileSelect.first-use.bin','FileSelect',after),{11:0,13:1})
         self.assertNotIn(14,[r[1] for r in after])
+
+    def test_title_unapproved_global_gap_fails_closed(self):
+        with self.assertRaisesRegex(ValueError,'unapproved uncovered'):
+            builder.title_covered_values(self.rows,{11:0,999:1})
 
     def test_explicit_map_observation(self):
         self.prepare_map()

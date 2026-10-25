@@ -24,6 +24,13 @@ import record_pipeline_deadlines as recording
 import seedpack
 
 
+# PORT approved only these retained, uncovered title hashes; never invent rows
+# or silently broaden this exception if a later recording finds another gap.
+TITLE_UNCOVERED = {int(key, 16) for key in (
+    '4562580ba2df567a', '8db8e4b30c1350c0', '8e4579239ed88676',
+    '93d0175121192f3a', 'be4af1fe8a906da2', 'f70e3120d70014f8')}
+
+
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
@@ -81,6 +88,14 @@ def close_manifest(seeds, output, stage, frames):
     return after, {'added_count': len(additions), 'added_hashes': [f'{key:016x}' for key in missing],
                    'existing_rows_byte_identical': True, 'added_rows_byte_identical_to_global': True,
                    'source_global_sha256': sha(seeds / '__global__.db')}
+
+
+def title_covered_values(global_rows, values):
+    known = {row[1] & deadlines.MASK for row in global_rows if row[0] == 1}
+    uncovered = values.keys() - known
+    if uncovered - TITLE_UNCOVERED:
+        raise ValueError('title has an unapproved uncovered global config')
+    return {key: value for key, value in values.items() if key in known}, sorted(uncovered)
 
 
 def build(seeds, provenances, output, report, expected_stages=None, *, source_pack, require_cold_confirmation=False,
@@ -230,9 +245,8 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                 item['cold_definition_requalified'] = only_old_cold_definition and bool(cold_checks)
                 values = {int(k, 16): v for k, v in maps[0][stage].items()}
                 if dedicated and stage == 'FileSelect':
-                    known = {r[1] & deadlines.MASK for r in seedpack.database_rows(str(seeds / '__global__.db')) if r[0] == 1}
-                    item['uncovered_configs_absent_global'] = [f'{key:016x}' for key in sorted(values.keys() - known)]
-                    values = {key: value for key, value in values.items() if key in known}
+                    values, uncovered = title_covered_values(seedpack.database_rows(str(seeds / '__global__.db')), values)
+                    item['uncovered_configs_absent_global'] = [f'{key:016x}' for key in uncovered]
                 rows, closure = close_manifest(seeds, output, stage, values)
                 item['manifest_closure'] = closure
                 target = output / (stage + '.first-use.bin')

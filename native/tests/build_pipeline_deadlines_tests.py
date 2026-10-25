@@ -219,6 +219,28 @@ class Build(unittest.TestCase):
         self.assertEqual(len(q[0]['raw_absolute_disagreements']),1)
         self.assertEqual(q[0]['exact_phase_offset_disagreements'],{})
 
+    def test_warm_native_clock_qualification_retains_failed_raw_pair(self):
+        folder=self.batch/'A/warm-2';path=folder/'first-use.jsonl'
+        rows=[json.loads(line) for line in path.read_text().splitlines()]
+        rows[3]['frame']+=27;rows[3]['relative_frame']+=27;rows[-1]['clock_last_frame']+=27
+        path.write_text(''.join(json.dumps(row)+'\n' for row in rows));self.rehash(2)
+        path=folder/'route.tape.json';side=json.loads(path.read_text());side['seams']+=27
+        side['ready_seams'][0]['row']+=27;side['play_ready_seams'][0]['row']+=27;path.write_text(json.dumps(side))
+        self.data['stage_results'][0].update(passed=False,warm_disagreements={'000000000000000c':[1,28]})
+        result=self.run_build();self.assertTrue(result['passed']);item=result['stage_results'][0]
+        self.assertFalse(item['raw_recording_passed']);self.assertTrue(item['warm_definition_requalified'])
+        self.assertTrue(item['warm_packet_order_preserved'])
+        self.assertEqual(deadlines.read(self.root/'out/A.first-use.bin','A',self.rows),{11:0,12:1})
+
+    def test_warm_missing_native_anchor_fails_closed(self):
+        path=self.batch/'A/warm-2/route.tape.json';side=json.loads(path.read_text())
+        side['play_ready_seams']=[];path.write_text(json.dumps(side))
+        self.assertFalse(self.run_build()['passed'])
+
+    def test_native_order_proof_preserves_ties(self):
+        with self.assertRaisesRegex(ValueError,'group order'):
+            builder.recording.prove_order({'a':1,'b':1},{'a':('scene',0),'b':('scene',1)})
+
     def test_retry_cannot_replace_success(self):
         path=self.batch/'PROVENANCE.json';path.write_text(json.dumps(self.data))
         with self.assertRaisesRegex(ValueError,'already admitted'):
@@ -244,7 +266,7 @@ class Build(unittest.TestCase):
         for index,arm in enumerate(self.arms,1):
             folder=self.batch/self.stage/arm['name']
             capture=folder/'first-use.jsonl';capture.write_text(capture.read_text().replace('"A"','"'+self.stage+'"'))
-            (folder/'app.log').write_text('')
+            (folder/'app.log').write_text(''.join(f'[gx stage config] stage={self.stage} config={key:016x} phase=menu\n' for key in (11,12))+'Petari: quitting; close the window again to quit immediately\n')
             launch=json.loads((folder/'launch.json').read_text());launch.update(mode='no-input-map',map_frames=970)
             (folder/'launch.json').write_text(json.dumps(launch))
             rows=[{'frame':str(n),'stage':self.stage if n>=479 else 'FileSelect','scenario':'1','valid':'1','jump':'0'} for n in range(1450)]
@@ -258,9 +280,64 @@ class Build(unittest.TestCase):
             self.rehash(index)
         self.bind_pack()
 
+    def test_title_closure_omits_uncovered_global_hashes_and_quit_only_addition(self):
+        import sqlite3
+        self.stage='FileSelect'
+        (self.seeds/'A.db').rename(self.seeds/'FileSelect.db');(self.batch/'A').rename(self.batch/'FileSelect')
+        with sqlite3.connect(self.seeds/'__global__.db') as db:
+            db.executemany('INSERT INTO pipeline_cache VALUES(?,?,?,?,?,?)',[(1,13,13,3,b'new',900),(1,14,13,3,b'end',901)])
+        db.close();self.data.update(mode='no-input-title',stages_planned=['FileSelect'])
+        case=self.data['stage_results'][0];case.update(stage='FileSelect',passed=False,warm_disagreements={'000000000000000e':[3,4]})
+        for index in (1,2):
+            folder=self.batch/self.stage/f'warm-{index}';path=folder/'first-use.jsonl'
+            rows=[json.loads(l) for l in path.read_text().replace('"A"','"FileSelect"').splitlines()]
+            rows[3]['config']='000000000000000d'
+            rows[4:4]=[dict(rows[3],config='00000000000003e7',frame=482,relative_frame=2),
+                       dict(rows[3],config='000000000000000e',frame=482+index,relative_frame=2+index)]
+            rows[-1].update(records=4,lookup_calls=5)
+            path.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+            (folder/'app.log').write_text(''.join(f'[gx stage config] stage=FileSelect config={k:016x} phase=menu\n' for k in (11,13,999))+
+                'Petari: quitting; close the window again to quit immediately\n[gx stage config] stage=FileSelect config=000000000000000e phase=menu\n')
+            launch=json.loads((folder/'launch.json').read_text());launch['mode']='no-input-title'
+            (folder/'launch.json').write_text(json.dumps(launch));self.rehash(index)
+        self.bind_pack();result=self.run_build(expected=[]);item=result['stage_results'][0]
+        self.assertTrue(item['admitted']);self.assertEqual(item['manifest_closure']['added_hashes'],['000000000000000d'])
+        self.assertEqual(item['uncovered_configs_absent_global'],['00000000000003e7'])
+        after=seedpack.database_rows(str(self.root/'out/FileSelect.db'))
+        self.assertEqual(deadlines.read(self.root/'out/FileSelect.first-use.bin','FileSelect',after),{11:0,13:1})
+        self.assertNotIn(14,[r[1] for r in after])
+
     def test_explicit_map_observation(self):
         self.prepare_map()
         self.assertTrue(self.run_build()['passed'])
+
+    def test_map_post_quit_sets_must_match_even_when_frames_match(self):
+        self.prepare_map()
+        folder=self.batch/self.stage/'warm-2';path=folder/'app.log'
+        lines=path.read_text().splitlines();path.write_text('\n'.join([lines[0],lines[2],lines[1]])+'\n');self.rehash(2)
+        result=self.run_build();self.assertFalse(result['passed'])
+        self.assertIn('post-quit first-use sets differ',result['stage_results'][0]['reason'])
+
+    def test_map_missing_native_quit_marker_fails(self):
+        self.prepare_map();path=self.batch/self.stage/'warm-1/app.log'
+        path.write_text(path.read_text().split('Petari: quitting')[0]);self.rehash(1)
+        self.assertFalse(self.run_build()['passed'])
+
+    def test_map_duplicate_config_binding_fails(self):
+        self.prepare_map();path=self.batch/self.stage/'warm-1/app.log'
+        path.write_text(path.read_text()+path.read_text().splitlines()[0]+'\n');self.rehash(1)
+        self.assertFalse(self.run_build()['passed'])
+
+    def test_map_duplicate_native_quit_marker_fails(self):
+        self.prepare_map();path=self.batch/self.stage/'warm-1/app.log'
+        path.write_text(path.read_text()+'Petari: quitting\n');self.rehash(1)
+        self.assertFalse(self.run_build()['passed'])
+
+    def test_shutdown_bound_interval_is_not_an_exact_packet_claim(self):
+        self.prepare_map();folder=self.batch/self.stage/'warm-1'
+        values,report=builder.recording.shutdown_observations(folder/'first-use.jsonl',folder/'app.log',self.stage)
+        self.assertEqual(len(values),2);self.assertEqual(report['packet_interval_inclusive'],[481,490])
+        self.assertFalse(report['exact_quit_packet_known'])
 
     def test_map_raw_input_overrides_passed_summary(self):
         self.prepare_map();folder=self.batch/self.stage/'warm-2';path=folder/'route.csv'

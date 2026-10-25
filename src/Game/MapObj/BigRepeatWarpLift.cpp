@@ -18,7 +18,7 @@ namespace NrvBigRepeatWarpLift {
     NEW_NERVE(BigRepeatWarpLiftNrvSign, BigRepeatWarpLift, Sign);
     NEW_NERVE(BigRepeatWarpLiftNrvDisappear, BigRepeatWarpLift, Disappear);
 
-    void BigRepeatWarpLiftNrvHide::execute(Spine* pSpine) const {
+    inline void BigRepeatWarpLiftNrvHide::execute(Spine* pSpine) const {
         BigRepeatWarpLift* actor = reinterpret_cast<BigRepeatWarpLift*>(pSpine->mExecutor);
         if (MR::isGreaterEqualStep(actor, 30)) {
             MR::moveCoordAndTransToRailStartPoint(actor);

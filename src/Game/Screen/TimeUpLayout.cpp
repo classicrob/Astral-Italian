@@ -26,12 +26,13 @@ void TimeUpLayout::exeAppear() {
     if (MR::isFirstStep(this)) MR::startAnim(this, "Appear", 0);
     if (MR::isAnimStopped(this, 0)) setNerve(&TimeUpLayoutNrvWait::sInstance);
 }
+namespace { char kTimeUpWait[] = "Wait"; }
 void TimeUpLayout::exeEnd() {
     if (MR::isFirstStep(this)) MR::startAnim(this, "End", 0);
     if (MR::isAnimStopped(this, 0)) kill();
 }
 TimeUpLayout::~TimeUpLayout() {}
-void NrvTimeUpLayout::TimeUpLayoutNrvWait::execute(Spine* spine) const {
+inline void NrvTimeUpLayout::TimeUpLayoutNrvWait::execute(Spine* spine) const {
     TimeUpLayout* actor = static_cast<TimeUpLayout*>(spine->mExecutor);
-    if (MR::isFirstStep(actor)) MR::startAnim(actor, "Wait", 0);
+    if (MR::isFirstStep(actor)) MR::startAnim(actor, kTimeUpWait, 0);
 }

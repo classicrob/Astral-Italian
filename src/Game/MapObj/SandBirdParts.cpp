@@ -4,22 +4,28 @@
 #include "Game/MapObj/MapObjConnector.hpp"
 #include "Game/Util.hpp"
 
+namespace {
+    char sSandBirdWait[] = "Wait";
+    char sSandBirdMoveSign[] = "MoveSign";
+    char sSandBirdMove[] = "Move";
+}
+
 // Nerve executors that the target inlines into their Nrv::execute (defined before the NEW_NERVE block).
 inline void SandBirdParts::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartAllAnim(this, "Wait");
+        MR::tryStartAllAnim(this, sSandBirdWait);
     }
 }
 
 inline void SandBirdParts::exeMoveSign() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartAllAnim(this, "MoveSign");
+        MR::tryStartAllAnim(this, sSandBirdMoveSign);
     }
 }
 
 inline void SandBirdParts::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartAllAnim(this, "Move");
+        MR::tryStartAllAnim(this, sSandBirdMove);
     }
 }
 

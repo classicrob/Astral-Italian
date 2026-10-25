@@ -16,7 +16,7 @@ public:
     static MysteryMountainPlanetNrvWaitVanished sInstance;
 };
 MysteryMountainPlanetNrvWaitVanished MysteryMountainPlanetNrvWaitVanished::sInstance;
-void MysteryMountainPlanetNrvWait::execute(Spine* spine) const { LiveActor* actor = static_cast<LiveActor*>(spine->mExecutor); if (MR::isValidSwitchA(actor) && MR::isOnSwitchA(actor)) actor->setNerve(&MysteryMountainPlanetNrvBoxVanish::sInstance); }
+inline void MysteryMountainPlanetNrvWait::execute(Spine* spine) const { LiveActor* actor = static_cast<LiveActor*>(spine->mExecutor); if (MR::isValidSwitchA(actor) && MR::isOnSwitchA(actor)) actor->setNerve(&MysteryMountainPlanetNrvBoxVanish::sInstance); }
 }
 MysteryMountainPlanet::MysteryMountainPlanet(const char* name) : LiveActor(name) {}
 void MysteryMountainPlanet::init(const JMapInfoIter& iter) {

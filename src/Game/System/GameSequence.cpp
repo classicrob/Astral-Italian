@@ -25,16 +25,16 @@
 #include "Game/Util/SoundUtil.hpp"
 
 namespace NrvGameSequence {
-    void GameSequenceNrvSystemStart::execute(Spine* pSpine) const {
+    inline void GameSequenceNrvSystemStart::execute(Spine* pSpine) const {
         MR::updateActorState(static_cast< NerveExecutor* >(pSpine->mExecutor));
     }
-    void GameSequenceNrvTitle::execute(Spine* pSpine) const {
+    inline void GameSequenceNrvTitle::execute(Spine* pSpine) const {
         MR::updateActorState(static_cast< NerveExecutor* >(pSpine->mExecutor));
     }
-    void GameSequenceNrvInGame::execute(Spine* pSpine) const {
+    inline void GameSequenceNrvInGame::execute(Spine* pSpine) const {
         MR::updateActorState(static_cast< NerveExecutor* >(pSpine->mExecutor));
     }
-    void GameSequenceNrvEnding::execute(Spine* pSpine) const {
+    inline void GameSequenceNrvEnding::execute(Spine* pSpine) const {
         if (MR::updateActorState(static_cast< NerveExecutor* >(pSpine->mExecutor))) {
             GameSequenceFunction::notifyToGameSequenceProgressToEndScene();
         }

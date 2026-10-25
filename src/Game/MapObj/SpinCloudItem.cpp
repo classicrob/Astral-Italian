@@ -35,9 +35,10 @@ void SpinCloudItem::init(const JMapInfoIter& iter) {
     }
     MR::registerMarioFaceShipNpc(this, iter);
 }
-void NrvSpinCloudItem::SpinCloudItemNrvAppearDemo::execute(Spine* spine) const {
+namespace { char kSpinCloudAppearSound[] = "OjMorphFlowerAppear"; }
+inline void NrvSpinCloudItem::SpinCloudItemNrvAppearDemo::execute(Spine* spine) const {
     SpinCloudItem* actor = static_cast<SpinCloudItem*>(spine->mExecutor);
-    if (MR::isFirstStep(actor)) MR::startActionSound(actor, "OjMorphFlowerAppear");
+    if (MR::isFirstStep(actor)) MR::startActionSound(actor, kSpinCloudAppearSound);
     MR::updateActorStateAndNextNerve(actor, &NrvSpinCloudItem::SpinCloudItemNrvWait::sInstance);
 }
 void SpinCloudItem::control() {}

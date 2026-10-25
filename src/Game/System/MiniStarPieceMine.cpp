@@ -83,10 +83,10 @@ void MiniStarPieceMine::setEffectDrawOrder(s32 order) {
 }
 
 namespace NrvMiniStarPieceMine {
-    void MiniStarPieceMineNrvWait::execute(Spine* pSpine) const {
+    inline void MiniStarPieceMineNrvWait::execute(Spine* pSpine) const {
     }
 
-    void MiniStarPieceMineNrvBreak::execute(Spine* pSpine) const {
+    inline void MiniStarPieceMineNrvBreak::execute(Spine* pSpine) const {
     }
 
     MiniStarPieceMineNrvWait MiniStarPieceMineNrvWait::sInstance ATTRIBUTE_WEAK;

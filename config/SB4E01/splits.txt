@@ -2520,6 +2520,7 @@ auto_10_807D1D4C_sbss:
 Game/Boss/YukkinaGroundSnow.cpp:
 	.text       start:0x8010B990 end:0x8010BE80
 	.ctors      start:0x80644004 end:0x80644008
+	.data       start:0x8067BB00 end:0x8067BBD8
 	.sbss       start:0x807D1D50 end:0x807D1D60
 	.sdata2     start:0x807D8CC8 end:0x807D8CCC
 
@@ -3960,12 +3961,13 @@ Game/Enemy/Foomin.cpp:
 	.text       start:0x80181770 end:0x80181E20
 	.ctors      start:0x80644108 end:0x8064410C
 	.rodata     start:0x80648260 end:0x80648268
+	.data       start:0x80686B38 end:0x80686C28
 	.sbss       start:0x807D2448 end:0x807D2458
 
 Game/Enemy/Garigari.cpp:
 	.text       start:0x80181E20 end:0x80182860
 	.ctors      start:0x8064410C end:0x80644110
-	.data       start:0x80686C18 end:0x80686D58
+	.data       start:0x80686C28 end:0x80686D58
 	.sbss       start:0x807D2458 end:0x807D246C
 
 auto_10_807D246C_sbss:
@@ -5270,9 +5272,13 @@ Game/LiveActor/FaceJointCtrl.cpp:
 	.text       start:0x80234660 end:0x80235370
 	.data       start:0x80695090 end:0x80695124
 
+gap_07_80695124_data:
+	.data       start:0x80695124 end:0x80695128 align:4
+
 Game/LiveActor/FallDeath.cpp:
 	.text       start:0x80235370 end:0x802354C0
 	.ctors      start:0x8064428C end:0x80644290
+	.data       start:0x80695128 end:0x806951A8
 	.sbss       start:0x807D34B0 end:0x807D34B4
 
 auto_10_807D34B4_sbss:
@@ -6104,6 +6110,7 @@ Game/MapObj/BigFanHolder.cpp:
 Game/MapObj/BigRepeatWarpLift.cpp:
 	.text       start:0x80279BF0 end:0x8027A160
 	.ctors      start:0x80644320 end:0x80644324
+	.data       start:0x8069C478 end:0x8069C5A0
 	.sbss       start:0x807D3818 end:0x807D382C
 	.sdata2     start:0x807DCD80 end:0x807DCD88
 
@@ -6139,6 +6146,7 @@ auto_09_807CFBCB_sdata:
 Game/MapObj/BossJugemPlanetCloud.cpp:
 	.text       start:0x8027C1C0 end:0x8027C590
 	.ctors      start:0x80644330 end:0x80644334
+	.data       start:0x8069C9F8 end:0x8069CAD0
 	.sbss       start:0x807D3860 end:0x807D3870
 	.sdata2     start:0x807DCDC0 end:0x807DCDC4
 
@@ -6189,6 +6197,7 @@ auto_10_807D38B4_sbss:
 Game/MapObj/CaveInParts.cpp:
 	.text       start:0x80280830 end:0x80280DC0
 	.ctors      start:0x80644344 end:0x80644348
+	.data       start:0x8069D1B0 end:0x8069D270
 	.sbss       start:0x807D38B8 end:0x807D38C4
 
 auto_10_807D38C4_sbss:
@@ -6652,6 +6661,7 @@ Game/MapObj/FlipPanel.cpp:
 Game/MapObj/FlowerBlossomRellayPlanet.cpp:
 	.text       start:0x802A4360 end:0x802A45F0
 	.ctors      start:0x806443E4 end:0x806443E8
+	.data       start:0x806A0FF0 end:0x806A1098
 	.sbss       start:0x807D3B30 end:0x807D3B3C
 
 auto_10_807D3B3C_sbss:
@@ -7059,6 +7069,7 @@ Game/MapObj/LotusLeaf.cpp:
 Game/MapObj/MagmaBoatPlanetMagma.cpp:
 	.text       start:0x802C5870 end:0x802C5C50
 	.ctors      start:0x806444A0 end:0x806444A4
+	.data       start:0x806A5078 end:0x806A5148
 	.sbss       start:0x807D3EA0 end:0x807D3EAC
 	.sdata2     start:0x807DDBB8 end:0x807DDBBC
 
@@ -7068,6 +7079,7 @@ auto_10_807D3EAC_sbss:
 Game/MapObj/MagmaBoatPlanetIce.cpp:
 	.text       start:0x802C5C50 end:0x802C5E80
 	.ctors      start:0x806444A4 end:0x806444A8
+	.data       start:0x806A5148 end:0x806A5208
 	.sbss       start:0x807D3EB0 end:0x807D3EB8
 
 Game/MapObj/MagmaMeteor.cpp:
@@ -7279,6 +7291,7 @@ Game/MapObj/MoveBlockFunction.cpp:
 Game/MapObj/MysteryMountainPlanet.cpp:
 	.text       start:0x802D4DA0 end:0x802D5110
 	.ctors      start:0x806444F0 end:0x806444F4
+	.data       start:0x806A71B8 end:0x806A7280
 	.sbss       start:0x807D3FE8 end:0x807D3FF8
 
 Game/MapObj/NeedlePlant.cpp:
@@ -7314,6 +7327,7 @@ Game/MapObj/NoteFairy.cpp:
 Game/MapObj/OldFortressCover.cpp:
 	.text       start:0x802D83D0 end:0x802D8690
 	.ctors      start:0x80644504 end:0x80644508
+	.data       start:0x806A7858 end:0x806A7900
 	.sbss       start:0x807D4068 end:0x807D4074
 	.sdata2     start:0x807DDEF8 end:0x807DDEFC
 
@@ -7481,6 +7495,7 @@ Game/MapObj/QuestionCoin.cpp:
 Game/MapObj/QuicksandPlanet.cpp:
 	.text       start:0x802E89F0 end:0x802E8D40
 	.ctors      start:0x80644538 end:0x8064453C
+	.data       start:0x806A93D8 end:0x806A94A0
 	.sbss       start:0x807D41A8 end:0x807D41AC
 
 auto_10_807D41AC_sbss:
@@ -7495,6 +7510,7 @@ Game/MapObj/RailCoin.cpp:
 Game/MapObj/RailMoveDisappearStep.cpp:
 	.text       start:0x802E90A0 end:0x802E9510
 	.ctors      start:0x8064453C end:0x80644540
+	.data       start:0x806A9570 end:0x806A9678
 	.sbss       start:0x807D41B0 end:0x807D41C4
 	.sdata2     start:0x807DE240 end:0x807DE248
 
@@ -7528,6 +7544,7 @@ Game/MapObj/RailMoveObjGenerator.cpp:
 Game/MapObj/RailMoveTimerObj.cpp:
 	.text       start:0x802EBAC0 end:0x802EBED0
 	.ctors      start:0x8064454C end:0x80644550
+	.data       start:0x806AA580 end:0x806AA680
 	.sbss       start:0x807D41F8 end:0x807D4208
 	.sdata2     start:0x807DE260 end:0x807DE268
 	.sbss2      start:0x807E30C0 end:0x807E30C8
@@ -7576,6 +7593,7 @@ Game/MapObj/RepeatTimerSwitchingBlock.cpp:
 Game/MapObj/RestartObj.cpp:
 	.text       start:0x802F1700 end:0x802F2120
 	.ctors      start:0x8064455C end:0x80644560
+	.data       start:0x806AAD30 end:0x806AAE40
 	.bss        start:0x80729A08 end:0x80729A10
 	.sdata      start:0x807CFDA0 end:0x807CFDA4
 	.sbss       start:0x807D4240 end:0x807D4254
@@ -7679,6 +7697,7 @@ auto_10_807D42E4_sbss:
 Game/MapObj/SandBirdParts.cpp:
 	.text       start:0x802F8F60 end:0x802F99F0
 	.ctors      start:0x8064458C end:0x80644590
+	.data       start:0x806ABBC0 end:0x806ABD00
 	.sbss       start:0x807D42E8 end:0x807D430C
 
 auto_10_807D430C_sbss:
@@ -7896,6 +7915,7 @@ auto_09_807CFDF3_sdata:
 Game/MapObj/SpinCloudItem.cpp:
 	.text       start:0x8030B350 end:0x8030B880
 	.ctors      start:0x806445DC end:0x806445E0
+	.data       start:0x806AE280 end:0x806AE390
 	.sbss       start:0x807D4468 end:0x807D4478
 
 Game/MapObj/SpinDriver.cpp:
@@ -11383,6 +11403,7 @@ Game/Screen/TimeStopScreenEffect.cpp:
 Game/Screen/TimeUpLayout.cpp:
 	.text       start:0x804A4970 end:0x804A4CE0
 	.ctors      start:0x806449B0 end:0x806449B4
+	.data       start:0x806F93C0 end:0x806F9458
 	.sdata      start:0x807D0328 end:0x807D032C
 	.sbss       start:0x807D5A50 end:0x807D5A5C
 
@@ -11489,6 +11510,7 @@ auto_10_807D5AFC_sbss:
 Game/Screen/NrvWipeRingTU03.cpp:
 	.text       start:0x804A9AE0 end:0x804A9E30
 	.ctors      start:0x806449D8 end:0x806449DC
+	.data       start:0x806F9D90 end:0x806F9E28
 	.sdata      start:0x807D0380 end:0x807D0384
 	.sbss       start:0x807D5B00 end:0x807D5B0C
 
@@ -11636,6 +11658,7 @@ Game/System/FunctionAsyncExecutor.cpp:
 Game/System/GameSequence.cpp:
 	.text       start:0x804B2EF0 end:0x804B3450
 	.ctors      start:0x806449F4 end:0x806449F8
+	.data       start:0x806FA268 end:0x806FA300
 	.sbss       start:0x807D5B90 end:0x807D5BA4
 
 auto_10_807D5BA4_sbss:
@@ -12324,6 +12347,7 @@ Game/System/MiniStarCheckPoint.cpp:
 Game/System/MiniStarPieceMine.cpp:
 	.text       start:0x804E6300 end:0x804E66F0
 	.ctors      start:0x80644A74 end:0x80644A78
+	.data       start:0x80701848 end:0x80701930
 	.sdata      start:0x807D04F0 end:0x807D04F4
 	.sbss       start:0x807D5EA0 end:0x807D5EA8
 
@@ -12338,6 +12362,7 @@ Game/System/MiniStarWorldPoint.cpp:
 Game/System/MiniTicoMaster.cpp:
 	.text       start:0x804E6AD0 end:0x804E74D0
 	.ctors      start:0x80644A78 end:0x80644A7C
+	.data       start:0x80701A18 end:0x80701B88
 	.bss        start:0x8072B940 end:0x8072B964
 	.sdata      start:0x807D04F8 end:0x807D04FB
 	.sbss       start:0x807D5EA8 end:0x807D5EB4

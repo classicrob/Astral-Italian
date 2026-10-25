@@ -17,7 +17,7 @@ public:
     static MagmaBoatPlanetMagmaNrvKill sInstance;
 };
 MagmaBoatPlanetMagmaNrvKill MagmaBoatPlanetMagmaNrvKill::sInstance;
-void MagmaBoatPlanetMagmaNrvWait::execute(Spine* spine) const { MagmaBoatPlanetMagma* actor = static_cast<MagmaBoatPlanetMagma*>(spine->mExecutor); if (MR::isValidSwitchA(actor) && MR::isOnSwitchA(actor)) actor->setNerve(&MagmaBoatPlanetMagmaNrvFreeze::sInstance); }
+inline void MagmaBoatPlanetMagmaNrvWait::execute(Spine* spine) const { MagmaBoatPlanetMagma* actor = static_cast<MagmaBoatPlanetMagma*>(spine->mExecutor); if (MR::isValidSwitchA(actor) && MR::isOnSwitchA(actor)) actor->setNerve(&MagmaBoatPlanetMagmaNrvFreeze::sInstance); }
 }
 MagmaBoatPlanetMagma::MagmaBoatPlanetMagma(const char* name) : MapObjActor(name), mIceModel(0) {}
 void MagmaBoatPlanetMagma::init(const JMapInfoIter& iter) {

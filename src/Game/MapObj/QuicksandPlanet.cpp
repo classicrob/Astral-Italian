@@ -4,12 +4,13 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
+namespace { extern char sQuicksandMoveSound[]; }
 namespace NrvQuicksandPlanet {
     class QuicksandPlanetNrvMove : public Nerve {
     public:
         virtual void execute(Spine* spine) const {
             QuicksandPlanet* actor = static_cast<QuicksandPlanet*>(spine->mExecutor);
-            if (actor->isPlayerMoveable()) MR::startActionSoundAuto(actor,"PlayerOnSand",-1,-1,-1);
+            if (actor->isPlayerMoveable()) MR::startActionSoundAuto(actor,sQuicksandMoveSound,-1,-1,-1);
         }
         static QuicksandPlanetNrvMove sInstance;
     };
@@ -32,6 +33,7 @@ void QuicksandPlanet::init(const JMapInfoIter& iter) {
     PlanetMapFunction::verifyEffects(this,&mEffectCount,mObjectName,16);
     MR::registerDemoSimpleCastAll(this);
 }
+namespace { char sQuicksandMoveSound[] = "PlayerOnSand"; }
 void QuicksandPlanet::makeActorAppeared() {
     LiveActor::makeActorAppeared();
     PlanetMapFunction::tryForceDeleteEffects(this,mObjectName,mEffectCount);

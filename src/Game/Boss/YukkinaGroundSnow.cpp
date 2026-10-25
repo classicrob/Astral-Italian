@@ -17,7 +17,7 @@ namespace NrvYukkinaGroundSnow {
     NEW_NERVE(YukkinaGroundSnowNrvWait, YukkinaGroundSnow, Wait);
     NEW_NERVE(YukkinaGroundSnowNrvBreak, YukkinaGroundSnow, Break);
 
-    void YukkinaGroundSnowNrvHidden::execute(Spine* pSpine) const {
+    inline void YukkinaGroundSnowNrvHidden::execute(Spine* pSpine) const {
         YukkinaGroundSnow* pActor = reinterpret_cast< YukkinaGroundSnow* >(pSpine->mExecutor);
         if (MR::isGreaterStep(pActor, 0x78)) {
             bool far = !MR::isNearPlayer(pActor, 1000.0f);

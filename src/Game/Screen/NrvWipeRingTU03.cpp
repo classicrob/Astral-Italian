@@ -5,7 +5,7 @@
 namespace NrvMapGalaxyWorld {
     class MapGalaxyWorldNrvAppear : public Nerve { public: virtual void execute(Spine*) const; static MapGalaxyWorldNrvAppear sInstance; };
     MapGalaxyWorldNrvAppear MapGalaxyWorldNrvAppear::sInstance;
-    class MapGalaxyWorldNrvWait : public Nerve { public: virtual void execute(Spine*) const; static MapGalaxyWorldNrvWait sInstance; };
+    class MapGalaxyWorldNrvWait : public Nerve { public: virtual void execute(Spine*) const {} static MapGalaxyWorldNrvWait sInstance; };
     MapGalaxyWorldNrvWait MapGalaxyWorldNrvWait::sInstance;
     class MapGalaxyWorldNrvDisappear : public Nerve { public: virtual void execute(Spine*) const; static MapGalaxyWorldNrvDisappear sInstance; };
     MapGalaxyWorldNrvDisappear MapGalaxyWorldNrvDisappear::sInstance;
@@ -46,12 +46,11 @@ void MapGalaxyWorld::control() {
 void MapGalaxyWorld::setWorldName(const wchar_t* name) { MR::setTextBoxMessageRecursive(this, "MapGalaxyWorld", name); }
 MapGalaxyWorld::~MapGalaxyWorld() {}
 
-void NrvMapGalaxyWorld::MapGalaxyWorldNrvAppear::execute(Spine* spine) const {
+inline void NrvMapGalaxyWorld::MapGalaxyWorldNrvAppear::execute(Spine* spine) const {
     MapGalaxyWorld* actor = static_cast<MapGalaxyWorld*>(spine->mExecutor);
     if (MR::isAnimStopped(actor, 0)) actor->setNerve(&MapGalaxyWorldNrvWait::sInstance);
 }
-void NrvMapGalaxyWorld::MapGalaxyWorldNrvWait::execute(Spine*) const {}
-void NrvMapGalaxyWorld::MapGalaxyWorldNrvDisappear::execute(Spine* spine) const {
+inline void NrvMapGalaxyWorld::MapGalaxyWorldNrvDisappear::execute(Spine* spine) const {
     MapGalaxyWorld* actor = static_cast<MapGalaxyWorld*>(spine->mExecutor);
     if (MR::isAnimStopped(actor, 0)) actor->kill();
 }

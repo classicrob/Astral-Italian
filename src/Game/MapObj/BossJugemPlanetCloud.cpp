@@ -11,7 +11,7 @@ namespace NrvBossJugemPlanetCloud {
     NEW_NERVE(BossJugemPlanetCloudNrvWhiteToGray,BossJugemPlanetCloud,WhiteToGray);
     NEW_NERVE(BossJugemPlanetCloudNrvWaitGray,BossJugemPlanetCloud,WaitGray);
     NEW_NERVE(BossJugemPlanetCloudNrvGrayToWhite,BossJugemPlanetCloud,GrayToWhite);
-    void BossJugemPlanetCloudNrvWaitWhite::execute(Spine* spine) const {
+    inline void BossJugemPlanetCloudNrvWaitWhite::execute(Spine* spine) const {
         BossJugemPlanetCloud* actor = static_cast<BossJugemPlanetCloud*>(spine->mExecutor);
         if (MR::isOnSwitchA(actor) && MR::calcDistanceToPlayer(actor) < 7000.0f) actor->setNerve(&BossJugemPlanetCloudNrvWhiteToGray::sInstance);
     }

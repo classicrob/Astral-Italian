@@ -17,6 +17,7 @@ namespace MR {
 
 
 
+namespace { extern char sCaveExplosion[]; }
 namespace NrvCaveInParts {
     NEW_NERVE(CaveInPartsNrvFall, CaveInParts, Fall);
 
@@ -36,7 +37,7 @@ namespace NrvCaveInParts {
         virtual void execute(Spine* pSpine) const {
             CaveInParts* actor = reinterpret_cast< CaveInParts* >(pSpine->mExecutor);
             if (MR::isFirstStep(actor)) {
-                MR::emitEffect(actor, "Explosion");
+                MR::emitEffect(actor, sCaveExplosion);
                 actor->kill();
             }
         };
@@ -114,10 +115,11 @@ void CaveInParts::setLifeAndSpeed(s32 life, f32 maxFallSpeed, f32 gravityAccel, 
     mRotSpeed = rotSpeed;
 }
 
+namespace { char sCaveFall[] = "Fall"; char sCaveExplosion[] = "Explosion"; }
 void CaveInParts::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
-        MR::tryEmitEffect(this, "Fall");
+        MR::tryEmitEffect(this, sCaveFall);
     }
 
     MR::addVelocityToGravity(this, mGravityAccel);
@@ -132,7 +134,7 @@ void CaveInParts::exeFall() {
     f32 radius = MR::getSensorRadius(this, "Attack");
     TVec3f checkVec = mGravity * radius;
     if (MR::isExistMapCollision(mPosition, checkVec)) {
-        MR::emitEffect(this, "Explosion");
+        MR::emitEffect(this, sCaveExplosion);
         kill();
     } else if (MR::isGreaterStep(this, mLife)) {
         kill();

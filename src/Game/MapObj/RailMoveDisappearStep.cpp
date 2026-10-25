@@ -21,7 +21,7 @@ public:
     static RailMoveDisappearStepNrvDisappear sInstance;
 };
 RailMoveDisappearStepNrvDisappear RailMoveDisappearStepNrvDisappear::sInstance;
-void RailMoveDisappearStepNrvWait::execute(Spine* spine) const {
+inline void RailMoveDisappearStepNrvWait::execute(Spine* spine) const {
     LiveActor* actor = static_cast<LiveActor*>(spine->mExecutor);
     if (MR::isOnPlayer(actor)) { MR::invalidateClipping(actor); actor->setNerve(&RailMoveDisappearStepNrvSign::sInstance); }
 }

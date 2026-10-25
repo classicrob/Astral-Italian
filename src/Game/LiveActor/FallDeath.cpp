@@ -5,7 +5,7 @@
 namespace NrvFallDeath {
     FallDeathNrvFall FallDeathNrvFall::sInstance ATTRIBUTE_WEAK;
 
-    void FallDeathNrvFall::execute(Spine* pSpine) const {
+    inline void FallDeathNrvFall::execute(Spine* pSpine) const {
         FallDeath* pActor = reinterpret_cast< FallDeath* >(pSpine->mExecutor);
         MR::addVelocityToGravity(pActor, *pActor->mFallAccel);
     }

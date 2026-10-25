@@ -11,7 +11,7 @@ namespace NrvMagmaBoatPlanetIce {
     };
     MagmaBoatPlanetIceNrvWait MagmaBoatPlanetIceNrvWait::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(MagmaBoatPlanetIceNrvFreeze,MagmaBoatPlanetIce,Freeze);
-    void MagmaBoatPlanetIceNrvWait::execute(Spine* spine) const { static_cast<MagmaBoatPlanetIce*>(spine->mExecutor)->setNerve(&MagmaBoatPlanetIceNrvFreeze::sInstance); }
+    inline void MagmaBoatPlanetIceNrvWait::execute(Spine* spine) const { static_cast<MagmaBoatPlanetIce*>(spine->mExecutor)->setNerve(&MagmaBoatPlanetIceNrvFreeze::sInstance); }
 }
 MagmaBoatPlanetIce::MagmaBoatPlanetIce(const char* name) : MapObjActor(name),mIceModel(nullptr) {}
 MagmaBoatPlanetIce::~MagmaBoatPlanetIce() {}

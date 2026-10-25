@@ -14,6 +14,7 @@ namespace GameSequenceFunction {
     void collectTicoCoinIfSaved();
 };  // namespace GameSequenceFunction
 
+namespace { extern char sRestartAfter[]; }
 namespace NrvRestartObj {
     NEW_NERVE(RestartObjNrvWait, RestartObj, Wait);
     NEW_NERVE(RestartObjNrvCollect, RestartObj, Collect);
@@ -23,7 +24,7 @@ namespace NrvRestartObj {
         virtual void execute(Spine* pSpine) const {
             RestartObj* actor = reinterpret_cast< RestartObj* >(pSpine->mExecutor);
             if (MR::isFirstStep(actor)) {
-                MR::tryStartActionNotPlaying(actor, "After");
+                MR::tryStartActionNotPlaying(actor, sRestartAfter);
             }
         };
 
@@ -85,6 +86,7 @@ void RestartObj::exeCollect() {
     }
 }
 
+namespace { char sRestartAfter[] = "After"; }
 void RestartObj::exeShake() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Shake");
@@ -98,7 +100,7 @@ void RestartObj::exeShake() {
 
 void RestartObj::exeAfter() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, "After");
+        MR::tryStartActionNotPlaying(this, sRestartAfter);
     }
     if (MR::isStep(this, 5)) {
         setNerve(GET_NERVE(RestartObj, RestartObjNrvCollectAfter));

@@ -16,7 +16,7 @@ namespace NrvRailMoveTimerObj {
     RailMoveTimerObjNrvWait RailMoveTimerObjNrvWait::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(RailMoveTimerObjNrvMove, RailMoveTimerObj, Move);
     NEW_NERVE(RailMoveTimerObjNrvDisappear, RailMoveTimerObj, Disappear);
-    void RailMoveTimerObjNrvWait::execute(Spine* spine) const {
+    inline void RailMoveTimerObjNrvWait::execute(Spine* spine) const {
         RailMoveTimerObj* actor = static_cast<RailMoveTimerObj*>(spine->mExecutor);
         if (MR::isOnPlayer(actor)) actor->setNerve(&RailMoveTimerObjNrvMove::sInstance);
     }

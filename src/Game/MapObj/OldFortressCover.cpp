@@ -15,7 +15,7 @@ public:
     static OldFortressCoverNrvEnd sInstance;
 };
 OldFortressCoverNrvEnd OldFortressCoverNrvEnd::sInstance;
-void OldFortressCoverNrvWait::execute(Spine* spine) const { LiveActor* actor = static_cast<LiveActor*>(spine->mExecutor); if (MR::isValidSwitchA(actor) && MR::isOnSwitchA(actor)) actor->setNerve(&OldFortressCoverNrvOpen::sInstance); }
+inline void OldFortressCoverNrvWait::execute(Spine* spine) const { LiveActor* actor = static_cast<LiveActor*>(spine->mExecutor); if (MR::isValidSwitchA(actor) && MR::isOnSwitchA(actor)) actor->setNerve(&OldFortressCoverNrvOpen::sInstance); }
 }
 OldFortressCover::OldFortressCover(const char* name) : LiveActor(name) {}
 void OldFortressCover::init(const JMapInfoIter& iter) {

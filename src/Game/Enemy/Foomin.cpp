@@ -162,18 +162,18 @@ void Foomin::updateRailSpeed() {
 Foomin::~Foomin() {
 }
 
-void NrvFoomin::FoominNrvWait::execute(Spine* pSpine) const {
+inline void NrvFoomin::FoominNrvWait::execute(Spine* pSpine) const {
     (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominWait();
 }
 
-void NrvFoomin::FoominNrvWaitTouch::execute(Spine* pSpine) const {
+inline void NrvFoomin::FoominNrvWaitTouch::execute(Spine* pSpine) const {
     (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominWaitTouch();
 }
 
-void NrvFoomin::FoominNrvAttackSign::execute(Spine* pSpine) const {
+inline void NrvFoomin::FoominNrvAttackSign::execute(Spine* pSpine) const {
     (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominAttackSign();
 }
 
-void NrvFoomin::FoominNrvAttack::execute(Spine* pSpine) const {
+inline void NrvFoomin::FoominNrvAttack::execute(Spine* pSpine) const {
     (reinterpret_cast<Foomin*>(pSpine->mExecutor))->exeFoominAttack();
 }

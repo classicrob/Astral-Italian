@@ -1,6 +1,7 @@
 #include "Game/MapObj/FlowerBlossomRellayPlanet.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+namespace { char sFlowerBloomReaction[] = "咲いた"; }
 namespace NrvFlowerBlossomRelayPlanet {
     class FlowerBlossomRelayPlanetNrvWait : public Nerve {
     public:
@@ -20,18 +21,18 @@ namespace NrvFlowerBlossomRelayPlanet {
         static FlowerBlossomRelayPlanetNrvBloomEnd sInstance;
     };
     FlowerBlossomRelayPlanetNrvBloomEnd FlowerBlossomRelayPlanetNrvBloomEnd::sInstance ATTRIBUTE_WEAK;
-    void FlowerBlossomRelayPlanetNrvBloomEnd::execute(Spine* spine) const {
+    inline void FlowerBlossomRelayPlanetNrvBloomEnd::execute(Spine* spine) const {
         LiveActor* actor=static_cast<LiveActor*>(spine->mExecutor);
         if (MR::isDemoActive() && MR::isDemoPartLastStep(nullptr)) MR::onSwitchA(actor);
     }
-    void FlowerBlossomRelayPlanetNrvBloomStart::execute(Spine* spine) const {
+    inline void FlowerBlossomRelayPlanetNrvBloomStart::execute(Spine* spine) const {
         LiveActor* actor=static_cast<LiveActor*>(spine->mExecutor);
         if (MR::tryStartDemoRegistered(actor,nullptr)) {
-            MR::tryHitReaction(actor,"咲いた");
+            MR::tryHitReaction(actor,sFlowerBloomReaction);
             actor->setNerve(&FlowerBlossomRelayPlanetNrvBloomEnd::sInstance);
         }
     }
-    void FlowerBlossomRelayPlanetNrvWait::execute(Spine* spine) const {
+    inline void FlowerBlossomRelayPlanetNrvWait::execute(Spine* spine) const {
         LiveActor* actor=static_cast<LiveActor*>(spine->mExecutor);
         if (MR::isValidSwitchB(actor) && MR::isOnSwitchB(actor)) actor->setNerve(&FlowerBlossomRelayPlanetNrvBloomStart::sInstance);
     }

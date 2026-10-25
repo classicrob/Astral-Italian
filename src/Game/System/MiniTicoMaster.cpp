@@ -11,13 +11,14 @@ class TalkMessageCtrl;
 
 
 
+namespace { extern char sMiniTicoMasterModel[]; }
 namespace NrvMiniTicoMaster {
     class MiniTicoMasterNrvWait : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
             LiveActor* pActor = reinterpret_cast<LiveActor*>(pSpine->mExecutor);
             if (MR::isFirstStep(pActor)) {
-                MR::startAction(pActor, "MiniTicoMaster");
+                MR::startAction(pActor, sMiniTicoMasterModel);
             }
         };
         static MiniTicoMasterNrvWait sInstance;
@@ -71,6 +72,7 @@ MiniTicoMaster::MiniTicoMaster(WorldMapResultWorld* world, s32 partsIndex, s32* 
 
 MiniTicoMaster::~MiniTicoMaster() {}
 
+namespace { char sMiniTicoMasterModel[] = "MiniTicoMaster"; }
 void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     TVec3f base(mUnk90->getNode(mUnkA4)->mPos);
     TVec3f pos = base + sPlanetOffset;
@@ -78,7 +80,7 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     mPosition.y = pos.y;
     mPosition.z = pos.z;
 
-    MR::initActor(this, rIter, "MiniTicoMaster", false);
+    MR::initActor(this, rIter, sMiniTicoMasterModel, false);
 
     mModelA = WorldMapFunction::createPartsModel(this, "左手", "TicoFatGoodsStarPiece", "StarPieceL");
     mModelB = WorldMapFunction::createPartsModel(this, "右手", "TicoFatGoodsStarPiece", "StarPieceR");

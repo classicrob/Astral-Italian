@@ -3,6 +3,17 @@
 #include "Game/Screen/LayoutActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
+namespace NrvRaceLayout {
+#define DECLARE_RACE_NERVE(State) \
+    class RaceLayoutNrv##State : public Nerve { \
+    public: RaceLayoutNrv##State(); virtual void execute(Spine*) const; \
+    static RaceLayoutNrv##State sInstance; };
+    DECLARE_RACE_NERVE(Hide)
+    DECLARE_RACE_NERVE(Appear)
+    DECLARE_RACE_NERVE(Wait)
+#undef DECLARE_RACE_NERVE
+}
+
 class RaceLayout : public LayoutActor {
 public:
     RaceLayout(const char*);
@@ -20,14 +31,3 @@ public:
     void setTime(u32);
     void setBestTime(u32);
 };
-
-namespace NrvRaceLayout {
-#define DECLARE_RACE_NERVE(State) \
-    class RaceLayoutNrv##State : public Nerve { \
-    public: RaceLayoutNrv##State(); virtual void execute(Spine*) const; \
-    static RaceLayoutNrv##State sInstance; };
-    DECLARE_RACE_NERVE(Hide)
-    DECLARE_RACE_NERVE(Appear)
-    DECLARE_RACE_NERVE(Wait)
-#undef DECLARE_RACE_NERVE
-}

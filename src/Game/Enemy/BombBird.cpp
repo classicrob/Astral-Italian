@@ -584,9 +584,9 @@ void BombBird::calcAndSetBaseMtx() {
     }
 }
 
-void NrvBombBird::HostTypeNrvBindStarPointer::execute(Spine* spine) const {
+inline void NrvBombBird::HostTypeNrvBindStarPointer::execute(Spine* spine) const {
     static_cast<BombBird*>(spine->mExecutor)->exeBombBirdBindStarPointer();
 }
-void NrvBombBird::HostTypeNrvBindStarPointerGround::execute(Spine* spine) const {
+inline void NrvBombBird::HostTypeNrvBindStarPointerGround::execute(Spine* spine) const {
     static_cast<BombBird*>(spine->mExecutor)->exeBombBirdBindStarPointerGround();
 }

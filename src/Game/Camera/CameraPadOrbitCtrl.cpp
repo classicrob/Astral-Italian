@@ -26,7 +26,6 @@ void CameraPadOrbitCtrl::update(const TVec3f& up, const TVec3f& front, const TVe
     if (mRotating) updateRotation(up, front, watch, pos);
     else updateInput(up, front, watch, pos);
 }
-// NONMATCHING: quaternion math register/stack scheduling
 void CameraPadOrbitCtrl::updateRotation(const TVec3f& up, const TVec3f&, const TVec3f& watch, TVec3f* pos) {
     f32 previous = mAngle;
     if (mTargetAngle > mAngle) {
@@ -44,7 +43,7 @@ void CameraPadOrbitCtrl::updateRotation(const TVec3f& up, const TVec3f&, const T
     rotation.w = cos(halfAngle);
     rotation.transform(offset);
     const TVec3f& updatedPosition = watch + offset;
-    *pos = updatedPosition;
+    pos->set(static_cast<const Vec&>(updatedPosition));
 }
 void CameraPadOrbitCtrl::updateInput(const TVec3f& up, const TVec3f& front, const TVec3f& watch, TVec3f* pos) {
     f32 roundAngle = 0.7853981852531433f;

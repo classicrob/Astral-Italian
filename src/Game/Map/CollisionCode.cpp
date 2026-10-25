@@ -130,16 +130,6 @@ const char* CollisionCode::getFloorCodeString(const Triangle& rTriangle) {
     return mFloorTable->getString(code);
 }
 
-const char* CodeTable::getString(u32 val) {
-    for (s32 i = 0; i < mNumCodes; i++) {
-        if (val == mCodes[i]) {
-            return mNames[i];
-        }
-    }
-
-    return "NoIter";
-}
-
 u32 CollisionCode::getWallCode(const JMapInfoIter& rIter) {
     return getCode(rIter, mWallTable, "Wall_code");
 }
@@ -236,4 +226,14 @@ u32 CollisionCode::getCode(const JMapInfoIter& rIter, CodeTable* pCodeTable, con
     }
 
     return 0;
+}
+
+const char* CodeTable::getString(u32 val) {
+    for (s32 i = 0; i < mNumCodes; i++) {
+        if (val == mCodes[i]) {
+            return mNames[i];
+        }
+    }
+
+    return "NoIter";
 }

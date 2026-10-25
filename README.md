@@ -6,9 +6,10 @@
 > and [Petari](https://github.com/SMGCommunity/Petari) (SMG1 code reused for shared engine code).
 > It isn't affiliated with or endorsed by either project. Project code is CC0, like upstream; third-party dependencies retain their own licences.
 
-![Code 83.65%](https://img.shields.io/badge/code-83.65%25-2185d0)
-![Functions 94.9%](https://img.shields.io/badge/functions-94.9%25-2185d0)
-![Fuzzy 99.0%](https://img.shields.io/badge/fuzzy-99.0%25-2185d0)
+![Code 96.16%](https://img.shields.io/badge/code-96.16%25-2185d0)
+![Functions 98.96%](https://img.shields.io/badge/functions-98.96%25-2185d0)
+![Data 75.10%](https://img.shields.io/badge/data-75.10%25-2185d0)
+![Fuzzy 99.8%](https://img.shields.io/badge/fuzzy-99.8%25-2185d0)
 
 ![Decompilation progress by source unit; area is code size, colour is matched code percentage](docs/images/progress-treemap.svg)
 
@@ -22,29 +23,30 @@ included. You need your own disc.**
 
 ## Status
 
-As of **2026-10-22**:
+As of **2026-10-25**:
 
-- **83.65% matched code** (5,244,504 / 6,269,292 bytes), **94.93% matched
-  functions** (47,801 / 50,354), and **98.96% fuzzy match**. Matched code is
-  different from fully completed/linked code, currently **1.50%**. These are
-  local objdiff report numbers, not upstream's decomp.dev statistics.
-- **5.2.1 with Cappy** is the default frozen build; **5.1** is the fallback.
-  **5.3** is a frozen, non-default candidate. **5.3.2 source is on main**;
-  its clean frozen release and full release gates are still pending. A
-  `dev-20261022` drop is available through the frozen-build chooser.
-- A player **cleared Yoshi Star Galaxy, collected its star and returned to
-  Starship Mario** on 5.2.1. Flip-Swap and Fluffy Bluff have been played;
-  Fluffy Bluff's Odyssey moves and Star Bit mods were player-confirmed.
-  Flip-Swap completion is not established. Automated normal-route checks
-  reached Sky Station mission 1 through file select, Starship and World 1's map.
+- **96.16% matched code** (6,028,536 / 6,269,292 bytes), **98.96% matched
+  functions** (49,830 / 50,352), **75.10% matched data** (1,277,600 /
+  1,701,146 bytes) and **99.82% fuzzy match**. Matched code is different
+  from fully completed/linked code, currently **1.50%**. These are local
+  objdiff report numbers, not upstream's decomp.dev statistics.
+- **5.4.2** is the default frozen build; **5.4.1** and **5.3.2** are the
+  fallbacks. A packaged tester release (0.1.0) built from 5.4.2 is being
+  prepared.
+- A player **cleared Yoshi Star Galaxy** and **completed Flip-Swap Galaxy to
+  its star**; that recorded run is replayed as a regression check. Fluffy
+  Bluff's Odyssey moves and Star Bit mods were player-confirmed. A headless
+  sweep boots and runs **252 of 260** galaxy scenarios (the rest are
+  non-gameplay scenes or unreachable in play).
 - Coverage of free movement and mission completion is limited; this is not a
-  full-game completion claim. **Switch 2 Pro Controller does not work yet**:
-  macOS libusb/SDL integration needs work. There is no native Windows or Linux port.
+  full-game completion claim. **Switch 2 Pro Controller** support is
+  experimental and not yet confirmed on hardware. There is no native Windows
+  or Linux port.
 
-Progress comes from the latest numeric entry in the team's `progress.log`
-(2026-10-21 17:40) and the local report used for the treemap. Play coverage and
-build status were checked against team reports and frozen-build receipts;
-[PLAY.md](PLAY.md) describes the launcher.
+Progress comes from the objdiff report for main at batch 59 (`b0cf56fb`),
+the same report used for the treemap. Play coverage and build status were
+checked against team reports and frozen-build receipts; [PLAY.md](PLAY.md)
+describes the launcher.
 
 ## Try it (testers)
 
@@ -59,8 +61,8 @@ Read [PLAY.md](PLAY.md), then double-click
 uses your privately extracted disc, normally
 `~/MacioGalaxy2-gamedata/SB4E01-extracted/`.
 
-Choose **c** for 5.2.1, **f** for 5.1, **n** for the 5.3 candidate, or **b**
-for other available frozen builds. Choose a galaxy or the title screen;
+Choose **d** for 5.4.2 (the default), **e** for 5.4.1, **p** for 5.3.2, or
+**b** for other available frozen builds. Choose a galaxy or the title screen;
 Odyssey movement and audio have menu toggles. The launcher requires an app
 with a `FROZEN.txt` marker under `~/MacioGalaxy2-play/`.
 
@@ -77,9 +79,8 @@ enable mods, or use **Level Select**. Optional mods are off until enabled:
 
 - **Odyssey movement:** long jumps, dives, rolls, wall jumps and more.
 - **Cappy:** enable both Odyssey movement and Cappy, then reload the stage.
-  **R** throws the cap; cap contact can flip Flip-Swap panels. In current
-  main/5.3.2 source, a cap bounce restores the airborne Spin; this fix is
-  absent from frozen 5.3.
+  **R** throws the cap; cap contact can flip Flip-Swap panels. A cap
+  bounce restores the airborne Spin (5.3.2 and later).
 - **Collect-all-Star-Bits (G):** pulls eligible Star Bits in the current scene to Mario.
 - **Shoot-nearest (V):** fires a Star Bit at the nearest eligible visible enemy in range.
 
@@ -99,7 +100,7 @@ Details: [Mods](native/MODS.md), [Controls](native/CONTROLS.md),
 
 Xbox and PlayStation controllers use SDL gamepad input. Switch Pro layouts
 use **Nintendo button labels**, with separate Galaxy and Odyssey layouts;
-physical-pad validation remains limited. Switch 2 Pro is not supported yet.
+physical-pad validation remains limited. Switch 2 Pro support is experimental.
 See [CONTROLS.md](native/CONTROLS.md) for mappings, power-ups and remapping.
 
 ## How it is built

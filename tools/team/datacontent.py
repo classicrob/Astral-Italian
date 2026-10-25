@@ -270,6 +270,9 @@ class World:
                 unit = line[:-1].removesuffix('.cpp').removesuffix('.c')
             match = re.search(r'^\s+(\.\w+)\s+start:0x([\da-fA-F]+)\s+end:0x([\da-fA-F]+)', line)
             if match:
+                options = re.split(r'//|#', line[match.end():], maxsplit=1)[0].split()
+                if 'skip' in options:
+                    continue
                 self.bases[unit, match[1]] = int(match[2], 16)
                 self.ranges[unit, match[1]] = (int(match[2], 16), int(match[3], 16))
 

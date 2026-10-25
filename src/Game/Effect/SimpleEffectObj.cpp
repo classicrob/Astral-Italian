@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Effect/SimpleEffectObj.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"

@@ -62,5 +62,3 @@ namespace NrvUnbabaSlim {
         static UnbabaSlimNrvEatEnd sInstance;
     };
 }
-
-extern TVec3f sUnbabaVec[4];

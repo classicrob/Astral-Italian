@@ -11,6 +11,20 @@ class PlayerRocketSmokeMoveParticleCallBack;
 class PlayerRocketSmokeWaitParticleCallBack;
 
 /// Rocket the player rides on the world map (0xEC bytes, ctor 0x804E4530).
+namespace NrvMiniPlayerRocket {
+    class NrvBind : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static NrvBind sInstance;
+    };
+
+    class NrvNone : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static NrvNone sInstance;
+    };
+}
+
 class MiniPlayerRocket : public LiveActor {
 public:
     MiniPlayerRocket();
@@ -56,17 +70,3 @@ public:
     /* 0xE4 */ PlayerRocketSmokeWaitParticleCallBack* mSmokeWaitCb;
     /* 0xE8 */ s32 mStarPieceNum;
 };
-
-namespace NrvMiniPlayerRocket {
-    class NrvBind : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const;
-        static NrvBind sInstance;
-    };
-
-    class NrvNone : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const;
-        static NrvNone sInstance;
-    };
-}

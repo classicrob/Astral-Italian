@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/NameObj/NameObj.hpp"
+#include "Game/Util/Array.hpp"
 
 class JMapIdInfo;
 
@@ -12,16 +13,7 @@ struct PlayResultStageEntry {
     /* 0x4 */ u8 mGalaxyStarTotalNum;
 };
 
-// 3-word list header (base, capacity, count) embedded in the holder.
-struct PlayResultStageList {
-    PlayResultStageList();   // fn_804C8D50
-    ~PlayResultStageList();  // fn_804C9410
-    void add(const PlayResultStageEntry&);  // fn_804C93E0
-
-    /* 0x0 */ PlayResultStageEntry* mBase;
-    /* 0x4 */ s32 mCapacity;
-    /* 0x8 */ s32 mCount;
-};
+typedef MR::Vector< MR::AssignableArray< PlayResultStageEntry > > PlayResultStageList;
 
 class PlayResultInStageHolder : public NameObj {
 public:

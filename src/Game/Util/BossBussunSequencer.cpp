@@ -139,11 +139,8 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     mIsNear = isNear;
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 f32 BossBussunSequencer::calcPlayerDot() const {
-    TVec3f diff(*MR::getPlayerPos());
-    diff -= mCenterPos;
-    return mUpVec.dot(diff);
+    return mUpVec.dot(*MR::getPlayerPos() - mCenterPos);
 }
 
 bool BossBussunSequencer::isNearHeight(f32 threshold) const {

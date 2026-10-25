@@ -5,33 +5,7 @@
 class AnimScaleController;
 class HanachanBig;
 
-class HanachanBigParts : public LiveActor {
-public:
-    enum PartsType {
-        PartsType_Head,
-        PartsType_Body,
-        PartsType_BodyS,
-    };
-
-    HanachanBigParts(HanachanBig*, s32, const char*);
-
-    virtual ~HanachanBigParts();
-    virtual void init(const JMapInfoIter&);
-    virtual void control();
-    virtual void calcAndSetBaseMtx();
-    virtual void attackSensor(HitSensor*, HitSensor*);
-    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
-
-    void exeWalk();
-    void becomeAngry();
-
-    /* 0x90 */ HanachanBig* mHost;
-    /* 0x94 */ AnimScaleController* mScaleController;
-    /* 0x98 */ TVec3f mRailDirection;
-    /* 0xA4 */ s32 mPartsType;
-    /* 0xA8 */ s32 mPartsIndex;
-    /* 0xAC */ bool mIsAngry;
-};
+class HanachanBigParts;
 
 class HanachanBig : public LiveActor {
 public:
@@ -58,4 +32,32 @@ public:
     /* 0xCC */ f32 mRange;
     /* 0xD0 */ s32 mHitCount;
     /* 0xD4 */ bool mIsAngry;
+};
+
+class HanachanBigParts : public LiveActor {
+public:
+    enum PartsType {
+        PartsType_Head,
+        PartsType_Body,
+        PartsType_BodyS,
+    };
+
+    HanachanBigParts(HanachanBig*, s32, const char*);
+
+    virtual ~HanachanBigParts();
+    virtual void init(const JMapInfoIter&);
+    virtual void control();
+    virtual void calcAndSetBaseMtx();
+    virtual void attackSensor(HitSensor*, HitSensor*);
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+
+    void exeWalk();
+    void becomeAngry();
+
+    /* 0x90 */ HanachanBig* mHost;
+    /* 0x94 */ AnimScaleController* mScaleController;
+    /* 0x98 */ TVec3f mRailDirection;
+    /* 0xA4 */ s32 mPartsType;
+    /* 0xA8 */ s32 mPartsIndex;
+    /* 0xAC */ bool mIsAngry;
 };

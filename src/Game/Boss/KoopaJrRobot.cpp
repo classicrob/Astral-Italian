@@ -85,7 +85,7 @@ const char* KoopaJrRobotFunction::getDemoName() {
 }
 
 KoopaJrRobot::KoopaJrRobot(const char* pName)
-    : LiveActor(pName), mChildCount(0), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
+    : LiveActor(pName), mChildren(), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
       mHeadModel(nullptr), mBody(nullptr), mZAxis(0.0f, 0.0f, 1.0f), mZAxis2(0.0f, 0.0f, 1.0f), _10C(0.0f) {
 }
 
@@ -246,8 +246,8 @@ bool KoopaJrRobot::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor*
 // NONMATCHING: child-array/count load register allocation differs.
 void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
     s32 num = MR::getChildObjNum(rIter);
-    mChildren.mArr = new LiveActor*[num - 1];
-    mChildren.mMaxSize = num - 1;
+    mChildren.mArray.mArr = new LiveActor*[num - 1];
+    mChildren.mArray.mMaxSize = num - 1;
     for (s32 i = 0; i < num; i++) {
         const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
@@ -255,8 +255,8 @@ void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
             mStarPieceGroup = static_cast< StarPieceGroup* >(NameObjFactory::initChildObj(rIter, i));
         } else {
             LiveActor* child = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
-            s32 index = mChildCount++;
-            mChildren.mArr[index] = child;
+            s32 index = mChildren.mCount++;
+            mChildren.mArray.mArr[index] = child;
         }
     }
 }

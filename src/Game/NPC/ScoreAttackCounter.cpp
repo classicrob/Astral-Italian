@@ -48,7 +48,7 @@ namespace NrvScoreAttackCounter {
     Counting Counting::sInstance;
     TimeUp TimeUp::sInstance;
     End End::sInstance;
-    void TimeUp::execute(Spine* s) const {
+    inline void TimeUp::execute(Spine* s) const {
         ScoreAttackCounter* host = static_cast<ScoreAttackCounter*>(s->mExecutor);
         if (MR::isStep(host, 60)) host->setNerve(&End::sInstance);
     }

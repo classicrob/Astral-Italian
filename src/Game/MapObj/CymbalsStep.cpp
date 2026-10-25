@@ -13,7 +13,6 @@ namespace { const char* sJointName = "Down"; }
 CymbalsStep::CymbalsStep(const char* name) : SimpleSeesawObj(name), mJointController(nullptr), mClosedCollision(nullptr), mCloseRate(0.0f) {
     PSMTXIdentity(mInitialMtx);
 }
-// NONMATCHING: target inlines the empty SimpleSeesawObj destructor.
 CymbalsStep::~CymbalsStep() {}
 void CymbalsStep::init(const JMapInfoIter& iter) {
     MapObjActor::init(iter);

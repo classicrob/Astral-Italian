@@ -323,7 +323,7 @@ void HanachanRunaway::updateTubeSliderParts() {
 
 // Nerve ----------------------------------------------------------------------------------------------
 
-void NrvHanachanRunaway::HanachanRunawayNrvWait::execute(Spine* pSpine) const {
+inline void NrvHanachanRunaway::HanachanRunawayNrvWait::execute(Spine* pSpine) const {
     HanachanRunaway* pActor = reinterpret_cast<HanachanRunaway*>(pSpine->mExecutor);
     if (MR::isValidSwitchA(pActor) && MR::isOnSwitchA(pActor)) {
         pActor->setNerve(GET_HANACHAN_RUNAWAY_NERVE(HanachanRunawayNrvWhistle));

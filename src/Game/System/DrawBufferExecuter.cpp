@@ -28,9 +28,14 @@ void DrawBufferExecuter::add(LiveActor* pActor) {
     mDrawBuffer->add(pActor);
 }
 
+namespace {
+    inline LiveActor** findDrawActor(LiveActor** const& actors, const s32& count, LiveActor* const& actor) {
+        return std::find(actors, actors + count, actor);
+    }
+}
+
 void DrawBufferExecuter::remove(LiveActor* pActor) {
-    LiveActor** end = mActors + mNumActors;
-    LiveActor** it = std::find(mActors, end, pActor);
+    LiveActor** it = findDrawActor(mActors, mNumActors, pActor);
     mActors[it - mActors] = getActor(mNumActors - 1);
     mNumActors--;
     mDrawBuffer->remove(pActor);

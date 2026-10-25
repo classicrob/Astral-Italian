@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #define JGEOMETRY_OUTLINE_MATRIX_POSITION
 #pragma auto_inline off
 #include "Game/MapObj/MapObjActor.hpp"

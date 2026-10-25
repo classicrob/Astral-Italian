@@ -42,3 +42,14 @@ void __OSInitNet(void) {
         }
     }
 }
+
+// Likely diagnostics and device paths from stripped internal NWC24 routines;
+// retained for the original OSNet data layout.
+char sNWC24PrepareShutdownName[] = "NWC24iPrepareShutdown";
+char sNWC24RequestPath[] = "/dev/net/kd/request";
+char sNWC24SuspendSchedulerName[] = "NWC24SuspendScheduler";
+char sNWC24ResumeSchedulerName[] = "NWC24ResumeScheduler";
+char sNWC24RequestShutdownName[] = "NWC24iRequestShutdown";
+char sNWC24ShutdownGiveUpLog[] = "NWC24Shutdown_: Give up!\n";
+char sNWC24SetRtcCounterName[] = "NWC24iSetRtcCounter_";
+char sNWC24TimePath[] = "/dev/net/kd/time";

@@ -690,14 +690,12 @@ bool MarioLauncher::testHitCollision() {
     return MR::isBinded(mShell) != false;
 }
 
-// NONMATCHING: saved-register allocation differs.
 bool MarioLauncher::isBreak(const Triangle* pTriangle) {
-    HitSensor* pSensor = pTriangle->mSensor;
-    if (pSensor == getSensor("Bind")) {
+    if (pTriangle->getSensor() == getSensor("Bind")) {
         return true;
     }
 
-    return MR::sendArbitraryMsg(0xF4 /* ACTMES_LAUNCHER_BREAKABLE */, pSensor, getSensor("Shell"));
+    return MR::sendArbitraryMsg(0xF4 /* ACTMES_LAUNCHER_BREAKABLE */, pTriangle->getSensor(), getSensor("Shell"));
 }
 
 void MarioLauncher::onSwitchA() {

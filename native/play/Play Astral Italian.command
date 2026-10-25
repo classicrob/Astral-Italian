@@ -13,8 +13,8 @@ while :; do
     clear 2>/dev/null
     echo "Astral Italian (Super Mario Galaxy 2, native)"
     echo
-    echo "  d) 5.4.1 (default)"
-    echo "  e) 5.4 (fallback)"
+    echo "  d) 5.4.2 (default)"
+    echo "  e) 5.4.1 (fallback)"
     echo "  p) 5.3.2 (fallback)"
     echo "  c) 5.2.1 with Cappy (fallback)"
     echo "  f) 5.1 (old fallback)"
@@ -44,7 +44,7 @@ while :; do
     d|D) selected_app=$(frozen_app_named default) || exit 1
          export ASTRAL_APP="$selected_app"
          continue ;;
-    e|E) if selected_app=$(frozen_app_named build5.4); then
+    e|E) if selected_app=$(frozen_app_named build5.4.1); then
              export ASTRAL_APP="$selected_app"
          else
              printf "Press Return to continue. "

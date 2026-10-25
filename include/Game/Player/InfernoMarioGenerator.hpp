@@ -2,12 +2,8 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
 class InfernoMario;
-class InfernoMarioGroup : public LiveActorGroup {
-public:
-    InfernoMarioGroup(const char* name,s32 count) : LiveActorGroup(name,count) {}
-    virtual ~InfernoMarioGroup();
-    InfernoMario* getDeadMember() const;
-};
+class InfernoMarioGroup;
+
 class InfernoMarioGenerator : public LiveActor {
 public:
     InfernoMarioGenerator(const char*);
@@ -29,4 +25,10 @@ public:
     s32 mFrame;
     int mAlreadyDoneFlag;
     bool mAlreadyDone;
+};
+class InfernoMarioGroup : public LiveActorGroup {
+public:
+    InfernoMarioGroup(const char* name,s32 count) : LiveActorGroup(name,count) {}
+    virtual ~InfernoMarioGroup();
+    InfernoMario* getDeadMember() const;
 };

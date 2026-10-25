@@ -68,3 +68,18 @@ After notarization, drop the first-launch instructions from `READ ME FIRST.txt` 
 ## Tests
 
 `python3 -I tools/release/test_scan_bundle.py`
+
+## Measurement caveats for the 5.4.x freezes (maintainer notes, not tester-facing)
+
+- Server (M4 Max) measurement rows in the 5.4.1 freeze (m4-cold-stall 9/9) and the 5.4.2 M4 no-regression sets ran at `nice 5`,
+  not `nice 0` (zsh `BG_NICE` renices background jobs). Both arms of each comparison had the same nice, so the comparisons stand.
+  Later runs launch at `nice 0`, asserted by the harness. (Head-approved wording from the PORT lead; the frozen build is untouched.)
+- Correction (2026-10-25) to the 5.4.2 freeze's M1 warm-relaunch limit ("37 title frames > 50 ms in the first 300 s vs 5.4.1's 3, max 150 ms"):
+  that compared ONE 5.4.2 warm pair against a single unusually clean 5.4.1 pair. The 5.4.3(b) bisect (M1 Max, warm second title launch,
+  first 300 s, nice 0, compile-free rows; SOL A, M1 m1g/campaigns/sola-543-warm-pacing-r1/) shows the burst is intermittent and present
+  in 5.4.1 too: 5.4.1 (07223918) 30 frames > 50 ms / max 311 ms in one pair; 840ffdba 8 and 8 frames / max 167 and 72 ms;
+  5.4.2 (00221126) 7 and 11 frames / max 70 and 72 ms (an earlier 5.4.2 control: 41 / 603 ms). The EFB-capture, GX-wait/delivery
+  and GPU-timestamp source paths are byte-identical across the three builds; the cause needs GPU-side timestamps (5.4.3/5.4.4).
+  Tester wording since then: "On M1-class Macs the title screen can show intermittent bursts of slow frames on a relaunch (in our
+  measurements 7-41 frames over 50 ms in the first 5 minutes, worst 70-600 ms); 5.4.1 shows the same intermittently, so it is not
+  new in this build." build5.4.2/FROZEN.txt is untouched (it records what was measured at the freeze). (Head-approved.)

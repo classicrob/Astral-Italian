@@ -1,4 +1,5 @@
 #include "Game/Util/MapUtil.hpp"
+#include "Game/Util/Functor.hpp"
 #include "Game/MapObj/RailMoveObj.hpp"
 #include "Game/Util.hpp"
 #include "Game/Demo/DemoCtrlBase.hpp"
@@ -193,17 +194,6 @@ bool RailMoveObj::tryStartMove() {
     return true;
 }
 
-void RailMoveObj::exeDemoMove() {
-    if (MR::isFirstStep(this)) {
-        mRailMover->end();
-        MR::startAction(this, "DemoMove");
-    }
-
-    if (MR::isActionEnd(this)) {
-        kill();
-    }
-}
-
 void RailMoveObj::exeMove() {
     if (MR::isFirstStep(this)) {
         startMapPartsFunctions();
@@ -231,6 +221,50 @@ RailMoveObjPress::RailMoveObjPress(const char* pName) : RailMoveObj(pName) {
 void RailMoveObjPress::init(const JMapInfoIter& rIter) {
     RailMoveObj::init(rIter);
     MR::setBodySensorType(this, ATYPE_MAP_OBJ_PRESS);
+}
+
+bool RailMoveObjSwitchWarpEnd::tryStartMove() {
+    if (MR::isValidSwitchA(this) && MR::isOnSwitchA(this)) {
+        mRailMover->moveToEndPos();
+        MR::setPosition(this, mRailMover->mPosition);
+        MR::onSwitchDead(this);
+        setNerve(GET_NERVE(RailMoveObj, HostTypeDone));
+        return true;
+    }
+
+    setNerve(GET_NERVE(RailMoveObj, HostTypeMove));
+    return true;
+}
+
+void RailMoveObjSwitchWarpEnd::startMoveInner() {
+    if (MR::isRegisteredEffect(this, "Start")) {
+        MR::emitEffect(this, "Start");
+    }
+
+    if (MR::isExistBck(this, "Move")) {
+        MR::startAction(this, "Move");
+    }
+}
+
+void RailMoveObjSwitchWarpEnd::move() {
+    if (!mRailMover->isStarting()) {
+        if (!mIsWarpEffectStarted) {
+            MR::StageEffect::rumblePadStart(this, mObjectName);
+            MR::StageEffect::shakeStartCamera(this, mObjectName);
+            MR::StageEffect::shakeCameraMoving(this, mObjectName);
+            mIsWarpEffectStarted = 1;
+        }
+
+        if (MapObjActorUtil::isRailMoverWorking(this)) {
+            MR::StageEffect::tryStageEffectMoving(this, mObjectName);
+        }
+    }
+}
+
+void RailMoveObjSwitchWarpEnd::doAtEndPoint() {
+    RailMoveObj::doAtEndPoint();
+    setNerve(GET_NERVE(RailMoveObj, HostTypeDone));
+    MR::onSwitchDead(this);
 }
 
 RailMoveObjBreakAtEnd::RailMoveObjBreakAtEnd(const char* pName) : RailMoveObj(pName) {
@@ -392,50 +426,6 @@ void RailMoveShadowDropYObj::control() {
 }
 
 
-bool RailMoveObjSwitchWarpEnd::tryStartMove() {
-    if (MR::isValidSwitchA(this) && MR::isOnSwitchA(this)) {
-        mRailMover->moveToEndPos();
-        MR::setPosition(this, mRailMover->mPosition);
-        MR::onSwitchDead(this);
-        setNerve(GET_NERVE(RailMoveObj, HostTypeDone));
-        return true;
-    }
-
-    setNerve(GET_NERVE(RailMoveObj, HostTypeMove));
-    return true;
-}
-
-void RailMoveObjSwitchWarpEnd::startMoveInner() {
-    if (MR::isRegisteredEffect(this, "Start")) {
-        MR::emitEffect(this, "Start");
-    }
-
-    if (MR::isExistBck(this, "Move")) {
-        MR::startAction(this, "Move");
-    }
-}
-
-void RailMoveObjSwitchWarpEnd::move() {
-    if (!mRailMover->isStarting()) {
-        if (!mIsWarpEffectStarted) {
-            MR::StageEffect::rumblePadStart(this, mObjectName);
-            MR::StageEffect::shakeStartCamera(this, mObjectName);
-            MR::StageEffect::shakeCameraMoving(this, mObjectName);
-            mIsWarpEffectStarted = 1;
-        }
-
-        if (MapObjActorUtil::isRailMoverWorking(this)) {
-            MR::StageEffect::tryStageEffectMoving(this, mObjectName);
-        }
-    }
-}
-
-void RailMoveObjSwitchWarpEnd::doAtEndPoint() {
-    RailMoveObj::doAtEndPoint();
-    setNerve(GET_NERVE(RailMoveObj, HostTypeDone));
-    MR::onSwitchDead(this);
-}
-
 RailMoveObjShakeCamera::RailMoveObjShakeCamera(const char* pName) : RailMoveObj(pName) {
 }
 
@@ -462,6 +452,17 @@ void RailMoveWithIndirectModelObj::init(const JMapInfoIter& rIter) {
 
 void RailSeesawMoveObj::setupInitInfo(const JMapInfoIter& rIter, MapObjActorInitInfo* pInfo) {
     MapObjActorUtil::setupInitInfoSeesaw(pInfo, rIter, 0, 0.0f);
+}
+
+void RailMoveObj::exeDemoMove() {
+    if (MR::isFirstStep(this)) {
+        mRailMover->end();
+        MR::startAction(this, "DemoMove");
+    }
+
+    if (MR::isActionEnd(this)) {
+        kill();
+    }
 }
 
 RailMoveDemoActionObj::RailMoveDemoActionObj(const char* pName) : RailMoveObj(pName) {

@@ -38,15 +38,7 @@ public:
     /* 0xC */ JMapInfo* mGalaxyInfo;
 };
 
-class ScenarioDataParser : public NameObj {
-public:
-    ScenarioDataParser(const char*);
-
-    ScenarioData* getScenarioData(const char*) const;
-    GalaxyStatusAccessor makeAccessor(const char*) const;
-
-    /* 0x014 */ MR::Vector< MR::FixedArray< ScenarioData*, 0x60 > > mScenarioData;
-};
+class ScenarioDataParser;
 
 class ScenarioDataIter {
 public:
@@ -61,6 +53,16 @@ public:
 
     /* 0x4 */ ScenarioDataParser* mParser;
     /* 0x8 */ s32 mCur;
+};
+
+class ScenarioDataParser : public NameObj {
+public:
+    ScenarioDataParser(const char*);
+
+    ScenarioData* getScenarioData(const char*) const;
+    GalaxyStatusAccessor makeAccessor(const char*) const;
+
+    /* 0x014 */ MR::Vector< MR::FixedArray< ScenarioData*, 0x60 > > mScenarioData;
 };
 
 namespace ScenarioDataFunction {

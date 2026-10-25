@@ -1,13 +1,8 @@
 #pragma once
 #include "Game/Player/InfernoMarioStateBase.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
-class ManekuriModel : public LiveActor {
-public:
-    ManekuriModel(const char*, MtxPtr);
-    virtual ~ManekuriModel();
-    virtual void calcAndSetBaseMtx();
-    MtxPtr mParentMtx;
-};
+class ManekuriModel;
+
 class InfernoMarioManekuri : public InfernoMarioStateBase {
 public:
     InfernoMarioManekuri(InfernoMario*);
@@ -44,4 +39,11 @@ public:
     TVec3f mEndPos;
     s32 mFrame;
     u32 mCombo;
+};
+class ManekuriModel : public LiveActor {
+public:
+    ManekuriModel(const char*, MtxPtr);
+    virtual ~ManekuriModel();
+    virtual void calcAndSetBaseMtx();
+    MtxPtr mParentMtx;
 };

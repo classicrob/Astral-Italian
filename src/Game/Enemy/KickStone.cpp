@@ -214,15 +214,15 @@ bool KickStone::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
     return false;
 }
 
-void NrvKickStone::KickStoneNrvAttachTico::execute(Spine* pSpine) const {
+inline void NrvKickStone::KickStoneNrvAttachTico::execute(Spine* pSpine) const {
     MR::attachSupportTicoToTarget(static_cast<LiveActor*>(pSpine->mExecutor));
 }
 
-void NrvKickStone::KickStoneNrvMoveRoll::execute(Spine* pSpine) const {
+inline void NrvKickStone::KickStoneNrvMoveRoll::execute(Spine* pSpine) const {
     (static_cast<KickStone*>(pSpine->mExecutor))->exeRollTowardPlayer();
 }
 
-void NrvKickStone::KickStoneNrvDead::execute(Spine* pSpine) const {
+inline void NrvKickStone::KickStoneNrvDead::execute(Spine* pSpine) const {
     (static_cast<KickStone*>(pSpine->mExecutor))->exeFallAfterRoll();
 }
 

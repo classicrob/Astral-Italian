@@ -145,9 +145,7 @@ void RailMoveObjClipParts::setupInitInfo(const MapObjActorInitInfo& rInfo, const
 }
 
 void RailMoveObjClipParts::initCaseUseSwitchB(const MapObjActorInitInfo& rInfo) {
-    MR::listenStageSwitchOnOffB(this, MR::Functor< MapObjActor >(this, &MapObjActor::startMapPartsFunctions),
-                                MR::Functor< MapObjActor >(this, &MapObjActor::endMapPartsFunctions));
-    setStateWait();
+    SimpleClipPartsObj::initCaseUseSwitchB(rInfo);
     setNerve(&NrvRailMoveObjClipParts::RailMoveObjClipPartsNrvWait::sInstance);
 }
 

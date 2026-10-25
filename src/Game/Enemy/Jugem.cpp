@@ -1164,6 +1164,14 @@ void Jugem::selectJugemChildSlot(LiveActor* pActor) {
 }
 
 // NONMATCHING: string-pool base register reuse / register allocation of the animation-name selection
+namespace {
+    inline f32 calcJugemMoveAngle(const TVec3f& velocity) {
+        const TVec3f up(0.0f, 1.0f, 0.0f);
+        const TVec3f front(0.0f, 0.0f, 1.0f);
+        return MR::diffAngleSignedHorizontal(velocity, front, up);
+    }
+}
+
 void Jugem::updateJugemMoveAnimation() {
     TVec3f vel(mVelocity);
     TPos3f mtx;
@@ -1196,7 +1204,7 @@ void Jugem::updateJugemMoveAnimation() {
             }
         }
     } else {
-        f32 angle = 57.29578f * MR::diffAngleSignedHorizontal(vel, TVec3f(0.0f, 0.0f, 1.0f), TVec3f(0.0f, 1.0f, 0.0f));
+        f32 angle = 57.29578f * calcJugemMoveAngle(vel);
         if (-150.0f <= angle && angle < -30.0f) {
             pName = "MoveLeft";
         } else if (-30.0f <= angle && angle < 30.0f) {

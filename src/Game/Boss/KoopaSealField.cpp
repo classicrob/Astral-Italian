@@ -21,13 +21,7 @@ namespace NrvKoopaSealField {
     NEW_NERVE(KoopaSealFieldNrvOpenEnd, KoopaSealField, OpenEnd);
     NEW_NERVE(KoopaSealFieldNrvDemoCamera, KoopaSealField, DemoCamera);
 
-    class KoopaSealFieldNrvDemoPuppet : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const;
-        static KoopaSealFieldNrvDemoPuppet sInstance;
-    };
-    KoopaSealFieldNrvDemoPuppet KoopaSealFieldNrvDemoPuppet::sInstance ATTRIBUTE_WEAK;
-
+    NEW_NERVE(KoopaSealFieldNrvDemoPuppet, KoopaSealField, DemoPuppet);
     NEW_NERVE(KoopaSealFieldNrvDemoIn, KoopaSealField, DemoIn);
     NEW_NERVE(KoopaSealFieldNrvDemoEnd, KoopaSealField, DemoEnd);
 };  // namespace NrvKoopaSealField
@@ -241,11 +235,9 @@ void KoopaSealField::exeDemoEnd() {
     }
 }
 
-// Demo puppet nerve: the target execute is the body itself (fn_800E6770), so it is written inline here.
-void NrvKoopaSealField::KoopaSealFieldNrvDemoPuppet::execute(Spine* pSpine) const {
-    KoopaSealField* pActor = reinterpret_cast< KoopaSealField* >(pSpine->mExecutor);
-    if (MR::tryStartDemoMarioPuppetableWithoutCinemaFrame(pActor, "\x94\xE0\x83\x43\x83\x93")) {
-        pActor->setNerve(GET_NERVE(KoopaSealField, KoopaSealFieldNrvDemoIn));
+void KoopaSealField::exeDemoPuppet() {
+    if (MR::tryStartDemoMarioPuppetableWithoutCinemaFrame(this, "\x94\xE0\x83\x43\x83\x93")) {
+        setNerve(GET_NERVE(KoopaSealField, KoopaSealFieldNrvDemoIn));
     }
 }
 

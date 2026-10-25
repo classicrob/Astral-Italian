@@ -4,6 +4,11 @@
 #include "Game/Util/StringUtil.hpp"
 #include <cstdio>
 
+namespace {
+    char sObjectTypeKey[] = "type";
+    char sObjectNameKey[] = "name";
+}
+
 namespace MR {
     bool isValidInfo(const JMapInfoIter& rIter) {
         return rIter.isValid();
@@ -14,11 +19,11 @@ namespace MR {
             return false;
         }
 
-        if (rIter.getValue< const char* >("type", pOut)) {
+        if (rIter.getValue< const char* >(sObjectTypeKey, pOut)) {
             return true;
         }
 
-        return rIter.getValue< const char* >("name", pOut);
+        return rIter.getValue< const char* >(sObjectNameKey, pOut);
     }
 
     bool isObjectName(const JMapInfoIter& rIter, const char* pName) {

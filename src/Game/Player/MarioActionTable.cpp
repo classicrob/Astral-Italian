@@ -276,10 +276,10 @@ namespace {
 
 MarioActionHash::MarioActionHash() {
     _4 = 2;
-    HashSortTable* table = new HashSortTable(1);
-    const char* name = sMorphNames[0].mName;
-    mTable = table;
-    table->add(name, 0, false);
+    mTable = new HashSortTable(sizeof(sMorphNames) / sizeof(sMorphNames[0]));
+    for (u32 i = 0; i < sizeof(sMorphNames) / sizeof(sMorphNames[0]); ++i) {
+        mTable->add(sMorphNames[i].mName, i, false);
+    }
     mTable->sort();
 }
 

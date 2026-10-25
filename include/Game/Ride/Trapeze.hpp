@@ -69,14 +69,7 @@ public:
     /* 0x108 */ s32 mPrevSoundLvl;
 };
 
-class TrapezeRopeDrawInit : public NameObj {
-public:
-    TrapezeRopeDrawInit(const char*);
-
-    virtual void initDraw() const;
-
-    /* 0x0C */ JUTTexture* mTexture;
-};
+#include "Game/Ride/TrapezeRopeDrawInit.hpp"
 
 inline void Trapeze::exeStop() {
     if (MR::isFirstStep(this)) {

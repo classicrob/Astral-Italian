@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 // NONMATCHING: callback temporary allocation and literal addressing remain.
 #include "Game/NPC/MameMuimuiAttackMan.hpp"
 #include "Game/NPC/PlayAttackMan.hpp"

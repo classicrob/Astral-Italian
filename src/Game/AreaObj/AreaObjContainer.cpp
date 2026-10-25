@@ -128,7 +128,7 @@ const Name2CreateManagerFunc AreaObjContainer::cCreateTable[] = {
 };
 
 AreaObjContainer::AreaObjContainer(const char* pName) : NameObj(pName) {
-    mNumManagers = 0;
+    mManagerArray.mCount = 0;
 }
 
 void AreaObjContainer::init(const JMapInfoIter& rIter) {
@@ -137,15 +137,15 @@ void AreaObjContainer::init(const JMapInfoIter& rIter) {
         const Name2CreateManagerFunc* pName2CreateManagerFunc = &cCreateTable[i];
         AreaObjMgr* mgr = pName2CreateManagerFunc->mCreateFunc(pName2CreateManagerFunc->mNumMax, pName2CreateManagerFunc->mName);
         mgr->init(JMapInfoIter());
-        s32 num = mNumManagers;
-        mNumManagers++;
+        s32 num = mManagerArray.mCount;
+        mManagerArray.mCount++;
         mManagerArray[num] = mgr;
     }
 }
 
 AreaObjMgr* AreaObjContainer::getManager(const char* pName) const {
-    AreaObjMgr* const* pIter = std::find_if(mManagerArray.begin(), mManagerArray.begin() + mNumManagers, std::binder2nd< IsManagerName, const char* >(IsManagerName(), pName));
-    if (pIter != mManagerArray.begin() + mNumManagers) {
+    AreaObjMgr* const* pIter = std::find_if(mManagerArray.begin(), mManagerArray.begin() + mManagerArray.mCount, std::binder2nd< IsManagerName, const char* >(IsManagerName(), pName));
+    if (pIter != mManagerArray.begin() + mManagerArray.mCount) {
         return *pIter;
     }
     return nullptr;

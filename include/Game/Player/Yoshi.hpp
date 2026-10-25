@@ -45,41 +45,9 @@ public:
     bool _A;
 };
 
-class YoshiUpdateTask {
-public:
-    virtual void update() = 0;
-};
-
-class YoshiUpdateTaskList {
-public:
-    YoshiUpdateTaskList(s32);
-    void add(YoshiUpdateTask*);
-    void update();
-    YoshiUpdateTask** mTasks;
-    s32 mCapacity;
-    s32 mCount;
-};
-
-class YoshiGroundChecker : public YoshiUpdateTask {
-public:
-    YoshiGroundChecker(Yoshi*);
-    virtual void update();
-    bool isGrounded() const;
-    bool isAirborne() const;
-    Yoshi* mActor;
-    s32 mAirborneFrames;
-    bool mUpdated;
-    bool mSlipping;
-    HitInfo mGroundHit;
-};
-
-class YoshiAutoDisappearTask : public YoshiUpdateTask {
-public:
-    YoshiAutoDisappearTask(Yoshi*);
-    virtual void update();
-    Yoshi* mActor;
-    s32 mTimer;
-};
+class YoshiUpdateTaskList;
+class YoshiGroundChecker;
+class YoshiAutoDisappearTask;
 
 class YoshiRandomTurn {
 public:
@@ -328,6 +296,42 @@ public:
     /* 0x1A4 */ BreakModel* mBreakModel;
     /* 0x1A8 */ MarioMtxPos mBreakModelMtx;
     /* 0x1DC */ u8 _1DC[4];
+};
+
+class YoshiUpdateTask {
+public:
+    virtual void update() = 0;
+};
+
+class YoshiUpdateTaskList {
+public:
+    YoshiUpdateTaskList(s32);
+    void add(YoshiUpdateTask*);
+    void update();
+    YoshiUpdateTask** mTasks;
+    s32 mCapacity;
+    s32 mCount;
+};
+
+class YoshiGroundChecker : public YoshiUpdateTask {
+public:
+    YoshiGroundChecker(Yoshi*);
+    virtual void update();
+    bool isGrounded() const;
+    bool isAirborne() const;
+    Yoshi* mActor;
+    s32 mAirborneFrames;
+    bool mUpdated;
+    bool mSlipping;
+    HitInfo mGroundHit;
+};
+
+class YoshiAutoDisappearTask : public YoshiUpdateTask {
+public:
+    YoshiAutoDisappearTask(Yoshi*);
+    virtual void update();
+    Yoshi* mActor;
+    s32 mTimer;
 };
 
 /// @brief The object owned by MarioActor that bundles the Yoshi actor, tongue action and tongue (size 0x50).

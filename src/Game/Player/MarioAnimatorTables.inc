@@ -4,7 +4,7 @@
 // Definition order follows the original MarioAnimator data section.
 
 XanimeBckTable4 tripleAnimeTable[] = {
-    {{"基本"}, {{"WalkSoft", 0.0f}, {"Walk", 0.0f}, {"Run", 0.0f}, {"Wait", 1.0f}}},
+    {{"基本"}, {{"WalkSoft", 0.0f}, {"Walk", 0.0f}, {animName807D0030, 0.0f}, {"Wait", 1.0f}}},
     {{"水泳基本"}, {{"SwimWait", 1.0f}, {"SwimFlutterSurface", 0.0f}, {"SwimFlutter", 0.0f}, {"SwimDrift", 0.0f}}},
     {{"テニス基本"}, {{"WalkSoft", 0.0f}, {"Walk", 0.0f}, {"TennisRun", 0.0f}, {"TennisWait", 1.0f}}},
     {{"スライダー尻"}, {{"SlideHipForWard", 0.30000001192092896f}, {"SlideHipBackward", 0.20000000298023224f}, {"SlideHipLeft", 0.25f}, {"SlideHipRight", 0.25f}}},
@@ -26,7 +26,7 @@ XanimeBckTable3 doubleAnimeTable[] = {
 
 XanimeBckTable2 singleAnimeTable[] = {
     {{"しゃがみ基本"}, {{"SquatWait", 1.0f}, {"SquatWalk", 0.0f}}},
-    {{"その場足踏み"}, {{"Run", 0.75f}, {"Wait", 0.25f}}},
+    {{"その場足踏み"}, {{animName807D0030, 0.75f}, {"Wait", 0.25f}}},
     {{"タマコロしゃがみ"}, {{"BallSquat", 1.0f}, {"BallWalk", 0.0f}}},
     {{""}, {{"", 0.0f}, {nullptr, 0.0f}}},
 };
@@ -129,7 +129,7 @@ XanimeBckTable1 marioAnimeOfsTable[] = {
     {{"坂右ウエイト"}, "WaitSlopeR", 0x0, 0x0},
     {{"坂前ウエイト"}, "WaitSlopeD", 0x0, 0x0},
     {{"坂後ウエイト"}, "WaitSlopeU", 0x0, 0x0},
-    {{"ラン"}, "Run", 0x0, 0x0},
+    {{"ラン"}, animName807D0030, 0x0, 0x0},
     {{"歩行"}, "Walk", 0x0, 0x0},
     {{"鈍行"}, "WalkSoft", 0x0, 0x0},
     {{"メタルダッシュ"}, "RunDash", 0x0, 0x0},
@@ -141,9 +141,9 @@ XanimeBckTable1 marioAnimeOfsTable[] = {
     {{"つぶれ復帰"}, "PressRecover", 0x0, 0x0},
     {{"つぶれ解除"}, "Jump", 0x0, 0x0},
     {{"ブレーキ"}, "Brake", 0x0, 0x0},
-    {{"ブレーキ滑り床"}, "Run", 0x0, 0x0},
+    {{"ブレーキ滑り床"}, animName807D0030, 0x0, 0x0},
     {{"ターンブレーキ"}, "Turn", 0x0, 0x0},
-    {{"ターンブレーキ滑り床"}, "Run", 0x0, 0x0},
+    {{"ターンブレーキ滑り床"}, animName807D0030, 0x0, 0x0},
     {{"歩行制動ブレーキ"}, "RunEnd", 0x0, 0x0},
     {{"氷上慣性走行"}, "Brake", 0x0, 0x0},
     {{"氷上力行左"}, "SkateL", 0x0, 0x0},
@@ -162,7 +162,7 @@ XanimeBckTable1 marioAnimeOfsTable[] = {
     {{"特殊ウエイト1A"}, "Sleep", 0x0, 0x0},
     {{"特殊ウエイト1B"}, "SleepLie", 0x0, 0x0},
     {{"戦闘ウエイト"}, "BattleWait", 0x0, 0x0},
-    {{"空転"}, "Run", 0x0, 0x0},
+    {{"空転"}, animName807D0030, 0x0, 0x0},
     {{"ひろい"}, "CarryStart", 0x0, 0x0},
     {{"ひろい空中"}, "CarryAirStart", 0x0, 0x0},
     {{"ひろいクイック"}, "CarryStartShort", 0x0, 0x0},
@@ -333,7 +333,7 @@ XanimeBckTable1 marioAnimeOfsTable[] = {
     {{"バルーン膨らむ"}, "Wait", 0x0, 0x0},
     {{"バルーン待機"}, "Wait", 0x0, 0x0},
     {{"ヨッシーダッシュ"}, "RunDash", 0x0, 0x0},
-    {{"ヨッシーラン"}, "Run", 0x0, 0x0},
+    {{"ヨッシーラン"}, animName807D0030, 0x0, 0x0},
     {{"ヨッシー歩行"}, "Walk", 0x0, 0x0},
     {{"ヨッシー鈍行"}, "WalkSoft", 0x0, 0x0},
     {{"ヨッシージャンプ"}, "Jump", 0x0, 0x0},
@@ -755,7 +755,7 @@ XanimeOfsInfo marioAnimeAuxTable[] = {
 };
 
 XanimeSwapTable luigiAnimeSwapTable[] = {
-    {"Run", "LuigiRun"},
+    {animName807D0030, "LuigiRun"},
     {"Jump", "LuigiJump"},
     {"JumpRoll", "LuigiJumpRoll"},
     {"JumpBack", "LuigiJumpBack"},

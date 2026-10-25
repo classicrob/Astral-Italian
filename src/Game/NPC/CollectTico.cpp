@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 // NONMATCHING: target data-symbol boundaries differ for matching literal offsets.
 #include "Game/NPC/CollectTico.hpp"
 #include "Game/Util.hpp"

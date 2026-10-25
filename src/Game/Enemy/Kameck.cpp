@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Enemy/Kameck.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/KameckBeam.hpp"

@@ -109,7 +109,7 @@ namespace nw4r {
 
 #ifdef NW4R_DEBUG_OUTLINE  // opt-in per TU (LayoutUtil)
             void SetInfluencedAlpha(bool influenced) NO_INLINE {
-                mFlag = (mFlag & ~2) | (static_cast<u8>(influenced) << 1);
+                detail::SetBit(&mFlag, 1, influenced);
             }
 #else
             void SetInfluencedAlpha(bool influenced) {
@@ -124,7 +124,7 @@ namespace nw4r {
 
 #ifdef NW4R_DEBUG_OUTLINE  // opt-in per TU (LayoutUtil)
             void SetVisible(bool visible) NO_INLINE {
-                mFlag = (mFlag & ~1) | static_cast<u8>(visible);
+                detail::SetBit(&mFlag, 0, visible);
             }
 #else
             void SetVisible(bool visible) {

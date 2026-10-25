@@ -336,7 +336,7 @@ WMR_STATE_DECL(WorldMapResultStateCometAppear, bool hasComets() const NO_INLINE;
                        setNerve(GET_NERVE(WorldMapResultStateCometAppear, WorldMapResultStateCometAppearAppearComet));
                    }
                } void exeClose(); void exeOpen(); void exeAppearComet(); void exeMove(); void exeZoom(); void exeMessage(); void exeEnd();
-               bool mDone; MapGalaxyInfo* mLayout; s32 _18; MiniComet* mComet; MR::AssignableArray< const char* > mNames; s32 mNum;
+               bool mDone; MapGalaxyInfo* mLayout; s32 _18; MiniComet* mComet; MR::Vector< MR::AssignableArray< const char* > > mNames;
                u32 mCurrent; TVec3f mFrom; TVec3f mTo;);
 WMR_STATE_DECL(WorldMapResultStateCreateTico,
                void exeWhiteWait() {

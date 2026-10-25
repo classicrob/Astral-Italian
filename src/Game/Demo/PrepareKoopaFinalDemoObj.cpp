@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Demo/PrepareKoopaFinalDemoObj.hpp"
@@ -155,22 +156,22 @@ namespace NrvPrepareKoopaFinalDemoObj {
     PrepareKoopaFinalDemoObjNrvStartPuppet PrepareKoopaFinalDemoObjNrvStartPuppet::sInstance ATTRIBUTE_WEAK;
     PrepareKoopaFinalDemoObjNrvEnd PrepareKoopaFinalDemoObjNrvEnd::sInstance ATTRIBUTE_WEAK;
 
-    void PrepareKoopaFinalDemoObjNrvEnd::execute(Spine* pSpine) const {
+    inline void PrepareKoopaFinalDemoObjNrvEnd::execute(Spine* pSpine) const {
         PrepareKoopaFinalDemoObj* pActor = reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor);
         if (MR::isFirstStep(pActor)) {
             MR::stopShakingCamera(pActor);
         }
     }
-    void PrepareKoopaFinalDemoObjNrvStartPuppet::execute(Spine* pSpine) const {
+    inline void PrepareKoopaFinalDemoObjNrvStartPuppet::execute(Spine* pSpine) const {
         reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeStopShake();
     }
-    void PrepareKoopaFinalDemoObjNrvShake::execute(Spine* pSpine) const {
+    inline void PrepareKoopaFinalDemoObjNrvShake::execute(Spine* pSpine) const {
         reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeShake();
     }
-    void PrepareKoopaFinalDemoObjNrvStopShakeEnd::execute(Spine* pSpine) const {
+    inline void PrepareKoopaFinalDemoObjNrvStopShakeEnd::execute(Spine* pSpine) const {
         reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeStopShakeEnd();
     }
-    void PrepareKoopaFinalDemoObjNrvWait::execute(Spine* pSpine) const {
+    inline void PrepareKoopaFinalDemoObjNrvWait::execute(Spine* pSpine) const {
         PrepareKoopaFinalDemoObj* pActor = reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor);
         if (MR::tryStartDemoRegisteredMarioPuppetable(pActor, nullptr)) {
             MR::setPlayerPosAndWait(pActor->mPosition, false);

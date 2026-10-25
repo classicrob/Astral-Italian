@@ -8,6 +8,25 @@ class HitSensor;
 class LiveActorGroup;
 class TubeSlider;
 
+class HanachanRunaway;
+
+// Body part (one per extra segment). Forwards hit callbacks to the owner.
+class HanachanRunawayParts : public LiveActor {
+public:
+    HanachanRunawayParts(HanachanRunaway* pOwner, s32 index);
+
+    virtual ~HanachanRunawayParts();
+    virtual void init(const JMapInfoIter&);
+    virtual void calcAndSetBaseMtx();
+    virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+
+public:
+    /* 0x90 */ HanachanRunaway* mOwner;
+    /* 0x94 */ TPos3f mBaseMtx;
+    /* 0xC4 */ s32 mIndex;
+};
+
 // SMG2-only unit (runaway Hanachan that rides a tube slider). LiveActor = 0x90 bytes in SMG2.
 class HanachanRunaway : public LiveActor {
 public:
@@ -41,21 +60,4 @@ public:
     /* 0xBC */ s32 mSpeedB;
     /* 0xC0 */ bool mIsPointed;
     /* 0xC4 */ f32 mPrevRailCoord;
-};
-
-// Body part (one per extra segment). Forwards hit callbacks to the owner.
-class HanachanRunawayParts : public LiveActor {
-public:
-    HanachanRunawayParts(HanachanRunaway* pOwner, s32 index);
-
-    virtual ~HanachanRunawayParts();
-    virtual void init(const JMapInfoIter&);
-    virtual void calcAndSetBaseMtx();
-    virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
-    virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-
-public:
-    /* 0x90 */ HanachanRunaway* mOwner;
-    /* 0x94 */ TPos3f mBaseMtx;
-    /* 0xC4 */ s32 mIndex;
 };

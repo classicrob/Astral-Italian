@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Preservation guards and private command rewriting for config archaeology."""
 import copy
+import json
 from pathlib import Path
+import tempfile
+import threading
+from types import SimpleNamespace
 import unittest
+from unittest import mock
 
 import cfgtrial as c
 
@@ -68,6 +73,49 @@ class Commands(unittest.TestCase):
     def test_variants_have_unique_names(self):
         variants = c.variants()
         self.assertEqual(len(variants), len({v['name'] for v in variants}))
+
+
+class Scheduling(unittest.TestCase):
+    def exercise(self, parallel, jobs=2):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            units = [dict(unit=dict(name='unit'+str(i))) for i in range(6)]
+            (out / 'manifest.json').write_text(json.dumps(dict(units=units, workers=4, variants=[])))
+            (out / 'acceptance.json').write_text('[]')
+            if parallel:
+                (out / 'parallel-enabled').touch()
+            guard = threading.Lock()
+            barrier = threading.Barrier(jobs) if parallel else None
+            active = peak = 0
+            serial_values = []
+
+            def compile_one(manifest, item, variant, serial):
+                nonlocal active, peak
+                with guard:
+                    active += 1
+                    peak = max(peak, active)
+                    serial_values.append(serial)
+                if barrier:
+                    barrier.wait(timeout=5)
+                with guard:
+                    active -= 1
+                return dict(unit=item['unit']['name'], status='compile_failed')
+
+            args = SimpleNamespace(out=out, variants=None, limit=None, jobs=jobs)
+            with mock.patch.object(c, 'check'), mock.patch.object(c, 'compile_one', compile_one), \
+                 mock.patch.object(c, 'summarize'), mock.patch.object(c, 'retrial_pins'), \
+                 mock.patch.object(c.subprocess, 'run', side_effect=AssertionError('unexpected process/lock')):
+                c.run(args)
+            rows = [json.loads(line) for line in (out / 'baseline.jsonl').read_text().splitlines()]
+            self.assertEqual([row['unit'] for row in rows], [item['unit']['name'] for item in units])
+            self.assertEqual(serial_values, [not parallel] * 6)
+            return peak
+
+    def test_parallel_limit_does_not_take_heavy_lock(self):
+        self.assertEqual(self.exercise(True), 2)
+
+    def test_quiet_mode_stays_serial(self):
+        self.assertEqual(self.exercise(False, jobs=4), 1)
 
 
 if __name__ == '__main__':

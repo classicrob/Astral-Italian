@@ -31,10 +31,10 @@ namespace BattanKingTalkVec {
 namespace NrvBattanKingTalkState {
     TryStart TryStart::sInstance;
     Talk Talk::sInstance;
-    void Talk::execute(Spine* pSpine) const {
+    inline void Talk::execute(Spine* pSpine) const {
         static_cast<BattanKingTalkState*>(pSpine->mExecutor)->exeTalk();
     }
-    void TryStart::execute(Spine* pSpine) const {
+    inline void TryStart::execute(Spine* pSpine) const {
         static_cast<BattanKingTalkState*>(pSpine->mExecutor)->exeTryStart();
     }
 }

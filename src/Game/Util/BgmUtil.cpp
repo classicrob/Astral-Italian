@@ -535,12 +535,6 @@ namespace MR {
         }
     }
 
-#pragma dont_inline on
-    bool isFirstGrandStarReturnBGMStage() {
-        return isEqualString(GameSequenceFunction::getClearedStageName(), "VsKoopaJrLv1Galaxy");
-    }
-
-#pragma dont_inline reset
     const char* getGrandStarReturnBGMName() {
         if (isFirstGrandStarReturnBGMStage()) {
             return "STM_SMG2_FIRST_ASTRO";
@@ -548,6 +542,13 @@ namespace MR {
 
         return "STM_SMG2_SECOND_ASTRO";
     }
+
+#pragma dont_inline on
+    bool isFirstGrandStarReturnBGMStage() {
+        return isEqualString(GameSequenceFunction::getClearedStageName(), "VsKoopaJrLv1Galaxy");
+    }
+
+#pragma dont_inline reset
 
     void startGrandStarReturnBGM() {
         const char* pName = getGrandStarReturnBGMName();

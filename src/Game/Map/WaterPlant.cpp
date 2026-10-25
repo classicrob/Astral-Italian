@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Map/WaterPlant.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"

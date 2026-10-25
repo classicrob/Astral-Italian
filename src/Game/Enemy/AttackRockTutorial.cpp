@@ -14,11 +14,6 @@
 #include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
 
 namespace NrvAttackRockTutorial {
-    class AttackRockTutorialNrvDead : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const;
-        static AttackRockTutorialNrvDead sInstance;
-    };
     class AttackRockTutorialNrvWait : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
@@ -43,6 +38,11 @@ namespace NrvAttackRockTutorial {
     public:
         virtual void execute(Spine* pSpine) const;
         static AttackRockTutorialNrvBreak sInstance;
+    };
+    class AttackRockTutorialNrvDead : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static AttackRockTutorialNrvDead sInstance;
     };
     AttackRockTutorialNrvWait AttackRockTutorialNrvWait::sInstance ATTRIBUTE_WEAK;
     AttackRockTutorialNrvFloatUp AttackRockTutorialNrvFloatUp::sInstance ATTRIBUTE_WEAK;

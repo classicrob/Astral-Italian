@@ -417,7 +417,7 @@ void DanceFlower::exeBlowDown() {
     }
 }
 
-void NrvDanceFlower::DanceFlowerNrvFreeze::execute(Spine* spine) const {
+inline void NrvDanceFlower::DanceFlowerNrvFreeze::execute(Spine* spine) const {
     DanceFlower* actor = static_cast<DanceFlower*>(spine->mExecutor);
     if (MR::isFirstStep(actor)) MR::stopAllAnim(actor);
     MR::updateActorStateAndNextNerve(actor, GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait));

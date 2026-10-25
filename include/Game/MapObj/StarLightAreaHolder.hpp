@@ -12,8 +12,7 @@ public:
     virtual void movement();
     bool isInStarLight(const TVec3f&);
     bool tryRegisterReceiver(HitSensor*);
-    MR::AssignableArray<HitSensor*> mReceivers;
-    s32 mReceiverCount;
+    MR::Vector<MR::AssignableArray<HitSensor*> > mReceivers;
 };
 namespace MR {
     void registerStarLightArea(ClipArea*);

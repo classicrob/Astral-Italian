@@ -88,3 +88,56 @@ void AudEffector::initParams() {
     mFxSend = 0.0f;
     mSpecialFx = 0;
 }
+
+namespace {
+    // Original startup initializer at 0x80084410 configures the default effect lines.
+    struct FxLineInitializer {
+        FxLineInitializer() {
+            AudEffector::mFxLine[0]._4 = 32767;
+            AudEffector::mFxLine[0]._8 = 12449;
+            AudEffector::mFxLine[0]._C = 69;
+            AudEffector::mFxLine[0]._10[0] = 1573;
+            AudEffector::mFxLine[0]._10[1] = -1861;
+            AudEffector::mFxLine[0]._10[2] = 1573;
+            AudEffector::mFxLine[0]._10[3] = -1574;
+            AudEffector::mFxLine[0]._10[4] = -1288;
+            AudEffector::mFxLine[0]._10[5] = 6152;
+            AudEffector::mFxLine[0]._10[6] = 10445;
+            AudEffector::mFxLine[0]._10[7] = -3864;
+            AudEffector::mFxLine[1]._4 = 12449;
+            AudEffector::mFxLine[1]._8 = 32767;
+            AudEffector::mFxLine[1]._C = 69;
+            AudEffector::mFxLine[1]._10[0] = 1573;
+            AudEffector::mFxLine[1]._10[1] = -1861;
+            AudEffector::mFxLine[1]._10[2] = 1573;
+            AudEffector::mFxLine[1]._10[3] = -1574;
+            AudEffector::mFxLine[1]._10[4] = -1288;
+            AudEffector::mFxLine[1]._10[5] = 6152;
+            AudEffector::mFxLine[1]._10[6] = 10445;
+            AudEffector::mFxLine[1]._10[7] = -3864;
+            AudEffector::mFxLine[2]._4 = 32767;
+            AudEffector::mFxLine[2]._8 = 12449;
+            AudEffector::mFxLine[2]._C = 100;
+            AudEffector::mFxLine[2]._10[0] = 1573;
+            AudEffector::mFxLine[2]._10[1] = -1861;
+            AudEffector::mFxLine[2]._10[2] = 1573;
+            AudEffector::mFxLine[2]._10[3] = -1574;
+            AudEffector::mFxLine[2]._10[4] = -1288;
+            AudEffector::mFxLine[2]._10[5] = 6152;
+            AudEffector::mFxLine[2]._10[6] = 10445;
+            AudEffector::mFxLine[2]._10[7] = -3864;
+            AudEffector::mFxLine[3]._4 = 12449;
+            AudEffector::mFxLine[3]._8 = 32767;
+            AudEffector::mFxLine[3]._C = 85;
+            AudEffector::mFxLine[3]._10[0] = 1573;
+            AudEffector::mFxLine[3]._10[1] = -1861;
+            AudEffector::mFxLine[3]._10[2] = 1573;
+            AudEffector::mFxLine[3]._10[3] = -1574;
+            AudEffector::mFxLine[3]._10[4] = -1288;
+            AudEffector::mFxLine[3]._10[5] = 6152;
+            AudEffector::mFxLine[3]._10[6] = 10445;
+            AudEffector::mFxLine[3]._10[7] = -3864;
+        }
+    };
+    FxLineInitializer sFxLineInitializer;
+}

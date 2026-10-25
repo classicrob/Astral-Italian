@@ -714,11 +714,11 @@ bool Metbo::isEatable() const {
         isNerve(GET_NERVE(Metbo, MetboNrvDPDSwoonSwoon))) result = true;
     return result;
 }
-void NrvMetbo::MetboNrvDPDSwoon::execute(Spine* spine) const {
+inline void NrvMetbo::MetboNrvDPDSwoon::execute(Spine* spine) const {
     MR::updateActorStateAndNextNerve(static_cast<Metbo*>(spine->mExecutor), GET_NERVE(Metbo, MetboNrvWait));
 }
-void NrvMetbo::MetboNrvDPDSwoonSwoon::execute(Spine* spine) const {
+inline void NrvMetbo::MetboNrvDPDSwoonSwoon::execute(Spine* spine) const {
     MR::updateActorStateAndNextNerve(static_cast<Metbo*>(spine->mExecutor), GET_NERVE(Metbo, MetboNrvRecover));
 }
-void NrvMetbo::MetboNrvEaten::execute(Spine*) const {}
-void NrvMetbo::MetboNrvDead::execute(Spine*) const {}
+inline void NrvMetbo::MetboNrvEaten::execute(Spine*) const {}
+inline void NrvMetbo::MetboNrvDead::execute(Spine*) const {}

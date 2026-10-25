@@ -5,6 +5,10 @@
 // original DOL into host-width pointers and scalars by tools/port/gen_player_anime_tables.py.
 // Values are shared with Wii through MarioAnimatorTables.inc and YoshiAnimationTables.inc.
 
+namespace {
+    char animName807D0030[] = "Run";
+}
+
 // Shared SB4E01 Mario/Mario-ride values, also compiled by the Wii MarioAnimator unit.
 #include "../src/Game/Player/MarioAnimatorTables.inc"
 

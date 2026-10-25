@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Player/YoshiFunction.hpp"
 #include "Game/Enemy/NokonokoLand.hpp"
 #include "Game/Util/PlayerUtil.hpp"

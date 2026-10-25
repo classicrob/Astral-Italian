@@ -434,8 +434,8 @@ namespace {
     // Room for every object counted into a category. The old array stays in the solid scene heap.
     void growCategory(NameObjCategoryList* pList, int category) {
         NameObjCategoryList::CategoryInfo& rInfo = pList->mInfoTable[category];
-        MR::AssignableArray< NameObj* >& rArray = rInfo.mList;
-        s32 need = rInfo._8 + 1;
+        MR::AssignableArray< NameObj* >& rArray = rInfo.mList.mArray;
+        s32 need = rInfo.mList.mCount + 1;
         if (static_cast< s32 >(rInfo.mCheck) > need) {
             need = rInfo.mCheck;
         }
@@ -444,7 +444,7 @@ namespace {
         }
         const s32 newMax = need + need / 2 + 16;
         NameObj** pNew = new NameObj*[newMax];
-        for (s32 i = 0; i < rInfo._8; i++) {
+        for (s32 i = 0; i < rInfo.mList.mCount; i++) {
             pNew[i] = rArray.mArr[i];
         }
         rArray.mArr = pNew;

@@ -70,11 +70,11 @@ void MapGalaxyInfo::startAppear() {
 }
 MapGalaxyInfo::~MapGalaxyInfo() {}
 namespace NrvMapGalaxyInfo {
-    void MapGalaxyInfoNrvDisappear::execute(Spine* spine) const {
+    inline void MapGalaxyInfoNrvDisappear::execute(Spine* spine) const {
         MapGalaxyInfo* actor = static_cast<MapGalaxyInfo*>(spine->mExecutor);
         if (MR::isAnimStopped(actor, 0)) actor->kill();
     }
-    void MapGalaxyInfoNrvAppear::execute(Spine* spine) const {
+    inline void MapGalaxyInfoNrvAppear::execute(Spine* spine) const {
         MapGalaxyInfo* actor = static_cast<MapGalaxyInfo*>(spine->mExecutor);
         if (MR::isAnimStopped(actor, 0)) actor->setNerve(&MapGalaxyInfoNrvWait::sInstance);
     }

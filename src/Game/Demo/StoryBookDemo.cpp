@@ -1,4 +1,5 @@
-#include "Game/Demo/StoryBookDemo.hpp"
+#include "Game/Util/Functor.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Demo/DemoDirector.hpp"
 #include "Game/Demo/DemoFunction.hpp"
 #include "Game/AreaObj/AreaObj.hpp"
@@ -22,6 +23,9 @@ public:
     virtual ~StoryBookShadow() {}
     virtual void calcAndSetBaseMtx() {}
 };
+
+#include "Game/Demo/StoryBookDemo.hpp"
+
 namespace NrvStoryBookDemo {
     NEW_NERVE(Wait, StoryBookDemo, Wait);
     NEW_NERVE(AreaText, StoryBookDemo, AreaText);

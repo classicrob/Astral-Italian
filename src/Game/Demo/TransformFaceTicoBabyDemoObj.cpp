@@ -50,14 +50,14 @@ TransformFaceTicoBabyDemoObj::~TransformFaceTicoBabyDemoObj() {
 }
 
 namespace NrvTransformFaceTicoBabyDemoObj {
-    void TransformFaceTicoBabyDemoObjNrvAppear::execute(Spine* pSpine) const {
+    inline void TransformFaceTicoBabyDemoObjNrvAppear::execute(Spine* pSpine) const {
         TransformFaceTicoBabyDemoObj* pActor = reinterpret_cast<TransformFaceTicoBabyDemoObj*>(pSpine->mExecutor);
         if (!MR::isDemoActive(sDemoName)) {
             pActor->kill();
         }
     }
 
-    void TransformFaceTicoBabyDemoObjNrvWait::execute(Spine* pSpine) const {
+    inline void TransformFaceTicoBabyDemoObjNrvWait::execute(Spine* pSpine) const {
         TransformFaceTicoBabyDemoObj* pActor = reinterpret_cast<TransformFaceTicoBabyDemoObj*>(pSpine->mExecutor);
         pActor->mDemoObj->makeActorAppeared();
         pActor->setNerve(&TransformFaceTicoBabyDemoObjNrvAppear::sInstance);

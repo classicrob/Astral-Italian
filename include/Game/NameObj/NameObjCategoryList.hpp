@@ -40,8 +40,7 @@ public:
         CategoryInfo();
         ~CategoryInfo();
 
-        MR::AssignableArray< NameObj* > mList;  // 0x00
-        s32 _8;
+        MR::Vector< MR::AssignableArray< NameObj* > > mList;  // 0x00
         MR::FunctorBase* mFunc;  // 0x0C
         u32 mCheck;              // 0x10
     };

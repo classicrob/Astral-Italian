@@ -12,92 +12,12 @@ class DashRing;
 
 class MarioSwim;
 
-class MarioSwimModule {
-public:
-    explicit MarioSwimModule(MarioSwim* swim) : mSwim(swim) {}
-    virtual ~MarioSwimModule();
-    MarioSwim* mSwim;
-};
-
-class MarioSwimSpin : public MarioSwimModule {
-public:
-    explicit MarioSwimSpin(MarioSwim*);
-    virtual ~MarioSwimSpin() {}
-    void reset();
-    bool isActive() const NO_INLINE;
-    void startAnimation(u16, u16, const char*);
-    void update();
-    void startDash() NO_INLINE;
-    u16 getReadyTimer() const;
-    u8 _8;
-    u16 mSpinTimer;
-    u16 mSpinDashTimer;
-    u16 _E;
-};
-
-class MarioSwimJet : public MarioSwimModule {
-public:
-    explicit MarioSwimJet(MarioSwim*);
-    virtual ~MarioSwimJet() {}
-    f32 calcSpeedScale() const;
-    void update(f32);
-    f32 calcRotationRatio() const;
-    f32 getMaxSpeed() const NO_INLINE;
-    void updateVelocity(f32) NO_INLINE;
-    bool isBackInput() const NO_INLINE;
-    u32 _8;
-    u16 mJetTimer;
-    u16 mCooldownTimer;
-};
-
-class MarioSwimRingDash : public MarioSwimModule {
-public:
-    explicit MarioSwimRingDash(MarioSwim*);
-    virtual ~MarioSwimRingDash() {}
-    void reset();
-    void updateBlur() NO_INLINE;
-    void setRing(const DashRing*) NO_INLINE;
-    u16 mTimer;
-    u16 mChargeTimer;
-    u16 mMaxDuration;
-    f32 mSpeedScale;
-    f32 mBlurOffset;
-};
-
-class MarioSwimDamage : public MarioSwimModule {
-public:
-    explicit MarioSwimDamage(MarioSwim*);
-    virtual ~MarioSwimDamage() {}
-    void update();
-    void reflect(const TVec3f*);
-    void reset();
-    TVec3f mVelocity;
-    u8 mDamageType;
-    u8 _15;
-    u16 mTimer;
-};
-
-class MarioSwimTilt : public MarioSwimModule {
-public:
-    explicit MarioSwimTilt(MarioSwim*);
-    virtual ~MarioSwimTilt() {}
-    void update();
-    f32 mTiltX;
-    f32 mTiltY;
-    TMtx34f mJointMtx;
-};
-
-class MarioSwimCollisionNode {
-public:
-    MarioSwimCollisionNode();
-    /* 0x00 */ TVec3f mOffset;
-    /* 0x0C */ f32 mRadius;
-    /* 0x10 */ u8 _10;
-    /* 0x14 */ TVec3f _14;
-    /* 0x20 */ const WaterArea* mWaterArea;
-    /* 0x24 */ TVec3f _24;
-    /* 0x30 */ u8 _30;
-};
+class MarioSwimSpin;
+class MarioSwimJet;
+class MarioSwimRingDash;
+class MarioSwimDamage;
+class MarioSwimTilt;
+class MarioSwimCollisionNode;
 
 class MarioSwim : public MarioState {
 public:
@@ -228,9 +148,7 @@ public:
     virtual void hitWall(const TVec3f&, HitSensor*);
     virtual void hitPoly(const TVec3f&, HitSensor*);
     virtual bool passRing(const HitSensor*);
-    virtual f32 getBlurOffset() const {
-        return mRingDash->mBlurOffset;
-    }
+    virtual f32 getBlurOffset() const;
 
     virtual void draw3D() const;
     virtual f32 getStickY() const;
@@ -342,9 +260,7 @@ public:
         return getPlayer()->_380;
     }
 
-    inline bool check7Aand7C() const {
-        return mSpin->mSpinTimer || mSpin->mSpinDashTimer;
-    }
+    inline bool check7Aand7C() const;
 
     inline bool isOnWaterSurface() const {
         return mIsOnSurface || mIsSwimmingAtSurface;
@@ -430,3 +346,99 @@ public:
     /* 0x200 */ f32 _200;
     /* 0x204 */ s32 _204;
 };
+
+class MarioSwimModule {
+public:
+    explicit MarioSwimModule(MarioSwim* swim) : mSwim(swim) {}
+    virtual ~MarioSwimModule();
+    MarioSwim* mSwim;
+};
+
+class MarioSwimSpin : public MarioSwimModule {
+public:
+    explicit MarioSwimSpin(MarioSwim*);
+    virtual ~MarioSwimSpin() {}
+    void reset();
+    bool isActive() const NO_INLINE;
+    void startAnimation(u16, u16, const char*);
+    void update();
+    void startDash() NO_INLINE;
+    u16 getReadyTimer() const;
+    u8 _8;
+    u16 mSpinTimer;
+    u16 mSpinDashTimer;
+    u16 _E;
+};
+
+class MarioSwimJet : public MarioSwimModule {
+public:
+    explicit MarioSwimJet(MarioSwim*);
+    virtual ~MarioSwimJet() {}
+    f32 calcSpeedScale() const;
+    void update(f32);
+    f32 calcRotationRatio() const;
+    f32 getMaxSpeed() const NO_INLINE;
+    void updateVelocity(f32) NO_INLINE;
+    bool isBackInput() const NO_INLINE;
+    u32 _8;
+    u16 mJetTimer;
+    u16 mCooldownTimer;
+};
+
+class MarioSwimRingDash : public MarioSwimModule {
+public:
+    explicit MarioSwimRingDash(MarioSwim*);
+    virtual ~MarioSwimRingDash() {}
+    void reset();
+    void updateBlur() NO_INLINE;
+    void setRing(const DashRing*) NO_INLINE;
+    u16 mTimer;
+    u16 mChargeTimer;
+    u16 mMaxDuration;
+    f32 mSpeedScale;
+    f32 mBlurOffset;
+};
+
+class MarioSwimDamage : public MarioSwimModule {
+public:
+    explicit MarioSwimDamage(MarioSwim*);
+    virtual ~MarioSwimDamage() {}
+    void update();
+    void reflect(const TVec3f*);
+    void reset();
+    TVec3f mVelocity;
+    u8 mDamageType;
+    u8 _15;
+    u16 mTimer;
+};
+
+class MarioSwimTilt : public MarioSwimModule {
+public:
+    explicit MarioSwimTilt(MarioSwim*);
+    virtual ~MarioSwimTilt() {}
+    void update();
+    f32 mTiltX;
+    f32 mTiltY;
+    TMtx34f mJointMtx;
+};
+
+class MarioSwimCollisionNode {
+public:
+    MarioSwimCollisionNode();
+    /* 0x00 */ TVec3f mOffset;
+    /* 0x0C */ f32 mRadius;
+    /* 0x10 */ u8 _10;
+    /* 0x14 */ TVec3f _14;
+    /* 0x20 */ const WaterArea* mWaterArea;
+    /* 0x24 */ TVec3f _24;
+    /* 0x30 */ u8 _30;
+};
+
+
+inline f32 MarioSwim::getBlurOffset() const {
+    return mRingDash->mBlurOffset;
+}
+
+inline bool MarioSwim::check7Aand7C() const {
+    return mSpin->mSpinTimer || mSpin->mSpinDashTimer;
+}

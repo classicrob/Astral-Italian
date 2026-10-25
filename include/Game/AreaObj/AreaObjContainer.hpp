@@ -36,8 +36,7 @@ private:
 
     static const Name2CreateManagerFunc cCreateTable[0x5F];
 
-    /* 0x14 */ MR::AssignableArray< AreaObjMgr* > mManagerArray;
-    /* 0x1C */ s32 mNumManagers;
+    /* 0x14 */ MR::Vector< MR::AssignableArray< AreaObjMgr* > > mManagerArray;
 };
 
 namespace MR {

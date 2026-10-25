@@ -116,3 +116,6 @@ void __DSP_remove_task(DSPTaskInfo *pTask) {
         pTask->next->prev = pTask->prev;
     }
 }
+
+// Diagnostic from stripped __DSP_add_task; retained for the original data layout.
+char sDSPAddTaskLog[] = "__DSP_add_task() : Added task    : 0x%08X\n";

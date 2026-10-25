@@ -65,7 +65,7 @@ class SimpleSeesawObj : public MapObjActor {
 public:
     SimpleSeesawObj(const char*);
 
-    virtual ~SimpleSeesawObj();
+    virtual ~SimpleSeesawObj() {}
     virtual void init(const JMapInfoIter&);
     virtual void control();
 

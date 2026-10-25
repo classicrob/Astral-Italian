@@ -321,6 +321,3 @@ void SimpleBreakableDeleteShadowObj::controlBreak() {
 SimpleBreakableStrongLightObj::~SimpleBreakableStrongLightObj() {}
 SimpleBreakableCollisionObj::~SimpleBreakableCollisionObj() {}
 SimpleBreakableDeleteShadowObj::~SimpleBreakableDeleteShadowObj() {}
-
-SimpleBreakableObj::~SimpleBreakableObj() {
-}

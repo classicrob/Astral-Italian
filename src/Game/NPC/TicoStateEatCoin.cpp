@@ -1,7 +1,16 @@
+#include "Game/LiveActor/Nerve.hpp"
+namespace NrvEatDemoCoin {
+    class EatDemoCoinNrvShoot : public Nerve {
+    public:
+        EatDemoCoinNrvShoot();
+        virtual void execute(Spine*) const;
+        static EatDemoCoinNrvShoot sInstance;
+    };
+}
+
 #include "Game/NPC/TicoStateEatCoin.hpp"
 #include "Game/NPC/EatDemoCoin.hpp"
 #include "Game/NPC/NPCActor.hpp"
-#include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
 namespace NrvTicoStateEatCoin {

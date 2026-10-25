@@ -171,11 +171,11 @@ void TalkMessageCtrl::rootNodePre(bool arg) {
         case TalkMessageCtrl_Type8:
             cond = MR::isStageStatePowerStarAppeared();
             break;
-        case 9: cond = !GameDataFunction::isOnGameEventFlagEnding120Stars(); break;
-        case 10: cond = mIsAlreadyDone; break;
-        case 11: cond = MR::isPlayerLuigi(); break;
-        case 12: cond = MR::isTimeKeepDemoActive(); break;
-        case 13: cond = GameDataFunction::isOnMessageAlreadyRead(branch->mNextIdx); break;
+        case 12: cond = !GameDataFunction::isOnGameEventFlagEnding120Stars(); break;
+        case 13: cond = mIsAlreadyDone; break;
+        case 9: cond = MR::isPlayerLuigi(); break;
+        case 10: cond = MR::isTimeKeepDemoActive(); break;
+        case 11: cond = GameDataFunction::isOnMessageAlreadyRead(branch->mNextIdx); break;
         case 14: cond = MR::isPlayerElementModeYoshi(); break;
         case 15: cond = MR::isPlayerElementModeCloud(); break;
         case 16: cond = MR::isPlayerElementModeRock(); break;

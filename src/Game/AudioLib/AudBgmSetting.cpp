@@ -493,10 +493,15 @@ void AudMultiBgmInfo::load() {
     }
 }
 
-// NONMATCHING: target hoists mEntries load into the loop and indexes with lwzx (register/order only)
+namespace {
+    inline bool matchesMultiBgmEntry(const AudMultiBgmEntry* entries, s32 index, u32 id) {
+        return id == entries[index].mID;
+    }
+}
+
 AudMultiBgmEntry* AudMultiBgmInfo::findEntry(u32 id) {
     for (s32 i = 0; i < mNumEntries; i++) {
-        if (id == mEntries[i].mID) {
+        if (matchesMultiBgmEntry(mEntries, i, id)) {
             return &mEntries[i];
         }
     }

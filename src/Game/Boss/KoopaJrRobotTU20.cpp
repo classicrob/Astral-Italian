@@ -54,6 +54,12 @@ bool KoopaJrRobotChain::isDisappearEnd() const {
     return isNerve(&NrvKoopaJrRobotChain::KoopaJrRobotChainNrvDisappearEnd::sInstance);
 }
 
+void KoopaJrRobotChain::exeWait() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
+    }
+}
+
 void KoopaJrRobotChain::exeDisappear() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Disappear");
@@ -66,12 +72,6 @@ void KoopaJrRobotChain::exeDisappear() {
 void KoopaJrRobotChain::exeDisappearEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "DisappearEnd");
-    }
-}
-
-void KoopaJrRobotChain::exeWait() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Wait");
     }
 }
 

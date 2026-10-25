@@ -1,6 +1,1 @@
 # Reviewed non-bugs only (unit container-or-function offset-hex). A fixed row must be removed; never add a row to bless a new bug.
-# ShadowColorSetter calcShadowColor+48 / conflict __as__8_GXColor: the original has a local 24-byte copy of the GXColor assignment (0x80268A70) byte-equal to the named one (0x8014CB40).
-# conflict swap__10J2DPicture: two byte-equal 14-byte copies (0x8003DA70, 0x80517150).
-- __as__8_GXColorFRC8_GXColor 0  # conflict CONFLICT 
-- swap__10J2DPictureFRfRf 0  # conflict CONFLICT 
-Game/Map/ShadowColorSetter calcShadowColor__2MRFUc 48  # code CROSSED __as__8_GXColorFRC8_GXColor

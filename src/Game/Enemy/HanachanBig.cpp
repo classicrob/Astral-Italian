@@ -206,9 +206,10 @@ void HanachanBig::moveAlongRail(f32 speed) {
     MR::moveTransToOtherActorRailPos(mParts[0], this);
     MR::calcRailDirection(&mParts[0]->mRailDirection, this);
     MR::reverseRailDirection(this);
+    f32 a;
     const f32 headRatio = 0.9f;
     for (s32 i = 1; i < mPartsCount; i++) {
-        f32 a = MR::getSensorRadius(mParts[i], "BodySpace");
+        a = MR::getSensorRadius(mParts[i], "BodySpace");
         a = headRatio * a;
         f32 b = MR::getSensorRadius(mParts[i - 1], "BodySpace") / 2.0f;
         MR::moveCoord(this, b + a);

@@ -30,10 +30,13 @@ void Rosetta::init(const JMapInfoIter& rIter) {
     caps.mSwitchAppear = false;
     caps.mMakeActor = false;
     const char* turnAction = "Turn";
+    const char* talkAction;
     mParam._8 = 2.0f;
     mParam._14 = "WaitA";
+    talkAction = "TalkA";
     mParam._18 = turnAction;
-    mParam._1C = mParam._20 = "TalkA";
+    mParam._1C = talkAction;
+    mParam._20 = talkAction;
     mSpinAction = cNPCSpinDefault;
     mTrampledAction = cNPCTrampledDefault;
     mPointingAction = cNPCPointingDefault;

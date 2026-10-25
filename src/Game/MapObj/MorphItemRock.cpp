@@ -10,8 +10,7 @@ void MorphItemRock::emitAppearEffects() {
 }
 void MorphItemRock::appearTransformation() { mRock->makeActorAppeared(); }
 void MorphItemRock::killTransformation() {
-    HitSensor* receiver = mRock->getSensor("Body");
-    mRock->receiveMessage(0x95, getSensor("Body"), receiver);
+    mRock->receiveMessage(0x95, getSensor("Body"), mRock->getSensor("Body"));
     mRock->makeActorDead();
 }
 int MorphItemRock::getPowerUp() { return 8; }

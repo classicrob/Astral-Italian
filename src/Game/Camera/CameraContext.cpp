@@ -76,12 +76,7 @@ void CameraContext::setShakeOffset(f32 x, f32 y) {
 
 // NONMATCHING: FP/register scheduling
 void CameraContext::updateProjectionMtx() {
-    f32 far = mFarZ;
-    f32 near = mNearZ;
-    f32 height = MR::getScreenHeight();
-    f32 width = MR::getScreenWidth();
-    f32 aspect = width / height;
-    mProjection.makePerspective(mFovy, aspect, near, far);
+    mProjection.makePerspective(mFovy, static_cast<f32>(MR::getScreenWidth()) / static_cast<f32>(MR::getScreenHeight()), mNearZ, mFarZ);
 
     TProj3f trans;
     trans.makeTrans(mShakeOffset.x, mShakeOffset.y);

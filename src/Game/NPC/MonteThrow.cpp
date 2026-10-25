@@ -52,9 +52,7 @@ void MonteThrow::init(const JMapInfoIter& iter) {
         MR::tryFindLinkNamePos(mHost, targetName, &mTargetPosition, 0);
     } else {
         mThrowUp = true;
-        f32 speedSquared = 2.0f * mThrowHeight;
-        speedSquared *= 0.4f;
-        mThrowSpeed = MR::fastSqrtf(speedSquared);
+        mThrowSpeed = MR::fastSqrtf((2.0f * mThrowHeight) * 0.4f);
     }
     makeActorAppeared();
 }

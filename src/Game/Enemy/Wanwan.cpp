@@ -902,9 +902,9 @@ void Wanwan::exeBreak() {
         f32 x = euler.x;
         f32 y = euler.y;
         f32 z = euler.z;
-        x *= 57.29578f;
-        y *= 57.29578f;
-        z *= 57.29578f;
+        x = 57.29578f * x;
+        y = 57.29578f * y;
+        z = 57.29578f * z;
         mModel->mRotation.x = x;
         mModel->mRotation.y = y;
         mModel->mRotation.z = z;

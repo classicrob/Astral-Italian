@@ -19,40 +19,27 @@ void BarrelGravity::updateMtx(const TPos3f& rMtx) {
 }
 
 bool BarrelGravity::calcOwnGravityVector(TVec3f* pDest, f32* pScalar, const TVec3f& rPosition) const {
-    TVec3f sp24 = rPosition - mPosition;
     TVec3f sp54;
-    sp54 = sp24;
+    sp54 = rPosition - mPosition;
 
     f32 d = sp54.dot(mUpDirection);
     if (d <= 0.0f || d >= mScaledRadius) {
         return false;
     }
 
-    TVec3f sp18 = mUpDirection;
-    sp18 *= d;
-
-    TVec3f sp48 = mPosition;
-    sp48 += sp18;
-
-    TVec3f spC = sp48 - rPosition;
+    TVec3f sp48 = mPosition + mUpDirection * d;
     f32 dist;
     TVec3f sp3C;
-    MR::separateScalarAndDirection(&dist, &sp3C, spC);
+    TVec3f sp30;
+    MR::separateScalarAndDirection(&dist, &sp3C, sp48 - rPosition);
     if (MR::isNearZero(sp3C, 0.001f)) {
-        TVec3f sp30;
         MR::makeAxisVerticalZX(&sp30, mUpDirection);
         return true;
     }
 
-    TVec3f sp30;
     PSVECCrossProduct(&sp3C, &mUpDirection, &sp30);
 
-    f32 angle = mInwardsThreshold / dist;
-    if (angle < 0.0f) {
-        angle = 0.0f;
-    } else if (angle > 0.7853982f) {
-        angle = 0.7853982f;
-    }
+    f32 angle = MR::clamp(mInwardsThreshold / dist, 0.0f, 0.7853982f);
     MR::rotateVecRadian(&sp30, mUpDirection, angle);
     MR::normalize(&sp30);
 

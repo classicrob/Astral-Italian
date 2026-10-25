@@ -256,23 +256,7 @@ void BalloonFruit::control() {
         MR::makeMtxTR(mtx, zero, mHomeRot);
         mtx.concat(rot);
 
-        if (mtx[2][0] - 1.0f >= -3.81469727e-06f) {
-            mRotation.x = JMath::sAtanTable.atan2_(-mtx[0][1], mtx[1][1]);
-            mRotation.y = -1.5707964f;
-            mRotation.z = 0.0f;
-        } else {
-            f32 lowerLimit = mtx[2][0];
-            lowerLimit += 1.0f;
-            if (lowerLimit <= 3.81469727e-06f) {
-                mRotation.x = JMath::sAtanTable.atan2_(mtx[0][1], mtx[1][1]);
-                mRotation.y = 1.5707964f;
-                mRotation.z = 0.0f;
-            } else {
-                mRotation.x = JMath::sAtanTable.atan2_(mtx[2][1], mtx[2][2]);
-                mRotation.z = JMath::sAtanTable.atan2_(mtx[1][0], mtx[0][0]);
-                mRotation.y = JGeometry::TUtil< f32 >::asin(-mtx[2][0]);
-            }
-        }
+        mtx.getEulerXYZ(mRotation);
         mAngleE4 = mAngleE4 + MR::pi() * sSpinDegrees / 180.0f;
         mRotation.x *= 57.295776f;
         mRotation.y *= 57.295776f;

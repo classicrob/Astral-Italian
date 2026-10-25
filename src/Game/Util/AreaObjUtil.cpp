@@ -82,9 +82,16 @@ namespace MR {
         const WaterArea* pArea = pInfo->mWaterArea;
         f32 depth;
 
-        switch (pArea->mFormType) {
-        case AreaForm::Type_Cube1:
-        case AreaForm::Type_Cube2: {
+        const s32 form = pArea->mFormType;
+        if (form == AreaForm::Type_Cylinder) goto waterCylinder;
+        if (AreaForm::Type_Cylinder <= form) goto waterUpperForm;
+        if (AreaForm::Type_Sphere <= form) goto waterSphere;
+        if (AreaForm::Type_Cube1 <= form) goto waterCube;
+        goto waterResolved;
+waterUpperForm:
+        if (AreaForm::Type_Bowl + 1 <= form) goto waterResolved;
+        goto waterBowl;
+waterCube: {
             TPos3f worldMtx;
             TRot3f rotationMtx;
             TVec3f up;
@@ -113,9 +120,9 @@ namespace MR {
                 pInfo->mStreamVec.scale(pArea->mObjArg0);
             }
 
-            break;
+            goto waterResolved;
         }
-        case AreaForm::Type_Sphere: {
+waterSphere: {
             TVec3f center(0.0f, 0.0f, 0.0f);
             pArea->getForm< AreaFormSphere >()->calcPos(&center);
             f32 radius = pArea->getForm< AreaFormSphere >()->mRadius;
@@ -133,13 +140,13 @@ namespace MR {
             MR::normalizeOrZero(&normal);
             pInfo->mSurfaceNormal.set(normal);
             pInfo->mSurfacePos.set(center + normal * radius);
-            break;
+            goto waterResolved;
         }
-        case AreaForm::Type_Bowl: {
+waterBowl: {
             depth = 0.0f;
-            break;
+            goto waterResolved;
         }
-        case AreaForm::Type_Cylinder: {
+waterCylinder: {
             TVec3f center(0.0f, 0.0f, 0.0f);
             TVec3f up(0.0f, 0.0f, 1.0f);
             pArea->getForm< AreaFormCylinder >()->calcPos(&center);
@@ -172,9 +179,9 @@ namespace MR {
                 pInfo->mStreamVec.scale(pArea->mObjArg0);
             }
 
-            break;
+            goto waterResolved;
         }
-        }
+waterResolved:
 
         if (!skipConnectedArea) {
             TVec3f checkPos(pInfo->getSurfacePos() - rGravity * 5.0f);

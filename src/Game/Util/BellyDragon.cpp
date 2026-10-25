@@ -30,7 +30,8 @@ bool isAttackNerve(LiveActor* pActor) {
 }
 
 void BellyDragon::init(const JMapInfoIter& rIter) {
-    mIsLv2 = MR::isObjectName(rIter, lbl_8066C858);
+    const char* names = lbl_8066C858;
+    mIsLv2 = MR::isObjectName(rIter, names);
     MR::initDefaultPos(this, rIter);
     MR::makeMtxTR(mBaseMtx.mMtx, this);
     mFront.set< f32 >(mBaseMtx.mMtx[0][2], mBaseMtx.mMtx[1][2], mBaseMtx.mMtx[2][2]);

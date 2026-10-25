@@ -90,7 +90,7 @@ namespace GameDataFunction {
     bool isOnGameEventFlagCometExplain();
     s32 calcCurrentGrandStarNum();
     void incCumulativePlayTime();
-    void setCurrentWorldId(u8);
+    void setCurrentWorldId(s32);
 };  // namespace GameDataFunction
 
 namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u16 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }

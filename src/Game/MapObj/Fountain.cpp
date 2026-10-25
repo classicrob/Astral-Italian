@@ -32,8 +32,7 @@ void Fountain::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     TPos3f mtx;
     mtx.identity();
-    TVec3f rotation = mRotation * (PI / 180.0f);
-    mtx.setRotate(rotation);
+    mtx.setRotateDegree(mRotation);
     mtx.getYDir(mUp);
     MR::normalize(&mUp);
     MR::getObjectName(&mFountainName, rIter);

@@ -61,8 +61,7 @@ void GhostAttackGhost::init(const JMapInfoIter& iter) {
     mHandJointCtrl = MR::createJointController(this, "HandL0", &GhostAttackGhost::calcHandJoint);
     mHeadJointCtrl = MR::createJointController(this, "HandR0", &GhostAttackGhost::calcHandJoint);
     MR::getJMapInfoArg0NoInit(iter, &mObjArg0);
-    s32 scenario = MR::getCurrentOrSelectedScenarioNo();
-    scenario = GameSequenceFunction::getPlacedGreenStarScenarioNo(MR::getCurrentStageName(), scenario);
+    s32 scenario = GameSequenceFunction::getPlacedGreenStarScenarioNo(MR::getCurrentStageName(), MR::getCurrentOrSelectedScenarioNo());
     if (scenario <= 0) scenario = 0;
     char filename[256];
     snprintf(filename, sizeof(filename), "GhostAttackGhostData%02d.gst", scenario);

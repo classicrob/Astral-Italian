@@ -8,6 +8,14 @@
 #include "Game/Util/CameraUtil.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
 
+namespace {
+    inline f32 crossMagnitude(const TVec3f& a, const TVec3f& b) {
+        TVec3f cross;
+        PSVECCrossProduct(&a, &b, &cross);
+        return PSVECMag(&cross);
+    }
+}
+
 CameraPadOrbitCtrl::CameraPadOrbitCtrl() : mRotating(false), mAngle(0.0f) {}
 void CameraPadOrbitCtrl::reset() {
     mRotating = false;
@@ -36,22 +44,19 @@ void CameraPadOrbitCtrl::updateRotation(const TVec3f& up, const TVec3f&, const T
     rotation.transform(offset);
     *pos = watch + offset;
 }
-// NONMATCHING: regalloc
 void CameraPadOrbitCtrl::updateInput(const TVec3f& up, const TVec3f& front, const TVec3f& watch, TVec3f* pos) {
     f32 roundAngle = 0.7853981852531433f;
     if (CameraLocalUtil::testCameraPadTriggerReset(true)) {
         TVec3f planarFront;
+        TVec3f planarOffset;
+        TVec3f side;
         JMAVECScaleAdd(&up, &front, &planarFront, -up.dot(front));
         if (MR::normalizeOrZero(&planarFront)) return;
         TVec3f toWatch = watch - *pos;
-        TVec3f planarOffset;
         JMAVECScaleAdd(&up, &toWatch, &planarOffset, -up.dot(toWatch));
         if (MR::normalizeOrZero(&planarOffset)) return;
-        TVec3f cross;
-        PSVECCrossProduct(&planarFront, &planarOffset, &cross);
-        f32 mag = PSVECMag(&cross);
+        f32 mag = crossMagnitude(planarFront, planarOffset);
         mTargetAngle = MR::abs(JMath::sAtanTable.atan2_(mag, planarFront.dot(planarOffset)));
-        TVec3f side;
         PSVECCrossProduct(&planarOffset, &planarFront, &side);
         if (side.dot(up) < 0.0f) mTargetAngle = -mTargetAngle;
         mAngle = 0.0f;

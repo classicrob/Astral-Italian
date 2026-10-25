@@ -139,7 +139,11 @@ BOOL OnShutdown(BOOL final, u32 event) {
         WUDCancelSyncDevice();
         return FALSE;
     }
+#ifdef GALAXY_NATIVE
+    // ORIGINAL QUIRK: the Wii build leaves shutdown unset for unlisted events (it tests a stale
+    // register, nonzero there); the port starts from the immediate-shutdown default.
     shutdown = TRUE;
+#endif
     switch (event) {
     case 0:
         WPADRegisterAllocator(__wpadNoAlloc, __wpadNoFree);
@@ -278,10 +282,10 @@ static u32 __wpadCheckChangeCount(BOOL changed, u16* count, u16* hysteresis, u32
     return 0;
 }
 
-// NONMATCHING: compiler boolean/loop lowering, register allocation and scheduling differ.
-BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, const void* p_prev) {
-    const WPADStatus* curr = (const WPADStatus*)p_curr;
-    const WPADStatus* prev = (const WPADStatus*)p_prev;
+// NONMATCHING: jump-table references differ.
+BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, void* p_curr, void* p_prev) {
+    WPADStatus* curr = (WPADStatus*)p_curr;
+    WPADStatus* prev = (WPADStatus*)p_prev;
     u8 result = 0;
     if ((curr->err == WPAD_ERR_NONE || curr->err == -7) &&
         (prev->err == WPAD_ERR_NONE || prev->err == -7)) {
@@ -305,8 +309,8 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
     if (curr->err == WPAD_ERR_NONE && prev->err == WPAD_ERR_NONE) {
         switch (p_wpd->dataFormat) {
         case 3: case 4: case 5: {
-            const WPADFSStatus* fsCurr = (const WPADFSStatus*)p_curr;
-            const WPADFSStatus* fsPrev = (const WPADFSStatus*)p_prev;
+            WPADFSStatus* fsCurr = (WPADFSStatus*)p_curr;
+            WPADFSStatus* fsPrev = (WPADFSStatus*)p_prev;
             result |= __wpadCheckChangeCount(
                 IsAnalogChanged(fsCurr->fsAccX, fsPrev->fsAccX, 12) |
                 IsAnalogChanged(fsCurr->fsAccY, fsPrev->fsAccY, 12) |
@@ -317,8 +321,8 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
             break;
         }
         case 6: case 7: case 8: case 11: case 15: case 17: case 18: {
-            const WPADCLStatus* clCurr = (const WPADCLStatus*)p_curr;
-            const WPADCLStatus* clPrev = (const WPADCLStatus*)p_prev;
+            WPADCLStatus* clCurr = (WPADCLStatus*)p_curr;
+            WPADCLStatus* clPrev = (WPADCLStatus*)p_prev;
             s32 left, right, trigger;
             switch (p_wpd->devMode) {
             case 1: left = 16; right = 32; trigger = 8; break;
@@ -335,16 +339,16 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
             break;
         }
         case 10: {
-            const WPADPercussionStatus* pc = (const WPADPercussionStatus*)p_curr;
-            const WPADPercussionStatus* pp = (const WPADPercussionStatus*)p_prev;
+            WPADPercussionStatus* pc = (WPADPercussionStatus*)p_curr;
+            WPADPercussionStatus* pp = (WPADPercussionStatus*)p_prev;
             result |= IsButtonChanged(pc->button, pp->button);
             result |= IsAnalogChanged(pc->force[0], pp->force[0], 1);
             result |= IsAnalogChanged(pc->force[1], pp->force[1], 1);
             break;
         }
         case 12: {
-            const WPADBLStatus* bc = (const WPADBLStatus*)p_curr;
-            const WPADBLStatus* bp = (const WPADBLStatus*)p_prev;
+            WPADBLStatus* bc = (WPADBLStatus*)p_curr;
+            WPADBLStatus* bp = (WPADBLStatus*)p_prev;
             result |= __wpadCheckChangeCount(
                 IsAnalogChanged(bc->pressure[0], bp->pressure[0], 50) |
                 IsAnalogChanged(bc->pressure[1], bp->pressure[1], 50) |
@@ -354,11 +358,11 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
             break;
         }
         case 13:
-            if (p_wpd->trnFormatSelector) result |= ((const WPADVSStatus*)p_curr)->button > 200;
+            if (p_wpd->trnFormatSelector) result |= ((WPADVSStatus*)p_curr)->button > 200;
             break;
         case 16: {
-            const WPADMPStatus* mc = (const WPADMPStatus*)p_curr;
-            const WPADMPStatus* mp = (const WPADMPStatus*)p_prev;
+            WPADMPStatus* mc = (WPADMPStatus*)p_curr;
+            WPADMPStatus* mp = (WPADMPStatus*)p_prev;
             result |= __wpadCheckChangeCount(
                 IsAnalogChanged(mc->rotation[0], mp->rotation[0], 64) |
                 IsAnalogChanged(mc->rotation[1], mp->rotation[1], 64) |
@@ -366,8 +370,8 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
                 &p_wpd->diffCountMpls, &p_wpd->hystCountMpls, WPAD_CHANGE_MPLS);
             if ((mc->status & 1) && (mp->status & 1)) {
                 if (p_wpd->devMode == 5) {
-                    const WPADFSStatus* fc = (const WPADFSStatus*)p_curr;
-                    const WPADFSStatus* fp = (const WPADFSStatus*)p_prev;
+                    WPADFSStatus* fc = (WPADFSStatus*)p_curr;
+                    WPADFSStatus* fp = (WPADFSStatus*)p_prev;
                     result |= __wpadCheckChangeCount(
                         IsAnalogChanged(fc->fsAccX, fp->fsAccX, 12) |
                         IsAnalogChanged(fc->fsAccY, fp->fsAccY, 12) |
@@ -376,8 +380,8 @@ BOOL __wpadIsControllerDataChanged(WPADControlBlock* p_wpd, const void* p_curr, 
                     result |= IsAnalogChanged(fc->fsStickX, fp->fsStickX, 1);
                     result |= IsAnalogChanged(fc->fsStickY, fp->fsStickY, 1);
                 } else if (p_wpd->devMode == 7) {
-                    const WPADCLStatus* cc = (const WPADCLStatus*)p_curr;
-                    const WPADCLStatus* cp = (const WPADCLStatus*)p_prev;
+                    WPADCLStatus* cc = (WPADCLStatus*)p_curr;
+                    WPADCLStatus* cp = (WPADCLStatus*)p_prev;
                     result |= IsButtonChanged(cc->clButton, cp->clButton);
                     result |= IsAnalogChanged(cc->clLStickX / 16, cp->clLStickX / 16, 1);
                     result |= IsAnalogChanged(cc->clLStickY / 16, cp->clLStickY / 16, 1);
@@ -402,15 +406,15 @@ void WPADRecalibrate(s32 chan) {
 }
 
 // NONMATCHING: compiler register allocation and scheduling differ.
-void __wpadCalcRecalibration(s32 chan, const WPADStatus* current) {
+void __wpadCalcRecalibration(s32 chan, WPADStatus* current) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     u32 count = 0;
     u16 classicButtons = 0;
     if (current->err == WPAD_ERR_NONE || current->err == -7) {
         if (current->button == 0x1C10 &&
             ((p_wpd->dataFormat >= 3 && p_wpd->dataFormat <= 8) || p_wpd->dataFormat == 16)) count = 1;
-        if (p_wpd->devType == 2) classicButtons = ((const WPADCLStatus*)current)->clButton;
-        if (p_wpd->devType == 7) classicButtons = ((const WPADCLStatus*)current)->clButton;
+        if (p_wpd->devType == 2) classicButtons = ((WPADCLStatus*)current)->clButton;
+        if (p_wpd->devType == 7) classicButtons = ((WPADCLStatus*)current)->clButton;
         if (classicButtons == 0x1450 &&
             ((p_wpd->dataFormat >= 6 && p_wpd->dataFormat <= 8) || p_wpd->dataFormat == 16)) count = 1;
         p_wpd->recalibrateCount += count;
@@ -440,8 +444,8 @@ void __wpadCalcControllerData(s32 chan) {
         u8 index = (u8)(p_wpd->rxBufIndex ? 0 : 1);
         const WPADStatus* current = (const WPADStatus*)(p_wpd->rxBuf + index * WPAD_RX_DATASIZE);
         OSRestoreInterrupts(enabled);
-        changed = __wpadIsControllerDataChanged(p_wpd, current, p_wpd->prBuf);
-        __wpadCalcRecalibration(chan, current);
+        changed = __wpadIsControllerDataChanged(p_wpd, (void*)current, p_wpd->prBuf);
+        __wpadCalcRecalibration(chan, (WPADStatus*)current);
         if (changed) {
             screen = TRUE;
             p_wpd->lastUpdateTime = __OSGetSystemTime();

@@ -43,7 +43,7 @@ void GameDataWorldMapStorage::initializeData() {
     mCurrentWorldNo = 1;
 }
 
-void GameDataWorldMapStorage::setCurrentWorldNo(u8 worldNo) {
+void GameDataWorldMapStorage::setCurrentWorldNo(s32 worldNo) {
     mCurrentWorldNo = worldNo;
 }
 

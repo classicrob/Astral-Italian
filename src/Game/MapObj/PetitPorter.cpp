@@ -127,7 +127,8 @@ void PetitPorter::exeWait() {
     if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
         f32 speed = mAngleSpeed;
         f32 t = speed + 0.2f;
-        mAngleSpeed = (t >= 3.6f) ? 3.6f : t;
+        f32 limit = 3.6f;
+        mAngleSpeed = (t >= limit) ? limit : t;
     } else {
         f32 t = mAngleSpeed - 0.2f;
         mAngleSpeed = (t >= 1.2f) ? t : 1.2f;

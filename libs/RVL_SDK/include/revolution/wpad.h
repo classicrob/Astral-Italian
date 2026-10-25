@@ -610,7 +610,7 @@ BOOL WPADiSendDPDCSB(WPADCmdQueue*, BOOL, WPADCallback);
 BOOL WPADiSendGetContStat(WPADCmdQueue*, WPADInfo*, WPADCallback);
 
 s32 __wpadRetrieveChannel(struct WUDDevInfo* info);
-void __wpadCalcRecalibration(s32 chan, const WPADStatus* current);
+void __wpadCalcRecalibration(s32 chan, WPADStatus* current);
 s32 WPADiSendData(s32, WPADCommand);
 
 BOOL WPADiGetCommand(WPADCmdQueue*, WPADCommand*);

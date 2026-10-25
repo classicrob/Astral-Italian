@@ -90,7 +90,8 @@ void MagmaMeteor::attackSensor(HitSensor* sender, HitSensor* receiver) {
 // NONMATCHING: double-conversion constant address uses r5 instead of r4.
 void MagmaMeteor::resetMeteor() {
     mMeteor->setOffset(mUp * mHeight);
-    f32 speed = mHeight / mFallTime;
+    f32 fallTime = mFallTime;
+    f32 speed = mHeight / fallTime;
     mMeteorVelocity = -mUp * speed;
     mFireActive = false;
     mFireRadius = sFireRadiusMin;

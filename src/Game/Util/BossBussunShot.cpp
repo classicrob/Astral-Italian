@@ -83,6 +83,7 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     bool isNear = isNearHeight(80.0f);
     TVec3f toPlayer;
     MR::calcVecFromPlayerHorizon(&toPlayer, mHost, &mUpVec);
+    f32 turn;
     f32 dist = PSVECMag(&toPlayer);
     f32 angle;
     if (isPlayerBelow) {
@@ -107,7 +108,6 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
         MR::normalize(&mSideVec);
         prevSide.set(mSideVec);
     } else {
-        f32 turn;
         if (isPlayerBelow) {
             turn = 5.0f;
         } else {
@@ -116,11 +116,7 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
         if (turn > 0.0f) {
             TVec3f target(mSideVec.dot(toPlayer) > 0.0f ? toPlayer : -toPlayer);
             target *= 1.0f / dist;
-            TVec3f yAxis;
-            yAxis.x = 0.0f;
-            yAxis.y = 1.0f;
-            yAxis.z = 0.0f;
-            MR::turnVecToVecDegree(&mSideVec, mSideVec, target, turn, yAxis);
+            MR::turnVecToVecDegree(&mSideVec, mSideVec, target, turn, TVec3f(0, 1, 0));
             JMAVECScaleAdd(&mUpVec, &mSideVec, &mSideVec, -mUpVec.dot(mSideVec));
             MR::normalize(&mSideVec);
         }

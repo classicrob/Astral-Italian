@@ -120,8 +120,8 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
     mParts->initWithoutIter();
 
     for (s32 i = 0; i < count; i++) {
-        const TVec3f& rPos = mPosition;
         const TVec3f& rGrav = mGravity;
+        const TVec3f& rPos = mPosition;
         WoodLogBridgeParts* pPart = new WoodLogBridgeParts(this, objName);
 
         f32 t = (f32)i / (f32)(count - 1);

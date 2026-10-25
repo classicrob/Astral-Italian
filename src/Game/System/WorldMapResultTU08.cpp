@@ -31,7 +31,12 @@ extern const f32 lbl_807E1D30;
 extern const s32 lbl_807E1D34;
 extern const s32 lbl_807E1D38;
 
-extern TVec3f sEnterGalaxyPositions[4];
+namespace {
+    extern TVec3f sEnterGalaxyPositionNormal;
+    extern TVec3f sEnterGalaxyPositionType3;
+    extern TVec3f sEnterGalaxyPositionType4;
+    extern TVec3f sEnterGalaxyPositionType5;
+}
 
 namespace MR {
     void setDepthOfFieldBlurDistance(s32, s32);
@@ -49,6 +54,32 @@ namespace MR {
     bool isLessEqualStep(const LiveActor*, s32);
     f32 calcNerveEaseInRate(const NerveExecutor*, s32);
     f32 calcNerveEaseInOutRate(const NerveExecutor*, s32);
+}
+
+namespace NrvWorldMapResultStateEnterGalaxy {
+    void WorldMapResultStateEnterGalaxyZoomOut::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeZoomOut();
+    }
+    void WorldMapResultStateEnterGalaxyDemo::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeDemo();
+    }
+    void WorldMapResultStateEnterGalaxyWait::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeWait();
+    }
+    void WorldMapResultStateEnterGalaxyZoomIn::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeZoomIn();
+    }
+    WorldMapResultStateEnterGalaxyZoomIn WorldMapResultStateEnterGalaxyZoomIn::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateEnterGalaxyWait WorldMapResultStateEnterGalaxyWait::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateEnterGalaxyDemo WorldMapResultStateEnterGalaxyDemo::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateEnterGalaxyZoomOut WorldMapResultStateEnterGalaxyZoomOut::sInstance ATTRIBUTE_WEAK;
+};  // namespace NrvWorldMapResultStateEnterGalaxy
+
+namespace {
+    TVec3f sEnterGalaxyPositionNormal(-770.0f, -60.0f, 290.0f);
+    TVec3f sEnterGalaxyPositionType3(-770.0f, -60.0f, 290.0f);
+    TVec3f sEnterGalaxyPositionType4(240.0f, -800.0f, -600.0f);
+    TVec3f sEnterGalaxyPositionType5(-770.0f, 220.0f, 290.0f);
 }
 
 WorldMapResultStateEnterGalaxy::WorldMapResultStateEnterGalaxy(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ギャラクシーに入る]", pHost) {
@@ -82,33 +113,31 @@ void WorldMapResultStateEnterGalaxy::init() {
     mIsDead = true;
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateEnterGalaxy::appear() {
-    TVec3f* positions = sEnterGalaxyPositions;
     mIsDead = false;
     if (mHost->isWorldDataType3AtCurrent()) {
-        mTargetPos = &positions[1];
+        mTargetPos = &sEnterGalaxyPositionType3;
         mCameraName = lbl_807D0564;
         mAnimName = lbl_807D0554;
         mBlurNear = &lbl_807E1D1C;
         mBlurFar = &lbl_807E1D20;
         mRate = lbl_807E1D18;
     } else if (mHost->isWorldDataType4AtCurrent()) {
-        mTargetPos = &positions[2];
+        mTargetPos = &sEnterGalaxyPositionType4;
         mCameraName = lbl_807D0568;
         mAnimName = lbl_807D0558;
         mBlurNear = &lbl_807E1D28;
         mBlurFar = &lbl_807E1D2C;
         mRate = lbl_807E1D24;
     } else if (mHost->isWorldDataType5AtCurrent()) {
-        mTargetPos = &positions[3];
+        mTargetPos = &sEnterGalaxyPositionType5;
         mCameraName = lbl_807D056C;
         mAnimName = lbl_807D055C;
         mBlurNear = &lbl_807E1D34;
         mBlurFar = &lbl_807E1D38;
         mRate = lbl_807E1D30;
     } else {
-        mTargetPos = &positions[0];
+        mTargetPos = &sEnterGalaxyPositionNormal;
         mCameraName = lbl_807D0560;
         mAnimName = lbl_807D0550;
         mBlurNear = &lbl_807E1D10;
@@ -234,33 +263,6 @@ void WorldMapResultStateEnterGalaxy::exeDemo() {
 
 WorldMapResultStateEnterGalaxy::~WorldMapResultStateEnterGalaxy() {
 }
-
-namespace NrvWorldMapResultStateEnterGalaxy {
-    void WorldMapResultStateEnterGalaxyZoomOut::execute(Spine* spine) const {
-        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeZoomOut();
-    }
-    void WorldMapResultStateEnterGalaxyDemo::execute(Spine* spine) const {
-        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeDemo();
-    }
-    void WorldMapResultStateEnterGalaxyWait::execute(Spine* spine) const {
-        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeWait();
-    }
-    void WorldMapResultStateEnterGalaxyZoomIn::execute(Spine* spine) const {
-        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeZoomIn();
-    }
-    WorldMapResultStateEnterGalaxyZoomIn WorldMapResultStateEnterGalaxyZoomIn::sInstance ATTRIBUTE_WEAK;
-    WorldMapResultStateEnterGalaxyWait WorldMapResultStateEnterGalaxyWait::sInstance ATTRIBUTE_WEAK;
-    WorldMapResultStateEnterGalaxyDemo WorldMapResultStateEnterGalaxyDemo::sInstance ATTRIBUTE_WEAK;
-    WorldMapResultStateEnterGalaxyZoomOut WorldMapResultStateEnterGalaxyZoomOut::sInstance ATTRIBUTE_WEAK;
-};  // namespace NrvWorldMapResultStateEnterGalaxy
-
-// NONMATCHING: static initialization order and base-load scheduling (FP argument order/grouping checked).
-TVec3f sEnterGalaxyPositions[4] = {
-    TVec3f(-770.0f, -60.0f, 290.0f),
-    TVec3f(-770.0f, -60.0f, 290.0f),
-    TVec3f(240.0f, -800.0f, -600.0f),
-    TVec3f(-770.0f, 220.0f, 290.0f),
-};
 
 const f32 lbl_807E1D00 = 1.0f;
 const f32 lbl_807E1D08 = 1.0f;

@@ -119,8 +119,7 @@ void PullTargetBridge::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "PullTargetBridge", false);
     initHitSensor(1);
     MR::addHitSensorMapObjSimple(this, "Body", 32, 1.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MtxPtr mtx = MR::getJointMtx(this, "PullTargetBridge");
-    MR::initCollisionParts(this, "PullTargetBridge", getSensor("Body"), mtx);
+    MR::initCollisionParts(this, "PullTargetBridge", getSensor("Body"), MR::getJointMtx(this, "PullTargetBridge"));
     MR::connectToSceneMapObj(this);
     initNerve(&NrvPullTargetBridge::PullTargetBridgeNrvWait::sInstance, 0);
     mClippingCenter.set< f32 >(mPosition);

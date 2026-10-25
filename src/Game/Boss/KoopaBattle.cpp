@@ -67,8 +67,8 @@ void KoopaBattle::init(const JMapInfoIter& rIter) {
     }
     initNerve(&NrvKoopaBattle::KoopaBattleNrvBattle::sInstance, 1);
     MR::initActorState(this, mSequence, &NrvKoopaBattle::KoopaBattleNrvBattle::sInstance, "PhaseSequence");
-    BaseMatrixFollowValidateDelegator< KoopaBattle >* pValidater =
-        new BaseMatrixFollowValidateDelegator< KoopaBattle >(this, &KoopaBattle::isValidFollowId);
+    BaseMatrixFollowValidater* pValidater =
+        MR::createBaseMatrixFollowValidateDelegator(this, &KoopaBattle::isValidFollowId);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, pValidater);
     mShell = MR::createPartsModelEnemy(this, "クッパ殻モデル", "KoopaShell", MR::getJointMtx(this, "Armor"));
     mShell->mScale.set(1.0f, 1.0f, 1.0f);

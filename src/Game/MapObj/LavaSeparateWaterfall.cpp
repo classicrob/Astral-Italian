@@ -11,17 +11,14 @@ NEW_NERVE(LavaSeparateWaterfallNrvWait, LavaSeparateWaterfall, Wait);
 NEW_NERVE(LavaSeparateWaterfallNrvMove, LavaSeparateWaterfall, Move);
 }
 LavaSeparateWaterfall::LavaSeparateWaterfall(const char* name) : LiveActor(name), mLeftCollision(0), mRightCollision(0), mLeftRail(0), mRightRail(0), mLeftMover(0), mRightMover(0), mLeftController(0), mRightController(0), mReactionDistance(14000.0f), mIsMoving(false) {}
-// NONMATCHING: nonvolatile register allocation differs throughout initialization.
 void LavaSeparateWaterfall::init(const JMapInfoIter& iter) {
     MR::initActor(this, iter, false);
     initNerve(&NrvLavaSeparateWaterfall::LavaSeparateWaterfallNrvWait::sInstance);
     MR::setClippingTypeSphere(this, mReactionDistance);
     MR::setClippingFarMax(this);
-    MtxPtr leftMtx = MR::getJointMtx(this, sLeftJoint);
-    mLeftCollision = MR::createCollisionPartsFromLiveActor(this, "MoveLeft", getSensor("Body"), leftMtx, MR::CollisionScaleType_Default);
+    mLeftCollision = MR::createCollisionPartsFromLiveActor(this, "MoveLeft", getSensor("Body"), MR::getJointMtx(this, sLeftJoint), MR::CollisionScaleType_Default);
     MR::validateCollisionParts(mLeftCollision);
-    MtxPtr rightMtx = MR::getJointMtx(this, sRightJoint);
-    mRightCollision = MR::createCollisionPartsFromLiveActor(this, "MoveRight", getSensor("Body"), rightMtx, MR::CollisionScaleType_Default);
+    mRightCollision = MR::createCollisionPartsFromLiveActor(this, "MoveRight", getSensor("Body"), MR::getJointMtx(this, sRightJoint), MR::CollisionScaleType_Default);
     MR::validateCollisionParts(mRightCollision);
     mLeftController = createJointController(sLeftJoint, &LavaSeparateWaterfall::calcLeftMtx);
     mRightController = createJointController(sRightJoint, &LavaSeparateWaterfall::calcRightMtx);

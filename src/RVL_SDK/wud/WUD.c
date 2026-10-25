@@ -61,7 +61,10 @@ typedef union WUDWiiFitPairingRecord {
 typedef struct WUDWiiFitPairingData {
     WUDWiiFitPairingRecord record;
     u32 checksum;
-} WUDWiiFitPairingData;
+} ATTRIBUTE_ALIGN(32) WUDWiiFitPairingData;
+
+// The 32-byte-aligned NAND buffer type pads to 0xA0; only the record and checksum are written.
+#define WUD_WIIFIT_PAIRING_EXTENT (sizeof(WUDWiiFitPairingRecord) + sizeof(u32))
 
 typedef struct WUDWiiFitWorkArea {
     u16 payload[0x4AF18 / sizeof(u16)];
@@ -1088,7 +1091,7 @@ static void SyncHandler(void) {
     case 102:
         if (!_nandBusy) {
             _nandBusy = 1;
-            NANDWriteAsync(&_wiiFitFileInfo, &_wiiFitPairingData, sizeof(_wiiFitPairingData),
+            NANDWriteAsync(&_wiiFitFileInfo, &_wiiFitPairingData, WUD_WIIFIT_PAIRING_EXTENT,
                            __wudUpdateWiiFitCallback, &_wiiFitCommandBlock);
         }
         break;
@@ -1273,7 +1276,7 @@ static void DeleteAllHandler(void) {
     case 102:
         if (!_nandBusy) {
             _nandBusy = 1;
-            NANDWriteAsync(&_wiiFitFileInfo, &_wiiFitPairingData, sizeof(_wiiFitPairingData),
+            NANDWriteAsync(&_wiiFitFileInfo, &_wiiFitPairingData, WUD_WIIFIT_PAIRING_EXTENT,
                            __wudUpdateWiiFitCallback, &_wiiFitCommandBlock);
         }
         break;

@@ -49,8 +49,7 @@ void WorldMapResultStateWorldWarp::exeMove() {
         mPosA.set(pActor->mPosition);
         mPosB.set(mHost->getWorld()->getNode(mInt18)->mPos);
 
-        const TVec3f& diff = mPosB - mPosA;
-        mDir.set(diff);
+        mDir.set(mPosB - mPosA);
         MR::normalizeOrZero(&mDir);
 
         mPosB.set(mPosA + mDir * 9000.0f);

@@ -33,7 +33,7 @@ namespace {
         if (*value == 'o') return 3;
         return *value == 'x' ? 2 : 0;
     }
-    const char* sFlagNames[] = {"SwitchA", "SwitchB", "ShowModel", "CollisionParts", "Binder", "CalcGravity", "InvalidateClipping", "FaceCtrl"};
+    const char* sFlagNames[10] = {"SwitchA", "SwitchB", "ShowModel", "CollisionParts", "Binder", "CalcGravity", "InvalidateClipping", "FaceCtrl"};
 }
 
 void ActionFlagCtrl::init() {

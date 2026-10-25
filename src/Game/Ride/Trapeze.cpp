@@ -416,6 +416,12 @@ bool Trapeze::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
 }
 
 // NONMATCHING: register allocation (this in r27 vs r31) and host-position copy scheduling
+namespace {
+    inline const TVec3f& getTrapezeActorPosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 bool Trapeze::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgAutoRushBegin(msg)) {
         if ((!isNerve(GET_NERVE(Trapeze, TrapezeNrvStop)) && !isNerve(GET_NERVE(Trapeze, TrapezeNrvFree))) || MR::isOnGroundPlayer() ||
@@ -423,7 +429,7 @@ bool Trapeze::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
             return false;
         }
 
-        TVec3f posDiff(MR::getSensorHost(pSender)->mPosition);
+        TVec3f posDiff(getTrapezeActorPosition(*MR::getSensorHost(pSender)));
         posDiff.sub(*MR::getSensorPos(pReceiver));
 
         if (MR::abs(posDiff.dot(mFront)) > ::sDistanceStartBindZ) {
@@ -432,13 +438,13 @@ bool Trapeze::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 
         mRider = MR::getSensorHost(pSender);
 
-        TVec3f grabPos(MR::getSensorHost(pSender)->mPosition);
+        TVec3f grabPos(getTrapezeActorPosition(*MR::getSensorHost(pSender)));
         grabPos.sub(mPosition);
 
         f32 dotUp = mUp.dot(grabPos);
         f32 dotFront = mFront.dot(grabPos);
 
-        grabPos = mPosition + mUp * dotUp + mFront * dotFront;
+        grabPos = getTrapezeActorPosition(*this) + mUp * dotUp + mFront * dotFront;
 
         f32 coord = grabPos.distance(mPosition);
         coord = MR::clamp(coord, 0.0f, mRopeLength);

@@ -218,6 +218,25 @@ bool SpinCloudBlock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
 }
 
 // NONMATCHING: vector temporary stack slots and load/store scheduling differ.
+namespace {
+    inline const TVec3f& getSpinCloudGravity(const LiveActor& actor) {
+        return actor.mGravity;
+    }
+
+    inline TVec3f scaleSpinCloudVector(const TVec3f& vector, f32 scale) {
+        TVec3f offset(vector);
+        offset *= scale;
+        return offset;
+    }
+
+
+    inline TVec3f calcSpinCloudTraceOrigin(const SpinCloudBlock& block, const TVec3f& offset) {
+        TVec3f origin(block.mPosition);
+        origin -= offset;
+        return origin;
+    }
+}
+
 bool SpinCloudBlock::exeTransform() {
     if (MR::isFirstStep(this)) {
         MR::validateShadow(this, "\x83\x75\x83\x8D\x83\x62\x83\x4E");
@@ -225,17 +244,13 @@ bool SpinCloudBlock::exeTransform() {
         MR::startAction(this, "Transform");
         MR::zeroVelocity(this);
         MR::validateCollisionParts(this);
-        mSwayVel.set(0.0f);
+        mSwayVel.zero();
         placeAt(mAnchorPos);
 
-        TVec3f from(mGravity);
-        from *= 50.0f;
-        TVec3f origin(mPosition);
-        origin -= from;
-        TVec3f target(mGravity);
-        target *= 210.0f;
         TVec3f hit;
-        if (MR::getFirstPolyOnLineToMap(&hit, nullptr, origin, target)) {
+        if (MR::getFirstPolyOnLineToMap(&hit, nullptr,
+                calcSpinCloudTraceOrigin(*this, scaleSpinCloudVector(getSpinCloudGravity(*this), 50.0f)),
+                scaleSpinCloudVector(getSpinCloudGravity(*this), 210.0f))) {
             f32 dist = 160.0f - PSVECDistance(&hit, &mPosition);
             mPushBack = dist;
             if (mPushBack < 0.0f) {
@@ -253,9 +268,7 @@ bool SpinCloudBlock::exeTransform() {
             if (MR::isGreaterStep(this, 15)) {
                 TVec3f velKilled(*MR::getPlayerVelocity());
                 MR::vecKillElement(velKilled, mGravity, &velKilled);
-                TVec3f push(velKilled);
-                push *= 0.003f;
-                MR::pushPlayer(push);
+                MR::pushPlayer(scaleSpinCloudVector(velKilled, 0.003f));
             }
         }
 
@@ -267,9 +280,7 @@ bool SpinCloudBlock::exeTransform() {
             } else {
                 mPushBack -= step;
             }
-            TVec3f shove(mGravity);
-            shove *= -step;
-            mPosition.add(shove);
+            mPosition.add(scaleSpinCloudVector(getSpinCloudGravity(*this), -step));
         }
     }
     adjustOnPlayer();

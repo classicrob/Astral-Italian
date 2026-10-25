@@ -102,6 +102,13 @@ void KoopaStateFireAttack::exeFireEnd() {
 }
 
 // NONMATCHING: vector temporary stack placement and register allocation differ; calls/constants agree.
+namespace {
+    inline void turnKoopaInward(KoopaBattle* const& host, const TVec3f& radialDirection) {
+        TVec3f inward = -radialDirection;
+        MR::turnQuatZDirRad(&host->mPoseQuat, host->mPoseQuat, inward, 0.10471976f);
+    }
+}
+
 void KoopaStateFireAttack::moveAroundArena(f32 speed) {
     TVec3f base;
     MR::getKoopaBattleBasePos(&base);
@@ -116,8 +123,7 @@ void KoopaStateFireAttack::moveAroundArena(f32 speed) {
     KoopaBattle* host = mHost;
     MR::calcVecToTargetPosH(&toTarget, host, *MR::getPlayerPos(), &toActor);
     MR::turnQuatYDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, toTarget, 0.017453292f * (2.5f * rate));
-    TVec3f negActor = -toActor;
-    MR::turnQuatZDirRad(&mHost->mPoseQuat, mHost->mPoseQuat, negActor, 0.10471976f);
+    turnKoopaInward(mHost, toActor);
     TVec3f up;
     MR::calcUpVec(&up, mHost);
     JMAVECScaleAdd(&toActor, &up, &up, -toActor.dot(up));

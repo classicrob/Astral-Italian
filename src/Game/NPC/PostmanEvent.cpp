@@ -40,8 +40,8 @@ PostManLetter* createLetter() {
 }
 // NONMATCHING: argument setup and register allocation differ.
 LiveActor* createPlayerDemo(const JMapInfoIter& iter) {
-    const char* name = "\203x\203r\203`\203R[\227X\225\326\211\256\202\263\202\361\203C\203x\203\223\203g]";
     MtxPtr base = MR::getPlayerBaseMtx();
+    const char* name = "\203x\203r\203`\203R[\227X\225\326\211\256\202\263\202\361\203C\203x\203\223\203g]";
     LiveActor* actor = MR::createDemoObjWithAnimArc(name, "TicoBaby",
                                                   "TicoBabyAnimMarioFaceShipGalaxy2", base);
     MR::tryInitDemoSheetAnim(actor, iter, "\227X\225\326\211\256\202\263\202\361\203C\203x\203\223\203g[\203\215\203[\203b\203^]", "DemoSpinTeach");

@@ -216,6 +216,17 @@ bool NokonokoLandBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
 }
 
 // NONMATCHING: Remaining GPR assignment and vector temporary scheduling differ.
+namespace {
+    inline void subtractDrillFallPosition(TVec3f& direction, const TVec3f& sender) {
+        direction.sub(sender);
+    }
+    inline TVec3f calcDrillFallDirection(const TVec3f& receiver, const TVec3f& sender) {
+        TVec3f direction(receiver);
+        subtractDrillFallPosition(direction, sender);
+        return direction;
+    }
+}
+
 bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
     if (pReceiver == getSensor("DrillDamage") && isMovingOrBindNerve()) {
         MR::tryHitReaction(this, "ドリルダメージ");
@@ -225,9 +236,7 @@ bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
             mVelocity.set(velocity);
         } else {
             const TVec3f* senderPos = MR::getSensorPos(pSender);
-            TVec3f delta(*MR::getSensorPos(pReceiver));
-            delta.sub(*senderPos);
-            mVelocity.set(delta);
+            mVelocity.set(calcDrillFallDirection(*MR::getSensorPos(pReceiver), *senderPos));
         }
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvFall));
         return true;

@@ -378,6 +378,12 @@ void Terebo::updateOnRail() {
 }
 
 // NONMATCHING: one argument-setup instruction (addi r3/r4 order) for the projection copy is swapped.
+namespace {
+    inline const TVec3f& getTereboGravity(const LiveActor& actor) {
+        return actor.mGravity;
+    }
+}
+
 bool Terebo::moveOnRailAndCheckNextPoint() {
     f32 speed = mRailSpeed;
     s32 prevNo = MR::getNextRailPointNo(this);
@@ -386,7 +392,7 @@ bool Terebo::moveOnRailAndCheckNextPoint() {
     TVec3f dir(MR::getRailDirection(this));
     if (!MR::isSameDirection(dir, mGravity, 0.01f)) {
         f32 d = dir.dot(mGravity);
-        TVec3f proj = mGravity * d;
+        TVec3f proj = getTereboGravity(*this) * d;
         dir -= proj;
         MR::normalizeOrZero(&dir);
         MR::turnVecToVecDegree(&mFrontVec, mFrontVec, dir, 3.5f, mGravity);

@@ -275,6 +275,12 @@ void SupportTico::clearTarget() {
 }
 
 // NONMATCHING: equivalent boolean comparison lowering.
+namespace {
+    inline bool isSupportTargetTooFar(const SupportTico& tico) {
+        return !MR::isNearPlayerAnyTime(tico.mTarget, 1.2f * tico.mAttachRange);
+    }
+}
+
 void SupportTico::updateTarget() {
     LiveActor* pNearest = findNearestTarget();
     if (pNearest != nullptr && mTarget == nullptr) {
@@ -287,7 +293,7 @@ void SupportTico::updateTarget() {
     mTargetTimer--;
     if (pTarget != nullptr) {
         if (!mTargetRefreshed || MR::isDead(pTarget) || MR::isStarPointerTargetClipped(mTarget) ||
-            MR::isNearPlayerAnyTime(mTarget, 1.2f * mAttachRange) != true) {
+            isSupportTargetTooFar(*this)) {
             mAttachGroup->clear();
             mNearTarget = nullptr;
             mTarget = nullptr;

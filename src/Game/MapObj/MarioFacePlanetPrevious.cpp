@@ -43,19 +43,27 @@ void MarioFacePlanetPrevious::makeActorDead() {
     for (s32 i=0; i<7; ++i) { snprintf(name, sizeof(name), "MarioFacePlanetPrevious%02d", i); MR::forceDeleteEffect(this, name); }
 }
 // NONMATCHING: temporary vector stack slots and instruction scheduling differ.
-inline TVec3f calcMarioFaceEffectOffset(const TVec3f& direction) {
+inline void scaleMarioFaceEffectOffset(TVec3f& offset, f32 scale) {
+    offset.x *= scale;
+    offset.y *= scale;
+    offset.z *= scale;
+}
+
+inline TVec3f calcMarioFaceEffectOffset(const TVec3f& direction, const f32& scale) {
     TVec3f offset(direction);
-    offset.x *= 500.0f;
-    offset.y *= 500.0f;
-    offset.z *= 500.0f;
+    scaleMarioFaceEffectOffset(offset, scale);
     return offset;
+}
+
+inline const TVec3f& getMarioFacePosition(const LiveActor& actor) {
+    return actor.mPosition;
 }
 
 void MarioFacePlanetPrevious::exeDemo() {
     if (MR::isFirstStep(this)) {
-        TVec3f direction = mPosition - MR::getCamPos();
+        TVec3f direction = getMarioFacePosition(*this) - MR::getCamPos();
         MR::normalizeOrZero(&direction);
-        MR::makeMtxFrontUpPos(&mScreenMtx, -MR::getCamZdir(), MR::getCamYdir(), MR::getCamPos() + calcMarioFaceEffectOffset(direction));
+        MR::makeMtxFrontUpPos(&mScreenMtx, -MR::getCamZdir(), MR::getCamYdir(), MR::getCamPos() + calcMarioFaceEffectOffset(direction, 500.0f));
         MR::makeMtxFrontUpPos(&mScreenLightMtx, -MR::getCamZdir(), MR::getCamYdir(), mPosition);
         MR::emitEffect(this, sScreenEffect)->setHostMtx(mScreenMtx.toMtxPtr());
         MR::emitEffect(this, sScreenLightEffect)->setHostMtx(mScreenLightMtx.toMtxPtr());

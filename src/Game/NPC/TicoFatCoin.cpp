@@ -97,6 +97,12 @@ void TicoFatCoin::exeMove() {
     if(MR::isStep(this,90)) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvTransform));
 }
 // NONMATCHING: temporary vector stack layout and register allocation differ.
+namespace {
+    inline const TVec3f& getTicoCoinPosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 void TicoFatCoin::exeTransform() {
     if(MR::isFirstStep(this)) {
         MR::closeWipeWhiteFade(60);
@@ -107,7 +113,7 @@ void TicoFatCoin::exeTransform() {
         MR::emitEffect(this,"ScreenEffectLight")->setHostMtx(mSmokeMtx.toMtxPtr());
     }
     MR::startActionSound(this,"VolDownBgm",-1,-1,-1);
-    TVec3f dir(mPosition-MR::getCamPos());
+    TVec3f dir(getTicoCoinPosition(*this)-MR::getCamPos());
     MR::normalizeOrZero(&dir);
     MR::makeMtxFrontUpPos(&mEffectMtx,-MR::getCamZdir(),MR::getCamYdir(),MR::getCamPos()+dir*500.0f);
     MR::makeMtxFrontUpPos(&mSmokeMtx,-MR::getCamZdir(),MR::getCamYdir(),mPosition);

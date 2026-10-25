@@ -223,8 +223,7 @@ void BreakableCage::initModel(const char* pName, const JMapInfoIter& rIter) {
         MR::setScale(mBreakModel, mScale);
 
         if (mCageType == CAGE_LARGE) {
-            TVec3f largeScale = calcLargeCageScale(mScale, 1.4f);
-            MR::setScale(mBreakModel, largeScale);
+            MR::setScale(mBreakModel, calcLargeCageScale(mScale, 1.4f));
         }
 
         MR::invalidateClipping(mBreakModel);

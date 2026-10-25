@@ -353,16 +353,11 @@ namespace MR {
 
     void makeSRTFromMtxPtr(TVec3f* pOutTrans, TVec3f* pOutRot, TVec3f* pOutScale, MtxPtr pSrc, bool toDegree) {
         TVec3f scale;
-        scale.x = JGeometry::TUtil< f32 >::sqrt(pSrc[0][0] * pSrc[0][0] + pSrc[1][0] * pSrc[1][0] + pSrc[2][0] * pSrc[2][0]);
-        scale.y = JGeometry::TUtil< f32 >::sqrt(pSrc[0][1] * pSrc[0][1] + pSrc[1][1] * pSrc[1][1] + pSrc[2][1] * pSrc[2][1]);
-        scale.z = JGeometry::TUtil< f32 >::sqrt(pSrc[0][2] * pSrc[0][2] + pSrc[1][2] * pSrc[1][2] + pSrc[2][2] * pSrc[2][2]);
+        reinterpret_cast<const TPos3f*>(pSrc)->getScale(scale);
 
         TPos3f scaleMtx;
         scaleMtx.identity();
-        f32 invZ = JMath::fastReciprocal(scale.z);
-        f32 invY = JMath::fastReciprocal(scale.y);
-        f32 invX = JMath::fastReciprocal(scale.x);
-        scaleMtx.setScale(invX, invY, invZ);
+        scaleMtx.setScale(JMath::fastReciprocal(scale.x), JMath::fastReciprocal(scale.y), JMath::fastReciprocal(scale.z));
 
         TPos3f rotMtx;
         rotMtx.concat(*reinterpret_cast< TPos3f* >(pSrc), scaleMtx);

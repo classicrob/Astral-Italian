@@ -14,6 +14,14 @@ void ShadowSurfaceCircle::setRadius(f32 radius) {
     mRadius = radius;
 }
 
+namespace {
+    inline TVec3f calcShadowCircleFacing(const TVec3f& normal) {
+        TVec3f facing;
+        facing.negate(normal);
+        return facing;
+    }
+}
+
 void ShadowSurfaceCircle::draw() const {
     ShadowController* controller = getController();
     if (!controller->isProjected() || !controller->isDraw()) {
@@ -29,7 +37,5 @@ void ShadowSurfaceCircle::draw() const {
     controller->getProjectionPos(&pos);
     controller->getProjectionNormal(&normal);
     TDDraw::resetViewMtx();
-    TVec3f facing;
-    facing.negate(normal);
-    TDDraw::drawFillCircle(pos + normal * 1.0f, facing, radius, 128, 20);
+    TDDraw::drawFillCircle(pos + normal * 1.0f, calcShadowCircleFacing(normal), radius, 128, 20);
 }

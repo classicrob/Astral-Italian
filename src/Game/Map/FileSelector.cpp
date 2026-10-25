@@ -133,10 +133,16 @@ FileSelector::FileSelector(const char* pName)
 }
 
 // NONMATCHING: the two TVec3f temporaries (sensor offset / sound offset) get swapped stack slots
+namespace {
+    inline void initFileSelectorBodySensor(LiveActor* actor) {
+        MR::addHitSensorPriorBinder(actor, "Body", 8, 500.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    }
+}
+
 void FileSelector::init(const JMapInfoIter& rIter) {
     MR::connectToScene(this, 0x20, -1, -1, -1);
     initHitSensor(1);
-    MR::addHitSensorPriorBinder(this, "Body", 8, 500.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    initFileSelectorBodySensor(this);
     initSound(4, "FileSelector", nullptr, TVec3f(0.0f));
     initUserFileArray();
     MR::invalidateClipping(this);

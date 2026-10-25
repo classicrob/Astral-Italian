@@ -55,7 +55,8 @@ namespace MR {
     JAISoundHandle* startStageBGMIfNotPlaying(const char* pName, bool param2) {
         JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
 
-        if (AudWrap::getBgmMgr()->mCurrentBGM[0] == id && isPlayingStageBgm()) {
+        AudBgmMgr* manager = AudWrap::getBgmMgr();
+        if (manager->mCurrentBGM[0] == id && isPlayingStageBgm()) {
             return nullptr;
         }
 
@@ -594,8 +595,12 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc/order (target hoists li r31,1 above the getSceneMgr call) (FP order/grouping checked: no FP instructions).
+    inline void invalidateCubeBgmChange(AudSceneMgr* manager) {
+        manager->mIsNewPlayerMode = true;
+    }
+
     void setCubeBgmChangeInvalid() {
-        AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
+        invalidateCubeBgmChange(AudWrap::getSceneMgr());
     }
 
     bool isCubeBgmChangeInvalid() {

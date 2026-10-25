@@ -228,6 +228,12 @@ void BoomerangBros::exeSwoonPressDown() {
 }
 
 // NONMATCHING: register allocation / operand load order of the TVec3f temporaries.
+namespace {
+    inline const TVec3f& getBoomerangBrosPosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 void BoomerangBros::exeStandPressDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StandPressDown");
@@ -236,7 +242,7 @@ void BoomerangBros::exeStandPressDown() {
         MR::zeroVelocity(this);
     }
     if (MR::isPlayerHipDropFalling()) {
-        TVec3f diff = mPosition - *MR::getPlayerPos();
+        TVec3f diff = getBoomerangBrosPosition(*this) - *MR::getPlayerPos();
         MR::vecKillElement(diff, mGravity, &diff);
         MR::setPosition(this, *MR::getPlayerPos() + diff);
     }

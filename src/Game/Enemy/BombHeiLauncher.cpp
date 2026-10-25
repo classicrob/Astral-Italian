@@ -87,10 +87,16 @@ void BombHeiLauncher::init(const JMapInfoIter& rIter) {
     mBomb->kill();
 }
 
+namespace {
+    inline const TVec3f& getBombLauncherPosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 void BombHeiLauncher::initAfterPlacement() {
     TVec3f up;
     MR::calcUpVec(&up, this);
-    MR::resetPosition(mBomb, mPosition + up * 30.0f);
+    MR::resetPosition(mBomb, getBombLauncherPosition(*this) + up * 30.0f);
     mBomb->mGravity.set(-up);
     mBomb->initAfterPlacement();
     mConnector->attachToUnder();

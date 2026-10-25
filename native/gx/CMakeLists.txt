@@ -783,7 +783,7 @@ foreach(_kind gpu gpu_prof)
     set_source_files_properties("${_output}" TARGET_DIRECTORY aurora_core PROPERTIES COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/webgpu;-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR}/present")
 endforeach()
 
-if(APPLE AND BUILD_TESTING)
+if(APPLE AND _petari_build_testing)
     add_executable(petari_boot_splash_tests EXCLUDE_FROM_ALL
         "${CMAKE_SOURCE_DIR}/native/tests/boot_splash_tests.mm" "${CMAKE_CURRENT_SOURCE_DIR}/boot_splash.mm")
     target_compile_options(petari_boot_splash_tests PRIVATE -fobjc-arc)

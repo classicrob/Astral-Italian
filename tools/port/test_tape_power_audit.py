@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from tape_phase_audit import POWER_PROTOCOL, POWER_BOUNDARY, power_events, load_meta, event_offset, audit_inputs
+from tape_phase_audit import POWER_PROTOCOL, POWER_BOUNDARY, power_events, load_meta, event_offset, audit_inputs, validate, bootstrap
+from test_tape_phase_audit import marker
 
 
 def fixture():
@@ -18,6 +19,21 @@ def fixture():
 
 
 class PowerAudit(unittest.TestCase):
+    def test_unpaired_final_open_loop_read_is_rejected_only_for_power_protocol(self):
+        meta=fixture()
+        meta.update(marker_protocol='game-scene-pre-read-v1',marker_error='',
+                    launch=dict(stage='WorldMap01Galaxy',scenario=1))
+        meta['input_phases'][0].update(id=0,end_kind='phase-transition',marker=marker(),checkpoints=[])
+        route=[dict(frame=str(f)) for f in range(12)]
+        reads=[dict(bootstrap(0,120),frame=f,ordinal=0) for f in range(3,12)]
+        validate(meta,route,reads)
+        reads.append(dict(bootstrap(0,120),frame=12,ordinal=0))
+        with self.assertRaisesRegex(ValueError,'unpaired open-loop'):
+            validate(meta,route,reads)
+        legacy=copy.deepcopy(meta)
+        for field in ('session_control_protocol','session_control_error','session_events'):legacy.pop(field)
+        validate(legacy,route,reads)
+
     def test_valid_explicit_events_and_legacy_label(self):
         self.assertEqual(len(power_events(fixture())),2)
         self.assertEqual(power_events(dict(schema=2)),[])

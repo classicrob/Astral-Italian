@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Enemy/KuriboMini.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -633,5 +634,5 @@ bool KuriboMini::isFlippedState() {
     return false;
 }
 
-void NrvKuriboMini::KuriboMiniNrvEaten::execute(Spine*) const {
+inline void NrvKuriboMini::KuriboMiniNrvEaten::execute(Spine*) const {
 }

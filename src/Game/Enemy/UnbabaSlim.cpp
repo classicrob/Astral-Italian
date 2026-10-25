@@ -26,16 +26,16 @@ TVec3f sHeadScale(1.1f, 1.25f, 1.1f);
 TVec3f sHeadOffset(100.0f, -150.0f, 0.0f);
 TVec3f sVolumeScale(0.08f, 0.08f, 0.08f);
 
-void NrvUnbabaSlim::UnbabaSlimNrvWait::execute(Spine* pSpine) const {
+inline void NrvUnbabaSlim::UnbabaSlimNrvWait::execute(Spine* pSpine) const {
     static_cast< UnbabaSlim* >(pSpine->mExecutor)->exeWait();
 }
-void NrvUnbabaSlim::UnbabaSlimNrvEatStart::execute(Spine* pSpine) const {
+inline void NrvUnbabaSlim::UnbabaSlimNrvEatStart::execute(Spine* pSpine) const {
     static_cast< UnbabaSlim* >(pSpine->mExecutor)->exeEatStart();
 }
-void NrvUnbabaSlim::UnbabaSlimNrvEat::execute(Spine* pSpine) const {
+inline void NrvUnbabaSlim::UnbabaSlimNrvEat::execute(Spine* pSpine) const {
     static_cast< UnbabaSlim* >(pSpine->mExecutor)->exeEat();
 }
-void NrvUnbabaSlim::UnbabaSlimNrvEatEnd::execute(Spine* pSpine) const {
+inline void NrvUnbabaSlim::UnbabaSlimNrvEatEnd::execute(Spine* pSpine) const {
     static_cast< UnbabaSlim* >(pSpine->mExecutor)->exeEatEnd();
 }
 

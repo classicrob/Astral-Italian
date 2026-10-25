@@ -67,7 +67,7 @@ void SupportPlayGuidance::exeDisappear() {
 }
 SupportPlayGuidance::~SupportPlayGuidance() {}
 namespace NrvSupportPlayGuidance {
-    void SupportPlayGuidanceNrvWaitDemo::execute(Spine* spine) const {
+    inline void SupportPlayGuidanceNrvWaitDemo::execute(Spine* spine) const {
         SupportPlayGuidance* actor = static_cast<SupportPlayGuidance*>(spine->mExecutor);
         if (MR::tryStartDemo(actor, sSupportGuidanceDemo)) actor->setNerve(&SupportPlayGuidanceNrvAppear::sInstance);
     }

@@ -4354,13 +4354,16 @@ Game/Enemy/MogucchiShooter.cpp:
 	.text       start:0x801CDC80 end:0x801CFA80
 	.ctors      start:0x806441B4 end:0x806441B8
 	.rodata     start:0x80648640 end:0x80648648
-	.data       start:0x8068D290 end:0x8068D580
+	.data       start:0x8068D290 end:0x8068D57D
 	.bss        start:0x80729258 end:0x80729270
 	.sbss       start:0x807D2C00 end:0x807D2C24
 	.sdata2     start:0x807DB1C0 end:0x807DB218
 
 auto_10_807D2C24_sbss:
 	.sbss       start:0x807D2C24 end:0x807D2C28 align:4
+
+auto_07_8068D57D_data:
+	.data       start:0x8068D57D end:0x8068D580 align:1
 
 Game/Enemy/MogucchiHill.cpp:
 	.text       start:0x801CFA80 end:0x801D0E10
@@ -9562,10 +9565,13 @@ Game/Player/MarioSwim.cpp:
 	.text       start:0x803F7590 end:0x80403890
 	.ctors      start:0x806447E0 end:0x806447E4
 	.rodata     start:0x8064BE98 end:0x8064BEB8
-	.data       start:0x806DE2E8 end:0x806DEA98
+	.data       start:0x806DE2E8 end:0x806DEA94
 	.sdata      start:0x807D0070 end:0x807D0098
 	.sbss       start:0x807D4EA0 end:0x807D4EB0
 	.sdata2     start:0x807E02B8 end:0x807E03F8
+
+auto_07_806DEA94_data:
+	.data       start:0x806DEA94 end:0x806DEA98 align:4
 
 Game/Player/MarioNameMatrix.cpp:
 	.text       start:0x80403890 end:0x80403CF0

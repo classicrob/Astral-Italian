@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 
 #include "Game/Enemy/BegomanLauncher.hpp"
 #include "Game/Enemy/BegomanBaby.hpp"

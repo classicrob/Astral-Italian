@@ -24,14 +24,13 @@ PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("プレイ結果保
         restart->mZoneID = -1;
     }
     mRestartMarioNo = restart;
-    mNewStageList.mBase = new PlayResultStageEntry[0x40];
-    mNewStageList.mCapacity = 0x40;
-    mResultStageList.mBase = new PlayResultStageEntry[0x40];
-    mResultStageList.mCapacity = 0x40;
+    mNewStageList.mArray.mArr = new PlayResultStageEntry[0x40];
+    mNewStageList.mArray.mMaxSize = 0x40;
+    mResultStageList.mArray.mArr = new PlayResultStageEntry[0x40];
+    mResultStageList.mArray.mMaxSize = 0x40;
 
 }
 
-// NONMATCHING: regalloc; target retains redundant null checks for embedded list members (FP order/grouping checked: no FP instructions).
 PlayResultInStageHolder::~PlayResultInStageHolder() {
 }
 
@@ -72,7 +71,7 @@ void PlayResultInStageHolder::reset() {
         PlayResultStageEntry entry;
         entry.mStageName = pName;
         entry.mGalaxyStarTotalNum = galaxyStarTotalNum;
-        mNewStageList.add(entry);
+        mNewStageList.push_back(entry);
         iter.goNext();
     }
 }
@@ -176,7 +175,7 @@ void PlayResultInStageHolder::setCollectTicoCoinSaved() {
 void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
     PlayResultInStageHolder* pHolder = this;
     for (s32 i = 0; i < pHolder->mNewStageList.mCount; i++) {
-        PlayResultStageEntry* pEntry = &pHolder->mNewStageList.mBase[i];
+        PlayResultStageEntry* pEntry = &pHolder->mNewStageList.mArray.mArr[i];
         if (pEntry->mGalaxyStarTotalNum) {
             continue;
         }
@@ -185,7 +184,7 @@ void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
             PlayResultStageEntry added;
             added.mStageName = pName;
             added.mGalaxyStarTotalNum = 1;
-            pHolder->mResultStageList.add(added);
+            pHolder->mResultStageList.push_back(added);
         }
     }
 }
@@ -193,7 +192,7 @@ void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
 bool PlayResultInStageHolder::isNewlyOpenedGalaxy(const char* pName) const {
     const PlayResultInStageHolder* pHolder = this;
     for (s32 i = 0; i < pHolder->mResultStageList.mCount; i++) {
-        if (MR::isEqualString(pHolder->mResultStageList.mBase[i].mStageName, pName)) {
+        if (MR::isEqualString(pHolder->mResultStageList.mArray.mArr[i].mStageName, pName)) {
             return true;
         }
     }
@@ -251,24 +250,7 @@ void PlayResultInStageHolder::clearPadMode() {
     mPadMode = 0;
 }
 
-void PlayResultStageList::add(const PlayResultStageEntry& rEntry) {
-    s32 index = mCount++;
-    mBase[index] = rEntry;
-}
-
-PlayResultStageList::~PlayResultStageList() {
-    if (mBase != nullptr) {
-        delete[] mBase;
-    }
-}
-
 PlayResultStageEntry::PlayResultStageEntry() {
     mStageName = 0;
     mGalaxyStarTotalNum = 0;
-}
-
-PlayResultStageList::PlayResultStageList() {
-    mBase = nullptr;
-    mCapacity = 0;
-    mCount = 0;
 }

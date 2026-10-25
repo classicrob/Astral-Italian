@@ -376,7 +376,7 @@ SupportTico::~SupportTico() {
 
 
 namespace NrvSupportTico {
-    void SupportTicoNrvBehavior::execute(Spine* pSpine) const {
+    inline void SupportTicoNrvBehavior::execute(Spine* pSpine) const {
         MR::updateActorState(reinterpret_cast< SupportTico* >(pSpine->mExecutor));
     }
 };  // namespace NrvSupportTico

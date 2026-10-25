@@ -896,9 +896,9 @@ bool Kuribo::canKuriboBeEatenByYoshi() const {
         isNerve(GET_NERVE(Kuribo, KuriboNrvBindStarPointer)) || isNerve(GET_NERVE(Kuribo, KuriboNrvStagger))) return true;
     return false;
 }
-void NrvKuribo::KuriboNrvDead::execute(Spine*) const {}
-void NrvKuribo::KuriboNrvEaten::execute(Spine*) const {}
+inline void NrvKuribo::KuriboNrvDead::execute(Spine*) const {}
+inline void NrvKuribo::KuriboNrvEaten::execute(Spine*) const {}
 
-void NrvKuribo::KuriboNrvLaunch::execute(Spine* spine) const {
+inline void NrvKuribo::KuriboNrvLaunch::execute(Spine* spine) const {
     static_cast<Kuribo*>(spine->mExecutor)->exeKuriboLaunch();
 }

@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Enemy/NokonokoLandBig.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"

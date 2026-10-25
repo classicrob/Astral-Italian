@@ -40,7 +40,7 @@ namespace NrvScoreAttackMan {
         static TakeOutStar sInstance;
     };
     TakeOutStar TakeOutStar::sInstance;
-    void WaitResultDemo::execute(Spine* spine) const {
+    inline void WaitResultDemo::execute(Spine* spine) const {
         ScoreAttackMan* actor=static_cast<ScoreAttackMan*>(spine->mExecutor);
         if(MR::tryStartDemoWithoutCinemaFrame(actor,sResultDemo)) actor->setNerve(&ResetResult::sInstance);
     }

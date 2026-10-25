@@ -244,7 +244,7 @@ void StarPieceBank::updatePointer() {
 
 StarPieceBank::~StarPieceBank() {}
 
-void NrvStarPieceBank::StarPieceBankNrvWait::execute(Spine* spine) const {
+inline void NrvStarPieceBank::StarPieceBankNrvWait::execute(Spine* spine) const {
     StarPieceBank* actor = reinterpret_cast<StarPieceBank*>(spine->mExecutor);
     if (MR::isStep(actor, 60)) {
         actor->setNerve(&StarPieceBankNrvAppear::sInstance);

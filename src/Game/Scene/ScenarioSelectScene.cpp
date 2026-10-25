@@ -40,7 +40,7 @@ namespace NrvScenarioSelectScene {
     };
     ScenarioSelectSceneNrvWaitStartScenarioSelect ScenarioSelectSceneNrvWaitStartScenarioSelect::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(ScenarioSelectSceneNrvStartScenarioSelect, ScenarioSelectScene, StartScenarioSelect);
-    void ScenarioSelectSceneNrvWaitStartScenarioSelect::execute(Spine* pSpine) const {
+    inline void ScenarioSelectSceneNrvWaitStartScenarioSelect::execute(Spine* pSpine) const {
             ScenarioSelectScene* actor = reinterpret_cast< ScenarioSelectScene* >(pSpine->mExecutor);
             if (!MR::isSystemWipeActive()) {
                 actor->setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvStartScenarioSelect));

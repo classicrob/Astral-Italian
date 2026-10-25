@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Enemy/MechanicKoopaMini.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"

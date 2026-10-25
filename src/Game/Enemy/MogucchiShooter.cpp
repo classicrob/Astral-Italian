@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Enemy/MogucchiShooter.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"

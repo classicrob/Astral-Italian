@@ -145,23 +145,23 @@ bool SupportTicoExecutor::isActive() const {
 }
 
 namespace NrvSupportTicoExecutor {
-    void SupportTicoExecutorNrvBack::execute(Spine* pSpine) const {
+    inline void SupportTicoExecutorNrvBack::execute(Spine* pSpine) const {
         reinterpret_cast< SupportTicoExecutor* >(pSpine->mExecutor)->exeBack();
     }
 
-    void SupportTicoExecutorNrvChase::execute(Spine* pSpine) const {
+    inline void SupportTicoExecutorNrvChase::execute(Spine* pSpine) const {
         MR::updateActorStateAndNextNerve(reinterpret_cast< SupportTicoExecutor* >(pSpine->mExecutor), &SupportTicoExecutorNrvBack::sInstance);
     }
 
-    void SupportTicoExecutorNrvFollowPlayer::execute(Spine* pSpine) const {
+    inline void SupportTicoExecutorNrvFollowPlayer::execute(Spine* pSpine) const {
         MR::updateActorStateAndNextNerve(reinterpret_cast< SupportTicoExecutor* >(pSpine->mExecutor), &SupportTicoExecutorNrvChase::sInstance);
     }
 
-    void SupportTicoExecutorNrvDemoHide::execute(Spine* pSpine) const {
+    inline void SupportTicoExecutorNrvDemoHide::execute(Spine* pSpine) const {
         MR::updateActorStateAndNextNerve(reinterpret_cast< SupportTicoExecutor* >(pSpine->mExecutor), &SupportTicoExecutorNrvAppear::sInstance);
     }
 
-    void SupportTicoExecutorNrvAppear::execute(Spine* pSpine) const {
+    inline void SupportTicoExecutorNrvAppear::execute(Spine* pSpine) const {
         reinterpret_cast< SupportTicoExecutor* >(pSpine->mExecutor)->exeAppear();
     }
 };  // namespace NrvSupportTicoExecutor

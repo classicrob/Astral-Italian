@@ -37,7 +37,7 @@ void DreamerButtonGuidance::disappear() { setNerve(&DreamerButtonGuidanceNrvEnd:
 void DreamerButtonGuidance::hideExit() { MR::hidePane(this, "Exit"); }
 void DreamerButtonGuidance::showExit() { MR::showPane(this, "Exit"); }
 DreamerButtonGuidance::~DreamerButtonGuidance() {}
-void NrvDreamerButtonGuidance::DreamerButtonGuidanceNrvWait::execute(Spine* spine) const {
+inline void NrvDreamerButtonGuidance::DreamerButtonGuidanceNrvWait::execute(Spine* spine) const {
     DreamerButtonGuidance* actor = static_cast<DreamerButtonGuidance*>(spine->mExecutor);
     if (MR::isFirstStep(actor)) MR::startAnim(actor, sGuidanceWaitAnimation, 0);
 }

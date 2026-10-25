@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Demo/DemoEndStartPosCameraSetter.hpp"
 
 #include "Game/Camera/CameraManGame.hpp"

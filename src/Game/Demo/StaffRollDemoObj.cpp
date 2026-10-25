@@ -279,7 +279,7 @@ void StaffRollDemoObj::exeG() {
 }
 
 // Nerve E (custom execute body): when the wait flag clears, end the demo and return to C.
-void NrvStaffRollDemoObj::StaffRollDemoObjNrvE::execute(Spine* pSpine) const {
+inline void NrvStaffRollDemoObj::StaffRollDemoObjNrvE::execute(Spine* pSpine) const {
     StaffRollDemoObj* pActor = reinterpret_cast< StaffRollDemoObj* >(pSpine->mExecutor);
     if (MR::isStoryBookTurnPageEnd() != 0) {
         MR::endDemo(pActor, sPageTurnDemoName);

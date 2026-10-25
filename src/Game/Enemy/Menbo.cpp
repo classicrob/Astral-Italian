@@ -900,7 +900,7 @@ void Menbo::makeMenboSurfaceMatrix(TPos3f* pMtx, const LiveActor* actor, const T
 Menbo::~Menbo() {
 }
 
-void NrvMenbo::MenboNrvFreezeBind::execute(Spine* pSpine) const {
+inline void NrvMenbo::MenboNrvFreezeBind::execute(Spine* pSpine) const {
     LiveActor* actor = reinterpret_cast<LiveActor*>(pSpine->mExecutor);
     MR::updateActorStateAndNextNerve(actor, GET_MENBO_NERVE(MenboNrvWait));
 }

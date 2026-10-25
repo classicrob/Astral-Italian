@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Map/Air.hpp"
 #include "Game/LiveActor/MaterialCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"

@@ -35,7 +35,7 @@ namespace NrvTicoShopDice {
         static DelayWait sInstance;
     };
     DelayWait DelayWait::sInstance;
-    void DelayRecover::execute(Spine* spine) const {
+    inline void DelayRecover::execute(Spine* spine) const {
         TicoShopDice* actor = static_cast<TicoShopDice*>(spine->mExecutor);
         if (MR::isStep(actor, 60)) actor->setNerve(&Recover::sInstance);
     }

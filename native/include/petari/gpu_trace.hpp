@@ -35,7 +35,17 @@ struct MachObservation {
     std::uint64_t beginNs = 0, endNs = 0, userNs = 0, systemNs = 0;
     int state = -1, suspendCount = -1, error = -1;
 };
+struct AudioObservation {
+    enum class Kind { None, Read, Report, CallbackEnter, CallbackExit } kind = Kind::None;
+    const char* reportSource = nullptr; // static literal only
+    std::uint64_t beginNs = 0, endNs = 0, requested = 0, copied = 0, missing = 0;
+    std::uint64_t callback = 0, previousEntryNs = 0, previousExitNs = 0;
+    std::uint64_t level = 0, levelSampleNs = 0, activeBefore = 0;
+    int realtimeStatus = 0; // Existing API-result flag; NOT effective-policy readback.
+    bool protocolError = false;
+};
 struct Attributes {
+    AudioObservation audio{};
     MutexObservation mutex{};
     MachObservation mach{};
     const char* reason = nullptr;
@@ -242,6 +252,30 @@ inline void writeRecord(Run& r, const Record& e) {
             (unsigned long long)h.observer, (unsigned long long)h.target, (unsigned long long)h.sampledNs,
             h.selfQos, h.requestedQos, h.relativePriority, h.policy, h.priority, h.cpu, h.qosError, h.schedError, h.cpuError);
     }
+    if (a.audio.kind != AudioObservation::Kind::None) {
+        const auto& x = a.audio;
+        const char* kind = x.kind == AudioObservation::Kind::Read ? "ring-read" :
+            x.kind == AudioObservation::Kind::Report ? "report-counter-exchange" :
+            x.kind == AudioObservation::Kind::CallbackEnter ? "device-callback-entry" : "device-callback-exit";
+        std::fprintf(r.file, ",\"audio\":{\"kind\":\"%s\",\"begin_ns\":%llu,\"end_ns\":%llu",
+            kind, (unsigned long long)x.beginNs, (unsigned long long)x.endNs);
+        if (x.kind == AudioObservation::Kind::Read || x.kind == AudioObservation::Kind::Report)
+            std::fprintf(r.file, ",\"missing_frames\":%llu", (unsigned long long)x.missing);
+        if (x.kind == AudioObservation::Kind::Read) std::fprintf(r.file,
+            ",\"requested_frames\":%llu,\"copied_frames\":%llu,\"callback_span\":%llu",
+            (unsigned long long)x.requested, (unsigned long long)x.copied, (unsigned long long)x.callback);
+        if (x.kind == AudioObservation::Kind::Report) std::fprintf(r.file,
+            ",\"report_source\":\"%s\"", x.reportSource ? x.reportSource : "unknown");
+        if (x.kind == AudioObservation::Kind::CallbackEnter || x.kind == AudioObservation::Kind::CallbackExit) {
+            std::fprintf(r.file, ",\"callback_span\":%llu,\"previous_entry_ns\":%llu,\"previous_exit_ns\":%llu,"
+                "\"ring_level_frames\":%llu,\"ring_level_sample_ns\":%llu,\"active_callbacks_before\":%llu,"
+                "\"realtime_api_status\":%d,\"protocol_error\":%s,\"requested_frames\":%llu",
+                (unsigned long long)x.callback, (unsigned long long)x.previousEntryNs, (unsigned long long)x.previousExitNs,
+                (unsigned long long)x.level, (unsigned long long)x.levelSampleNs, (unsigned long long)x.activeBefore,
+                x.realtimeStatus, x.protocolError ? "true" : "false", (unsigned long long)x.requested);
+        }
+        std::fputc('}', r.file);
+    }
     if (a.mutex.present) std::fprintf(r.file,
         ",\"mutex\":{\"address\":%llu,\"cv\":%llu,\"explicit_pending_requests\":%llu,\"cv_waits_reacquire_unknown\":%llu}",
         (unsigned long long)a.mutex.address, (unsigned long long)a.mutex.cv,
@@ -315,6 +349,7 @@ inline bool configure(const char* diag, const char* path, const char* binding = 
     std::fprintf(file, ",\"host_sample_semantics\":\"requested QoS excludes overrides; remote cpu unknown; local cpu instantaneous\","
         "\"backend_observation\":\"pinned Dawn; queue/GPU vs callback dispatch inseparable\"");
     writeTopology(file, readTopology());
+    std::fputs(",\"audio_observation\":\"device callback entry/exit and ring levels, ring read and exact report-counter exchange on steady_ns; realtime_api_status is API result only; not hardware output time\"", file);
     std::fputs(",\"interrupt_mutex_observation\":\"explicit boundaries; CV release pending and predicate-reacquired bounds; no pure CV wake\","
         "\"assigned_holder_sample\":\"existing state-poll cadence; TH_STATE_RUNNING includes runnable; remote CPU unknown\"", file);
     std::fputs("}\n", file);

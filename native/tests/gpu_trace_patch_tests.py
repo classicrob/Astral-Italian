@@ -47,6 +47,11 @@ def operation_tokens(changed):
     changed = changed.replace('#include <petari/gpu_trace.hpp>\n', '').replace('#include "gpu_trace_dawn.hpp"\n', '')
     changed = changed.replace('namespace GpuTrace = PetariNative::GpuTrace;\n', '')
     changed = changed.replace('#include "interrupt_trace.hpp"\n', '')
+    changed = changed.replace('#include <petari/gpu_trace_audio.hpp>\n', '')
+    changed = changed.replace('PetariNative::GpuTrace::Audio::takeUnderruns(ring)', 'ring.takeUnderrunFrames()')
+    changed = changed.replace('PetariNative::GpuTrace::Audio::takeUnderruns(ring, "shutdown")', 'ring.takeUnderrunFrames()')
+    changed = changed.replace('PetariNative::GpuTrace::Audio::read(ring, buffer, static_cast<std::size_t>(count))',
+                              'ring.read(buffer, static_cast<std::size_t>(count))')
     # The enabled branch uses the SAME untimed std::condition_variable and
     # predicate. Keep the literal original fallback as the erasure target.
     changed = changed.replace('    if (PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)) {\n        PetariNative::GpuTrace::detail::invokeEnabled([&] { InterruptTrace::wait(cv, lock, predicate); });\n    } else {\n        cv.wait(lock, predicate);\n    }', '    cv.wait(lock, predicate);')
@@ -123,7 +128,8 @@ class TracePatchTests(unittest.TestCase):
                      'native/app/frame_seam.cpp', 'native/app/smoke_game.cpp',
                      'native/app/app_main.cpp', 'native/app/latency_report.cpp',
                      'native/app/frontend_prepare.cpp', 'native/platform/os/os_internal.hpp',
-                     'native/platform/os/os_alarm.cpp', 'native/platform/os/os_interrupts.cpp', 'native/gx/pipeline_worker.inc']:
+                     'native/platform/os/os_alarm.cpp', 'native/platform/os/os_interrupts.cpp', 'native/gx/pipeline_worker.inc',
+                     'native/audio/sdl_sink.cpp']:
             original = subprocess.check_output(['git', 'show', '7fcc610c:' + path], cwd=ROOT, text=True)
             changed = (ROOT / path).read_text()
             if path == MONITOR_PATH:
@@ -163,6 +169,31 @@ class TracePatchTests(unittest.TestCase):
         host = (ROOT / path).read_text()
         guarded = host[host.index('if (PetariNative::GpuTrace::enabled.load'):]
         self.assertLess(guarded.index('enabled.load'), guarded.index('invokeEnabled'))
+
+    def test_audio_trace_preserves_ring_arguments_and_off_fallback(self):
+        path = 'native/audio/sdl_sink.cpp'
+        changed = (ROOT / path).read_text()
+        original = committed_source(TRACE_ONLY_REVISION, path)
+        self.assertEqual(operation_tokens(original), operation_tokens(changed))
+        wrong = changed.replace('Audio::read(ring, buffer, static_cast<std::size_t>(count))',
+                                'Audio::read(ring, buffer, static_cast<std::size_t>(count + 1))')
+        self.assertNotEqual(operation_tokens(original), operation_tokens(wrong))
+        helper = (ROOT / 'native/include/petari/gpu_trace_audio.hpp').read_text()
+        self.assertIn('} else {\n        ring.read(output, count);\n    }', helper)
+        self.assertIn('return ring.takeUnderrunFrames();', helper)
+        self.assertIn('[[gnu::noinline]] inline std::uint64_t reportEnabled', helper)
+        guarded = helper[helper.index('inline void read('):helper.index('template<class Ring>\n[[gnu::noinline]]', helper.index('inline void read('))]
+        self.assertLess(guarded.index('enabled.load'), guarded.index('invokeEnabled'))
+        self.assertLess(guarded.index('invokeEnabled'), guarded.index('nowNs()'))
+        self.assertNotIn('std::fwrite', helper)
+        self.assertNotIn('std::fprintf', helper)
+        self.assertNotIn('setRealtime', helper)
+        self.assertIn('[[gnu::noinline]] inline void callbackBeginEnabled', helper)
+        self.assertIn('[[gnu::noinline]] inline void callbackEndEnabled', helper)
+        self.assertEqual(changed.count('PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackBeginEnabled'), 1)
+        self.assertEqual(changed.count('PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackEndEnabled'), 2)
+        fill = changed[changed.index('void SDLCALL fill('):changed.index('void stop(')]
+        self.assertLess(fill.index('callbackBeginEnabled'), fill.index('HostAllocationScope'))
 
     def test_observer_is_guarded(self):
         source = (ROOT / 'native/gx/efb_frame.inc').read_text()

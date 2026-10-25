@@ -1,4 +1,5 @@
 #include <petari/audio_sdl.hpp>
+#include <petari/gpu_trace_audio.hpp>
 #include <petari/host_allocation.hpp>
 #include <petari/platform/audio.hpp>
 #include <petari/platform/os_host.hpp>
@@ -145,7 +146,7 @@ void report() {
         const std::uint64_t replays = PetariNative::Platform::Audio::replayedBlocks();
         std::fprintf(stderr, "[audio] level %llu/%llu frames, largest request %zu, underrun %llu frames, AI replayed %llu blocks (since previous report, %.2f s; at %.3f s process time)\n",
                      static_cast<unsigned long long>(ring.level()), static_cast<unsigned long long>(ring.target()), ring.largestRequest(),
-                     static_cast<unsigned long long>(ring.takeUnderrunFrames()), static_cast<unsigned long long>(replays - reportedReplays), interval,
+                     static_cast<unsigned long long>(PetariNative::GpuTrace::Audio::takeUnderruns(ring)), static_cast<unsigned long long>(replays - reportedReplays), interval,
                      processSeconds());
         reportedReplays = replays;
         // The DMA engine: elastic waits for a late game (inaudible while the
@@ -224,6 +225,7 @@ void produce(std::uint32_t rate) {
 }
 
 void SDLCALL fill(void*, SDL_AudioStream* stream, int additionalBytes, int) {
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackBeginEnabled(ring, additionalBytes, deviceThreadRealtime.load(std::memory_order_relaxed)));
     PetariNative::HostAllocationScope host;
     static thread_local bool promoted = false;
     if (!promoted) {
@@ -244,17 +246,19 @@ void SDLCALL fill(void*, SDL_AudioStream* stream, int additionalBytes, int) {
     ring.noteRequest(static_cast<std::size_t>(frames));  // the whole burst, before splitting
     while (frames > 0) {
         const int count = std::min(frames, 1024);
-        ring.read(buffer, static_cast<std::size_t>(count));
+        PetariNative::GpuTrace::Audio::read(ring, buffer, static_cast<std::size_t>(count));
         if (captureFile != nullptr) {
             std::fwrite(buffer, 4, static_cast<std::size_t>(count), captureFile);
         }
         if (!SDL_PutAudioStreamData(stream, buffer, count * 4)) {
             failed.store(true, std::memory_order_relaxed);
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackEndEnabled(ring, deviceThreadRealtime.load(std::memory_order_relaxed)));
             return;
         }
         submitted.fetch_add(count, std::memory_order_relaxed);
         frames -= count;
     }
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackEndEnabled(ring, deviceThreadRealtime.load(std::memory_order_relaxed)));
 }
 void stop(void*) {
     PetariNative::HostAllocationScope host;
@@ -287,7 +291,7 @@ void stop(void*) {
                          static_cast<unsigned long long>(dma.waits), static_cast<unsigned long long>(dma.waitTimeouts),
                          static_cast<unsigned long long>(dma.dspHolds));
     }
-    if (const auto missing = ring.takeUnderrunFrames())
+    if (const auto missing = PetariNative::GpuTrace::Audio::takeUnderruns(ring, "shutdown"))
         std::fprintf(stderr, "SDL audio underrun: %llu silent frames\n", static_cast<unsigned long long>(missing));
     if (initialized) SDL_QuitSubSystem(SDL_INIT_AUDIO);
     initialized = false;

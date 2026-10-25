@@ -29,6 +29,8 @@ def main():
     p.add_argument('--app', type=Path, required=True)
     p.add_argument('--prep', type=Path, required=True)
     p.add_argument('--out', type=Path, required=True)
+    p.add_argument('--require-frontend-prepresent', action='store_true')
+    p.add_argument('--tier', choices=('m1', 'm4'), required=True)
     p.add_argument('--baseline', action='store_true')
     p.add_argument('--label', required=True)
     p.add_argument('--bundle-id', default=OWN_ID, help='Dedicated perf bundle ID; must match the prepared app')
@@ -100,7 +102,12 @@ def arm(args):
               'hard_cap_seconds': 900, 'start_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
     assert launch['nice'] == 0
     with (out / 'app.log').open('wb') as log:
+        from startup542 import Observer
+        observer = Observer(out)
+        observer.popen_before()
         proc = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=env)
+        observer.spawned(proc.pid)
+        launch['popen_clocks'] = {k:observer.result[k] for k in ('popen_call_before','popen_return_after')}
         launch['pid'] = proc.pid; common.write(out / 'launch.json', launch)
         timed_out, orderly, error = False, None, None
         try:
@@ -125,6 +132,7 @@ def arm(args):
                 proc.terminate()
                 try: proc.wait(timeout=10)
                 except subprocess.TimeoutExpired: proc.kill(); proc.wait()
+    startup = observer.finish()
     text = (out / 'app.log').read_text(errors='replace')
     process = {'exit': proc.returncode, 'timed_out': timed_out, 'seconds': time.monotonic() - started,
                'no_faults': not common.FAULT.search(text), 'binary_unchanged': common.sha(executable) == before,
@@ -133,10 +141,11 @@ def arm(args):
                'normal_exit': proc.returncode == 0}
     process['error'] = error
     common.write(out / 'process.json', process)
-    scored = gate542m.score(out, title=not args.baseline, window_seconds=300, require_deadlines=args.required_deadlines) if process['frames_csv_flushed'] else None
+    scored = gate542m.score(out, title=not args.baseline, window_seconds=300, require_deadlines=args.required_deadlines, tier=args.tier, require_frontend=args.require_frontend_prepresent) if process['frames_csv_flushed'] else None
     route = common.rows(out / 'route.csv')
     neutral = all(not any(float(r.get(k, 0)) for k in ('move_x', 'move_y', 'jump', 'spin', 'crouch', 'shoot', 'pointer_valid')) for r in route)
-    checks = {'normal_exit': process['normal_exit'], 'not_timed_out': not timed_out, 'no_runner_error': error is None,
+    checks = {'startup_observer_complete': startup.get('observer_joined') and not startup.get('observer_error') and 'title_first_draw' in startup,
+              'normal_exit': process['normal_exit'], 'not_timed_out': not timed_out, 'no_runner_error': error is None,
               'no_faults': process['no_faults'],
               'binary_unchanged': process['binary_unchanged'], 'resources_unchanged': process['resources_unchanged'],
               'frames_flushed': process['frames_csv_flushed'], 'no_input_in_route': neutral and bool(route),

@@ -42,6 +42,8 @@ PREFIX = r'''
 #include <variant>
 #include <vector>
 #include <sqlite3.h>
+static unsigned bootPumps=0;
+static bool petari_uber_pump_boot_events() { ++bootPumps; return true; }
 namespace PetariPipeline {
 using Clock=std::chrono::steady_clock;
 double milliseconds(Clock::duration d) { return std::chrono::duration<double,std::milli>(d).count(); }
@@ -82,7 +84,13 @@ uint64_t xxh3_hash(const gx::PipelineConfig& c, uint64_t) {
  return (uint64_t(c.fixed)<<32) | (uint64_t(c.shaderConfig.variant)<<16) |
      (c.shaderConfig.tevStageCount<<8) | (c.shaderConfig.numIndStages<<4) | c.shaderConfig.texgenExtent;
 }
-sqlite3* open_pipeline_cache_seed_db(const std::string&) { return nullptr; }
+bool seedFixture=false;
+sqlite3* open_pipeline_cache_seed_db(const std::string& path) {
+ if(!seedFixture)return nullptr;
+ sqlite3* db=nullptr;
+ if(sqlite3_open_v2(path.c_str(),&db,SQLITE_OPEN_READONLY,nullptr)!=SQLITE_OK) { if(db)sqlite3_close(db); return nullptr; }
+ return db;
+}
 }
 namespace gx {
 bool enabled=true;
@@ -236,7 +244,7 @@ int main(int argc,char** argv) {
  } else if(test=="boot") {
   gx::petari_uber_boot();
   CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.size()==1);
-  CHECK(gx::builds==0); // boot call never runs enumeration or compilation
+  CHECK(gx::builds==0); // no seed assets in this fixture: no GPU compile on the main thread
   CHECK(!gfx::petariUberTitleReleased);
   gfx::petariActiveStage="Unknown";gfx::petari_uber_observe_title(true,true);
   CHECK(!gfx::petariUberTitleReleased); // earlier menu scenes cannot release workers
@@ -311,6 +319,54 @@ int main(int argc,char** argv) {
   while(!waiting)std::this_thread::yield();
   auto run=take();CHECK(run);run();waiter.join();CHECK(ready);
   CHECK(!gfx::g_pipelines.contains(99)); // wake came from the fallback, not the specialised pipeline
+ } else if(test=="prepresent_workers") {
+  auto other=c;other.fixed=2;
+  gfx::petari_uber_queue_pair(c,l,1,true);
+  gfx::petari_uber_queue_pair(other,l,3,false);
+  gfx::petariUberPrePresent=true;
+  for(unsigned i=0;i<4;++i)CHECK(gfx::petari_uber_worker_ready(i));
+  auto job=take(0);CHECK(job);job();
+  CHECK(gx::genericBuilds==1 && gx::fastBuilds==0);
+  for(unsigned i=0;i<4;++i)CHECK(!take(i)); // neither Fast nor unrelated Generic may run
+  gfx::petariUberPrePresent=false;
+  CHECK(!take(0) && !take(2)); // exact old pre-title reservation resumes
+ } else if(test=="prepresent_cap" || test=="prepresent_failed" || test=="prepresent_ready") {
+  gfx::petariUberPrePresent=true;gfx::petariUberBoot.frontEndScanned=true;
+  if(test=="prepresent_failed")c.shaderConfig.throws=true;
+  gfx::petari_uber_queue_variant(c,l,1,true);
+  if(test!="prepresent_cap") { auto job=take(0);CHECK(job);job(); }
+  gfx::PetariFrontendPump pump;
+  auto start=PetariPipeline::Clock::now();
+  bool ready=gfx::petari_uber_finish_pre_present(start,start+std::chrono::milliseconds(2),pump);
+  CHECK(ready==(test=="prepresent_ready"));
+  CHECK(!gfx::petariUberPrePresent && bootPumps>0);
+  CHECK(PetariPipeline::milliseconds(PetariPipeline::Clock::now()-start)<100);
+  CHECK(!take(0)); // cap/failure/success all restore worker0's normal reservation
+ } else if(test=="frontend_data") {
+  gfx::seedFixture=true;
+  auto dir=std::filesystem::path(argv[2])/"frontend-data";
+  std::filesystem::create_directory(dir);
+  auto d=c;d.fixed=2;auto unrelated=c;unrelated.fixed=3;
+  auto database=[&](const char* name,std::vector<gx::PipelineConfig> configs) {
+   sqlite3* db=nullptr;CHECK(sqlite3_open((dir/name).c_str(),&db)==SQLITE_OK);
+   CHECK(sqlite3_exec(db,"CREATE TABLE pipeline_cache(type INTEGER,hash INTEGER,config_version INTEGER,config_size INTEGER,config BLOB,first_frame_used INTEGER)",nullptr,nullptr,nullptr)==SQLITE_OK);
+   for(auto& config:configs) {
+    sqlite3_stmt* stmt=nullptr;CHECK(sqlite3_prepare_v2(db,"INSERT INTO pipeline_cache VALUES(1,?,13,?,?,0)",-1,&stmt,nullptr)==SQLITE_OK);
+    sqlite3_bind_int64(stmt,1,static_cast<sqlite3_int64>(gfx::xxh3_hash(config,0)));
+    sqlite3_bind_int(stmt,2,sizeof(config));sqlite3_bind_blob(stmt,3,&config,sizeof(config),SQLITE_TRANSIENT);
+    CHECK(sqlite3_step(stmt)==SQLITE_DONE);sqlite3_finalize(stmt);
+   }
+   sqlite3_close(db);return 0;
+  };
+  CHECK(!database("Unknown.db",{c}));CHECK(!database("FileSelect.db",{d,c}));CHECK(!database("__global__.db",{c,d,unrelated}));
+  gfx::petariUberPrePresent=true;gfx::PetariFrontendPump pump;
+  const auto start=PetariPipeline::Clock::now(),deadline=start+std::chrono::seconds(1);
+  gfx::petari_uber_scan_frontend(dir,l,l,&pump,deadline);
+  CHECK(gfx::petariUberBoot.titleKeys.size()==2 && gfx::petariUberBoot.manifestErrors==0);
+  CHECK(!gfx::petariUberBoot.scheduled.contains(gx::petari_uber_keys(unrelated,l).generic));
+  while(auto job=take(0))job();
+  CHECK(gx::genericBuilds==2 && gx::fastBuilds==0);
+  CHECK(gfx::petari_uber_finish_pre_present(start,deadline,pump));
  } else if(test=="unready") {
   auto key=gx::petari_uber_key(c,l,gx::PetariUberTier::Generic);gx::petari_uber_scheduled(key);
   gx::petari_uber_not_ready(key,false);gx::petari_uber_not_ready(key,true);
@@ -341,9 +397,9 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "admission", "frame_alias", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "admission", "frame_alias", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias", "prepresent_workers", "prepresent_cap", "prepresent_failed", "prepresent_ready", "frontend_data"):
             with self.subTest(test=test):
-                completed = subprocess.run([str(self.binary), test], capture_output=True, text=True, timeout=10)
+                completed = subprocess.run([str(self.binary), test, self.tmp.name], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
 

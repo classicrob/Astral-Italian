@@ -211,50 +211,129 @@ static void petari_uber_queue_layouts(const gx::PipelineConfig& config, const Re
   petari_uber_queue_pair(config, scene, priority, title);
   if (off.key != scene.key) petari_uber_queue_pair(config, off, priority, title);
 }
+struct PetariFrontendPump {
+  PetariPipeline::Clock::time_point last = PetariPipeline::Clock::now();
+  double maxGapMs = 0;
+  unsigned calls = 0;
+  bool mainThread = true;
+  void poll() {
+    const auto now = PetariPipeline::Clock::now();
+    maxGapMs = std::max(maxGapMs, PetariPipeline::milliseconds(now - last));
+    last = now; ++calls;
+    mainThread &= ::petari_uber_pump_boot_events();
+  }
+};
+static std::vector<gx::PipelineConfig> petari_uber_read_seed(
+    const std::filesystem::path& path, PetariFrontendPump* pump = nullptr,
+    PetariPipeline::Clock::time_point deadline = PetariPipeline::Clock::time_point::max()) {
+  auto* db = open_pipeline_cache_seed_db(path.string());
+  if (!db) {
+    std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; return {};
+  }
+  std::vector<gx::PipelineConfig> configs;
+  sqlite3_stmt* stmt = nullptr;
+  const auto sql = "SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13 ORDER BY first_frame_used";
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+    int status;
+    while ((status = sqlite3_step(stmt)) == SQLITE_ROW && !g_pipelineThreadEnd) {
+      if (sqlite3_column_bytes(stmt, 0) != sizeof(gx::PipelineConfig)) {
+        std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; continue;
+      }
+      if (pump && (configs.size() % 16 == 0)) pump->poll();
+      if (pump && (PetariPipeline::Clock::now() >= deadline || configs.size() >= 512)) {
+        std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; break;
+      }
+      gx::PipelineConfig config;
+      std::memcpy(&config, sqlite3_column_blob(stmt, 0), sizeof(config));
+      if (gx::petari_cached_shader_valid(config.shaderConfig, 0))
+        configs.push_back(config);
+      else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; }
+    }
+    if (status != SQLITE_DONE && status != SQLITE_ROW) {
+      std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors;
+    }
+  } else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+  return configs;
+}
+static void petari_uber_scan_frontend(const std::filesystem::path& dir, RenderTargetLayout scene,
+                                     RenderTargetLayout off, PetariFrontendPump* pump = nullptr,
+                                     PetariPipeline::Clock::time_point deadline = PetariPipeline::Clock::time_point::max()) {
+  PetariUberAdmission admission;
+  std::map<PipelineRef, gx::PipelineConfig> frontend;
+  for (const auto* name : {"Unknown.db", "FileSelect.db"}) {
+    const auto path = dir / name;
+    auto configs = petari_uber_read_seed(path, pump, deadline);
+    for (const auto& config : configs)
+      frontend.emplace(xxh3_hash(config, static_cast<uint64_t>(ShaderType::GX)), config);
+    petari_uber_admit_stage(configs, scene, off, path.stem().string(), path.string(), false);
+  }
+  // __global__ has no stage tag. Frontend membership comes from frontend data;
+  // match its exact hashed rows, never a prefix of global first-use ranks.
+  size_t matched = 0, missing = 0;
+  auto* db = open_pipeline_cache_seed_db((dir / "__global__.db").string());
+  sqlite3_stmt* stmt = nullptr;
+  if (db && sqlite3_prepare_v2(db, "SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13 AND hash=?", -1, &stmt, nullptr) == SQLITE_OK) {
+    for (const auto& [hash, config] : frontend) {
+      if (pump) pump->poll();
+      if (pump && PetariPipeline::Clock::now() >= deadline) {
+        std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; break;
+      }
+      sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(hash));
+      const auto status = sqlite3_step(stmt);
+      if (status == SQLITE_ROW && sqlite3_column_bytes(stmt, 0) == sizeof(config) &&
+          std::memcmp(sqlite3_column_blob(stmt, 0), &config, sizeof(config)) == 0) ++matched;
+      else if (status == SQLITE_DONE) ++missing;
+      else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; }
+      sqlite3_reset(stmt); sqlite3_clear_bindings(stmt);
+    }
+  } else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; }
+  sqlite3_finalize(stmt);
+  if (db) sqlite3_close(db);
+  std::lock_guard lock{g_pipelineMutex};
+  petariUberBoot.frontEndScanned = true;
+  std::fprintf(stderr, "[gx frontend source] policy=exact-stage-hash-membership configs=%zu global_matches=%zu global_missing=%zu manifest_errors=%zu\n",
+      frontend.size(), matched, missing, petariUberBoot.manifestErrors);
+}
+static bool petari_uber_finish_pre_present(PetariPipeline::Clock::time_point started,
+                                          PetariPipeline::Clock::time_point deadline,
+                                          PetariFrontendPump& pump) {
+  for (;;) {
+    pump.poll(); // SDL/AppKit events, on the initializing main thread; no frame begin/end
+    std::unique_lock lock{g_pipelineMutex};
+    if (!pump.mainThread || g_pipelineThreadEnd || !petari_uber_title_pending() || PetariPipeline::Clock::now() >= deadline) break;
+    g_pipelineReadyCv.wait_until(lock, std::min(deadline, PetariPipeline::Clock::now() + std::chrono::milliseconds(8)));
+  }
+  std::lock_guard lock{g_pipelineMutex};
+  const auto elapsed = PetariPipeline::milliseconds(PetariPipeline::Clock::now() - started);
+  const auto pending = petari_uber_title_pending();
+  const auto failed = std::count_if(petariUberBoot.titleKeys.begin(), petariUberBoot.titleKeys.end(),
+      [](auto key) { return petariUberBoot.failed.contains(key); });
+  const bool ready = pump.mainThread && !g_pipelineThreadEnd && !pending && !failed &&
+      petariUberBoot.frontEndScanned && !petariUberBoot.titleKeys.empty() && !petariUberBoot.manifestErrors &&
+      !petariUberBoot.rejectedConfigs && PetariPipeline::Clock::now() <= deadline;
+  std::string keys;
+  for (auto key : petariUberBoot.titleKeys) {
+    char value[18]; std::snprintf(value, sizeof(value), "%016llx,", static_cast<unsigned long long>(key)); keys += value;
+  }
+  petariUberPrePresent = false; // exact previous scheduler resumes, including on cap/error
+  std::fprintf(stderr, "[gx frontend pre-present] version=1 result=%s keys=%zu completed=%zu pending=%zu failed=%zu manifest_errors=%zu elapsed_ms=%.3f cap_ms=5000 workers=%u pumps=%u pump_max_gap_ms=%.3f main_thread=%u presented_frames=0 key_list=%s\n",
+      ready ? "ready" : pending ? "cap" : "failed", petariUberBoot.titleKeys.size(), petariUberBoot.titleKeys.size() - pending,
+      pending, size_t(failed), petariUberBoot.manifestErrors, elapsed, petariActiveWorkers, pump.calls, pump.maxGapMs,
+      pump.mainThread, keys.c_str());
+  g_pipelineQueueCv.notify_all();
+  return ready;
+}
 static void petari_uber_scan_seeds(const std::filesystem::path& dir, RenderTargetLayout scene,
                                   RenderTargetLayout off) {
   const auto scan = [&](const std::filesystem::path& path, unsigned priority) {
-    auto* db = open_pipeline_cache_seed_db(path.string());
-    if (!db) {
-      std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; return;
-    }
-    std::vector<gx::PipelineConfig> configs;
-    sqlite3_stmt* stmt = nullptr;
-    const auto sql = "SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13 ORDER BY first_frame_used";
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-      int status;
-      while ((status = sqlite3_step(stmt)) == SQLITE_ROW && !g_pipelineThreadEnd) {
-        if (sqlite3_column_bytes(stmt, 0) != sizeof(gx::PipelineConfig)) {
-          std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; continue;
-        }
-        gx::PipelineConfig config;
-        std::memcpy(&config, sqlite3_column_blob(stmt, 0), sizeof(config));
-        if (gx::petari_cached_shader_valid(config.shaderConfig, 0))
-          configs.push_back(config);
-        else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; }
-      }
-      if (status != SQLITE_DONE && status != SQLITE_ROW) {
-        std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors;
-      }
-    } else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; }
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
+    const auto configs = petari_uber_read_seed(path);
     if (priority == 1) petari_uber_admit_stage(configs, scene, off, path.stem().string(), path.string(), false);
     else for (const auto& config : configs) petari_uber_queue_layouts(config, scene, off, priority);
   };
+  petari_uber_scan_frontend(dir, scene, off);
   std::error_code ec;
-  // Read the front-end manifests before traversing the complete seed union.
-  {
-    PetariUberAdmission frontEndAdmission;
-    for (const auto* name : {"Unknown.db", "FileSelect.db"}) {
-      const auto path = dir / name;
-      if (std::filesystem::exists(path, ec)) scan(path, 1);
-      if (g_pipelineThreadEnd) return;
-    }
-  }
-  {
-    std::lock_guard lock{g_pipelineMutex}; petariUberBoot.frontEndScanned = true;
-  }
   std::vector<std::filesystem::path> paths;
   for (std::filesystem::directory_iterator it(dir, ec), end; !ec && it != end; it.increment(ec)) {
     const auto path = it->path();
@@ -378,10 +457,12 @@ static void petari_uber_observe_title(bool covered, bool fallbackReady) {
   if (petariUberBoot.titleObserved || petariActiveStage != "FileSelect") return;
   petariUberBoot.titleObserved = true;
   const auto pending = petariUberBoot.scheduled.size() - petariUberBoot.completed.size();
-  std::fprintf(stderr, "[gx uber async] event=title_first_draw phase=recording elapsed_ms=%.3f covered=%u fallback_ready=%u title_scanned=%u title_pending=%zu all_pending=%zu failed=%zu all_ready=%u\n",
+  std::fprintf(stderr, "[gx uber async] event=title_first_draw phase=recording elapsed_ms=%.3f covered=%u fallback_ready=%u title_scanned=%u title_pending=%zu all_pending=%zu failed=%zu all_ready=%u monotonic_ns=%lld wall_ns=%lld\n",
       petari_uber_elapsed(), covered, fallbackReady, petariUberBoot.frontEndScanned,
       petari_uber_title_pending(), pending, petariUberBoot.failed.size(),
-      petariUberBoot.seedsDone && petariUberBoot.cacheDone && !pending && petariUberBoot.failed.empty());
+      petariUberBoot.seedsDone && petariUberBoot.cacheDone && !pending && petariUberBoot.failed.empty(),
+      static_cast<long long>(std::chrono::duration_cast<std::chrono::nanoseconds>(PetariPipeline::Clock::now().time_since_epoch()).count()),
+      static_cast<long long>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
   petariUberTitleReleased = true;
   std::fprintf(stderr, "[gx uber async] event=prep_release stage=FileSelect phase=recording elapsed_ms=%.3f workers=%u\n",
       petari_uber_elapsed(), petariActiveWorkers);
@@ -403,6 +484,7 @@ static void petari_uber_async_stop() {
   petariUberJobs.clear(); // workers already joined; no callbacks can outlive the device
   petariUberBoot.started = false; // a later device/cache initialization may start a fresh generation
   petariUberTitleReleased = false;
+  petariUberPrePresent = false;
 }
 } // namespace aurora::gfx
 
@@ -426,13 +508,23 @@ void petari_uber_boot() {
       gfx::petariUberBoot.started = true;
       gfx::petariUberBoot.startedAt = start;
       if (gfx::g_hasPipelineThread && !gfx::g_pipelineThreadEnd) {
-        gfx::petari_uber_push_job({0, 0, [dir, scene, off] { gfx::petari_uber_scan_seeds(dir, scene, off); }});
+        gfx::petariUberPrePresent = true;
         queued = true;
       }
     }
   }
+  if (queued) {
+    gfx::PetariFrontendPump pump;
+    pump.poll();
+    const auto deadline = start + std::chrono::milliseconds(5000);
+    gfx::petari_uber_scan_frontend(dir, scene, off, &pump, deadline);
+    gfx::g_pipelineQueueCv.notify_all();
+    gfx::petari_uber_finish_pre_present(start, deadline, pump);
+    std::lock_guard lock{gfx::g_pipelineMutex};
+    gfx::petari_uber_push_job({0, 0, [dir, scene, off] { gfx::petari_uber_scan_seeds(dir, scene, off); }});
+  }
   gfx::g_pipelineQueueCv.notify_all();
-  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u synchronous_compiles=0 prep_policy=frontend_generic_until_title workers=%u prep_workers=%u\n",
-      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers, std::min(workers, gfx::kPetariOnDemandWorkers));
+  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u main_thread_compiles=0 prep_policy=bounded_frontend_generic_before_present workers=%u prep_workers=%u\n",
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers, workers);
 }
 } // namespace aurora::gx

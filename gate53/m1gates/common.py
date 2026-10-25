@@ -135,7 +135,7 @@ def rows(path):
 
 FAULT = re.compile(r'FATAL|AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:|more than 2 GiB|unhandled tcg| in ".*" on line \d+\.')
 
-def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0,fixture=None,verify_fixture_attrs=False):
+def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0,fixture=None,verify_fixture_attrs=False,startup_observe=False):
  """The lock covers cache clearing, app lifetime and cleanup; terminate only this Popen PID."""
  out=Path(out);assert not out.exists(),out
  assert out.resolve().is_relative_to(ROOT.resolve()) and out.resolve()!=ROOT.resolve(),'run output must stay inside owned m1g'
@@ -178,7 +178,15 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
    for _ in range(load_workers):loads.append(subprocess.Popen(['/usr/bin/yes'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL))
    info.update(requested_app_nice=nice,controlled_cpu_load_pids=[p.pid for p in loads],controlled_cpu_load_workers=load_workers)
    with (out/'app.log').open('wb') as log:
+    observer=None
+    if startup_observe:
+     from startup542 import Observer
+     observer=Observer(out,stage)
+    if observer:observer.popen_before()
     p=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+    if observer:
+     observer.spawned(p.pid)
+     info['popen_clocks']={k:observer.result[k] for k in ('popen_call_before','popen_return_after')}
     info['pid']=p.pid
     if nice:time.sleep(.05)
     try:info['child_nice_at_spawn']=os.getpriority(os.PRIO_PROCESS,p.pid)
@@ -202,6 +210,7 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
     try:worker.wait(timeout=5)
     except subprocess.TimeoutExpired:worker.kill();worker.wait()
    write(out/'controlled-load.json',{'owned_pids':[p.pid for p in loads],'all_reaped':all(p.poll() is not None for p in loads)})
+  if startup_observe and observer:observer.finish()
   text=(out/'app.log').read_text(errors='replace')
   res={'exit':p.returncode,'timed_out':timed_out,'seconds':round(time.monotonic()-start,3),'binary_unchanged':sha(exe)==before,'seed_unchanged':not copied or tree(seed)==seed_before and (not verify_fixture_attrs or inventory(seed)==seed_inventory),'no_faults':not FAULT.search(text),'load_end':os.getloadavg(),'completed':p.returncode==0 and (bound or not timed_out)}
   if copied:res.update(fixture=str(seed),all_fixture_xattrs_verified=verify_fixture_attrs)

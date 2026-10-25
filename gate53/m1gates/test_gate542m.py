@@ -19,18 +19,18 @@ class Gate(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.root = Path(self.tmp.name)
         self.rows = [{'frame': n, 'phase': 'menu', 'interval_ms': 1000 / 60,
-                      'presented_frame': max(0, n - 1), 'unfocused': '0'} for n in range(1, 2461)]
+                      'presented_frame': max(0, n - 1), 'unfocused': '0', 'pipeline_wait_ms': 0, 'pipeline_resolves': 0} for n in range(1, 2461)]
         self.text = event('initial', 1, 0) + event('shown', 2, .01, visible=True) + event('hidden', 601, 10)
         self.text += event('actual-global-100', 601, 10, complete=True)
         self.text += event('title-observation-complete', 2401, 40, complete=True)
 
     def tearDown(self): self.tmp.cleanup()
 
-    def read(self, title=True, window=30, required=None):
+    def read(self, title=True, window=30, required=None, tier='m4'):
         (self.root / 'app.log').write_text(self.text)
         with (self.root / 'frames.csv').open('w') as file:
             out = csv.DictWriter(file, fieldnames=self.rows[0].keys()); out.writeheader(); out.writerows(self.rows)
-        return gate.score(self.root, title, window, required)
+        return gate.score(self.root, title, window, required, tier=tier)
 
     def test_complete(self): self.assertTrue(self.read()['passed'])
 
@@ -57,9 +57,9 @@ class Gate(unittest.TestCase):
 
     def test_post22_strict(self):
         for row in self.rows[601:]: row['interval_ms'] = 22.001
-        self.assertFalse(self.read()['checks']['post100_p99_le22'])
+        self.assertFalse(self.read()['checks']['post100_p99_within_tier'])
         for row in self.rows[601:]: row['interval_ms'] = 22
-        self.assertTrue(self.read()['checks']['post100_p99_le22'])
+        self.assertTrue(self.read()['checks']['post100_p99_within_tier'])
 
     def test_while_showing33_strict(self):
         for row in self.rows[1:600]: row['interval_ms'] = 33.001
@@ -99,6 +99,31 @@ class Gate(unittest.TestCase):
     def test_deadline_requirements_reject_ambiguous_spec(self):
         for spec in (['FileSelect:0'],['FileSelect:69','FileSelect:69'],['bad']):
             with self.assertRaises(ValueError):gate.deadline_requirements(spec)
+
+    def test_m1_post33_requires_compile_free(self):
+        for row in self.rows[601:]: row['interval_ms'] = 33
+        self.assertTrue(self.read(tier='m1')['checks']['post100_p99_within_tier'])
+        self.assertTrue(self.read(tier='m1')['checks']['post100_compile_free'])
+        self.assertFalse(self.read(tier='m4')['checks']['post100_p99_within_tier'])
+        self.rows[602]['pipeline_wait_ms'] = .001
+        self.assertFalse(self.read(tier='m1')['checks']['post100_compile_free'])
+        self.rows[602]['pipeline_wait_ms'] = 0
+        self.rows[602]['pipeline_resolves'] = 1
+        self.assertFalse(self.read(tier='m1')['checks']['post100_compile_free'])
+
+    def test_compile_evidence_missing_rejected(self):
+        self.rows[602]['pipeline_wait_ms'] = ''
+        self.assertFalse(self.read(tier='m1')['checks']['post100_compile_free'])
+
+    def test_explicit_tier_required(self):
+        with self.assertRaises(TypeError): gate.score(self.root)
+        with self.assertRaises(ValueError): gate.score(self.root, tier='auto')
+
+    def test_frontend_publication_required(self):
+        good='[gx frontend pre-present] version=1 result=ready keys=1 completed=1 pending=0 failed=0 manifest_errors=0 elapsed_ms=1000 cap_ms=5000 workers=4 pumps=2 pump_max_gap_ms=8 main_thread=1 presented_frames=0 key_list=1234567890abcdef,'
+        self.assertTrue(gate.frontend_pre_present(good)['passed'])
+        for bad in ('', good+'\n'+good, good.replace('result=ready','result=cap'), good.replace('completed=1','completed=0'), good.replace('elapsed_ms=1000','elapsed_ms=5000.001'), good.replace('main_thread=1','main_thread=0'), good.replace('pumps=2','pumps=0'), good.replace('keys=1','keys=2')):
+            self.assertFalse(gate.frontend_pre_present(bad)['passed'])
 
     def test_timeout(self):
         self.text = self.text.replace('title-observation-complete', 'title-observation-timeout')

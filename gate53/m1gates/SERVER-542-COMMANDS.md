@@ -38,7 +38,7 @@ Title new (the server wrapper runs this too):
 
 ```bash
 OBS="$HOME/MacioGalaxy2-gamedata/port53/m1g/solb/m4-542-title-v14-r1"
-python3 -B "$TOOLS/gate542m.py" --title --window-seconds 300 \
+python3 -B "$TOOLS/gate542m.py" --tier m4 --title --window-seconds 300 \
   --require-deadline-stage FileSelect:69 --out "$OBS/542-SCORES.json" \
   "$OBS/542-r1" "$OBS/542-r2" "$OBS/542-r3"
 ```
@@ -47,7 +47,7 @@ Baseline title (no `--title`, no admission requirement; retain missing-signal
 status and fixed_window.stats rather than claiming split acceptance):
 
 ```bash
-python3 -B "$TOOLS/gate542m.py" --window-seconds 300 \
+python3 -B "$TOOLS/gate542m.py" --tier m4 --window-seconds 300 \
   --out "$OBS/541-SCORES.json" "$OBS/541-r1" "$OBS/541-r2" "$OBS/541-r3"
 ```
 
@@ -71,7 +71,7 @@ score542_direct() {
   elif [ "$version" != 541 ]; then
     return 2
   fi
-  python3 -B "$TOOLS/gate542m.py" --window-seconds 300 "${require[@]}" \
+  python3 -B "$TOOLS/gate542m.py" --tier m4 --window-seconds 300 "${require[@]}" \
     --out "$run_dir/GATE542M.json" "$run_dir"
 }
 # In the corresponding arm of noreg542i3.sh:

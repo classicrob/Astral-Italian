@@ -125,6 +125,23 @@ function(petari_isolate_aurora_allocations target source)
     endif()
 endfunction()
 petari_isolate_aurora_allocations(aurora_core lib/aurora.cpp)
+# One-time SDL input initialization is timed at its actual call boundary.
+set(_petari_input_source "${aurora_SOURCE_DIR}/lib/input.cpp")
+set(_petari_input_timed "${CMAKE_CURRENT_BINARY_DIR}/startup/input.cpp")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_input_startup.py" "${_petari_input_source}")
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_input_startup.py"
+    "${_petari_input_source}" "${_petari_input_timed}" COMMAND_ERROR_IS_FATAL ANY)
+get_target_property(_petari_input_sources aurora_core SOURCES)
+list(REMOVE_ITEM _petari_input_sources lib/input.cpp "${_petari_input_source}")
+list(APPEND _petari_input_sources "${_petari_input_timed}")
+set_property(TARGET aurora_core PROPERTY SOURCES "${_petari_input_sources}")
+set_source_files_properties("${_petari_input_timed}" TARGET_DIRECTORY aurora_core
+    PROPERTIES COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib")
+if(_petari_build_testing)
+    add_test(NAME native_input_startup_patch COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_SOURCE_DIR}/native/tests/input_startup_patch_tests.py" "${aurora_SOURCE_DIR}")
+endif()
 petari_isolate_aurora_allocations(aurora_gx lib/dolphin/gx/GXManage.cpp)
 petari_isolate_aurora_allocations(aurora_gx lib/gx/fifo.cpp)
 petari_isolate_aurora_allocations(aurora_gx lib/gfx/render_worker.cpp)

@@ -35,6 +35,14 @@ bool interruptsDisabled();
 // such as the VI thread's, leave it stale while they sleep).
 std::uintptr_t interruptOwner();
 void setInterruptOwner(bool held);  // interrupt lock held (true) / about to be released (false)
+struct InterruptReleaseTiming {
+    std::uintptr_t hostThread = 0, osThread = 0;
+    std::uint64_t acquiredNs = 0, releasedNs = 0;
+    char name[64] = {};
+};
+// Caller holds interruptMutex. The last completed ownership interval, before
+// the caller acquired it. Copy only; no lookup/allocation or scheduler change.
+InterruptReleaseTiming lastInterruptReleaseTiming();
 
 // The OS thread bound to the calling host thread, or null for host threads
 // (interrupt context).

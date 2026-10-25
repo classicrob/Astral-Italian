@@ -3,6 +3,7 @@
 #include <set>
 #include "pipeline_deadline_manifest.hpp"
 #include "frontend_membership.hpp"
+#include "frontend_policy.hpp"
 namespace aurora::gfx {
 struct PetariUberBootState {
   bool started = false, seedsDone = false, cacheDone = false, frontEndScanned = false;
@@ -513,7 +514,7 @@ void petari_uber_boot() {
   gfx::petariFrontendScan = [dir, scene, off] {
     gfx::PetariFrontendPump pump;
     gfx::petari_uber_scan_frontend(dir, scene, off, &pump,
-        gfx::petariFrontendStart + std::chrono::milliseconds(5000));
+        gfx::petariFrontendStart + std::chrono::milliseconds(PetariBootSplash::prepCapMs));
   };
   gfx::petariFrontendRemainder = [dir, scene, off] { gfx::petari_uber_scan_seeds(dir, scene, off); };
   std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u main_thread_compiles=0 prep_policy=armed_normal_frames workers=%u\n",
@@ -558,15 +559,15 @@ extern "C" bool petari_gx_frontend_finish(unsigned frames, unsigned pumps, doubl
       [](auto key) { return petariUberBoot.failed.contains(key); });
   const bool ready = petariUberPrePresent && mainThread && frames >= 3 && !g_pipelineThreadEnd && !pending && !failed &&
       petariUberBoot.frontEndScanned && !petariUberBoot.titleKeys.empty() && !petariUberBoot.manifestErrors &&
-      !petariUberBoot.rejectedConfigs && elapsed <= 5000;
+      !petariUberBoot.rejectedConfigs && elapsed <= PetariBootSplash::prepCapMs;
   std::string keys;
   for (auto key : petariUberBoot.titleKeys) {
     char value[18]; std::snprintf(value, sizeof(value), "%016llx,", static_cast<unsigned long long>(key)); keys += value;
   }
   petariUberPrePresent = petariUberFrontendArmed = false;
-  std::fprintf(stderr, "[gx frontend pre-present] version=2 result=%s keys=%zu completed=%zu pending=%zu failed=%zu manifest_errors=%zu elapsed_ms=%.3f cap_ms=5000 workers=%u pumps=%u pump_max_gap_ms=%.3f main_thread=%u presented_frames=%u key_list=%s\n",
+  std::fprintf(stderr, "[gx frontend pre-present] version=3 result=%s keys=%zu completed=%zu pending=%zu failed=%zu manifest_errors=%zu elapsed_ms=%.3f cap_ms=%u workers=%u pumps=%u pump_max_gap_ms=%.3f main_thread=%u presented_frames=%u key_list=%s\n",
       ready ? "ready" : pending ? "cap" : "failed", petariUberBoot.titleKeys.size(), petariUberBoot.titleKeys.size() - pending,
-      pending, size_t(failed), petariUberBoot.manifestErrors, elapsed, petariActiveWorkers, pumps, maxGapMs,
+      pending, size_t(failed), petariUberBoot.manifestErrors, elapsed, PetariBootSplash::prepCapMs, petariActiveWorkers, pumps, maxGapMs,
       mainThread, frames, keys.c_str());
   if (petariFrontendRemainder) petari_uber_push_job({0, 0, std::move(petariFrontendRemainder)});
   petariFrontendScan = {};

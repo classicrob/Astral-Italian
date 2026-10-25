@@ -241,12 +241,17 @@ void* viThreadMain(void*) {
             sleepUntil(next);
         }
         const auto woke = Clock::now();
+        const auto scheduled = next;
         if (woke > next) {
             Telemetry::add(Telemetry::ViTimerLate, std::chrono::duration_cast<std::chrono::nanoseconds>(woke - next).count());
         }
+        const auto ownerAtWake = OS::interruptOwner();
         OSDisableInterrupts();
+        const auto acquired = Clock::now();
+        const bool slowDelivery = acquired - next > std::chrono::milliseconds(50);
+        const auto lastOwner = slowDelivery ? OS::lastInterruptReleaseTiming() : OS::InterruptReleaseTiming{};
         Telemetry::add(Telemetry::ViInterruptLockWait,
-                       std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - woke).count());
+                       std::chrono::duration_cast<std::chrono::nanoseconds>(acquired - woke).count());
         if (gStopRequested) {
             OSEnableInterrupts();
             break;
@@ -260,6 +265,17 @@ void* viThreadMain(void*) {
         period = fieldPeriodLocked();
         // Interrupt return: delivers any reschedule the handlers requested.
         OSEnableInterrupts();
+        if (slowDelivery) {
+            const auto ns = [](const auto& time) { return (long long)std::chrono::duration_cast<std::chrono::nanoseconds>(time.time_since_epoch()).count(); };
+            std::fprintf(stderr, "[vi late delivery] monotonic_ns=%lld deadline_ns=%lld woke_ns=%lld acquired_ns=%lld timer_late_ms=%.3f lock_wait_ms=%.3f owner_at_wake=%#llx last_owner=%#llx last_os_thread=%#llx last_name=%s last_acquired_ns=%llu last_released_ns=%llu last_held_ms=%.3f owner_scope=last-completed-interval\n",
+                ns(acquired), ns(scheduled), ns(woke), ns(acquired),
+                std::chrono::duration<double, std::milli>(woke - scheduled).count(),
+                std::chrono::duration<double, std::milli>(acquired - woke).count(),
+                (unsigned long long)ownerAtWake, (unsigned long long)lastOwner.hostThread,
+                (unsigned long long)lastOwner.osThread, lastOwner.name[0] ? lastOwner.name : "unnamed",
+                (unsigned long long)lastOwner.acquiredNs, (unsigned long long)lastOwner.releasedNs,
+                lastOwner.releasedNs >= lastOwner.acquiredNs ? (lastOwner.releasedNs - lastOwner.acquiredNs) / 1e6 : 0.);
+        }
         // PETARI_VI_CLOCK=display (petari/present_pacing.hpp): the display's 60 Hz frame,
         // phase-steered against the refresh grid; the nominal field rate without a steady grid.
         if (!legacy && Pacing::viLockEnabled()) {

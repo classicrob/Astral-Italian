@@ -249,6 +249,17 @@ def patch_framebuffer(text):
 def patch_aurora(text):
     splash = Path(__file__).resolve().parent / 'boot_splash.h'
     text = f'#include "{splash}"\n' + text
+    text = replace_once(text, '  window::show_window();\n',
+                        '  if (!PetariBootSplash::deferWindowShow) window::show_window();\n')
+    text = replace_once(text, 'const AuroraEvent* update() noexcept {\n',
+                        'const AuroraEvent* update() noexcept {\n'
+                        '  static bool petariFirstUpdate = true;\n'
+                        '  const bool petariTraceUpdate = petariFirstUpdate; petariFirstUpdate = false;\n'
+                        '  if (petariTraceUpdate) PetariBootSplash::startupEvent("first_aurora_update_enter");\n')
+    text = replace_once(text, '  return window::poll_events();\n',
+                        '  const auto* petariEvents = window::poll_events();\n'
+                        '  if (petariTraceUpdate) PetariBootSplash::startupEvent("first_aurora_update_exit");\n'
+                        '  return petariEvents;\n')
     text = replace_once(text, '        gfx::after_present();', '        if (petariBootFrame) petari_boot_splash_presented(petariProbeFrame);\n        if (petariBootCapture && petariSurfaceDump) petariSurfaceDump();\n        gfx::after_present();')
     text = replace_once(text, '#include "webgpu/gpu_prof.hpp"\n',
                         '#include "webgpu/gpu_prof.hpp"\n#include "present_aurora.hpp"\n')

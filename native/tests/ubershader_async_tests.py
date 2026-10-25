@@ -335,7 +335,7 @@ int main(int argc,char** argv) {
   if(test=="prepresent_failed")c.shaderConfig.throws=true;
   gfx::petari_uber_queue_variant(c,l,1,true);
   if(test!="prepresent_cap") { auto job=take(0);CHECK(job);job(); }
-  gfx::petariFrontendStart=PetariPipeline::Clock::now()-std::chrono::milliseconds(test=="prepresent_cap"?5001:1);
+  gfx::petariFrontendStart=PetariPipeline::Clock::now()-std::chrono::milliseconds(test=="prepresent_cap"?7001:1);
   CHECK(petari_gx_frontend_finish(3,10,16.7,true)==(test=="prepresent_ready"));
   CHECK(!gfx::petariUberPrePresent && !gfx::petariUberFrontendArmed);
   CHECK(!take(0)); // cap/failure/success restore worker0's normal reservation

@@ -137,8 +137,8 @@ bool get_pipeline(PipelineRef ref, CompiledPipeline& pipeline) {''')
   petari_uber_async_report();''')
   replace('const auto petariReady = [=] { return g_pipelines.contains(runtimeKey) || g_pipelineThreadEnd; };',
           'const auto petariReady = [=] { return petari_uber_or_specialized_ready(runtimeKey); };')
-  replace('std::all_of(keys.begin(), keys.end(), [](auto key) { return g_pipelines.contains(key); });',
-          'std::all_of(keys.begin(), keys.end(), [](auto key) { return petari_uber_or_specialized_ready(key); });')
+  replace('const auto petariSceneKeyReady = [](auto key) { return g_pipelines.contains(key); };',
+          'const auto petariSceneKeyReady = [](auto key) { return petari_uber_or_specialized_ready(key); };')
   # Admit every alias and frame before any fallback dispatch or specialised
   # stage submission. Per-row notifications must not start an incomplete group.
   replace('  absl::flat_hash_set<PipelineRef> targets, gateTargets;', '''  if (!overlay && gx::petari_uber_enabled()) {

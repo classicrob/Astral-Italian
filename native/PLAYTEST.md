@@ -719,7 +719,7 @@ phase time, cap, workers, main-thread check, pump count and maximum pump gap. Re
 app responsiveness and the unchanged seam accounting require runtime evidence;
 the pump calls alone are not an acceptance claim.
 
-`gate542m.py` requires explicit `--tier m1|m4`. Post-global100 menu p99 is <=33 ms
+`gate542m.py` requires explicit `--tier m1|m4`. Post-global100 menu p99 is <=35 ms
 on M1 only with complete zero-wait/zero-resolve evidence on every post100 menu
 row; M4 remains <=22 ms. The 33 ms while-showing, 250 ms non-gameplay and 100 ms
 gameplay limits are unchanged. Original scores remain immutable when re-scoring.
@@ -856,3 +856,49 @@ strict self-process heartbeat against a normally pumped GUI window (the
 separate-process no-prompt outcome is retained as an observation). GUI
 and measured acceptance remain required on the server-built candidate; static
 source checks are not a responsiveness or performance certification.
+
+## 5.4.2 frontend version 3: hidden platform bootstrap and the M1 ruling
+
+The windowed app now asks Aurora to retain the real SDL window's hidden state
+through initialization. Menu/font setup and the first AppKit/SDL pump and
+`aurora_update` (including the one-time SDL haptic/joystick/gamepad/sensor init)
+run before the window is first shown. Both sides check that the window really
+remains hidden; an unexpectedly visible bootstrap fails. This does not move a
+measurement start past an already visible window. Hidden smoke keeps its prior
+behavior; ubershaders-off launches still show the game window.
+
+Default-on `[gx startup call]` events timestamp menu setup, the first run-loop
+turn, explicit SDL pump, input initializer, its actual SDL init call, first Aurora
+update, window show and first successful present in native monotonic nanoseconds.
+`[gx startup span]` additionally names any splash call taking at least 50 ms,
+including a delayed sleep, so a remaining long turn is not just an aggregate.
+The same <=100 ms gap measurement starts before the real window show. Splash
+presentations and every subsequent interval retain the same CSV accounting.
+
+Head authorized a 7000 ms finite-work cap (previous versions 1/2 used 5000 ms).
+The version-3 receipt declares `cap_ms=7000`; the scorer checks the exact cap for
+each receipt version, and a cap/failure still fails. The native 5 s bound for
+failing to obtain a visible first present is separate and unchanged. The M1
+post-global100 title p99 limit is now 35 ms, still requiring zero pipeline waits
+and resolves in every post100 row. M4 remains 22 ms, while-showing remains 33 ms,
+all non-gameplay frames remain <=250 ms and gameplay remains <=100 ms. Historical
+receipts are retained unchanged; any re-score is a separate, labeled artifact.
+
+The retained 840ffdba M1 control reproduced a 231.934 ms turn gap without any
+external probe or sampler. Its cap failures had only `d7186022d76abbce` pending.
+The rare Fluffy route480/CSV704 284.315 ms pipeline wait and title CSV11131
+251.688 ms compile-free frame remain failures, not waived or assigned guessed
+keys. Actual pipeline resolves >=50 ms now log their runtime key and monotonic
+start/stop even with DIAG=0. Complete-scene waits also retain the exact unready
+key set at wait entry, with config hashes and queued/dispatched/specialized-finish
+timestamps; their new diagnostic output runs after the queue lock is released.
+VI deliveries over 50 ms late log their deadline,
+wake and acquisition times, owner sampled at wake, and the last completed
+interrupt-lock ownership interval (host/OS identity, name and hold duration).
+The last-owner record is not asserted to describe every intervening owner.
+Logging occurs after releasing the interrupt lock; no scheduler policy changes.
+
+These native changes alter the renderer/cache identity. PFD1, the v14 pack and
+its 64 databases/57 sidecars, generated membership and gameplay queue ordering
+are unchanged. Only a new server-built candidate can establish the cold-launch
+range, responsiveness and acceptance result.

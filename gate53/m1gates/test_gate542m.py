@@ -100,8 +100,8 @@ class Gate(unittest.TestCase):
         for spec in (['FileSelect:0'],['FileSelect:69','FileSelect:69'],['bad']):
             with self.assertRaises(ValueError):gate.deadline_requirements(spec)
 
-    def test_m1_post33_requires_compile_free(self):
-        for row in self.rows[601:]: row['interval_ms'] = 33
+    def test_m1_post35_requires_compile_free(self):
+        for row in self.rows[601:]: row['interval_ms'] = 35
         self.assertTrue(self.read(tier='m1')['checks']['post100_p99_within_tier'])
         self.assertTrue(self.read(tier='m1')['checks']['post100_compile_free'])
         self.assertFalse(self.read(tier='m4')['checks']['post100_p99_within_tier'])
@@ -110,6 +110,12 @@ class Gate(unittest.TestCase):
         self.rows[602]['pipeline_wait_ms'] = 0
         self.rows[602]['pipeline_resolves'] = 1
         self.assertFalse(self.read(tier='m1')['checks']['post100_compile_free'])
+
+    def test_m1_post35_has_no_tolerance(self):
+        for row in self.rows[601:]: row['interval_ms'] = 35.001
+        self.assertFalse(self.read(tier='m1')['checks']['post100_p99_within_tier'])
+        for row in self.rows[601:]: row['interval_ms'] = 35
+        self.assertTrue(self.read(tier='m1')['checks']['post100_p99_within_tier'])
 
     def test_compile_evidence_missing_rejected(self):
         self.rows[602]['pipeline_wait_ms'] = ''
@@ -132,6 +138,15 @@ class Gate(unittest.TestCase):
         self.assertFalse(gate.frontend_pre_present(line)['passed'])
         self.assertFalse(gate.frontend_pre_present(line.replace('presented_frames=3','presented_frames=0')+'\n'+release)['passed'])
         self.assertFalse(gate.frontend_pre_present(line+'\n'+release+'\n'+release)['passed'])
+
+    def test_seven_second_cap_is_versioned_and_strict(self):
+        line='[gx frontend pre-present] version=3 result=ready keys=1 completed=1 pending=0 failed=0 manifest_errors=0 elapsed_ms=7000 cap_ms=7000 workers=4 pumps=10 pump_max_gap_ms=20 main_thread=1 presented_frames=3 key_list=1234567890abcdef,'
+        release='[gx frontend release] finished_launching=1 window_onscreen=1 alpha=1 bounds_nonzero=1 first_present=1 presented_frames=1'
+        self.assertTrue(gate.frontend_pre_present(line+'\n'+release)['passed'])
+        for bad in (line.replace('elapsed_ms=7000','elapsed_ms=7000.001'),
+                    line.replace('result=ready','result=cap'), line.replace('cap_ms=7000','cap_ms=5000'),
+                    line.replace('version=3','version=2')):
+            self.assertFalse(gate.frontend_pre_present(bad+'\n'+release)['passed'])
 
     def test_timeout(self):
         self.text = self.text.replace('title-observation-complete', 'title-observation-timeout')

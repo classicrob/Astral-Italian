@@ -5,6 +5,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <chrono>
 
 #include "os_internal.hpp"
 #include "petari/host_allocation.hpp"
@@ -14,6 +15,7 @@ namespace {
 
 thread_local bool tDisabled = false;
 std::atomic<std::uintptr_t> gOwner{0};
+InterruptReleaseTiming gHeldTiming, gLastReleaseTiming; // interruptMutex
 
 void disable() {
     interruptMutex().lock();
@@ -57,7 +59,28 @@ std::uintptr_t interruptOwner() {
 }
 
 void setInterruptOwner(bool held) {
+    const auto ns = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    if (held) {
+        thread_local const auto identity = [] {
+            InterruptReleaseTiming value;
+            value.hostThread = reinterpret_cast<std::uintptr_t>(pthread_self());
+            pthread_getname_np(pthread_self(), value.name, sizeof(value.name));
+            for (char& c : value.name) if (c == ' ' || c == '\t' || c == '\n') c = '_';
+            return value;
+        }();
+        gHeldTiming = identity;
+        gHeldTiming.osThread = reinterpret_cast<std::uintptr_t>(boundThread());
+        gHeldTiming.acquiredNs = ns;
+    } else {
+        gLastReleaseTiming = gHeldTiming;
+        gLastReleaseTiming.releasedNs = ns;
+    }
     gOwner.store(held ? reinterpret_cast<std::uintptr_t>(pthread_self()) : 0, std::memory_order_relaxed);
+}
+
+InterruptReleaseTiming lastInterruptReleaseTiming() {
+    return gLastReleaseTiming;
 }
 
 void fatal(const char* fmt, ...) {

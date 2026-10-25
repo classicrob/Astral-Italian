@@ -3,7 +3,7 @@
 
 Every non-gameplay frame after the first explicitly presented frame: <=250ms.
 Title arms additionally require real UI-global100 and >=30s post100 samples;
-menu p99 <=33ms while showing. Post100: M1 <=33ms with zero compile work; M4 <=22ms.
+menu p99 <=33ms while showing. Post100: M1 <=35ms with zero compile work; M4 <=22ms.
 Historical runs without explicit state events are split-unscorable, never guessed.
 --window-seconds reports the same fixed interval for unsplit build comparison.
 """
@@ -90,11 +90,11 @@ def frontend_pre_present(text):
             f[key] = float(f[key])
             if not math.isfinite(f[key]) or f[key] < 0: raise ValueError('invalid timing')
         keys = f['key_list'].rstrip(',').split(',')
-        normal_frames=(f['version']==2 and f['presented_frames']>=3 and len(re.findall(r'^\[gx frontend release\] finished_launching=1 window_onscreen=1 alpha=1 bounds_nonzero=1 first_present=1 presented_frames=[1-9][0-9]*$',text,re.M))==1)
+        normal_frames=(f['version'] in (2, 3) and f['presented_frames']>=3 and len(re.findall(r'^\[gx frontend release\] finished_launching=1 window_onscreen=1 alpha=1 bounds_nonzero=1 first_present=1 presented_frames=[1-9][0-9]*$',text,re.M))==1)
         evidence['passed'] = ((f['version']==1 and f['presented_frames']==0 or normal_frames) and f['result'] == 'ready' and 0 < f['keys'] <= 2048 and
             f['keys'] == f['completed'] == len(keys) == len(set(keys)) and all(re.fullmatch('[0-9a-f]{16}', k) for k in keys) and
             f['pending'] == f['failed'] == f['manifest_errors'] == 0 and
-            f['cap_ms'] == 5000 and f['elapsed_ms'] <= f['cap_ms'] and f['workers'] > 0 and f['pumps'] > 0 and f['main_thread'] == 1)
+            f['cap_ms'] == (7000 if f['version'] == 3 else 5000) and f['elapsed_ms'] <= f['cap_ms'] and f['workers'] > 0 and f['pumps'] > 0 and f['main_thread'] == 1)
         evidence['fields'] = f
     except (KeyError, ValueError) as exc: evidence['error'] = str(exc)
     return evidence
@@ -102,7 +102,7 @@ def frontend_pre_present(text):
 
 def score(folder, title=False, window_seconds=300.0, require_deadlines=None, *, tier, require_frontend=False):
     if tier not in ('m1', 'm4'): raise ValueError('explicit tier m1 or m4 required')
-    post_limit = 33 if tier == 'm1' else 22
+    post_limit = 35 if tier == 'm1' else 22
     folder = Path(folder)
     text = (folder / 'app.log').read_text(errors='replace')
     with (folder / 'frames.csv').open() as file:

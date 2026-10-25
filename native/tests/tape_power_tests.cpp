@@ -33,7 +33,7 @@ std::string event(unsigned id,const char* kind,unsigned row,bool ack) {
         <<",\"before_input_frame\":"<<row+1<<",\"boundary\":\""<<PetariNative::App::TapePower::kBoundary
         <<"\",\"callback_observed\":"<<(ack?"true":"false")<<",\"neutral_elapsed_seconds\":1}";return o.str();
 }
-void tape(const fs::path& p,unsigned powerRow=5) {
+void tape(const fs::path& p,unsigned powerRow=5,bool unpairedRead=false) {
     fs::create_directories(p);
     auto marker=state(3,3);
     std::ostringstream m;m<<"{\"schema\":2,\"complete\":true,\"seams\":12,\"marker_protocol\":\""<<PH::kProtocol
@@ -44,8 +44,9 @@ void tape(const fs::path& p,unsigned powerRow=5) {
         <<event(1,"power-request",powerRow,true)<<"]}";save(p/"route.tape.json",m.str());
     std::ofstream csv(p/"route.csv");csv<<"frame,stage,scenario,valid,x,y,z,grounded,dead\n";
     for(unsigned f=0;f<12;++f)csv<<f<<",WorldMap01Galaxy,1,"<<(f<9?1:0)<<','<<(f<6?f+0.5f:f<9?5.5f:0)<<",0,0,0,0\n";
-    std::ofstream k(p/"route.kpd",std::ios::binary);k<<"SMG2KPD1";number(k,13,8);number(k,13,8);
-    for(unsigned f=0;f<13;++f) {
+    const unsigned reads=unpairedRead?13:12;
+    std::ofstream k(p/"route.kpd",std::ios::binary);k<<"SMG2KPD1";number(k,13,8);number(k,reads,8);
+    for(unsigned f=0;f<reads;++f) {
         number(k,f,8);number(k,0,4);number(k,0,4);number(k,120,4);
         const bool detached=f>=9;
         number(k,detached?0:1,4);number(k,detached?0xfffffffe:0,4);
@@ -114,6 +115,11 @@ int main() {
     __OSThreadInit();
     const auto base=fs::temp_directory_path()/("tape-power-tests-"+std::to_string(getpid()));
     tape(base/"correct");check(drive(base/"correct"),"real callback preserves every state including shutdown");
+    tape(base/"unpaired",5,true);
+    bool rejectedOpenLoop=false;
+    try {TP::Session session(base/"unpaired",TP::Session::Mode::WholeSession);}
+    catch(const H::ReplayError& e) {rejectedOpenLoop=std::string(e.what()).find("unpaired open-loop")!=std::string::npos;}
+    check(rejectedOpenLoop,"power tape cannot silently drop a raw read without a route seam");
     check(drive(base/"correct",2),"same existing marker offset anchors event and input/state together");
     tape(base/"early",4);check(!drive(base/"early"),"one-loop early event changes a strict state row");
     tape(base/"late",6);check(!drive(base/"late"),"one-loop late event changes a strict state row");

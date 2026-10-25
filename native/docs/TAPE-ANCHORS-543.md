@@ -331,3 +331,11 @@ ambiguous/missing power events, idempotence and that finish never resamples.
 These tests establish code behavior; the fresh/warm reference matrix and
 candidate runs establish runtime acceptance. Builds for this revision run only
 on the M1, under heavy->native locks.
+# Power tape open-loop admission
+
+A complete power-protocol tape rejects any KPAD read at or beyond its declared
+route seam count. The final open loop has no corresponding state row and cannot
+be silently removed by segment selection. Both the native player and independent
+Python audit enforce this before replay. Legacy tapes retain their declared-prefix
+behavior. The positive power fixture pairs every read with a seam; a separate
+negative retains the extra open-loop read and must fail admission.

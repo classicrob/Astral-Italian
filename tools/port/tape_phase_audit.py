@@ -186,7 +186,8 @@ def validate(meta, route, reads, actions=None):
         if f < meta['seams'] and any(buttons):
             need(any(p['first_input_frame'] <= f < p['end_input_frame_exclusive'] for p in phases),
                  'mod action outside executable input phases')
-    power_events(meta)
+    if power_events(meta):
+        need(all(r['frame'] < meta['seams'] for r in reads), 'power tape has an unpaired open-loop KPAD read')
     return {'phases': len(phases), 'active_input_loops': sum(p['end_input_frame_exclusive'] - p['first_input_frame'] for p in phases)}
 
 

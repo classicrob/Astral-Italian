@@ -34,6 +34,7 @@ void Session::initializePhases(const std::filesystem::path& dir, std::uint64_t r
         throw H::ReplayError("schema2 complete KPD header does not cover exactly the recorded seams plus open loop");
     mReplay->requireNeutralControlsOutside(ranges,rows);
     if (mMeta.powerProtocol) {
+        mReplay->requireReadsBefore(mMeta.seams);
         const auto first=mMeta.inputPhases.back().endInputFrame;
         if (first>=mMeta.seams) throw H::ReplayError("power tape missing complete shutdown input/state rows");
         mShutdownReplayOffset=offset;

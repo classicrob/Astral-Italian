@@ -78,7 +78,7 @@ def arm(args):
     original = Path(prep['original_app'])
     assert common.sha(original / 'Contents/MacOS/Petari') == prep['original_exe_sha256']
     assert common.tree(original / 'Contents/Resources') == resources
-    gate_sources = {name: common.sha(HERE / name) for name in ('title542m.py','gate542m.py','quit_owned_app.js','common.py','startup542.py','boot_response542.py')}
+    gate_sources = {name: common.sha(HERE / name) for name in ('title542m.py','gate542m.py','quit_owned_app.js','common.py','startup542.py','boot_response542.py','boot_frames542.py','screenshot_boot542.py')}
     common.disk(); out.mkdir(parents=True)
     common.wait_quiet(out / 'quiet.json')
     base = Path(subprocess.check_output(['/usr/bin/getconf', 'DARWIN_USER_CACHE_DIR'], text=True).strip())
@@ -106,6 +106,7 @@ def arm(args):
                PETARI_FRAME_CSV=str(out / 'frames.csv'), PETARI_FRAME_STATS='1', PETARI_PIPELINE_DIAG='0',
                PETARI_ROUTE_RECORD=str(out / 'route.csv'), PETARI_TRACE_BOOT='0',
                PYTHONDONTWRITEBYTECODE='1', LANG='C', LC_ALL='C')
+    if args.require_boot_responsiveness:env['PETARI_BOOT_SPLASH_CAPTURE']=str(out/'boot-splash.png')
     if not args.baseline:
         env.update(PETARI_TITLE_OBSERVE='1', PETARI_TITLE_OBSERVE_MIN_SECONDS='315')
     command = [str(executable), '--disc', str(common.DISC), '--user', str(user)]
@@ -130,7 +131,7 @@ def arm(args):
         boot_probe = None
         if args.require_boot_responsiveness:
             from boot_response542 import Probe
-            boot_probe = Probe(out, proc.pid, app)
+            boot_probe = Probe(out, proc.pid, app, m1_screenshot=args.tier=='m1')
         launch['popen_clocks'] = {k:observer.result[k] for k in ('popen_call_before','popen_return_after')}
         launch['pid'] = proc.pid; common.write(out / 'launch.json', launch)
         timed_out, orderly, error = False, None, None

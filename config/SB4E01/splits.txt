@@ -2910,10 +2910,13 @@ Game/Camera/CameraParallel.cpp:
 Game/Camera/CameraParamChunk.cpp:
 	.text       start:0x80124E00 end:0x80125C50
 	.ctors      start:0x80644010 end:0x80644014
-	.data       start:0x8067DC38 end:0x8067DC98
+	.data       start:0x8067D940 end:0x8067DC95
 	.bss        start:0x80728DF0 end:0x80728E80
 	.sdata      start:0x807CF6B8 end:0x807CF6C0
 	.sdata2     start:0x807D9338 end:0x807D9360
+
+auto_07_8067DC95_data:
+	.data       start:0x8067DC95 end:0x8067DC98 align:1
 
 Game/Camera/CameraParamChunkHolder.cpp:
 	.text       start:0x80125C50 end:0x80126840
@@ -14265,7 +14268,10 @@ RVL_SDK/os/OSStateFlags.c:
 
 RVL_SDK/os/OSNet.c:
 	.text       start:0x805BF480 end:0x805BF540
-	.data       start:0x8071A340 end:0x8071A4A8
+	.data       start:0x8071A340 end:0x8071A4A1
+
+auto_07_8071A4A1_data:
+	.data       start:0x8071A4A1 end:0x8071A4A8 align:1
 
 RVL_SDK/os/OSNandbootInfo.c:
 	.text       start:0x805BF540 end:0x805BF750
@@ -14550,8 +14556,11 @@ RVL_SDK/dsp/dsp_debug.c:
 
 RVL_SDK/dsp/dsp_task.c:
 	.text       start:0x805DCBC0 end:0x805DCF90
-	.data       start:0x8071DB38 end:0x8071DC78
+	.data       start:0x8071DB38 end:0x8071DC73
 	.sbss       start:0x807D6A28 end:0x807D6A38
+
+auto_07_8071DC73_data:
+	.data       start:0x8071DC73 end:0x8071DC78 align:1
 
 RVL_SDK/nand/nand.c:
 	.text       start:0x805DCF90 end:0x805DE540

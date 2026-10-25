@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/NameObj/NameObj.hpp"
+#include <JSystem/JUtility/TColor.hpp>
 
 class AreaObj;
 
@@ -17,6 +18,6 @@ public:
     /* 0x14 */ AreaObj* mArea;
     /* 0x18 */ GXColor mCurColor;
     /* 0x1C */ GXColor mPrevColor;
-    /* 0x20 */ GXColor mTargetColor;
+    /* 0x20 */ JUtility::TColor mTargetColor;
     /* 0x24 */ f32 mBlendT;
 };

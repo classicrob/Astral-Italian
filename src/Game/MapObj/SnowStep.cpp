@@ -127,15 +127,12 @@ namespace MR {
     }
 
     bool tryAppearSnowStep(const TVec3f& rPos, const TVec3f& rUp, s32 extendStep, s32 waitStep, s32 shrinkStep, f32 size) {
-        LiveActorGroup* pGroup = static_cast< LiveActorGroup* >(getSceneObjHolder()->getObj(SceneObj_SnowStepHolder));
-        LiveActor* pActor = nullptr;
-        if (pGroup->getDeadActor() != nullptr) {
-            pActor = pGroup->getDeadActor();
-        }
+        SnowStepHolder* pGroup = static_cast< SnowStepHolder* >(getSceneObjHolder()->getObj(SceneObj_SnowStepHolder));
+        SnowStep* pActor = pGroup->getDeadMember();
         if (pActor == nullptr) {
             return false;
         }
-        static_cast< SnowStep* >(pActor)->appearSnowStep(rPos, rUp, extendStep, waitStep, shrinkStep, size);
+        pActor->appearSnowStep(rPos, rUp, extendStep, waitStep, shrinkStep, size);
         return true;
     }
 };  // namespace MR

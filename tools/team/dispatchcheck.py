@@ -11,6 +11,8 @@ symbol our source binds there:
   CODE  every relocation in a source function whose bytes equal the DOL function's bytes (relocated fields masked):
         the bl/b target, HA/LO or SDA21 operand the DOL instruction uses must be the target's address.
 
+Duplicate names marked scope:local resolve within their owning split unit before the global copy; their
+inference evidence stays separate. Unique-name anchors keep their existing behavior.
 Target/container addresses come from symbols.txt; symbols it does not name are INFERRED from DOL instructions in
 exact functions that reference them (bl, HA+LO, SDA21), and a function target nobody names is verified by BODY: the
 source body must equal the DOL body at the slot's address and its own relocs must resolve there.
@@ -61,9 +63,21 @@ class Dol:
 
 
 class Symbols:
-    def __init__(self, path):
+    def __init__(self, path, bases=None, ends=None):
         self.by_name, self.dups = {}, set()
+        if bases is None:
+            splits = pathlib.Path(path).with_name('splits.txt')
+            if splits.exists():
+                bases, ends = load_splits(splits)
         self.by_addr = collections.defaultdict(list)
+        self.records = collections.defaultdict(list)
+        self.global_records = collections.defaultdict(list)
+        self.local_records = collections.defaultdict(list)
+        ranges = collections.defaultdict(list)
+        for (unit, sec), lo in (bases or {}).items():
+            hi = (ends or {}).get((unit, sec))
+            if hi is not None:
+                ranges[sec].append((lo, hi, unit))
         for line in pathlib.Path(path).read_text().splitlines():
             m = re.match(r'(.+?) = (\.\w+):0x([\da-fA-F]+);(.*)', line)
             if not m:
@@ -72,14 +86,35 @@ class Symbols:
             a = int(a, 16)
             z = re.search(r'\bsize:0x([\da-fA-F]+)', meta)
             t = re.search(r'\btype:(\w+)', meta)
-            if name in self.by_name:
-                self.dups.add(name)
-            self.by_name[name] = (a, int(z[1], 16) if z else 0, sec, t[1] if t else '')
+            record = (a, int(z[1], 16) if z else 0, sec, t[1] if t else '')
+            self.records[name].append(record)
+            if re.search(r'\bscope:local\b', meta):
+                owners = [u for lo, hi, u in ranges[sec] if lo <= a < hi]
+                if len(owners) == 1:
+                    self.local_records[owners[0], name].append(record)
+            else:
+                self.global_records[name].append(record)
+            self.by_name[name] = record
             self.by_addr[a].append(name)
+        for name, records in self.records.items():
+            globals_ = self.global_records.get(name, [])
+            if globals_:
+                self.by_name[name] = globals_[-1]
+            if len(globals_) > 1:
+                self.dups.add(name)
         self.addrs = sorted(self.by_addr)
 
-    def addr(self, name):
-        return None if name in self.dups or name not in self.by_name else self.by_name[name][0]
+    def has_local(self, name, unit):
+        return len(self.records.get(name, ())) > 1 and (unit, name) in self.local_records
+
+    def addr(self, name, unit=None):
+        # Preserve unique-name anchors; only duplicated names need scope disambiguation.
+        if len(self.records.get(name, ())) == 1:
+            return self.records[name][0][0]
+        records = self.local_records.get((unit, name))
+        if records is None:
+            records = self.global_records.get(name, [])
+        return records[0][0] if len(records) == 1 else None
 
     def name_at(self, addr):
         if addr in self.by_addr:
@@ -88,7 +123,7 @@ class Symbols:
         if i >= 0:
             a = self.addrs[i]
             for n in self.by_addr[a]:
-                if a <= addr < a + max(self.by_name[n][1], 1):
+                if any(r[0] == a and a <= addr < a + max(r[1], 1) for r in self.records[n]):
                     return f'{n}+0x{addr - a:X}'
         return None
 
@@ -189,9 +224,9 @@ class Prog:
     def __init__(self, root, dolpath=None):
         self.root = pathlib.Path(root)
         dolpath = original_dol(root, dolpath)
-        self.sy = Symbols(self.root / 'config/SB4E01/symbols.txt')
-        self.dol = Dol(dolpath)
         self.bases, self.ends = load_splits(self.root / 'config/SB4E01/splits.txt')
+        self.sy = Symbols(self.root / 'config/SB4E01/symbols.txt', self.bases, self.ends)
+        self.dol = Dol(dolpath)
         base = self.root / 'build/SB4E01/src'
         self.elfs, self.errors = {}, []
         for p in sorted(base.rglob('*.o')):
@@ -201,6 +236,7 @@ class Prog:
             except Exception as ex:
                 self.errors.append((unit, str(ex)))
         self.inferred = collections.defaultdict(lambda: collections.defaultdict(list))
+        self.local_inferred = collections.defaultdict(lambda: collections.defaultdict(list))
         self.func_info = {}
         self.exact_stream = []
         self.nonexact = []
@@ -218,7 +254,7 @@ class Prog:
         if sym['bind'] == 0:
             if LOCALNAME.match(name):
                 return None
-            a = self.sy.addr(name)
+            a = self.sy.addr(name, unit)
             if a is None:
                 return None
             # a unit-local symbol of a common name (static inline, anonymous namespace) is the unit's own only if
@@ -228,7 +264,12 @@ class Prog:
             if sym['sec'] and lo is not None and not (lo <= a < hi):
                 return None
             return a
-        return self.sy.addr(name)
+        return self.sy.addr(name, unit)
+
+    def inferred_for(self, name, unit):
+        if self.sy.has_local(name, unit):
+            return self.local_inferred.get((unit, name))
+        return self.inferred.get(name)
 
     def local_addr(self, e, unit, sym, addend=0):
         """unit-section-offset anchored address for object-local symbols (advisory)."""
@@ -253,7 +294,7 @@ class Prog:
         va = self.vtable_anchor(t['name'])
         if va and va[1] == 'vtable-ctor':
             return va[0] + addend, va[1]
-        inf = self.inferred.get(t['name']) if not drifty(t) and t['type'] != 3 and t['bind'] != 0 else None
+        inf = self.inferred_for(t['name'], unit) if not drifty(t) and t['type'] != 3 and t['bind'] != 0 else None
         if inf and len(inf) == 1:
             return next(iter(inf)) + addend, 'inferred'
         if drifty(t) or t['type'] == 3 or (t['bind'] == 0 and t['sec']):
@@ -339,7 +380,8 @@ class Prog:
         return None
 
     def infer(self, exact):
-        """Learn addresses of symbols.txt-unnamed global/weak symbols from exact functions' instructions."""
+        """Learn global/weak addresses from exact instructions, keeping named local copies separate."""
+        self.local_inferred = collections.defaultdict(lambda: collections.defaultdict(list))
         for unit, e, f, faddr, dolb, rels in exact:
             hi = {}
             for off in sorted(rels):
@@ -351,13 +393,15 @@ class Prog:
                 if not op:
                     continue
                 key = (symidx, addend)
+                inferred = (self.local_inferred[unit, t['name']] if self.sy.has_local(t['name'], unit)
+                            else self.inferred[t['name']])
                 if op[0] == 'addr':
-                    self.inferred[t['name']][(op[1] - addend) & 0xFFFFFFFF].append((unit, f['name'], off))
+                    inferred[(op[1] - addend) & 0xFFFFFFFF].append((unit, f['name'], off))
                 elif op[0] == 'hi' and typ == R_ADDR16_HA:
                     hi[key] = op[1]
                 elif op[0] == 'lo' and key in hi:
                     val = ((hi[key] << 16) + s16(op[1])) & 0xFFFFFFFF
-                    self.inferred[t['name']][(val - addend) & 0xFFFFFFFF].append((unit, f['name'], off))
+                    inferred[(val - addend) & 0xFFFFFFFF].append((unit, f['name'], off))
 
     def dol_ctor_vtables(self):
         """vtable address per class from the DOL bodies of constructors (symbols.txt-named or inferred): the last
@@ -1168,7 +1212,7 @@ class Prog:
                 caddr = self.sym_addr(e, unit, c) if not c['name'].startswith('<') else self.bases.get((unit, e.names[sec]))
                 chow = 'sym'
                 if caddr is None:
-                    inf = self.inferred.get(c['name']) if not drifty(c) and c['bind'] != 0 else None
+                    inf = self.inferred_for(c['name'], unit) if not drifty(c) and c['bind'] != 0 else None
                     if inf and len(inf) == 1:
                         caddr, chow = next(iter(inf)), 'inferred'
                     elif drifty(c) or c['bind'] == 0:
@@ -1212,7 +1256,7 @@ class Prog:
                         continue
                     caddr = self.sym_addr(e, unit, c)
                     if caddr is None:
-                        inf = self.inferred.get(c['name'])
+                        inf = self.inferred_for(c['name'], unit)
                         caddr = next(iter(inf)) if inf and len(inf) == 1 else None
                     if caddr is None:
                         va = self.vtable_anchor(c['name'])
@@ -1253,8 +1297,9 @@ class Prog:
         stats['vtable_ctor_anchors'] = sum(v[1] == 'vtable-ctor' for v in self.vtable_anchors.values())
         stats['vtable_content_anchors'] = sum(v[1] == 'vtable-content' for v in self.vtable_anchors.values())
         conflicts = {n: a for n, a in self.inferred.items() if len(a) > 1}
-        stats['inferred_symbols'] = len(self.inferred)
-        stats['inferred_conflicts'] = len(conflicts)
+        local_conflicts = {key: a for key, a in self.local_inferred.items() if len(a) > 1}
+        stats['inferred_symbols'] = len(self.inferred) + len(self.local_inferred)
+        stats['inferred_conflicts'] = len(conflicts) + len(local_conflicts)
         if 'data' in layers:
             self.run_data(rows, stats)
         if 'code' in layers:
@@ -1267,6 +1312,9 @@ class Prog:
             self.run_names(rows, stats)
         for n, addrs in sorted(conflicts.items()):
             rows.append(dict(layer='conflict', unit='', function=n, offset=0, kind='dispatch', verdict='CONFLICT',
+                             detail={hex(a): [f'{u}:{fn}+{o:#x}' for u, fn, o in ev][:3] for a, ev in addrs.items()}))
+        for (unit, name), addrs in sorted(local_conflicts.items()):
+            rows.append(dict(layer='conflict', unit=unit, function=name, offset=0, kind='dispatch', verdict='CONFLICT',
                              detail={hex(a): [f'{u}:{fn}+{o:#x}' for u, fn, o in ev][:3] for a, ev in addrs.items()}))
         return rows, stats
 

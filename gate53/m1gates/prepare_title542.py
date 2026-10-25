@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import plistlib
 import re
+import stat
 import subprocess
 import common
 
@@ -29,6 +30,10 @@ def main():
     resources = common.tree(original / 'Contents/Resources')
     output.mkdir(parents=True); app = output / 'Petari.app'
     subprocess.run(['/usr/bin/ditto', str(original), str(app)], check=True)
+    # ditto preserves the immutable candidate's read-only modes. Only the owned
+    # copy becomes writable; keep original permissions and bytes untouched.
+    for path in (app, *app.rglob('*')):
+        if not path.is_symlink(): path.chmod(path.stat().st_mode | stat.S_IWUSR)
     subprocess.run(['/usr/libexec/PlistBuddy', '-c', 'Set :CFBundleIdentifier ' + args.bundle_id,
                     str(app / 'Contents/Info.plist')], check=True)
     subprocess.run(['/usr/bin/codesign', '--force', '--deep', '-s', '-', str(app)], check=True, capture_output=True)

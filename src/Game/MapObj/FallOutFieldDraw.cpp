@@ -43,13 +43,7 @@ namespace {
     };
 };  // namespace
 
-// NONMATCHING: initializing the canonical GXColor emits four byte stores instead of one word store.
-// Evidence: team scratch-objects6/REPORT-solA-FallOutFieldDraw.md (approved 164-byte unit loss).
-FallOutFieldDraw::FallOutFieldDraw() : NameObj("クリップエリア描画[抜き]"), mEdgeIndex(0), mUseTexAlpha(false), mIsEdgeColorOverridden(false) {
-    mEdgeColor.r = 0;
-    mEdgeColor.g = 0;
-    mEdgeColor.b = 0;
-    mEdgeColor.a = 0;
+FallOutFieldDraw::FallOutFieldDraw() : NameObj("クリップエリア描画[抜き]"), mEdgeIndex(0), mUseTexAlpha(false), mEdgeColor(0), mIsEdgeColorOverridden(false) {
     MR::createClipAreaHolder();
     MR::connectToScene(this, MR::MovementType_Environment, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_FallOutFieldDraw);
     MR::createScreenAlphaSceneObj(2, 1.0f);
@@ -114,7 +108,7 @@ void FallOutFieldDraw::movement() {
             GXColor color;
             GXColor tableColor = ::sEdgeParams[idx].mColor;
             color = tableColor;
-            mEdgeColor = color;
+            static_cast<GXColor&>(mEdgeColor) = color;
         }
     } else {
         MR::deactivateClipArea();
@@ -126,7 +120,7 @@ void FallOutFieldDraw::resetEdgeColor() {
     GXColor color;
     GXColor tableColor = ::sEdgeParams[mEdgeIndex].mColor;
     color = tableColor;
-    mEdgeColor = color;
+    static_cast<GXColor&>(mEdgeColor) = color;
 }
 
 void FallOutFieldDraw::draw() const {
@@ -203,7 +197,7 @@ namespace MR {
             FallOutFieldDraw* pDraw = MR::getSceneObj< FallOutFieldDraw >(SceneObj_FallOutFieldDraw);
             GXColor color = rColor;
             pDraw->mIsEdgeColorOverridden = true;
-            pDraw->mEdgeColor = color;
+            static_cast<GXColor&>(pDraw->mEdgeColor) = color;
         }
     }
 

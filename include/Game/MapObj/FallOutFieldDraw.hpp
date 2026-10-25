@@ -2,6 +2,7 @@
 
 #include "Game/NameObj/NameObj.hpp"
 #include <revolution.h>
+#include "JSystem/JUtility/TColor.hpp"
 
 class FallOutFieldDraw : public NameObj {
 public:
@@ -21,7 +22,7 @@ public:
     /* 0x14 */ u32 mEdgeIndex;
     /* 0x18 */ u8 mUseTexAlpha;
     /* 0x19 */ u8 _19[3];
-    /* 0x1C */ GXColor mEdgeColor;
+    /* 0x1C */ JUtility::TColor mEdgeColor;
     /* 0x20 */ bool mIsEdgeColorOverridden;
 };
 

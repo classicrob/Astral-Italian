@@ -8,7 +8,7 @@
 #include <JSystem/J3DGraphAnimator/J3DModel.hpp>
 #include <cstdio>
 
-extern const char lbl_807CFEB0[4], lbl_807CF430[4];
+extern const char lbl_807CFEB0[4];
 
 namespace NrvGhostAttackGhost {
     NEW_NERVE(GhostAttackGhostNrvStart, GhostAttackGhost, Start);
@@ -176,18 +176,13 @@ bool GhostAttackGhost::tryStartRace(HitSensor*, HitSensor* receiver) {
     setNerve(GHOST_NERVE(Appear));
     return true;
 }
-// NONMATCHING: animation controller load and parameter store scheduling.
 void GhostAttackGhost::startSleep() {
     mRaceDataReader->startActionName("SleepLie");
     MR::startBtp(this, "Sleep");
     XanimePlayer* player = mRaceDataReader->mXanimePlayer;
     BckCtrlData data;
-#ifndef GALAXY_NATIVE
-    data.mName = lbl_807CF430;
-#endif
-    // Native BckCtrlData already retains the constructor's canonical empty name.
-    data.mStartFrame = 0;
     data.mLoopMode = 2;
+    data.mStartFrame = 0;
     data.mRepeatFrame = 134;
     data.mEndFrame = 254;
     data.mInterpole = 20;

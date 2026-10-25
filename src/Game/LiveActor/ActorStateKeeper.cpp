@@ -1,7 +1,6 @@
 #include "Game/LiveActor/ActorStateKeeper.hpp"
 #include "Game/LiveActor/ActorStateBase.hpp"
 
-#ifdef GALAXY_NATIVE
 bool ActorStateBaseInterface::update() {
     updateNerve();
     if (mIsDead) {
@@ -10,7 +9,6 @@ bool ActorStateBaseInterface::update() {
     control();
     return false;
 }
-#endif
 
 ActorStateKeeper::ActorStateKeeper(int capacity) : mStatesCapacity(capacity), mLength(), mStates(), mCurrentState() {
     mStates = new State[capacity];

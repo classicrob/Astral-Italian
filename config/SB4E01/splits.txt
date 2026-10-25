@@ -5086,7 +5086,7 @@ Game/LiveActor/ActorSoundHolder.cpp:
 	.text       start:0x8022CD70 end:0x8022CEE0
 
 Game/LiveActor/ActorStateKeeper.cpp:
-	.text       start:0x8022CF40 end:0x8022D140
+	.text       start:0x8022CEE0 end:0x8022D140
 
 Game/LiveActor/ActorStateParamScale.cpp:
 	.text       start:0x8022D140 end:0x8022D870

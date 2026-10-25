@@ -184,8 +184,7 @@ void MiniPlayerRocket::updateMove() {
         return;
     }
 
-    TVec3f up(0.0f, 0.0f, 1.0f);
-    updateRotation(up, mMoveSpeed);
+    updateRotation(TVec3f(0.0f, 0.0f, 1.0f), mMoveSpeed);
     mMoveSpeed = 0.25f;
 }
 

@@ -1012,13 +1012,19 @@ bool BegomanBase::calcJointLocator1(TPos3f* pPos, const JointControllerInfo& rJo
 }
 
 // NONMATCHING: pointer register allocation.
+namespace {
+    inline const TVec3f& getBegomanControllerScale(const AnimScaleController& controller) {
+        return controller.mScale;
+    }
+}
+
 void BegomanBase::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mBaseRotation);
 
     if (mScaleControler != nullptr) {
         TVec3f scale;
 
-        scale.set(mScaleControler->mScale);
+        scale.set(getBegomanControllerScale(*mScaleControler));
         mHeadScale.set(scale);
         scale *= mScale;
         MR::setBaseScale(this, scale);

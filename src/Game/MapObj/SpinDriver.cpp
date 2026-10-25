@@ -600,6 +600,12 @@ void SpinDriver::exeCoolDown() {
 }
 
 // Target retains the quaternion assignment call; the shared operator currently inlines it.
+namespace {
+    inline const TVec3f& bindActorPosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 bool SpinDriver::startBind(HitSensor* pSensor) {
     if (!canStartBind()) {
         return false;
@@ -630,7 +636,7 @@ bool SpinDriver::startBind(HitSensor* pSensor) {
     }
 
     mBindActor = MR::getSensorHost(pSensor);
-    mBindPos = mBindActor->mPosition;
+    mBindPos = bindActorPosition(*mBindActor);
 
     mBindVelocity = *MR::getPlayerLastMove();
 

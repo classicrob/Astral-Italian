@@ -195,10 +195,7 @@ void Shellfish::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayer(pReceiver)) {
         MR::emitEffectHitBetweenSensors(this, pSender, pReceiver, 0.0f, nullptr);
         MtxPtr mtx = getBaseMtx();
-        TVec3f direction;
-        direction.z = mtx[2][2];
-        direction.y = mtx[1][2];
-        direction.x = mtx[0][2];
+        TVec3f direction(mtx[0][2], mtx[1][2], mtx[2][2]);
 
         if (MR::sendMsgEnemyAttackStrongToDir(pReceiver, pSender, direction)) {
             MR::invalidateCollisionParts(this);

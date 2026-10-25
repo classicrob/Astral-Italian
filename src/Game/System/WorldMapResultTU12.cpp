@@ -33,14 +33,7 @@ void WorldMapResultStateGrandGalaxyOpen::exeWait() {
     s32 steps = 0x1E;
     f32 v = mFovy;
     f32 r = MR::getEaseInValue((f32)getNerveStep() / (f32)steps, mFovy, 179.0f, 1.0f);
-    if (r < v) {
-    } else {
-        v = 179.0f;
-        if (r > v) {
-        } else {
-            v = r;
-        }
-    }
+    v = MR::clamp(r, v, 179.0f);
     MR::setFovy(v);
 
     if (MR::isGreaterEqualStep(this, 0x1E)) {

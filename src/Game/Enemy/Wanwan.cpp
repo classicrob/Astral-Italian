@@ -470,6 +470,10 @@ bool Wanwan::move(f32 speed) {
 // NONMATCHING: matrix temporary stack layout and rotate-call argument scheduling.
 #pragma auto_inline off
 // NONMATCHING: literal load scheduling (0.0174 vs 1.0 order)
+inline f32 wanwanRadians(f32 angle, f32 factor) {
+    return factor * angle;
+}
+
 void Wanwan::calcBaseMtx(TPos3f* pMtx) const {
     TVec3f up;
     JGeometry::negateInternal(&mGravity.x, &up.x);
@@ -478,7 +482,7 @@ void Wanwan::calcBaseMtx(TPos3f* pMtx) const {
     } else {
         MR::makeMtxUpFrontPos(pMtx, up, mFront, mPosition);
     }
-    f32 ang = 0.017453292f * mRotation.x;
+    f32 ang = wanwanRadians(mRotation.x, 0.017453292f);
     TPos3f rot;
     rot.makeRotate(TVec3f(1.0f, 0.0f, 0.0f), ang);
     pMtx->concat(*pMtx, rot);

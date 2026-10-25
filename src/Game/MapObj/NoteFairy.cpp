@@ -247,8 +247,7 @@ void NoteFairy::exeStartAppearDemo() {
     }
 
     if (MR::isStep(this, 30)) {
-        TVec3f stack_8 = mOriginPos - *MR::getPlayerPos();
-        MR::setPlayerFrontVec(stack_8, 1);
+        MR::setPlayerFrontVec(mOriginPos - *MR::getPlayerPos(), 1);
         enterDemoAppear(GET_NERVE(NoteFairy, NoteFairyNrvDemoAppear), true);
     }
 }

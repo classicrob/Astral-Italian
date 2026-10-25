@@ -312,9 +312,9 @@ void BombHei::exeWait() {
 // NONMATCHING: saved-register allocation differs.
 #pragma global_optimizer off
 void BombHei::exeWalk() {
+    TVec3f randDir;
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Walk");
-        TVec3f randDir;
         MR::getRandomVector(&randDir, 1.0f);
         MR::vecKillElement(randDir, mGravity, &randDir);
         MR::normalizeOrZero(&randDir);

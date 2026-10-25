@@ -162,12 +162,18 @@ void StoryBookText::exeNextPage() {
 }
 
 // NONMATCHING: register allocation (target hoists the table base into r31 before the isFirstStep branch)
+namespace {
+    inline void setStoryBookWindowFrame(LayoutActor* layout, const u32& frame) {
+        MR::startAnimAndSetFrameAndStop(layout, "WindowSize", static_cast<f32>(frame), 1);
+    }
+}
+
 void StoryBookText::exeShowText() {
     if (MR::isFirstStep(this)) {
         MR::initTagProcessorRecursive(this, "StoryBookText", 2);
         MR::setTextBoxMessageRecursive(this, "StoryBookText", mMessage);
         MR::startAnim(this, "Appear", 0);
-        MR::startAnimAndSetFrameAndStop(this, "WindowSize", (f32)MR::getTextLineNumMaxRecursive(this, "StoryBookText"), 1);
+        setStoryBookWindowFrame(this, MR::getTextLineNumMaxRecursive(this, "StoryBookText"));
     }
     if (MR::isAnimStopped(this, 0)) {
         setNerve(&NrvStoryBookText::StoryBookTextNrvWait::sInstance);
@@ -188,7 +194,7 @@ void StoryBookText::setMessage(const char* pMsgName, s32 msgNo) {
     } else if (MR::isStoryBookPageKindC(pMsgName, msgNo) != 0) {
         MR::showPaneRecursive(this, "TextU");
     }
-    MR::startAnimAndSetFrameAndStop(this, "WindowSize", (f32)MR::getTextLineNumMaxRecursive(this, "StoryBookText"), 1);
+    setStoryBookWindowFrame(this, MR::getTextLineNumMaxRecursive(this, "StoryBookText"));
     setNerve(&NrvStoryBookText::StoryBookTextNrvAppear::sInstance);
     LayoutActor::appear();
 }

@@ -242,6 +242,18 @@ bool TalkStateNormal::prep(const TalkMessageCtrl* pArg1) {
     return true;
 }
 
+namespace {
+    inline void subtractScreenCenter(TVec3f& direction, const TVec3f& center) {
+        direction.sub(center);
+    }
+
+    inline TVec3f screenDirection(const TVec3f& up, const TVec3f& center) {
+        TVec3f direction(up);
+        subtractScreenCenter(direction, center);
+        return direction;
+    }
+}
+
 void TalkStateNormal::updateButton() {
     TVec3f camZ(MR::getCamZdir());
     TVec3f camY(MR::getCamYdir());
@@ -256,7 +268,7 @@ void TalkStateNormal::updateButton() {
 
     MR::calcNormalizedScreenPosition(&up, up * 1000.0f + centerPlayer);
     MR::calcNormalizedScreenPosition(&centerPlayer, centerPlayer);
-    MR::normalize(up - centerPlayer, &up);
+    MR::normalize(&up, screenDirection(up, centerPlayer));
     TVec2f playerScreenPos;
     MR::calcScreenPosition(&playerScreenPos, *MR::getPlayerCenterPos());
 

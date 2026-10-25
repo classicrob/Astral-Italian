@@ -318,7 +318,8 @@ bool TwoLegs::isPlayerBetweenFeet() {
     TVec3f dirL;
     MR::calcDirectionVec(&dirL, mBodyDir->mPos, footL);
     TVec3f dirP;
-    MR::calcDirectionVec(&dirP, mBodyDir->mPos, *MR::getPlayerCenterPos());
+    const TVec3f& bodyPosition = mBodyDir->mPos;
+    MR::calcDirectionVec(&dirP, bodyPosition, *MR::getPlayerCenterPos());
     f32 angleP = MR::diffAngleSigned(dirR, dirP, mBodyDir->mFront);
     f32 angleL = MR::diffAngleSigned(dirR, dirL, mBodyDir->mFront);
     bool ret = false;

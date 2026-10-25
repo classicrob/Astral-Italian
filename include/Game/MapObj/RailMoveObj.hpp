@@ -43,9 +43,29 @@ public:
     virtual void init(const JMapInfoIter&);
 };
 
+class RailMoveObjSwitchWarpEnd : public RailMoveObj {
+public:
+    inline RailMoveObjSwitchWarpEnd(const char* pName) : RailMoveObj(pName) {
+    }
+
+    virtual bool tryStartMove();
+    virtual void startMoveInner();
+    virtual void move();
+    virtual void doAtEndPoint();
+
+    /* 0xDD */ u8 mIsWarpEffectStarted;
+};
+
 class RailMoveObjBreakAtEnd : public RailMoveObj {
 public:
     RailMoveObjBreakAtEnd(const char*);
+
+    virtual void doAtEndPoint();
+};
+
+class RailMoveObjShakeCamera : public RailMoveObj {
+public:
+    RailMoveObjShakeCamera(const char*);
 
     virtual void doAtEndPoint();
 };
@@ -56,6 +76,15 @@ public:
     }
 
     virtual void connectToScene(const MapObjActorInitInfo&);
+};
+
+class RailMoveWithIndirectModelObj : public RailMoveObj {
+public:
+    RailMoveWithIndirectModelObj(const char*);
+
+    virtual void init(const JMapInfoIter&);
+
+    /* 0xE0 */ PartsModel* mIndirectModel;
 };
 
 class RailMoveObjSwitchShadow : public RailMoveObj {
@@ -82,6 +111,14 @@ public:
     /* 0xE0 */ DemoCtrlBase* mDemoControl;
 };
 
+class RailAndRotateMoveObj : public RailMoveObj {
+public:
+    RailAndRotateMoveObj(const char*);
+
+    virtual void init(const JMapInfoIter&);
+    virtual void setupInitInfo(const JMapInfoIter&, MapObjActorInitInfo*);
+};
+
 class RailRotateMoveObj : public RailMoveObj {
 public:
     RailRotateMoveObj(const char*);
@@ -92,53 +129,6 @@ public:
 
     bool tryStartRotateAtPoint();
     bool tryStartRotateBetweenPoints();
-};
-
-class RailAndRotateMoveObj : public RailMoveObj {
-public:
-    RailAndRotateMoveObj(const char*);
-
-    virtual void init(const JMapInfoIter&);
-    virtual void setupInitInfo(const JMapInfoIter&, MapObjActorInitInfo*);
-};
-
-class RailMoveShadowDropYObj : public RailMoveObj {
-public:
-    RailMoveShadowDropYObj(const char*);
-
-    virtual void init(const JMapInfoIter&);
-    virtual void control();
-
-    /* 0xE0 */ TVec3f mShadowDropDir;
-};
-
-class RailMoveObjSwitchWarpEnd : public RailMoveObj {
-public:
-    inline RailMoveObjSwitchWarpEnd(const char* pName) : RailMoveObj(pName) {
-    }
-
-    virtual bool tryStartMove();
-    virtual void startMoveInner();
-    virtual void move();
-    virtual void doAtEndPoint();
-
-    /* 0xDD */ u8 mIsWarpEffectStarted;
-};
-
-class RailMoveObjShakeCamera : public RailMoveObj {
-public:
-    RailMoveObjShakeCamera(const char*);
-
-    virtual void doAtEndPoint();
-};
-
-class RailMoveWithIndirectModelObj : public RailMoveObj {
-public:
-    RailMoveWithIndirectModelObj(const char*);
-
-    virtual void init(const JMapInfoIter&);
-
-    /* 0xE0 */ PartsModel* mIndirectModel;
 };
 
 class RailSeesawMoveObj : public RailMoveObj {
@@ -154,6 +144,16 @@ public:
     RailMoveDemoActionObj(const char*);
 
     virtual void initDemoAction();
+};
+
+class RailMoveShadowDropYObj : public RailMoveObj {
+public:
+    RailMoveShadowDropYObj(const char*);
+
+    virtual void init(const JMapInfoIter&);
+    virtual void control();
+
+    /* 0xE0 */ TVec3f mShadowDropDir;
 };
 
 class RailMoveWithReverseAnimObj : public RailMoveObj {

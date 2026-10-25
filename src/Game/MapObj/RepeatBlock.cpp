@@ -622,7 +622,12 @@ bool RepeatBlock::checkShadowArea() {
     }
     s32 arg = MR::getAreaObjArg(pArea, 0);
     s32 currentDirection = mShadowDrawer->mDirection;
-    s32 dir = 0;
+    s32 dir;
+#ifdef GALAXY_NATIVE
+    dir = 0;
+#else
+    // The Wii default case inherits r4=0 from getAreaObjArg, matching the native fallback.
+#endif
     switch (arg) {
     case 0:
         dir = 0;

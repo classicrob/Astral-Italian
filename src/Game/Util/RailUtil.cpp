@@ -703,6 +703,10 @@ namespace MR {
         return pActor->mRailRider->getRailArgNoInit("path_arg5", pArg);
     }
 
+    // Original pool string at 80669190 has no surviving reference,
+    // likely from code stripped from the shipped build.
+    char sUnusedRailArg6[] = "path_arg6";
+
     bool getRailArg7WithInit(const LiveActor* pActor, s32* pArg) {
         return pActor->mRailRider->getRailArgWithInit("path_arg7", pArg);
     }

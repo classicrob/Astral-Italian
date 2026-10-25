@@ -4,7 +4,8 @@
 prepare freezes configured edges and targets; probe checks compiler acceptance;
 run scores fresh controls and each accepted variant. Serial is the default and
 locks every compiler invocation with decomp-quiet.lock. Only an explicit
-parallel-enabled marker allows four workers. No configure, Ninja, or split.
+parallel-enabled marker allows two unlocked workers (up to four with --jobs).
+No configure, Ninja, or split.
 """
 from __future__ import annotations
 
@@ -267,6 +268,7 @@ def probe(args):
 
 def run(args):
     out = args.out.resolve(); manifest = json.loads((out / 'manifest.json').read_text()); check(manifest)
+    workers = min(args.jobs, manifest['workers'])
     accepted = {r['variant'] for r in json.loads((out / 'acceptance.json').read_text()) if r['reportable']}
     controls = [dict(name='baseline', argv=[])]
     selected = [v for v in manifest['variants'] if v['name'] in accepted and (not args.variants or v['name'] in args.variants)]
@@ -277,10 +279,10 @@ def run(args):
         if args.limit:
             pending = pending[:args.limit]
         with (out / (name + '.jsonl')).open('a') as stream:
-            for start in range(0, len(pending), manifest['workers']):
+            for start in range(0, len(pending), workers):
                 check(manifest)
                 parallel = (out / 'parallel-enabled').exists()
-                batch = pending[start:start + manifest['workers']]
+                batch = pending[start:start + workers]
                 def work(item):
                     row = compile_one(manifest, item, variant, serial=not parallel)
                     before = baseline.get(row['unit'])
@@ -292,13 +294,8 @@ def run(args):
                             row['status'] = 'baseline_unavailable'
                     return row
                 if parallel:
-                    with tempfile.TemporaryDirectory(prefix='cfg-batch-') as directory:
-                        taskfile = Path(directory) / 'tasks.json'
-                        taskfile.write_text(json.dumps(dict(items=batch, variant=variant, baseline=baseline)))
-                        command = ['lockf', '-k', str(g.LOCK), sys.executable, str(Path(__file__).resolve()),
-                                   'batch', '--out', str(out), '--tasks', str(taskfile)]
-                        completed = subprocess.run(command, text=True, stdout=subprocess.PIPE, check=True)
-                        rows = [json.loads(line) for line in completed.stdout.splitlines()]
+                    with ThreadPoolExecutor(workers) as executor:
+                        rows = list(executor.map(work, batch))
                 else:
                     rows = [work(item) for item in batch]
                 for row in rows:
@@ -329,7 +326,7 @@ def batch(args):
             else:
                 row['status'] = 'baseline_unavailable'
         return row
-    with ThreadPoolExecutor(manifest['workers']) as executor:
+    with ThreadPoolExecutor(min(args.jobs, manifest['workers'])) as executor:
         for row in executor.map(work, tasks['items']):
             print(json.dumps(row), flush=True)
 
@@ -422,6 +419,8 @@ def main():
     parser.add_argument('--residue', type=Path, default=OUT.parent / 'lists/residue.tsv')
     parser.add_argument('--variants', nargs='+')
     parser.add_argument('--limit', type=int)
+    parser.add_argument('--jobs', type=int, choices=range(1, 5), default=2,
+                        help='parallel compiler limit after parallel-enabled is explicitly created (default: 2)')
     parser.add_argument('--tasks', type=Path)
     args = parser.parse_args()
     if args.variants:

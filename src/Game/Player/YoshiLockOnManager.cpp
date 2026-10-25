@@ -22,6 +22,12 @@ MR::BothDirPtrLink* YoshiLockOnIterator::operator++(int) {
     return previous;
 }
 
+namespace {
+    inline bool hasYoshiLockOnTarget(MR::BothDirPtrLink* const& link) {
+        return link != nullptr;
+    }
+}
+
 void YoshiLockOnTargetControl::reset() {
     mTarget = nullptr;
     mFramesUntilExpiry = 0;
@@ -58,11 +64,10 @@ void YoshiLockOnManager::movement() {
     mHasUpdated = true;
 }
 
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiLockOnManager::draw() const {
     if (mHasUpdated) {
-        for (YoshiLockOnIterator iterator(mFading.mHead); iterator.mLink; iterator++) static_cast<YoshiLockOnTargetControl*>(iterator.mLink->mValue)->calcScreenPosition();
-        for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; iterator++) static_cast<YoshiLockOnTargetControl*>(iterator.mLink->mValue)->calcScreenPosition();
+        for (YoshiLockOnIterator iterator(mFading.mHead); hasYoshiLockOnTarget(iterator.mLink); iterator++) static_cast<YoshiLockOnTargetControl*>(iterator.mLink->mValue)->calcScreenPosition();
+        for (YoshiLockOnIterator iterator(mActive.mHead); hasYoshiLockOnTarget(iterator.mLink); iterator++) static_cast<YoshiLockOnTargetControl*>(iterator.mLink->mValue)->calcScreenPosition();
     }
 }
 
@@ -104,11 +109,6 @@ u32 YoshiLockOnManager::getTargetCapacity() {
     return 16;
 }
 
-namespace {
-    inline bool hasYoshiLockOnTarget(MR::BothDirPtrLink* const& link) {
-        return link != nullptr;
-    }
-}
 
 u32 YoshiLockOnManager::takeActiveTargets(YoshiLockOnTargetDesc* out, u32) {
     u32 count = 0;

@@ -11,7 +11,7 @@ public:
     JointController* createJointController(Yoshi*, const char*, JointFunc, JointFunc);
     void fn_80417FE0();
     void fn_80418020();
-    void fn_80418060(const TVec3f*, s32, f32);
+    void fn_80418060(const TVec3f*, f32, s32);
     void fn_80418090();
     void fn_804180B0(const TVec3f*, f32);
     void fn_804180E0();

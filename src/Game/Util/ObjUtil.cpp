@@ -1048,6 +1048,9 @@ bool MR::tryRumblePad(const void* pParam1, const char* pPatternName, s32 channel
 }
 
 
+// Likely the long strongest rumble pattern from a stripped helper; retained for the original data layout.
+char sRumbleVeryStrongLong[] = "最強【長】";
+
 bool MR::tryRumblePadVeryStrong(const void* pParam1, s32 channel) {
     return WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pParam1, "最強");
 }

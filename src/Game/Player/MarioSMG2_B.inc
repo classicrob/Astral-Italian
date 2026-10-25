@@ -5876,17 +5876,3 @@ void MarioTeresa_FORCE_MATCH_SDATA2() {
 XjointTransform* (XanimeCore::*Mario_FORCE_MATCH_JOINT_TRANSFORM())(u32) {
     return &XanimeCore::getJointTransform;
 }
-
-// native: defined in MarioTeresa.cpp (DOL split owner); misplaced copy
-#ifndef GALAXY_NATIVE
-XanimeGroupInfo teresaAnimeTable[] = {
-    {{"基本"}, 1.0f, 16},
-    {{""}},
-};
-
-
-XanimeBckTable2 teresaAnime2[] = {
-    {{"基本"}, {{"wait", 1.0f}, {"run", 0.0f}}},
-    {{""}, {{"", 0.0f}, {nullptr, 0.0f}}},
-};
-#endif

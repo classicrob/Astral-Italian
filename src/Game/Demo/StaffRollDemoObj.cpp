@@ -44,7 +44,7 @@ namespace NrvStaffRollDemoObj {
     StaffRollDemoObjNrvH StaffRollDemoObjNrvH::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvStaffRollDemoObj
 
-StaffRollDemoObj::StaffRollDemoObj(const char* pName) : LiveActor(pName), mStaffRollObj(nullptr), mChildA(nullptr), mStep98(0), mStep9C(0), mCameraInfo(nullptr), mActorArray(), mActorFill(0), mChildB(nullptr), mChildC(nullptr), mRollA(nullptr), mRollB(nullptr) {
+StaffRollDemoObj::StaffRollDemoObj(const char* pName) : LiveActor(pName), mStaffRollObj(nullptr), mChildA(nullptr), mStep98(0), mStep9C(0), mCameraInfo(nullptr), mActors(), mChildB(nullptr), mChildC(nullptr), mRollA(nullptr), mRollB(nullptr) {
 }
 
 void StaffRollDemoObj::init(const JMapInfoIter& rIter) {
@@ -79,8 +79,8 @@ static inline LiveActor* createStaffRollSky(const JMapInfoIter& iter) {
 
 void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
     mChildA = createStaffRollSky(rIter);
-    mActorArray.mArr = new LiveActor*[3];
-    mActorArray.mMaxSize = 3;
+    mActors.mArray.mArr = new LiveActor*[3];
+    mActors.mArray.mMaxSize = 3;
     s32 actorNum = MR::getChildObjNum(rIter);
     for (s32 i = 0; i < actorNum; i++) {
         const char* pName = nullptr;
@@ -88,12 +88,12 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
         if (MR::isEqualString(pName, "StaffRollDecorateFaceShip")) {
             LiveActor* pActor = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             pActor->makeActorDead();
-            f32 frame = static_cast< f32 >(mActorFill);
+            f32 frame = static_cast< f32 >(mActors.mCount);
                         MR::setBckFrameAndStop(pActor, frame);
             MR::setBtpFrameAndStop(pActor, frame);
-            s32 idx = mActorFill;
-            mActorFill = idx + 1;
-            mActorArray.mArr[idx] = pActor;
+            s32 idx = mActors.mCount;
+            mActors.mCount = idx + 1;
+            mActors.mArray.mArr[idx] = pActor;
         } else if (MR::isEqualString(pName, "StaffRollDecorateComet")) {
             mChildB = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             const char* pAnim;
@@ -180,8 +180,8 @@ void StaffRollDemoObj::updateActorVisibility() {
     } else {
         targetIdx = mStep98 == 8 ? 0 : -1;
     }
-    for (LiveActor** actor = mActorArray.mArr; actor != mActorArray.mArr + mActorFill; actor++) {
-        s32 index = actor - mActorArray.mArr;
+    for (LiveActor** actor = mActors.mArray.mArr; actor != mActors.mArray.mArr + mActors.mCount; actor++) {
+        s32 index = actor - mActors.mArray.mArr;
         if (index == targetIdx) {
             (*actor)->makeActorAppeared();
         } else {
@@ -190,7 +190,6 @@ void StaffRollDemoObj::updateActorVisibility() {
     }
 }
 
-// NONMATCHING: equivalent redundant member null check omitted
 StaffRollDemoObj::~StaffRollDemoObj() {
 }
 
@@ -201,7 +200,7 @@ void StaffRollDemoObj::exeB() {
         MR::onSwitchA(this);
         mRollA->end();
         MR::tryStartDemo(this, sPageTurnDemoName);
-        for (LiveActor** actor = mActorArray.mArr; actor != mActorArray.mArr + mActorFill; actor++) {
+        for (LiveActor** actor = mActors.mArray.mArr; actor != mActors.mArray.mArr + mActors.mCount; actor++) {
             MR::requestMovementOn(*actor);
         }
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvD));

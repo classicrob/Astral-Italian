@@ -455,7 +455,6 @@ config.linker_version = "GC/3.0a5"
 
 
 GAME_MW10_EXCEPTIONS = {
-    "Game/Util/BossBussunShot.cpp",  # 1.0 kept: 1.3 crosses add and operator+= call identities, revisit
     "Game/NPC/Rabbit.cpp",  # 1.0 kept: 1 current-source function drops under 1.3, revisit
     "Game/MapObj/Gorogoro.cpp",  # 1.0 kept: 1 current-source function drops under 1.3, revisit
     "Game/Boss/Sandy.cpp",  # 1.0 kept: 1 current-source function drops under 1.3, revisit
@@ -1873,6 +1872,7 @@ config.libs = [
             Object(NonMatching, "Game/System/GameSystem.cpp"),
             Object(NonMatching, "Game/System/GameSystemErrorWatcher.cpp"),
             Object(NonMatching, "Game/System/GameSystemFunction.cpp"),
+            Object(Matching, "Game/System/ErrorMessageArchive.cpp"),
             Object(NonMatching, "Game/System/GameSystemObjHolder.cpp"),
             Object(NonMatching, "Game/System/GameSystemResetAndPowerProcess.cpp"),
             Object(NonMatching, "Game/System/GameSystemSceneController.cpp"),
@@ -2066,6 +2066,7 @@ config.libs = [
             Object(NonMatching, "Game/Util/NerveUtil.cpp"),
             Object(NonMatching, "Game/Util/ObjUtil.cpp"),
             Object(NonMatching, "Game/Util/ParabolicPath.cpp"),
+            Object(NonMatching, "Game/Util/PlayerGhostData.cpp"),
             Object(NonMatching, "Game/Util/PlayerUtil.cpp"),
             Object(NonMatching, "Game/Util/RailGraphUtil.cpp"),
             Object(NonMatching, "Game/Util/RailUtil.cpp"),
@@ -2093,6 +2094,8 @@ config.libs = [
             Object(NonMatching, "Game/Util/BellyDragonTU06.cpp"),
             Object(NonMatching, "Game/Util/BindCone.cpp"),
             Object(NonMatching, "Game/Util/BossBussun.cpp"),
+            # Original Sequencer/Shot boundary preserves distinct +=/add bodies under file IPA.
+            Object(NonMatching, "Game/Util/BossBussunSequencer.cpp"),
             Object(NonMatching, "Game/Util/BossBussunShot.cpp"),
             Object(NonMatching, "Game/Util/BossBussunStateChangeSide.cpp"),
             Object(NonMatching, "Game/Util/BossBussunStateDamage.cpp"),

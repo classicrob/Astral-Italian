@@ -32,7 +32,7 @@ JointController* YoshiModelCtrl::createJointController(Yoshi* host,const char* n
 }
 void YoshiModelCtrl::fn_80417FE0() { updateState();updateSpineBlend(); }
 void YoshiModelCtrl::fn_80418020() { mHeadController->registerCallBack();mSpineController->registerCallBack(); }
-void YoshiModelCtrl::fn_80418060(const TVec3f* target,s32 duration,f32 offset) { mTargetState->mTarget=target;mTargetState->mOffset=offset;mTargetEnabled=true;mImmediate=0;mBlendDuration=duration; }
+void YoshiModelCtrl::fn_80418060(const TVec3f* target,f32 offset,s32 duration) { mTargetState->mTarget=target;mTargetState->mOffset=offset;mTargetEnabled=true;mImmediate=0;mBlendDuration=duration; }
 void YoshiModelCtrl::fn_80418090() { mTargetState->mTarget=nullptr;mTargetEnabled=false;mImmediate=0; }
 void YoshiModelCtrl::fn_804180B0(const TVec3f* target,f32 offset) { mTargetState->mTarget=target;mTargetState->mOffset=offset;mTargetEnabled=true;mImmediate=1;mSpineBlend=10; }
 void YoshiModelCtrl::fn_804180E0() { mTargetState->mTarget=nullptr;mTargetEnabled=false;mImmediate=1;mSpineBlend=0; }

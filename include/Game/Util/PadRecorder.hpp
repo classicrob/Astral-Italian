@@ -2,6 +2,9 @@
 
 #include "Game/NameObj/NameObj.hpp"
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include <cstddef>
+#endif
 
 struct KPADStatus;
 
@@ -23,21 +26,31 @@ public:
 /// Header of a pad recording (0x40 bytes).
 struct PadRecordHeader {
     PadRecordHeader() {
-        _4 = -1;
-        _8 = -1;
+        _4[0] = -1;
+        _4[1] = -1;
     }
 
     /* 0x00 */ u32 mHeaderSize;
-    /* 0x04 */ s32 _4;
-    /* 0x08 */ s32 _8;
+    /* 0x04 */ s32 _4[2];
     /* 0x0C */ u8 _C;
     /* 0x0D */ u8 _D;
     /* 0x0E */ u8 _E;
     /* 0x0F */ u8 _F;
-    /* 0x10 */ s32 _10;
-    /* 0x14 */ s32 _14;
+    /* 0x10 */ u64 _10;
     /* 0x18 */ u8 _18[0x28];
 };
+
+#ifdef GALAXY_NATIVE
+static_assert(sizeof(PadRecordHeader) == 0x40, "PadRecordHeader must retain its file size");
+static_assert(offsetof(PadRecordHeader, mHeaderSize) == 0x00, "PadRecordHeader size offset");
+static_assert(offsetof(PadRecordHeader, _4) == 0x04, "PadRecordHeader word-pair offset");
+static_assert(offsetof(PadRecordHeader, _C) == 0x0C, "PadRecordHeader byte-field offset");
+static_assert(offsetof(PadRecordHeader, _D) == 0x0D, "PadRecordHeader byte-field offset");
+static_assert(offsetof(PadRecordHeader, _E) == 0x0E, "PadRecordHeader byte-field offset");
+static_assert(offsetof(PadRecordHeader, _F) == 0x0F, "PadRecordHeader byte-field offset");
+static_assert(offsetof(PadRecordHeader, _10) == 0x10, "PadRecordHeader double-word offset");
+static_assert(offsetof(PadRecordHeader, _18) == 0x18, "PadRecordHeader trailing-data offset");
+#endif
 
 /// Replays recorded pad input (SMG2: demo / "pad mode").
 class WPadReadDataInfo;

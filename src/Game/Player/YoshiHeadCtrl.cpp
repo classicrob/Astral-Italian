@@ -12,7 +12,6 @@ void YoshiHeadCtrl::fn_8041A9F0() {
     for (s32 i=0;i<2;i++) { mEnabled[i]=false;mTargets[i]=nullptr;_E[i]=false; }
     mModelCtrl->fn_804180E0();mModelCtrl->fn_80418110();
 }
-// NONMATCHING: integer and float table-address/load order only.
 void YoshiHeadCtrl::fn_8041AA70(s32 index,const TVec3f* target) {
     bool update=true;
     if (_4!=0 && mTargetCount<index) update=false;
@@ -20,12 +19,9 @@ void YoshiHeadCtrl::fn_8041AA70(s32 index,const TVec3f* target) {
     else { mTargets[index]=target;_E[index]=false; }
     if (update) {
         mModelCtrl->fn_80418110();
-        f32 rate = sTargetRates[index];
-        s32 frames = sTargetFrames[index];
-        mModelCtrl->fn_80418060(mTargets[index],frames,rate);mTargetCount=index;
+        mModelCtrl->fn_80418060(mTargets[index],sTargetRates[index],sTargetFrames[index]);mTargetCount=index;
     }
 }
-// NONMATCHING: integer and float table-address/load order only.
 void YoshiHeadCtrl::fn_8041AB50(s32 index) {
     if (mEnabled[index]) {
         mEnabled[index]=false;_4--;
@@ -33,7 +29,7 @@ void YoshiHeadCtrl::fn_8041AB50(s32 index) {
             for(s32 i=0;i<2;i++) {
                 if(mEnabled[i]==1) {
                     if(_E[i]==1) mModelCtrl->fn_80418100();
-                    else {mModelCtrl->fn_80418110();mModelCtrl->fn_80418060(mTargets[i],sTargetFrames[i],sTargetRates[i]);}
+                    else {mModelCtrl->fn_80418110();mModelCtrl->fn_80418060(mTargets[i],sTargetRates[i],sTargetFrames[i]);}
                     mTargetCount=index;return;
                 }
             }

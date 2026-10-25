@@ -606,6 +606,15 @@ typedef void* (*AppGetEntryFunc)(void);
 typedef void (*AppInterfaceFunc)(AppInitFunc*, AppGetNextFunc*, AppGetEntryFunc*);
 
 
+// Diagnostics from stripped OSLaunchDisk checks; retained for the original data layout.
+char sOSLaunchDiskFromDVD[] = "OSLaunchDisk(): You can't call this API from DVD application.  \n";
+char sOSExecSourceFile[] = "OSExec.c";
+char sOSLaunchDiskBeforePrepare[] = "OSLaunchDisk(): You must call DVDPrepareDisk before launching disc.\n";
+char sOSLaunchDiskDifferentId[] = "OSLaunchDisk(): Specified id is different from one specified to DVDPrepareDisk.\n";
+
+// Initial title-ID text from a stripped launch path; retained for the original data layout.
+char sOSExecInitialTitleId[] = "0000000000000000";
+
 #define NEWAPPLOADER_DATE "2004/02/01"
 
 static BOOL IsNewApploader(ImgHeader* header) {
@@ -775,3 +784,12 @@ void __OSBootDol(u32 doloffset, u32 restartCode, char* const argv[]) {
 
     __OSBootDolSimple(0xffffffff, restartCode, saveStart, saveEnd, FALSE, argvlen, argvToPass);
 }
+
+// Diagnostics and paths from stripped OSExec / OSLaunchPartition paths; retained for the original data layout.
+char sOSExecMissingFile[] = "Warning: OSExec(): The specified file doesn't exist. \n";
+char sOSLaunchPartitionFromNand[] = "OSLaunchPartition(): You can't call this API from NAND application.  \n";
+char sOSLaunchPartitionNotDisc[] = "OSLaunchPartition(): Specified title ID is not DISC application.  \n";
+char sOSLaunchPartitionTitlePath[] = "/title/%08x/%08x";
+char sOSLaunchPartitionGetFreeInodes[] = "\nOSLaunchPartition(): Failed to get free i-nodes number\n";
+char sOSLaunchPartitionInsufficientInodes[] = "\nOSLaunchPartition(): There are not enough i-nodes to launch next partition\n";
+char sOSLaunchPartitionGetNandStatus[] = "\nOSLaunchPartition(): Failed to get nand status\n";

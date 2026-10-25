@@ -135,12 +135,17 @@ void ActionSound::applyRateToSound(f32 rate) {
     }
 }
 
-// NONMATCHING: redundant type-sentinel comparisons are optimized out.
+namespace {
+    inline bool isAbsentSoundArgument(const s32& type) {
+        return type == -1;
+    }
+}
+
 void ActionSound::applyPitchVolumeArgs(s32 pitchArg, s32 volumeArg) {
     if (mHandle && mHandle->mSound) {
         f32 pitch = 0.0f;
         s32 pitchType = mInfo->mPitchType;
-        if (pitchType == -1) goto volume;
+        if (isAbsentSoundArgument(pitchType)) goto volume;
         if (pitchType == 1) goto pitch1;
         if (pitchType == 2) goto pitch2;
         goto volume;
@@ -169,7 +174,7 @@ void ActionSound::applyPitchVolumeArgs(s32 pitchArg, s32 volumeArg) {
     volume:
         f32 volume = 0.0f;
         s32 volumeType = mInfo->mVolumeType;
-        if (volumeType == -1) goto done;
+        if (isAbsentSoundArgument(volumeType)) goto done;
         if (volumeType == 1) goto volume1;
         if (volumeType == 2) goto volume2;
         goto done;

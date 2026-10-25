@@ -323,6 +323,10 @@ namespace {
     static const char* sInertiaName = "デフォルト";
 }
 
+namespace {
+    f32 cDropFrontSpeed = 2.0f;
+};
+
 struct SoundList {
     struct SoundFlags {
         u8 mPolicy;
@@ -2113,9 +2117,6 @@ namespace {
     static bool sIsDisabled;
 };
 
-namespace {
-    f32 cDropFrontSpeed = 2.0f;
-};
 
 #if 0  // SMG2: uses LiveActor::mSoundObject (AudAnmSoundObject), gone in SMG2
 bool Mario::isRunningBas(const char* pAnimName) const {

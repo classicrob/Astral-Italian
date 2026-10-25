@@ -1051,48 +1051,54 @@ void __parse_dpdex_data(s32 chan, WPADStatus** p_status, u8 index, u8* data, u8 
 #undef EX_STATUS
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
-void __a1_3e_data_type(u8 chan, u8* data, WPADStatus* p_status) {
-    WPADControlBlock* p_cb = _wpdcb[chan];
-    WPADStatus* dpdStatus = p_status;
+static inline void parseExtendedAccX(s32 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cal;
-    BOOL enabled;
-    if (!p_cb->dpdExtendedReportMask) memset(p_status, 0, WPAD_RX_DATASIZE);
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
-    p_cb->infos.nearempty = 0;
     p_cal = _wpdcb[chan];
     p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)((data[1] >> 6) & 2)) - p_cal->conf.acc_0g.x;
     p_status->accZ |= (s16)((s16)((s16)(data[2] << 3) & (s16)0xFF00) | ((data[1] << 1) & 0xC0));
-    __parse_dpdex_data(chan, &dpdStatus, 0, data + 4, 0);
-    __parse_dpdex_data(chan, &dpdStatus, 1, data + 13, 0);
+}
+
+static inline void parseExtendedAccY(s32 chan, u8* data, WPADStatus* p_status) {
+    WPADControlBlock* p_cal;
+    p_cal = _wpdcb[chan];
+    p_status->accY = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)((data[1] >> 6) & 2)) - p_cal->conf.acc_0g.y;
+    p_status->accZ |= (s16)(((data[2] >> 1) & 0x30) | ((data[1] >> 3) & 0xC));
+}
+
+void __a1_3e_data_type(u8 chan, u8* data, WPADStatus* p_status) {
+    WPADStatus* status = p_status;
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    BOOL enabled;
+    if (!p_cb->dpdExtendedReportMask) memset(status, 0, WPAD_RX_DATASIZE);
+    status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    p_cb->infos.nearempty = 0;
+    parseExtendedAccX(chan, data, status);
+    __parse_dpdex_data(chan, &p_status, 0, data + 4, 0);
+    __parse_dpdex_data(chan, &p_status, 1, data + 13, 0);
     enabled = OSDisableInterrupts();
     p_cb->dpdExtendedReportMask |= 1;
     if (p_cb->dpdExtendedReportMask == 3) {
-        p_status->accZ -= p_cb->conf.acc_0g.z;
+        status->accZ -= p_cb->conf.acc_0g.z;
         p_cb->rxBufIndex = !p_cb->rxBufIndex;
         p_cb->dpdExtendedReportMask = 0;
     }
     OSRestoreInterrupts(enabled);
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_3f_data_type(u8 chan, u8* data, WPADStatus* p_status) {
+    WPADStatus* status = p_status;
     WPADControlBlock* p_cb = _wpdcb[chan];
-    WPADStatus* dpdStatus = p_status;
-    WPADControlBlock* p_cal;
     BOOL enabled;
-    if (!p_cb->dpdExtendedReportMask) memset(p_status, 0, WPAD_RX_DATASIZE);
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    if (!p_cb->dpdExtendedReportMask) memset(status, 0, WPAD_RX_DATASIZE);
+    status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = 0;
-    p_cal = _wpdcb[chan];
-    p_status->accY = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)((data[1] >> 6) & 2)) - p_cal->conf.acc_0g.y;
-    p_status->accZ |= (s16)(((data[2] >> 1) & 0x30) | ((data[1] >> 3) & 0xC));
-    __parse_dpdex_data(chan, &dpdStatus, 2, data + 4, 0);
-    __parse_dpdex_data(chan, &dpdStatus, 3, data + 13, 0);
+    parseExtendedAccY(chan, data, status);
+    __parse_dpdex_data(chan, &p_status, 2, data + 4, 0);
+    __parse_dpdex_data(chan, &p_status, 3, data + 13, 0);
     enabled = OSDisableInterrupts();
     p_cb->dpdExtendedReportMask |= 2;
     if (p_cb->dpdExtendedReportMask == 3) {
-        p_status->accZ -= p_cb->conf.acc_0g.z;
+        status->accZ -= p_cb->conf.acc_0g.z;
         p_cb->rxBufIndex = !p_cb->rxBufIndex;
         p_cb->dpdExtendedReportMask = 0;
     }

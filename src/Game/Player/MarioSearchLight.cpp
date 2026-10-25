@@ -117,9 +117,12 @@ void MarioSearchLight::appear() {
 }
 
 // NONMATCHING: floating-point register allocation.
+inline f32 advanceSearchLightOffset(f32 offset) {
+    return offset + 100.0f;
+}
+
 void MarioSearchLight::control() {
-    f32 offset = _BC;
-    offset += 100.0f;
+    f32 offset = advanceSearchLightOffset(_BC);
     _BC = offset;
     if (offset >= 1250.0f) {
         _BC = 0.0f;

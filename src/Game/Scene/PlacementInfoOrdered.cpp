@@ -157,6 +157,14 @@ void PlacementInfoOrdered::requestFileLoad() {
     }
 }
 
+namespace {
+    inline void initializePlacementObject(CreationFuncPtr creator, const char* name, const JMapInfoIter& iter) {
+        MR::setCurrentPlacementZoneId(MR::getPlacedZoneId(iter));
+        MR::initialize(creator(name), iter);
+        MR::clearCurrentPlacementZoneId();
+    }
+}
+
 void PlacementInfoOrdered::initPlacement() {
     MR::startInitLiveActorSystemInfo();
 
@@ -176,10 +184,7 @@ void PlacementInfoOrdered::initPlacement() {
             }
 
             for (MR::BothDirList< Index >::iterator idx = it->mList.begin(); !idx.isEnd(); idx++) {
-                const JMapInfoIter& rIter = idx->mInfoIter;
-                MR::setCurrentPlacementZoneId(MR::getPlacedZoneId(rIter));
-                MR::initialize(creator(pJapaneseName), rIter);
-                MR::clearCurrentPlacementZoneId();
+                initializePlacementObject(creator, pJapaneseName, idx->mInfoIter);
             }
         }
     }

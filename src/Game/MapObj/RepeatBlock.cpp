@@ -97,10 +97,10 @@ void RepeatBlockTail::forEachAtom(s32 dir, s32 idx, void (RepeatBlockTail::*pFun
     }
 
     s32 xBegin = 0;
-    s32 yBegin = 0;
-    s32 zBegin = 0;
     s32 xEnd = mParent->mNumX;
+    s32 yBegin = 0;
     s32 yEnd = mParent->mNumY;
+    s32 zBegin = 0;
     s32 zEnd = mParent->mNumZ;
 
     switch (dir) {

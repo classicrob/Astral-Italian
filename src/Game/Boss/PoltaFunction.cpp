@@ -153,8 +153,7 @@ namespace PoltaFunction {
     }
 
     bool appearGroundRock(Polta* pPolta, f32 distance, f32 angle) {
-        PoltaGroundRockHolder* pHolder = pPolta->mGroundRockHolder;
-        PoltaGroundRock* pRock = pHolder->getDeadMember();
+        PoltaGroundRock* pRock = pPolta->mGroundRockHolder->getDeadMember();
         if (pRock == nullptr) {
             return false;
         }

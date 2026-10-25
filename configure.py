@@ -454,10 +454,36 @@ cflags_rel = [
 config.linker_version = "GC/3.0a5"
 
 
+GAME_MW10_EXCEPTIONS = {
+    "Game/Util/BossBussunShot.cpp",  # 1.0 kept: 1.3 crosses add and operator+= call identities, revisit
+    "Game/NPC/Rabbit.cpp",  # 1.0 kept: 1 current-source function drops under 1.3, revisit
+    "Game/MapObj/StarPieceClusterRock.cpp",  # 1.0 kept: 1 current-source function drops under 1.3, revisit
+    "Game/MapObj/Gorogoro.cpp",  # 1.0 kept: 1 current-source function drops under 1.3, revisit
+    "Game/Boss/Sandy.cpp",  # 1.0 kept: 1 current-source function drops under 1.3, revisit
+    "Game/Boss/KoopaJrCastleBody.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/Boss/KoopaJrRobotTU04.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/Camera/CameraBehind.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/Camera/CameraPadOrbitCtrl.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/Camera/CameraSubjective.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/Camera/CameraWonderPlanet.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/LiveActor/ActorStateParamScale.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/MapObj/CrystalCage.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/MapObj/DynamicCollisionObj.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/MapObj/ElectricRailMoving.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/MapObj/StarPieceDirector.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/RhythmLib/AudChordInfo.cpp",  # 1.0 kept: 3 fns drop under 1.3, revisit
+    "Game/Ride/RollingRockStateRoll.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+    "Game/Util/LiveActorUtil.cpp",  # 1.0 kept: 1 fns drop under 1.3, revisit
+}
+
+
 def GameLib(lib_name: str, objects: List[Object]) -> Dict[str, Any]:
+    for obj in objects:
+        if obj.name in GAME_MW10_EXCEPTIONS:
+            obj.options["mw_version"] = "Wii/1.0"
     return {
         "lib": lib_name,
-        "mw_version": "Wii/1.0",
+        "mw_version": "Wii/1.3",
         "cflags": cflags_game,
         "progress_category": "game",
         "objects": objects,

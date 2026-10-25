@@ -216,7 +216,7 @@ namespace MultiScene {
         return pActor->getModelManager()->isBckStopped();
     }
 
-    bool isBckEnd(const MultiSceneActor* pActor) {
+    bool isBckEnd(MultiSceneActor* pActor) {
         return (pActor->getModelManager()->getBckCtrl()->getState() & 0x2) != 0;
     }
 

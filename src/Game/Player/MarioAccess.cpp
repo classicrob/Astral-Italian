@@ -759,7 +759,7 @@ namespace MarioAccess {
             return getPlayerActor()->getMario()->mSwim->mForwardSpeed;
         }
         if (getPlayerActor()->isJumping()) {
-            const TVec3f& jump = getPlayerActor()->getMario()->mJumpVec;
+            const TVec3f& jump = getPlayerActor()->getMario()->getJumpVec();
             f32 dot = getPlayerActor()->getMario()->mFrontVec.dot(jump);
             return dot / getPlayerActor()->mConst->getTable()->mJumpFrontSpeed;
         }

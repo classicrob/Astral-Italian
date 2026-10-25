@@ -174,11 +174,8 @@ void ItemDrill::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
     }
 
-    bool isDrilling = false;
-    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrilling)) ||
-        isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReverseDrilling))) {
-        isDrilling = true;
-    }
+    bool isDrilling = isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrilling)) ||
+        isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReverseDrilling));
 
     if (isDrilling || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd))) {
         if (MR::isEqualSensor(pSender, this, "Attack") || MR::isEqualSensor(pSender, this, "Player")) {
@@ -187,10 +184,7 @@ void ItemDrill::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
     }
 
-    bool isWaiting = false;
-    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReappear))) {
-        isWaiting = true;
-    }
+    bool isWaiting = isNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReappear));
     if (!isWaiting) {
         return;
     }
@@ -314,10 +308,7 @@ bool ItemDrill::receiveMsgItemGet(HitSensor* pReceiver, HitSensor* pSender) {
     if (!MR::isSensorPlayer(pSender)) {
         return false;
     }
-    bool isWaiting = false;
-    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReappear))) {
-        isWaiting = true;
-    }
+    bool isWaiting = isNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReappear));
     if (!isWaiting) {
         return false;
     }
@@ -639,11 +630,8 @@ bool ItemDrill::checkAttackFromEnemy(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd))) {
         return true;
     }
-    bool isDrilling = false;
-    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrilling)) ||
-        isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReverseDrilling))) {
-        isDrilling = true;
-    }
+    bool isDrilling = isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrilling)) ||
+        isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReverseDrilling));
     if (isDrilling) {
         return checkAimDirection(pSender, pReceiver);
     }
@@ -737,6 +725,13 @@ void ItemDrill::exeTake() {
 }
 
 // NONMATCHING: saved register holding the player-gravity destination differs.
+inline void calcItemDrillLastGravity(ItemDrill* actor, TVec3f* direction) {
+    TVec3f* playerPosition = MR::getPlayerPos();
+    if (!MR::calcGravityVectorOrZero(actor, *playerPosition, direction, nullptr, 0)) {
+        direction->set(*MR::getPlayerGravity());
+    }
+}
+
 void ItemDrill::exeTaken() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
@@ -748,11 +743,7 @@ void ItemDrill::exeTaken() {
         for (s32 i = 0; i < 14; i++) {
             mDirs[i].set(mDirs[i + 1]);
         }
-        TVec3f* pLast = &mDirs[14];
-        TVec3f* pPlayerPos = MR::getPlayerPos();
-        if (!MR::calcGravityVectorOrZero(this, *pPlayerPos, pLast, nullptr, 0)) {
-            pLast->set(*MR::getPlayerGravity());
-        }
+        calcItemDrillLastGravity(this, &mDirs[14]);
     }
 }
 

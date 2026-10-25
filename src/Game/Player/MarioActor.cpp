@@ -10636,6 +10636,7 @@ HitSensor* MarioActor::fn_803D0CE0(s32 a) {
 }
 
 HitSensor* MarioActor::fn_803D0E40(s32 a) {
+    const char* effect;
     HitSensor* t = (HitSensor*)this->getHighPriorityTarget();
     if (t == nullptr) {
         t = this->getRescueTarget();
@@ -10650,7 +10651,7 @@ HitSensor* MarioActor::fn_803D0E40(s32 a) {
     }
     if (!this->mMario->isStateHanging()) {
         if (!this->mMario->isDamaging()) {
-            const char* effect = "HD中ラッシュ";
+            effect = "HD中ラッシュ";
             HitSensor** currentSlot;
             u32 i = 0;
             while (i < this->_930) {
@@ -11170,23 +11171,30 @@ void MarioActor::initShadow() {
 }
 
 // NONMATCHING: boolean materialization, constant conversion and stack allocation.
+inline f32 calcMarioGroundReflectionFacing(const MarioActor& actor) {
+    const TVec3f* gravity = actor.getMario()->getGravityVec();
+    return gravity->dot(MR::getCamZdir());
+}
+
+inline f32 calcMarioGroundReflectionFade(const f32& verticalSpeed) {
+    f32 v = verticalSpeed / 500.0f;
+    if (v >= 0.75f) v = 0.75f;
+    return 1.0f - v;
+}
+
+inline s32 calcMarioGroundReflectionAlpha(const u32& maximum, const f32& verticalSpeed) {
+    f32 fade = calcMarioGroundReflectionFade(verticalSpeed);
+    return static_cast<s32>(static_cast<f32>(maximum) * fade);
+}
+
 void MarioActor::fn_803D26F0() {
     Mario* m = this->mMario;
-    bool reflect = false;
     if (((m->mMovementStates.mLowWord >> 0x1D) & 1) && !m->fn_803AA2C0() && !mMario->isStatusActive(0x12) &&
-        (mMario->_962 == 0xE || mMario->_962 == 0x21)) {
-        const TVec3f* gravity = mMario->getGravityVec();
-        TVec3f camera = MR::getCamZdir();
-        reflect = gravity->dot(camera) >= 0.0f;
-    }
-    if (reflect) {
+        (mMario->_962 == 0xE || mMario->_962 == 0x21) && (calcMarioGroundReflectionFacing(*this) >= 0.0f)) {
         this->fn_803CA1F0();
         this->mGroundReflectionEFC = 1;
-        f32 v = (this->mMario)->mVerticalSpeed / 500.0f;
-        if (v >= 0.75f) {
-            v = 0.75f;
-        }
-        s32 target = (s32)((f32)0x40U * (1.0f - v));
+        u32 maximumAlpha = 0x40;
+        s32 target = calcMarioGroundReflectionAlpha(maximumAlpha, mMario->mVerticalSpeed);
         for (u32 i = 0; i < 4; ++i) {
             u8 c = this->mGroundReflectionAlphaEFD;
             if (c < (u8)target) {

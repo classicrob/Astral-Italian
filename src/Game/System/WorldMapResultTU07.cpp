@@ -568,7 +568,6 @@ WorldMapResultPathFinder::WorldMapResultPathFinder(WorldMapResultWorld* pWorld) 
     update(0);
 }
 
-// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling) (FP order/grouping checked: no FP instructions).
 void WorldMapResultPathFinder::update(s32 start) {
     s32 num = mWorld->getNodeNum();
 
@@ -612,8 +611,8 @@ void WorldMapResultPathFinder::update(s32 start) {
 
                     if (mWorld->isNodeValid(j) && !visited[j] && mWorld->isLinked(i, j)) {
                         pOther->mDistance = depth + 1;
-                        found = true;
                         visited[j] = 1;
+                        found = true;
                         pOther->mPath[depth] = j;
 
                         for (s32 k = depth - 1; k >= 0; k--) {

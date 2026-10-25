@@ -97,10 +97,8 @@ J3DGXColor* J3DTevBlock::getTevKColor(u32) {
 
 namespace {
 #pragma dont_inline on
-    // NONMATCHING: bool conversion (target: extrwi + subic/subfe; ours folds the 1-bit test)
     bool isLightChanEnabled(J3DMaterial* pMaterial, int channel) {
-        u16 channelID = pMaterial->mColorBlock->getColorChan(channel)->mColorChanID;
-        return ((channelID >> 1) & 0x1) != 0;
+        return pMaterial->mColorBlock->getColorChan(channel)->getEnable();
     }
 
     bool isUseLightChanMask(J3DMaterial* pMaterial, int channel, int index) {

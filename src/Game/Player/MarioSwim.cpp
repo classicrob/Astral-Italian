@@ -787,6 +787,10 @@ void MarioSwim::fn_803F95A0(f32 input) {
 }
 
 // NONMATCHING: explicit quaternion components, temporary stack placement, FPR allocation and equivalent bit test.
+inline f32 scaleSwimRotationAngle(f32 angle, f32 ratio) {
+    return angle * ratio;
+}
+
 void MarioSwim::fn_803F9750(const TVec3f& front, const TVec3f& side, bool immediate) {
     f32 ratio = 0.1f;
     if (immediate) ratio = 1.0f;
@@ -804,13 +808,13 @@ void MarioSwim::fn_803F9750(const TVec3f& front, const TVec3f& side, bool immedi
             rotation.setRotate(oldSide, side, ratio);
         } else {
             TQuat4f alignSide;
-            alignSide.setRotate(oldFront, ratio * -MR::diffAngleSigned(oldSide, projectedSide, oldFront));
+            alignSide.setRotate(oldFront, scaleSwimRotationAngle(-MR::diffAngleSigned(oldSide, projectedSide, oldFront), ratio));
             TQuat4f turn;
             if (getCamDirZ().dot(side) < 0.0f) turn.setRotate(mUpVec, ratio * -projectedSide.angle(side));
             else turn.setRotate(mUpVec, ratio * projectedSide.angle(side));
             f32 oldAngle = JMAAcosRadian(mUpVec.dot(head));
             TQuat4f tilt;
-            tilt.setRotate(oldSide, ratio * (JMAAcosRadian(mUpVec.dot(desiredHead)) - oldAngle));
+            tilt.setRotate(oldSide, scaleSwimRotationAngle(JMAAcosRadian(mUpVec.dot(desiredHead)) - oldAngle, ratio));
             PSQUATMultiply(&turn, &tilt, &rotation);
             PSQUATMultiply(&rotation, &alignSide, &rotation);
         }
@@ -2285,6 +2289,10 @@ bool MarioSwim::getWaterAreaInfo(WaterInfo* pInfo, const TVec3f& rPos, TVec2f* p
 }
 
 // NONMATCHING: temporary vector stack placement.
+inline f32 calcWaterBottomProbeDistance(f32 depth) {
+    return depth + 10.0f;
+}
+
 void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3f& gravity, u32 flags) {
     if (MR::getWaterAreaInfo(info, position, gravity, true)) {
         if (flags & 1) {
@@ -2302,8 +2310,7 @@ void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3
             info->mCamWaterDepth = -(info->mSurfacePos - position).dot(gravity);
         }
         if (flags & 2) {
-            f32 distance = info->mBottomDepth;
-            distance += 10.0f;
+            f32 distance = calcWaterBottomProbeDistance(info->mBottomDepth);
             TVec3f probe(position + gravity * distance);
             f32 depth = info->mBottomDepth;
             TVec3f bottom(position + gravity * depth);
@@ -3053,12 +3060,17 @@ bool MarioSwim::passRing(const HitSensor* sensor) {
 }
 
 // NONMATCHING: timer-load reuse and register allocation.
+inline bool isSwimTimerRunning(const u16& timer) {
+    return timer != 0;
+}
+
 f32 MarioSwim::calcRingAcc() {
+    u16 maxDuration;
     mRingDash->updateBlur();
     MarioSwimRingDash* ring = mRingDash;
     u16 timer = ring->mTimer;
     if (timer != 0) {
-        if (ring->mChargeTimer != 0) {
+        if (isSwimTimerRunning(ring->mChargeTimer)) {
             ring->mChargeTimer--;
             if (mRingDash->mChargeTimer == 1) {
                 MarioActor* actor = mActor;
@@ -3080,7 +3092,7 @@ f32 MarioSwim::calcRingAcc() {
             }
             return 1.0f;
         }
-        u16 maxDuration = ring->mMaxDuration;
+        maxDuration = ring->mMaxDuration;
         f32 result = ring->mSpeedScale;
         if (timer < maxDuration) {
             f32 ratio = static_cast<f32>(timer) / static_cast<f32>(maxDuration);
@@ -3484,7 +3496,7 @@ void MarioSwim::fn_804019D0() {
     f32 x = 1.0f - table->mSwimRotZIneT;
     f32 input = stickX * x;
     mStickInputXInertia = 2.5f * input;
-    if (getStickY() < 0.0f) scale = 1.0f + 2.0f * -getStickY();
+    if (getStickY() < 0.0f) scale += 2.0f * -getStickY();
     mStickInputXInertia *= scale;
 }
 
@@ -3753,7 +3765,7 @@ void MarioSwimSpin::update() {
             }
         }
     }
-    if (mSpinDashTimer != 0) {
+    if (isSwimTimerRunning(mSpinDashTimer)) {
         mSpinDashTimer = mSpinDashTimer - 1;
     }
     if (_E != 0) {
@@ -3972,6 +3984,10 @@ void MarioSwimDamage::reset() {
 }
 
 // NONMATCHING: floating-point register allocation and operation scheduling.
+inline f32 blendSwimTilt(f32 blend, f32 target, f32 current) {
+    return (blend * target) + ((1.0f - blend) * current);
+}
+
 void MarioSwimTilt::update() {
     f32 targetTiltX = 0.0f;
     f32 blendX = 0.1f;
@@ -4022,7 +4038,7 @@ void MarioSwimTilt::update() {
         }
     }
     f32 previousTiltY = mTiltY;
-    mTiltX = (blendX * targetTiltX) + ((1.0f - blendX) * mTiltX);
+    mTiltX = blendSwimTilt(blendX, targetTiltX, mTiltX);
     mTiltY = (0.1f * targetTiltY) + (0.9f * previousTiltY);
     if (((mSwim->getPlayer()->mMovementStates.mHighWord >> 8) & 1U)) {
         mTiltX = 0.0f;

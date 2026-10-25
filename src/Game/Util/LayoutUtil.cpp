@@ -873,8 +873,10 @@ f32 MR::calcNerveEaseInValue(const LayoutActor* pActor, s32 stepMin, s32 stepMax
 
 // NONMATCHING: equivalent early rate-default branch arrangement
 f32 MR::calcNerveEaseOutValue(const LayoutActor* pActor, s32 stepMax, f32 valueStart, f32 valueEnd) {
-    f32 rate = 1.0f;
-    if (stepMax > 0) {
+    f32 rate;
+    if (stepMax <= 0) {
+        rate = 1.0f;
+    } else {
         rate = clamp(static_cast< f32 >(pActor->getNerveStep()) / stepMax, 0.0f, 1.0f);
     }
 

@@ -584,7 +584,20 @@ void RollingRockStateRoll::exeAppear() {
     }
 }
 
-// NONMATCHING: integer conversion spills and floating-point operand order differ.
+namespace {
+    inline s32 attenuateRollingPitch(s32 pitch, f32 rate) {
+        return (s32)(pitch * rate);
+    }
+
+    inline s32 calcRollingSoundVolume(s32 base, f32 pitch) {
+        return ((s32)pitch + base) - 200;
+    }
+
+    inline f32 calcRollingSoundPitch(f32 speed, s32 scale, s32 base) {
+        return base + scale * speed;
+    }
+}
+
 void RollingRockStateRoll::exeMove() {
     TVec3f prevVel(mHost->mVelocity);
     TVec3f newVel;
@@ -598,11 +611,11 @@ void RollingRockStateRoll::exeMove() {
         s32 base = (s32)MR::clamp(volScale * (mStickRate - 0.1f), 0.0f, 1000.0f);
         s32 pitchBase = sPitchBase;
         s32 pitchScale = sPitchScale;
-        s32 pitch = (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f);
-        s32 volume = (base + (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f)) - 200;
+        s32 pitch = (s32)MR::clamp(calcRollingSoundPitch(PSVECMag(mHost->mVelocity), pitchScale, pitchBase), 0.0f, 1000.0f);
+        s32 volume = calcRollingSoundVolume(base, MR::clamp(calcRollingSoundPitch(PSVECMag(mHost->mVelocity), pitchScale, pitchBase), 0.0f, 1000.0f));
         if (mAirStep > 5) {
             volume += 100;
-            pitch = (s32)(pitch * 0.9f);
+            pitch = attenuateRollingPitch(pitch, 0.9f);
         }
         if (MR::isLessStep(this, 120)) {
             MR::startActionSound(mHost, "Move", pitch, volume, -1);
@@ -619,7 +632,6 @@ void RollingRockStateRoll::exeMove() {
     }
 }
 
-// NONMATCHING: integer conversion spills and floating-point operand order differ.
 void RollingRockStateRoll::exeAccel() {
     if (MR::isFirstStep(this)) {
         MR::startLevelSoundPlayer("RockAccel", -1, -1);
@@ -639,8 +651,8 @@ void RollingRockStateRoll::exeAccel() {
         }
         s32 pitchBase = sPitchBase;
         s32 pitchScale = sPitchScale;
-        s32 pitch = (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f);
-        MR::startActionSound(mHost, "Move", pitch, (s32)MR::clamp(pitchBase + pitchScale * PSVECMag(mHost->mVelocity), 0.0f, 1000.0f), -1);
+        s32 pitch = (s32)MR::clamp(calcRollingSoundPitch(PSVECMag(mHost->mVelocity), pitchScale, pitchBase), 0.0f, 1000.0f);
+        MR::startActionSound(mHost, "Move", pitch, (s32)MR::clamp(calcRollingSoundPitch(PSVECMag(mHost->mVelocity), pitchScale, pitchBase), 0.0f, 1000.0f), -1);
     }
 }
 

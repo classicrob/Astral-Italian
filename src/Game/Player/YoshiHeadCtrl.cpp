@@ -19,7 +19,10 @@ void YoshiHeadCtrl::fn_8041AA70(s32 index,const TVec3f* target) {
     if (!mEnabled[index]) { _4++;mEnabled[index]=true;mTargets[index]=target;_E[index]=false; }
     else { mTargets[index]=target;_E[index]=false; }
     if (update) {
-        mModelCtrl->fn_80418110();mModelCtrl->fn_80418060(mTargets[index],sTargetFrames[index],sTargetRates[index]);mTargetCount=index;
+        mModelCtrl->fn_80418110();
+        f32 rate = sTargetRates[index];
+        s32 frames = sTargetFrames[index];
+        mModelCtrl->fn_80418060(mTargets[index],frames,rate);mTargetCount=index;
     }
 }
 // NONMATCHING: integer and float table-address/load order only.

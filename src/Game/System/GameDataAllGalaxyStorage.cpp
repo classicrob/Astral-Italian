@@ -6,6 +6,16 @@
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
+namespace {
+    const char sMissNum[] = "mMissNum";
+    const char sBestTime[] = "mBestTime";
+    const char sFlag[] = "mFlag";
+    const char sScenarioNum[] = "mScenarioNum";
+    const char sGalaxyState[] = "mGalaxyState";
+    const char sGalaxyName[] = "mGalaxyName";
+    const char sDataSize[] = "mDataSize";
+}
+
 GameDataAllGalaxyStorage::GameDataAllGalaxyStorage() : mHeaderSerializer(nullptr), mScenarioHeaderSerializer(nullptr) {
     mHeaderSerializer = new BinaryDataContentHeaderSerializer(new u8[64], 64);
     mScenarioHeaderSerializer = new BinaryDataContentHeaderSerializer(new u8[64], 64);
@@ -99,12 +109,12 @@ s32 GameDataAllGalaxyStorage::serialize(u8* pData, u32 dataSize) const {
         u8* pRecord = pData + writeOffset;
 
         u16 galaxyNameHash = MR::getHashCode(pStorage->mGalaxyName);
-        u16* pGalaxyName = (u16*)accessor.getPointer("mGalaxyName", pRecord);
+        u16* pGalaxyName = (u16*)accessor.getPointer(sGalaxyName, pRecord);
         *pGalaxyName = galaxyNameHash;
 
         u16 recordSize = pStorage->serialize(accessor, scenarioAccessor, pRecord);
 
-        u16* pDataSize = (u16*)accessor.getPointer("mDataSize", pRecord);
+        u16* pDataSize = (u16*)accessor.getPointer(sDataSize, pRecord);
         *pDataSize = recordSize;
 
         writeOffset += recordSize;
@@ -125,13 +135,13 @@ s32 GameDataAllGalaxyStorage::deserialize(const u8* pData, u32 dataSize) {
     for (s32 idx = 0; idx < galaxyNum; idx++) {
         const u8* pRecord = pData + readOffset;
 
-        u16* pGalaxyName = (u16*)accessor.getPointer("mGalaxyName", (u8*)pRecord);
+        u16* pGalaxyName = (u16*)accessor.getPointer(sGalaxyName, (u8*)pRecord);
         u16 galaxyNameHash = (pGalaxyName != nullptr) ? *pGalaxyName : 0;
         if (galaxyNameHash == 0) {
             return 2;
         }
 
-        u16* pDataSize = (u16*)accessor.getPointer("mDataSize", (u8*)pRecord);
+        u16* pDataSize = (u16*)accessor.getPointer(sDataSize, (u8*)pRecord);
         u16 recordSize = (pDataSize != nullptr) ? *pDataSize : 0;
         if (recordSize == 0) {
             return 2;
@@ -160,16 +170,16 @@ void GameDataAllGalaxyStorage::initializeData() {
 }
 
 void GameDataAllGalaxyStorage::initHeaderSerializer() {
-    mHeaderSerializer->addAttribute("mGalaxyName", sizeof(u16));
-    mHeaderSerializer->addAttribute("mDataSize", sizeof(u16));
-    mHeaderSerializer->addAttribute("mScenarioNum", sizeof(u8));
-    mHeaderSerializer->addAttribute("mGalaxyState", sizeof(u8));
-    mHeaderSerializer->addAttribute("mFlag", sizeof(u8));
+    mHeaderSerializer->addAttribute(sGalaxyName, sizeof(u16));
+    mHeaderSerializer->addAttribute(sDataSize, sizeof(u16));
+    mHeaderSerializer->addAttribute(sScenarioNum, sizeof(u8));
+    mHeaderSerializer->addAttribute(sGalaxyState, sizeof(u8));
+    mHeaderSerializer->addAttribute(sFlag, sizeof(u8));
     mHeaderSerializer->flush();
 
-    mScenarioHeaderSerializer->addAttribute("mMissNum", sizeof(u8));
-    mScenarioHeaderSerializer->addAttribute("mBestTime", sizeof(u32));
-    mScenarioHeaderSerializer->addAttribute("mFlag", sizeof(u8));
+    mScenarioHeaderSerializer->addAttribute(sMissNum, sizeof(u8));
+    mScenarioHeaderSerializer->addAttribute(sBestTime, sizeof(u32));
+    mScenarioHeaderSerializer->addAttribute(sFlag, sizeof(u8));
     mScenarioHeaderSerializer->flush();
 }
 

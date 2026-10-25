@@ -684,7 +684,14 @@ void ScenarioSelectLayout::connectStarPointerMovePosition(s32 index) {
 }
 
 // NONMATCHING: temporary vector stack slots and register allocation differ.
+inline TVec2f calcScenarioBackButtonPosition(LayoutActor* button, const char* paneName) {
+    TVec2f position;
+    MR::copyPaneTrans(&position, button, paneName);
+    return position;
+}
+
 void ScenarioSelectLayout::updateStarPointerMovePositions() {
+    TVec2f buttonPosition;
     if (mStar[0]->_30) return;
     if (StarPointerUtil::beginMovePositionRegistration(this, true)) {
         if (mCanCancel) {
@@ -708,10 +715,7 @@ void ScenarioSelectLayout::updateStarPointerMovePositions() {
         StarPointerUtil::setDefaultAllMovePosition(cStarPaneName[0]);
     }
     if (mCanCancel) {
-        TVec2f position;
-        MR::copyPaneTrans(&position, mBackButton, "BoxButton");
-        TVec2f copy(position);
-        TVec2f buttonPosition(copy);
+        buttonPosition = calcScenarioBackButtonPosition(mBackButton, "BoxButton");
         StarPointerUtil::setStarPointerMovePosition(getBackButtonMovePositionName(0), &buttonPosition);
         StarPointerUtil::setStarPointerMovePosition(getBackButtonMovePositionName(1), &buttonPosition);
         StarPointerUtil::setStarPointerMovePosition(getBackButtonMovePositionName(2), &buttonPosition);

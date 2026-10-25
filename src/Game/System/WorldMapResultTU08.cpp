@@ -164,7 +164,12 @@ void WorldMapResultStateEnterGalaxy::control() {
     MR::setDepthOfFieldBlurDistance(*mBlurNear, *mBlurFar);
 }
 
-// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
+namespace {
+    inline f32 calcZoomInScale(f32 base, f32 rate, f32 amount) {
+        return base + rate * amount;
+    }
+}
+
 void WorldMapResultStateEnterGalaxy::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(mHost->getRocket(), "ZoomInGalaxy", -1, -1, -1);
@@ -180,11 +185,11 @@ void WorldMapResultStateEnterGalaxy::exeZoomIn() {
     WorldMapOwner* host = mHost;
 #ifdef GALAXY_NATIVE
     {
-        TVec3f rocketScale((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - ease) * mRate));
+        TVec3f rocketScale(calcZoomInScale(lbl_807E1D00 - mRate, lbl_807E1D00 - ease, mRate));
         host->setRocketScale(&rocketScale);
     }
 #else
-    host->setRocketScale(&TVec3f((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - ease) * mRate)));
+    host->setRocketScale(&TVec3f(calcZoomInScale(lbl_807E1D00 - mRate, lbl_807E1D00 - ease, mRate)));
 #endif
     if (MR::isStep(this, 16)) {
         MR::turnOnDepthOfField(false);

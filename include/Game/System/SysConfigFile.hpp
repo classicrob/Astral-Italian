@@ -40,7 +40,7 @@ public:
     void restoreCounters();
     void resetCounters();
 
-    /* 0x04 */ u8 mEncouragedPal16;
+    /* 0x04 */ bool mEncouragedPal16;
     /* 0x08 */ OSTime mTimeSent;  // serialized as "mTimeSent"
     /* 0x10 */ u32 mSentBytes;
     /* 0x14 */ SysConfigCounters* mBackupCounters;

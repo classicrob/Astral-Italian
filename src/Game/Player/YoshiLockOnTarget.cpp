@@ -126,9 +126,7 @@ void YoshiLockOnTargetControl::invalidate() {
 #include "../src/Game/Player/YoshiLockOnManager.cpp"
 #endif
 
-// NONMATCHING: copy load/store scheduling and FPR allocation differ.
-YoshiLockOnTarget::YoshiLockOnTarget(LiveActor* actor, MtxPtr mtx, const TVec3f& offset) : mActor(actor), mMtx(mtx) {
-    mOffset.set(offset);
+YoshiLockOnTarget::YoshiLockOnTarget(LiveActor* actor, MtxPtr mtx, const TVec3f& offset) : mActor(actor), mMtx(mtx), mOffset(static_cast<const Vec&>(offset)) {
     mEligibleThisFrame = false;
 }
 

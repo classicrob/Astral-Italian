@@ -73,6 +73,8 @@ none: return 2;
 
 // NONMATCHING: equivalent boolean control flow differs.
 bool receiveLetter(LiveActor*, s32 id) {
+    s32 scenario;
+    const char* stage;
     if (MR::isValidPostmanImportantEvent(id)) {
         GameDataFunction::setOnPostmanImportantLetterRead(id);
         if (isRosettaLetter(id)) {
@@ -84,9 +86,9 @@ bool receiveLetter(LiveActor*, s32 id) {
     }
     if (isValidTaskEvent(id)) {
         GameDataFunction::setOnPostmanTaskLetterRead(id);
-        const char* stage = getTaskEventInfo(id)->mEnd.mStage;
+        stage = getTaskEventInfo(id)->mEnd.mStage;
         if (stage == nullptr) return false;
-        s32 scenario = getTaskScenario(id);
+        scenario = getTaskScenario(id);
         if (GameDataFunction::isOnGameEventFlagOpenScenario(stage, scenario)) return false;
         GameDataFunction::onGameEventFlagOpenScenario(stage, scenario);
         return true;

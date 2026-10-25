@@ -99,7 +99,13 @@ bool MarioSlider::start() {
     return true;
 }
 
-// NONMATCHING: temporary stack slots, GPR allocation and repeated integer-abs CSE.
+namespace {
+    inline bool isSliderTurnSoundAudible(const s32& level) {
+        return MR::abs(level) > 50;
+    }
+}
+
+// NONMATCHING: remaining GPR allocation differences.
 bool MarioSlider::update() {
     if (!getPlayer()->checkSliderMode()) {
         if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) != 0) {
@@ -185,7 +191,7 @@ bool MarioSlider::update() {
             calcWallHit();
             playSound("坂滑り");
             s32 soundLevel=static_cast<s32>(1000.0f*_3C);
-            if (MR::abs(soundLevel)>50) MR::startActionSound(mActor,"SlipSandCurving",MR::abs(soundLevel),-1,-1);
+            if (isSliderTurnSoundAudible(soundLevel)) MR::startActionSound(mActor,"SlipSandCurving",MR::abs(soundLevel),-1,-1);
         }
     }
 

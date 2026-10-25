@@ -504,11 +504,15 @@ void Nyoropon::resetBodySegments() {
 }
 
 // NONMATCHING: float register allocation and product scheduling differ
+inline f32 calcNyoroponScaledHeight(f32 factor, f32 height) {
+    return factor * height;
+}
+
 void Nyoropon::updateWanderTarget() {
-    f32 half = 300.0f * cHalf;
+    f32 half = cHalf * 300.0f;
     TVec3f goal;
     goal.x = 0.0f;
-    goal.y = 1.3f * cBodyHeight;
+    goal.y = calcNyoroponScaledHeight(1.3f, cBodyHeight);
     goal.z = 0.0f;
     s32 period = 500;
     f32 phase = 2.0f * (((f32)(((s32)(cHalf * period) + getNerveStep()) % period) / period) - cHalf);

@@ -511,16 +511,18 @@ static void loadMessageDatasFromArchive(MessageData*** pOutDatas, s32* pOutNum, 
     MR::getMountedArchiveAndHeap(pArchivePath, &pArchive, &pHeap);
 
     *pOutNum = 0;
-    JKRArcFinder* pFinder = pArchive->getFirstFile("/");
-    while (pFinder->mHasMoreFiles) {
-        if (MR::isEqualSubString(pFinder->mName, ".msbt")) {
-            (*pOutNum)++;
+    {
+        JKRArcFinder* pFinder = pArchive->getFirstFile("/");
+        while (pFinder->mHasMoreFiles) {
+            if (MR::isEqualSubString(pFinder->mName, ".msbt")) {
+                (*pOutNum)++;
+            }
+            pFinder->findNextFile();
         }
-        pFinder->findNextFile();
+        delete pFinder;
     }
-    delete pFinder;
 
-    pFinder = pArchive->getFirstFile("/");
+    JKRArcFinder* pFinder = pArchive->getFirstFile("/");
     *pOutDatas = new MessageData*[*pOutNum];
     s32 n = 0;
     while (pFinder->mHasMoreFiles) {

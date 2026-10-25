@@ -107,11 +107,15 @@ void MarioBlown::applyAirVelocity() {
     _18 += mActor->mAppliedGravityVec * mActor->getConst().getTable()->mGravityBlown;
 }
 
-// NONMATCHING: equivalent boolean result materialization.
 bool MarioBlown::isGrounded() {
     bool grounded = true;
-    if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) && !MR::isNearZero(getPlayer()->mVerticalSpeed)) {
+    switch ((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) {
+    case 0:
+        if (MR::isNearZero(getPlayer()->mVerticalSpeed)) break;
         grounded = false;
+        break;
+    default:
+        break;
     }
     return grounded;
 }

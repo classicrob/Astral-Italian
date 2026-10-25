@@ -208,6 +208,7 @@ bool SpaceMine::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 // NONMATCHING: the normalize test compiles to cror/bne/b in the target (ours: beq), and the target frame is 0x10 bytes larger
 // with the tongue-hit temporaries in different slots; the register assignment of pSender/this is swapped as a result.
 bool SpaceMine::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    TVec3f hitPos;
     if (MR::isMsgYoshiStartTongue(msg)) {
         if (isNerve(GET_NERVE(SpaceMine, HostTypeAppear))) {
             return false;
@@ -219,17 +220,9 @@ bool SpaceMine::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
         dir -= *pBodyPos;
         f32 radius = MR::getSensorRadius(pBody);
 
-        f32 lenSq = dir.squared();
-        if (lenSq <= JGeometry::TUtil< f32 >::epsilon()) {
-        } else {
-            f32 k = JGeometry::TUtil< f32 >::inv_sqrt(lenSq) * radius;
-            dir.x *= k;
-            dir.y *= k;
-            dir.z *= k;
-        }
+        dir.setLength(radius);
 
-        TVec3f hitPos(*MR::getSensorPos(pBody));
-        hitPos += dir;
+        hitPos.set(*MR::getSensorPos(pBody) + dir);
         MR::emitEffectHit(this, hitPos, nullptr);
 
         if (isNerve(GET_NERVE(SpaceMine, HostTypeWait))) {

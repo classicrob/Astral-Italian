@@ -264,7 +264,7 @@ namespace MR {
     }
 
     // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
-    f32 getSensorRadius(LiveActor* pActor, const char* pName) {
+    f32 getSensorRadius(const LiveActor* pActor, const char* pName) {
         return getSensorRadius(pActor->mSensorKeeper->getSensorInfo(pName)->mSensor);
     }
 

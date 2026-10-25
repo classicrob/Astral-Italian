@@ -254,7 +254,7 @@ void MarioLauncher::exeAim() {
             _22C = 300;
         }
 
-        f32 remainder = _22C % 60;
+        f32 remainder = _22C - (_22C / 60) * 60;
         if (MR::isStarPointerInScreen(WPAD_CHAN0)) {
             if (--_22C <= 0) {
                 if (doEject()) {

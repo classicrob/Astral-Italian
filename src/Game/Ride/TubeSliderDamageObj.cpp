@@ -138,7 +138,7 @@ void TubeSliderDamageObjCreator::init(const JMapInfoIter& rIter) {
 
     s32 type = 0;
     MR::getJMapInfoArg0NoInit(rIter, &type);
-    if (type < 0 || type >= 2)
+    if (!(0 <= type && type < 2))
         type = 0;
 
     s32 width = 1;

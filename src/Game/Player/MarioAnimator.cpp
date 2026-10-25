@@ -1335,19 +1335,21 @@ f32 MarioAnimator::getWalkWeight(u32 index) const { return (&_18)[index]; }
 f32 MarioAnimator::getAnimationInterpoleRatio() const { return mXanimePlayer->mFrameBlendRatio; }
 bool MarioAnimator::isFrameCtrlAttribute(u32 attribute) const { return mXanimePlayer->mFrameCtrl->getAttribute() == attribute; }
 
-// NONMATCHING: equivalent null-return block ordering.
-XanimePlayer* MarioAnimator::getYoshiAnimationPlayer() const {
-    XanimePlayer* result;
-    if (!mActor->getYoshi()) result = nullptr;
-    else result = mActor->getYoshi()->mXanimePlayer;
-    return result;
+namespace {
+inline XanimePlayer* getYoshiBodyAnimation(MarioActor* const& actor) {
+    if (actor->getYoshi() == nullptr) return nullptr;
+    return actor->getYoshi()->mXanimePlayer;
 }
-// NONMATCHING: equivalent null-return block ordering.
+inline XanimePlayer* getYoshiUpperAnimation(MarioActor* const& actor) {
+    if (actor->getYoshi() == nullptr) return nullptr;
+    return actor->getYoshi()->mXanimePlayerUpper;
+}
+}
+XanimePlayer* MarioAnimator::getYoshiAnimationPlayer() const {
+    return getYoshiBodyAnimation(mActor);
+}
 XanimePlayer* MarioAnimator::getYoshiUpperAnimationPlayer() const {
-    XanimePlayer* result;
-    if (!mActor->getYoshi()) result = nullptr;
-    else result = mActor->getYoshi()->mXanimePlayerUpper;
-    return result;
+    return getYoshiUpperAnimation(mActor);
 }
 f32 XanimePlayer::getAnimationFrame() const {
     if (isTerminate()) return mFrameCtrl->mEnd;

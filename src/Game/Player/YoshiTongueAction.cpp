@@ -432,13 +432,17 @@ void YoshiTongueAction::fn_8041EAA0() {
     }
 }
 
+inline f32 attenuateTongueAimWalkSpeed(f32 speed) {
+    return speed * 0.9789999723434448f;
+}
+
 void YoshiTongueAction::fn_8041EBE0() {
     if (MR::isFirstStep(this)) {
         mYoshi->mHeadCtrl->fn_8041AA70(1, &mTargetPosition);
         mArrow->appear();
         mArrow->fn_80413FB0();
     }
-    mPlayer->mWalkSpeed *= 0.9789999723434448f;
+    mPlayer->mWalkSpeed = attenuateTongueAimWalkSpeed(mPlayer->mWalkSpeed);
     if (!fn_80421240()) {
         TVec3f start;
         fn_80421830(&start);
@@ -1206,7 +1210,10 @@ void YoshiTongueAction::fn_804217D0() {
 void YoshiTongueAction::fn_80421830(TVec3f* output) const {
     TPos3f matrix;
     mTongue->fn_8041CD10(&matrix);
-    output->set<f32>(matrix.mMtx[0][3], matrix.mMtx[1][3], matrix.mMtx[2][3]);
+    f32 z = matrix.mMtx[2][3];
+    f32 y = matrix.mMtx[1][3];
+    f32 x = matrix.mMtx[0][3];
+    output->set<f32>(x, y, z);
 }
 
 // NONMATCHING: positive countdown is tested directly instead of materializing a boolean.

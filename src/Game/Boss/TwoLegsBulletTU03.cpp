@@ -49,12 +49,20 @@ void TwoLegsCamera::end() {
     MR::endActorCameraProgrammable(mHost, -1, true);
 }
 
-// NONMATCHING: vector temporary stack slots and register assignment.
 // (0, 0, 1) seed vector for makeMtxUpFront (SB4E01 .data lbl_806478D8)
 namespace {
     const Vec sCameraUp = {0.0f, 0.0f, 1.0f};
     extern const f32 sSpinDegree;
     extern const f32 sCameraFovyRadian;
+}
+
+namespace {
+    inline TVec3f scaleCameraOffset(const TVec3f& up, f32 fov) {
+        TVec3f scaled;
+        scaled = up;
+        scaled *= fov;
+        return scaled;
+    }
 }
 
 void TwoLegsCamera::update() {
@@ -73,10 +81,7 @@ void TwoLegsCamera::update() {
         MR::makeMtxUpFront(&mtx, up, front);
         mtx.getXDir(right);
         MR::rotateVecDegree(&up, right, -20.0f);
-        TVec3f scaled;
-        scaled.x = up.x * fov;
-        scaled.y = up.y * fov;
-        scaled.z = up.z * fov;
+        TVec3f scaled = scaleCameraOffset(up, fov);
         eye.add(center, scaled);
         MR::setProgrammableCameraParamFovy(mHost, 15.0f);
         TVec3f upVec;

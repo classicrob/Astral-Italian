@@ -38,10 +38,8 @@ s32 GameDataTicoFatStorage::getValue(int idx) const {
     return mStarPieceAlms[idx];
 }
 
-// NONMATCHING: target reloads mStarPieceAlms after the clamp and keeps the byte index in r7 (register allocation/CSE only) (FP order/grouping checked: no FP instructions).
 void GameDataTicoFatStorage::addValue(int idx, int add) {
-    s32 value = mStarPieceAlms[idx] + add;
-    mStarPieceAlms[idx] = MR::clamp(value, 0, 0x7FFF);
+    mStarPieceAlms[idx] = MR::clamp(getValue(idx) + add, 0, 0x7FFF);
 }
 
 u32 GameDataTicoFatStorage::makeHeaderHashCode() const {

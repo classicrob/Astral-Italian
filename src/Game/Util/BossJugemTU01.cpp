@@ -70,8 +70,7 @@ void BossJugemStateDash::kill() {
     mThunder->makeActorDead();
 }
 
-// NONMATCHING: target loads the string address before mHost (argument load scheduling only) (FP order/grouping checked: no FP instructions).
-bool BossJugemStateDash::isInvincible() const {
+bool BossJugemStateDash::isInvincible() {
     return !MR::isAnyAnimPlaying(mHost, "DashEnd");
 }
 

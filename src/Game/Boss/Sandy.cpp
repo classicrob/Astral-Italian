@@ -1,3 +1,9 @@
+#include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#else
+#include <functional.hpp>
+#endif
 #include "Game/Boss/Sandy.hpp"
 // SMG2: MR::appearCoinPop returns bool (ObjUtil.hpp declares it void), declare the real one here.
 #define appearCoinPop appearCoinPopUnused
@@ -17,15 +23,6 @@
 namespace NameObjFactory {
     NameObj* initChildObj(const JMapInfoIter&, int);
 };  // namespace NameObjFactory
-
-// Call a pointer-to-member on every element of a range (std::for_each like).
-template < typename It, typename F >
-F ForEachPtmf(It first, It last, F f) {
-    for (; first != last; ++first) {
-        ((*first)->*f)();
-    }
-    return f;
-}
 
 // Single-use inline copy of JGeometry::mulInternal (CW size mode only inlines functions with one call site; the target
 // had each of these in its own translation unit).
@@ -173,22 +170,19 @@ void Sandy::init(const JMapInfoIter& rIter) {
 }
 
 // 800FB0E0
-// NONMATCHING: PTMF for_each loops: the target keeps two stack copies of the member-function pointer, CW elides the second one here.
 void Sandy::movement() {
     LiveActor::movement();
-    void (NameObj::*pHandMove)() = &NameObj::movement;
-    ForEachPtmf(mHands, mHands + 2, pHandMove);
-    void (NameObj::*pMiniMove)() = &NameObj::movement;
-    ForEachPtmf(mMinis, mMinis + 2, pMiniMove);
+    SandyHand** handsEnd = mHands + 2;
+    std::for_each(mHands, handsEnd, std::mem_fun(&NameObj::movement));
+    std::for_each(mMinis, mMinis + 2, std::mem_fun(&NameObj::movement));
     mBlur->updateNerve();
 }
 
 // 800FB1C0
-// NONMATCHING: PTMF for_each loop (two stack copies of the member-function pointer in the target).
 void Sandy::appear() {
     LiveActor::appear();
-    void (LiveActor::*pAppear)() = &LiveActor::appear;
-    ForEachPtmf(mHands, mHands + 2, pAppear);
+    SandyHand** handsEnd = mHands + 2;
+    std::for_each(mHands, handsEnd, std::mem_fun(&LiveActor::appear));
     setNerve(&NrvSandy::SandyNrvDemoStart::sInstance);
 }
 
@@ -202,17 +196,13 @@ void Sandy::kill() {
 }
 
 // 800FB2A0
-// NONMATCHING: PTMF for_each call (two stack copies of the member-function pointer in the target).
 void Sandy::killAll() {
-    void (LiveActor::*pKill)() = &LiveActor::kill;
-    ForEachPtmf(mChildren.begin(), mChildren.end(), pKill);
+    std::for_each(mChildren.begin(), mChildren.end(), std::mem_fun(&LiveActor::kill));
 }
 
 // 800FB390
-// NONMATCHING: PTMF for_each call (two stack copies of the member-function pointer in the target).
 void Sandy::appearAll() {
-    void (LiveActor::*pAppear)() = &LiveActor::appear;
-    ForEachPtmf(mChildren.begin(), mChildren.end(), pAppear);
+    std::for_each(mChildren.begin(), mChildren.end(), std::mem_fun(&LiveActor::appear));
 }
 
 SandyHand* Sandy::getLeftHand() const {

@@ -1,6 +1,6 @@
 #pragma auto_inline off
 // NONMATCHING: calcBallPositions uses different vector inlining, stack and register scheduling.
-// NONMATCHING: initBalls and calcRadiusSpeed retain instruction/register scheduling differences.
+// NONMATCHING: calcRadiusSpeed retains instruction/register scheduling differences.
 // Symbol issue: target getBaseMtx__8FireRingFv lacks the const qualifier used by LiveActor's virtual.
 #include "Game/MapObj/FireRing.hpp"
 #include "Game/Util.hpp"
@@ -81,6 +81,12 @@ void FireRing::endClipped() {
     }
 }
 
+namespace {
+    inline f32 calcScaledSensorRadius(f32 radius, f32 scale) {
+        return (0.65f * radius) * scale;
+    }
+}
+
 void FireRing::initBalls(const JMapInfoIter& rIter) {
     mBalls = new FireRingBall*[mBallCount];
     f32 zeroF = 0.0f;
@@ -99,7 +105,7 @@ void FireRing::initBalls(const JMapInfoIter& rIter) {
         }
         f32 scale = mScale.y;
         if (scale > 1.2f) {
-            MR::setSensorRadius(mBalls[i], "Attack", 0.65f * MR::getSensorRadius(mBalls[i], "Attack") * scale);
+            MR::setSensorRadius(mBalls[i], "Attack", calcScaledSensorRadius(MR::getSensorRadius(mBalls[i], "Attack"), scale));
         }
     }
 }

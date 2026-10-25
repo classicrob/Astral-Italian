@@ -111,7 +111,7 @@ public:
     virtual void appear();
     virtual void kill();
 
-    bool isInvincible() const;  // fn_800A0A20: true unless the "DashEnd" action plays
+    bool isInvincible();  // fn_800A0A20: true unless the "DashEnd" action plays
     void exeDashSign();         // fn_800A0A60
     void exeDashCharge();       // fn_800A0B70
     void exeDash();             // fn_800A0D90

@@ -68,9 +68,7 @@ void HipDropMoveBlockSwitch::calcAndSetBaseMtx() {
 bool HipDropMoveBlockSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDropFloor(msg) && isNerve(&NrvHipDropMoveBlockSwitch::HipDropMoveBlockSwitchNrvOff::sInstance)) {
         setNerve(&NrvHipDropMoveBlockSwitch::HipDropMoveBlockSwitchNrvSwitchDown::sInstance);
-        HitSensor* pThisSensor = getSensor("Body");
-        HitSensor* pBlockSensor = mMoveBlock->getSensor("Body");
-        MR::sendArbitraryMsg(msg, pBlockSensor, pThisSensor);
+        MR::sendArbitraryMsg(msg, mMoveBlock->getSensor("Body"), getSensor("Body"));
         return false;
     }
 

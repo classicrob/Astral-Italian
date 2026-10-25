@@ -58,7 +58,7 @@ namespace MultiScene {
     void setBtpFrameAndStop(MultiSceneActor*, f32);
     void setBvaFrameAndStop(MultiSceneActor*, f32);
     bool isBckStopped(MultiSceneActor*);
-    bool isBckEnd(const MultiSceneActor*);
+    bool isBckEnd(MultiSceneActor*);
     bool isStep(const MultiSceneActor*, s32);
     bool isFirstStep(const MultiSceneActor*);
     bool isGreaterStep(const MultiSceneActor*, s32);

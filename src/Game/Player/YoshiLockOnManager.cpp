@@ -107,7 +107,7 @@ u32 YoshiLockOnManager::getTargetCapacity() {
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 u32 YoshiLockOnManager::takeActiveTargets(YoshiLockOnTargetDesc* out, u32) {
     u32 count = 0;
-    for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; iterator++, count++) iterator->copyTargetInfo(out+count);
+    for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; count++, iterator++) iterator->copyTargetInfo(out+count);
     clearActiveTargets();
     return count;
 }

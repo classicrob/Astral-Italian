@@ -328,8 +328,8 @@ bool CameraFollow::checkDescent(TVec3f* pVec) const {
 
 void CameraFollow::startRound(f32 angle, f32 rate) {
     mAngleYTarget = MR::repeat(angle, 0.0f, MR::pi() * 2.0f);
-    mAngleYSpeed = rate;
     mIsRounding = true;
+    mAngleYSpeed = rate;
 }
 
 void CameraFollow::checkValidityOfRound(const TVec3f& rWatchPos, const TVec3f& rPos) {

@@ -379,8 +379,12 @@ void MorphItemObjNeo::calcContainerBaseMtx() {
     }
 }
 
-// NONMATCHING: unsigned conversion loads and multiply scheduling differ
-// NONMATCHING: target reloads mAppearFramesRemaining (lhz) for the RotAxis angle and orders fmuls operands differently (scheduling/CSE)
+namespace {
+    inline f32 calcAppearRotation(const u16& frames, f32 step) {
+        return frames * step;
+    }
+}
+
 void MorphItemObjNeo::calcAndSetBaseMtx() {
     if (isNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait))) {
         if (mContainerType == 1) {
@@ -408,7 +412,7 @@ void MorphItemObjNeo::calcAndSetBaseMtx() {
             PSMTXConcat(getBaseMtx(), pMtx, getBaseMtx());
         } else if (mAppearFramesRemaining != 0) {
             TPos3f rotMtx;
-            PSMTXRotAxisRad(rotMtx, mVelocity, mAppearFramesRemaining * 0.20943952f);
+            PSMTXRotAxisRad(rotMtx, mVelocity, calcAppearRotation(mAppearFramesRemaining, 0.20943952f));
 
             TVec3f rotVec;
             PSMTXMultVec(rotMtx, mZRotation, rotVec);

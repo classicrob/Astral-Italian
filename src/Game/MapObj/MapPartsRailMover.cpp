@@ -37,6 +37,12 @@ MapPartsRailMover::MapPartsRailMover(LiveActor* pActor)
 }
 
 // NONMATCHING: GPR allocation and paired-single subtraction scheduling in snap setup.
+inline TVec3f calcRailSnapOffset(const TVec3f& position, LiveActor* host) {
+    TVec3f offset(position);
+    offset -= host->mPosition;
+    return offset;
+}
+
 void MapPartsRailMover::init(const JMapInfoIter& rIter) {
     MapPartsFunction::init(rIter);
     TVec3f originalPosition(mHost->mPosition);
@@ -59,10 +65,7 @@ void MapPartsRailMover::init(const JMapInfoIter& rIter) {
     MR::getMapPartsArgMoveSnap(&mSnapDuration, mHost);
     if (mSnapDuration > 0) {
         mSnapFramesRemaining = mSnapDuration;
-        LiveActor* host = mHost;
-        TVec3f offset(originalPosition);
-        offset -= host->mPosition;
-        mSnapOffset = offset;
+        mSnapOffset = calcRailSnapOffset(originalPosition, mHost);
         MR::setPosition(mHost, originalPosition);
     }
     updatePosition();

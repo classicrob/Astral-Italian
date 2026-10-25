@@ -98,8 +98,14 @@ void ClipAreaShapeCylinder::calcBaseScale(TVec3f* pOut) const {
     pOut->set< f32 >(mRadius / 500.0f, mHeight / 500.0f, mRadius / 500.0f);
 }
 
+namespace {
+    inline void multiplyClipScale(const f32* base, const f32* scale, f32* result) {
+        JGeometry::mulInternal(base, scale, result);
+    }
+}
+
 void mulScaleVec(const TVec3f& rBase, const TVec3f& rScale, TVec3f& rOut) NO_INLINE {
-    JGeometry::mulInternal(&rBase.x, &rScale.x, &rOut.x);
+    multiplyClipScale(&rBase.x, &rScale.x, &rOut.x);
 }
 
 void ClipAreaShapeCylinder::calcScale(TVec3f* pOut, const TVec3f& rScale) const {

@@ -100,6 +100,10 @@ void CloudMarioHat::calcAndSetBaseMtx() {
 }
 
 // NONMATCHING: callback/table register choices and pooled-data relocations.
+inline JointControlDelegator<CloudMarioHat>::func getCloudHatJointCallback() {
+    return sCalcJoint;
+}
+
 void CloudMarioHat::initDynamics() {
     mHatMatrix.identity();
     mPoints = new CloudHatPoint*[5];
@@ -109,7 +113,7 @@ void CloudMarioHat::initDynamics() {
     mControllers = new JointController*[3];
     mJoints = new J3DJoint*[3];
     for (u32 i = 0; i < 3; ++i) {
-        JointControlDelegator<CloudMarioHat>::func callback = sCalcJoint;
+        JointControlDelegator<CloudMarioHat>::func callback = getCloudHatJointCallback();
         const char* jointName = sJoints[i].name;
         JointController* controller = MR::createJointDelegatorWithNullChildFunc<CloudMarioHat>(this, callback, jointName);
         mControllers[i] = controller;

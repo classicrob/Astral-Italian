@@ -72,7 +72,7 @@ u32 GameDataSomeGalaxyStorage::deserialize(const BinaryDataContentAccessor& rAcc
     mFlag = (flagPtr != nullptr) ? *flagPtr : 0;
 
     s32 readOffset = rAccessor.getDataSize();
-    for (s32 idx = 0; idx < ((mScenarioAccessorNum < scenarioNum) ? mScenarioAccessorNum : scenarioNum); idx++) {
+    for (s32 idx = 0; idx < ((mScenarioAccessorNum >= scenarioNum) ? scenarioNum : mScenarioAccessorNum); idx++) {
         u32 result = mScenarioAccessors[idx].deserialize(rScenarioAccessor, pData + readOffset);
         if (result != 0) {
             return result;

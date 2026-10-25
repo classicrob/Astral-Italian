@@ -439,6 +439,29 @@ bool WorldMapOwner::isWorldDataType5AtCurrent() {
 }
 
 // NONMATCHING: register allocation only (galaxy name / node count / path table swap saved registers) (FP order/grouping checked: no FP instructions).
+inline void markAccessibleWorldWarps(WorldMapOwner* owner) {
+    WorldMapResultWorld* pWorld = owner->mContext->mWorld;
+    WorldMapResultPathFinder* pPaths = pWorld->mPathFinder;
+    PointPartsHolder* pParts = owner->getPointParts();
+    s32 num = pWorld->getNodeNum();
+    for (s32 i = 0; i < num; i++) {
+        if (pWorld->isPathReachable(i)) {
+            MiniWorldWarpPoint* pWarp = static_cast< MiniWorldWarpPoint* >(pParts->getWorldWarpActor(i));
+            if (pWarp != nullptr) {
+                if (pWarp->mIsForward) {
+                    if (pPaths->getDistance(i) <= 2) {
+                        GameSequenceFunction::setWorldMapFlag22C();
+                    }
+                } else {
+                    if (pPaths->getDistance(i) <= 1) {
+                        GameSequenceFunction::setWorldMapFlag22D();
+                    }
+                }
+            }
+        }
+    }
+}
+
 void WorldMapOwner::enterCurrentGalaxy() {
     mContext->mWorld->disappear();
     s32 node = getCamera()->mCurrent;
@@ -446,26 +469,7 @@ void WorldMapOwner::enterCurrentGalaxy() {
     const char* pName = getInfoHolder()->getGalaxyName(node);
     mContext->mWorld->refreshRouteComet();
     if (pName == nullptr) {
-        WorldMapResultWorld* pWorld = mContext->mWorld;
-        WorldMapResultPathFinder* pPaths = pWorld->mPathFinder;
-        PointPartsHolder* pParts = getPointParts();
-        s32 num = pWorld->getNodeNum();
-        for (s32 i = 0; i < num; i++) {
-            if (pWorld->isPathReachable(i)) {
-                MiniWorldWarpPoint* pWarp = static_cast< MiniWorldWarpPoint* >(pParts->getWorldWarpActor(i));
-                if (pWarp != nullptr) {
-                    if (pWarp->mIsForward) {
-                        if (pPaths->getDistance(i) <= 2) {
-                            GameSequenceFunction::setWorldMapFlag22C();
-                        }
-                    } else {
-                        if (pPaths->getDistance(i) <= 1) {
-                            GameSequenceFunction::setWorldMapFlag22D();
-                        }
-                    }
-                }
-            }
-        }
+        markAccessibleWorldWarps(this);
 
         if (GameSequenceFunction::isTicoFatStarPieceActive()) {
             MR::setWipeCircleCenterPos(getRocket()->mPosition);

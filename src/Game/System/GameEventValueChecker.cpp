@@ -79,11 +79,13 @@ u32 GameEventValueChecker::getU32Value(const char* pName) const {
 void GameEventValueChecker::setU32Value(const char* pName, u32 value) {
     char hiName[128];
     snprintf(hiName, sizeof(hiName), "%s/hi", pName);
-    setValue(hiName, value >> 16);
+    s32 hiIndex = findIndex(hiName);
+    mValues[hiIndex] = value >> 16;
 
     char loName[128];
     snprintf(loName, sizeof(loName), "%s/lo", pName);
-    setValue(loName, value);
+    s32 loIndex = findIndex(loName);
+    mValues[loIndex] = value;
 }
 
 u16 GameEventValueChecker::getIndexedValue(const char* pName, s32 index) const {

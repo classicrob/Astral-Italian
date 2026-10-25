@@ -354,14 +354,19 @@ void Yoshi::movement() {
     fn_804116B0();
 }
 
-// NONMATCHING: matrix translation is inlined; FPR allocation differs.
+namespace {
+inline void setYoshiEulerRotation(TPos3f& matrix, const f32& x, const f32& y, const f32& z) {
+    matrix.setRotate(x, y, z);
+}
+}
+
 void Yoshi::calcAnim() {
     if (isNerve(&NrvYoshi::YoshiNrv80413840::sInstance)) {
         mAnimationSync->update();
         return;
     }
     mAnimationSync->mAnimation = NULL;
-    mBaseMtx.setRotate(mRotation.x, mRotation.y, mRotation.z);
+    setYoshiEulerRotation(mBaseMtx, mRotation.x, mRotation.y, mRotation.z);
     mBaseMtx.setTrans(mPosition);
     fn_8040C960();
     mXanimePlayer->calcAnm(0);

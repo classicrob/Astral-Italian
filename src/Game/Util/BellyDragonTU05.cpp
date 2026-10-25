@@ -40,6 +40,13 @@ extern "C" void* __nw__FUl(u32);
 // Arm states (other TUs)
 
 
+namespace {
+    const char sArmPhaseName[] = "Phase[戦闘]";
+    const char sArmWaitName[] = "Wander";
+    const char sArmFireName[] = "AttackBite";
+    const char sArmShotName[] = "AttackDive";
+}
+
 namespace NrvBellyDragonArm {
     NEW_NERVE(BellyDragonArmNrvWait, BellyDragonArm, Wait);
     NEW_NERVE(BellyDragonArmNrvFire, BellyDragonArm, Fire);
@@ -273,18 +280,17 @@ void BellyDragonPod::createGroups() {
 }
 
 // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
-BellyDragonArm::BellyDragonArm(BellyDragon* pHost, s32 side) : ActorStateBase<BellyDragon>("Phase[戦闘]", pHost), mSide(side), mStateA(NULL), mStateB(NULL), mStateC(NULL), mCounter(0) {
+BellyDragonArm::BellyDragonArm(BellyDragon* pHost, s32 side) : ActorStateBase<BellyDragon>(sArmPhaseName, pHost), mSide(side), mStateA(NULL), mStateB(NULL), mStateC(NULL), mCounter(0) {
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
 void BellyDragonArm::init() {
     initNerve(&NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance, 0x10);
     mStateA = new BellyDragonArmWait(mHost, mSide);
     mStateB = new BellyDragonArmFire(mHost, mSide);
     mStateC = new BellyDragonArmShot(mHost, mSide);
-    MR::initActorState(this, mStateA, &NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance, "Wander");
-    MR::initActorState(this, mStateB, &NrvBellyDragonArm::BellyDragonArmNrvFire::sInstance, "AttackBite");
-    MR::initActorState(this, mStateC, &NrvBellyDragonArm::BellyDragonArmNrvShot::sInstance, "AttackDive");
+    MR::initActorState(this, mStateA, &NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance, sArmWaitName);
+    MR::initActorState(this, mStateB, &NrvBellyDragonArm::BellyDragonArmNrvFire::sInstance, sArmFireName);
+    MR::initActorState(this, mStateC, &NrvBellyDragonArm::BellyDragonArmNrvShot::sInstance, sArmShotName);
     kill();
 }
 

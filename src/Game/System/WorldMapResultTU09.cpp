@@ -71,16 +71,17 @@ void WorldMapResultStateEnterHome::control() {
     MR::setDepthOfFieldBlurDistance(0x22C4, 0x23F0);
 }
 
+inline f32 calcHomeApproachScale(f32 inverseRate, f32 range) {
+    return (1.0f - range) + inverseRate * range;
+}
+
 void WorldMapResultStateEnterHome::exeApproach() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(mHost->getRocket(), "ZoomInShip", -1, -1, -1);
     }
 
     f32 rate = MR::calcNerveEaseInRate(this, 30);
-    f32 inv;
-    f32 range = lbl_807E3140;
-    inv = 1.0f - rate;
-    f32 scale = (1.0f - range) + inv * range;
+    f32 scale = calcHomeApproachScale(1.0f - rate, lbl_807E3140);
     MR::setScale(mHost->getRocket(), scale);
 
     if (MR::isStep(this, 16)) {

@@ -119,6 +119,11 @@ void YoshiTongue::exeState3() {
     }
     mProgress = 0.0f;
 }
+inline f32 calcTongueRetractRatio(s32 step) {
+    f32 t = static_cast<f32>(step) / 12.0f;
+    return 1.0f - t * t;
+}
+
 void YoshiTongue::exeState7() {
     if (MR::isFirstStep(this)) {
         mRetractProgress = mProgress;
@@ -128,8 +133,7 @@ void YoshiTongue::exeState7() {
     mTipPosition.set<f32>(mMouthMtx[0][3], mMouthMtx[1][3], mMouthMtx[2][3]);
     mTipPosition += mRetractOffset;
     if (MR::isLessStep(this, 12)) {
-        f32 t = static_cast<f32>(getNerveStep()) / 12.0f;
-        f32 progress = 1.0f - t * t;
+        f32 progress = calcTongueRetractRatio(getNerveStep());
         progress *= mRetractProgress;
         mProgress = progress;
         return;

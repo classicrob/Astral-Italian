@@ -40,8 +40,8 @@ s32 SysConfigChunk::deserialize(const u8* buffer, u32 size) {
     u8* data = const_cast<u8*>(buffer) + headerSize;
     {
         const char* name = "mIsEncouragePal60";
-        u8* value = static_cast<u8*>(accessor.getPointer(name, data));
-        mEncouragedPal16 = value ? *value : 0;
+        bool* value = static_cast<bool*>(accessor.getPointer(name, data));
+        mEncouragedPal16 = value ? *value : false;
     }
     {
         const char* name = "mTimeSent";

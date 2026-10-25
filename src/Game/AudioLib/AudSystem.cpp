@@ -310,6 +310,12 @@ void AudSystem::updateSeLimitGroups() {
 }
 
 // NONMATCHING: register allocation / loop counters only (instruction sequence identical)
+inline void shiftSeLimitEntries(AudSeLimitEntry* entries, s32 index, s32 limit) {
+    for (s32 k = index; k < limit - 1; k++) {
+        entries[k + 1] = entries[k];
+    }
+}
+
 s32 AudSystem::registerSeLimit(JAISe* pSe, s32 limit) {
     f32 score = 0.0f;
     TVec3f pos;
@@ -337,9 +343,7 @@ s32 AudSystem::registerSeLimit(JAISe* pSe, s32 limit) {
                 AudSeLimitEntry dropped;
                 dropped = pEntries[limit - 1];
 
-                for (s32 k = j; k < limit - 1; k++) {
-                    pEntries[k + 1] = pEntries[k];
-                }
+                shiftSeLimitEntries(pEntries, j, limit);
 
                 pEntries[j] = newEntry;
                 if (dropped.mSe != nullptr) {
@@ -969,8 +973,9 @@ s32 AudSystem::getNumOfPlaying(JAISoundID soundID) {
 
 u32 AudSystem::getPlayCountMin(JAISoundID soundID) {
     u32 min = -1;
+    JAISeMgr& mgr = getSeMgr();
     for (s32 category = 0; category < JAISeMgr::NUM_CATEGORIES; category++) {
-        for (JSULink< JAISe >* it = getSeMgr().getCategory(category)->getSeList()->getFirst(); it != getSeMgr().getCategory(0)->getSeList()->getEnd();
+        for (JSULink< JAISe >* it = mgr.getCategory(category)->getSeList()->getFirst(); it != mgr.getCategory(0)->getSeList()->getEnd();
              it = it->getNext()) {
             if (it->getObject()->mSoundID == soundID) {
                 if (it->getObject()->getCount() < min) {

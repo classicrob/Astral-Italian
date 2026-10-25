@@ -233,12 +233,14 @@ void KoopaJrCastleFireBar::updateHitSensor(HitSensor* pSensor) {
 
 // NONMATCHING: GPR/FPR allocation order of the loop variables (frame/zero copies) differs.
 void KoopaJrCastleFireBar::createChildren() {
+    s32 m;
+    s32 perArm;
     s32 i;
     f32 zeroB;
     f32 zeroA;
     f32 frameStep;
     mChildren = new LiveActor*[mChildCount];
-    s32 perArm = mChildCount / mArmCount;
+    perArm = mChildCount / mArmCount;
     f32 frame = 0.0f;
     zeroA = frame;
     frameStep = 25.0f;
@@ -246,7 +248,7 @@ void KoopaJrCastleFireBar::createChildren() {
     for (i = 0; i < mChildCount; i++) {
         mChildren[i] = MR::createDemoObj("クッパJrキャッスルファイアボール", "FireRingBall", "KoopaJrCastle", NULL);
         MR::invalidateClipping(mChildren[i]);
-        s32 m = i % perArm;
+        m = i % perArm;
         if (perArm - 1 != m) {
             MR::invalidateShadowAll(mChildren[i]);
         }

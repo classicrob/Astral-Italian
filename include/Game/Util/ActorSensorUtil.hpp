@@ -74,7 +74,7 @@ namespace MR {
     void setSensorPos(LiveActor* pActor, const char* pSensorName, const TVec3f& rPosition);
     void setSensorOffset(LiveActor* pActor, const char* pSensorName, const TVec3f& rOffset);
     f32 getSensorRadius(HitSensor* pSensor);
-    f32 getSensorRadius(LiveActor* pActor, const char* pSensorName);
+    f32 getSensorRadius(const LiveActor* pActor, const char* pSensorName);
     void setSensorRadius(HitSensor* pSensor, f32 radius);
     void setSensorRadius(LiveActor* pActor, const char* pSensorName, f32 radius);
     void scaleAllSensorRadius(LiveActor* pActor, f32 scale);

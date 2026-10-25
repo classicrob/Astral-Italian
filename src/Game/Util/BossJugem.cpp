@@ -404,7 +404,6 @@ void BossJugem::exeAngry() {
     }
 }
 
-// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BossJugem::exeMoveLeft() {
     if (MR::isFirstStep(this)) {
         mRailCoordStart = MR::getRailCoord(this);
@@ -413,7 +412,8 @@ void BossJugem::exeMoveLeft() {
         MR::reverseRailDirection(this);
     }
     const f32 startCoord = mRailCoordStart;
-    f32 coord = startCoord + 1200.0f;
+    f32 coord = startCoord;
+    coord += 1200.0f;
     if (!MR::isRailCoordNotBehind(this, coord)) {
         coord = mRailCoordStart - 1200.0f;
     }
@@ -425,7 +425,6 @@ void BossJugem::exeMoveLeft() {
     }
 }
 
-// NONMATCHING: FP operand commutation only (grouping checked); register/stack/branch lowering.
 void BossJugem::exeMoveRight() {
     if (MR::isFirstStep(this)) {
         mRailCoordStart = MR::getRailCoord(this);
@@ -434,7 +433,8 @@ void BossJugem::exeMoveRight() {
         MR::reverseRailDirection(this);
     }
     const f32 startCoord = mRailCoordStart;
-    f32 coord = startCoord + 1200.0f;
+    f32 coord = startCoord;
+    coord += 1200.0f;
     if (!MR::isRailCoordNotBehind(this, coord)) {
         coord = mRailCoordStart - 1200.0f;
     }

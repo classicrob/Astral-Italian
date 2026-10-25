@@ -34,11 +34,19 @@ void KoopaJrRobotBreakableStep::exeBreak() {
 }
 
 // NONMATCHING: regalloc of the TVec3 temp (f2/f0 swap)
+inline TVec3f calcRobotStepBlow(const TVec3f& gravity, f32 speed) {
+    TVec3f velocity(gravity);
+    velocity.scale(speed);
+    return velocity;
+}
+
+inline void addRobotStepVelocity(TVec3f& velocity, const TVec3f& delta) {
+    velocity += delta;
+}
+
 void KoopaJrRobotBreakableStep::exeBlow() {
     if (MR::isFirstStep(this)) {
-        TVec3f v(mGravity);
-        v.scale(15.0f);
-        mVelocity += v;
+        addRobotStepVelocity(mVelocity, calcRobotStepBlow(mGravity, 15.0f));
     }
     if (0.5f < PSVECMag(&mVelocity)) {
         mVelocity.scale(0.92f);

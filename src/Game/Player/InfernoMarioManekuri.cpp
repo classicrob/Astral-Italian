@@ -97,7 +97,7 @@ void InfernoMarioManekuri::control() {}
 void InfernoMarioManekuri::exeWait() {
     if(MR::isFirstStep(this)) { MR::validateClipping(mHost);MR::startAction(mModel,"Wait");mModel->makeActorAppeared();MR::hideModelAndOnCalcAnim(mHost);MR::onBind(mHost); }
     if(!MR::isBindedGround(mHost)) MR::addVelocityToGravity(mHost,1.0f);
-    MR::attenuateVelocity(mHost,0.95f);tryFind();
+    MR::attenuateVelocity(mHost,0.95f);if (tryFind()) return;
 }
 void InfernoMarioManekuri::exeFind() {
     if(MR::isFirstStep(this)) MR::startAction(mModel,"Find");

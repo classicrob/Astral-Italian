@@ -155,6 +155,10 @@ DynamicJointCtrl::DynamicJointCtrl(LiveActor* pActor, const char* pName, const D
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void DynamicJointCtrl::init() {
     MtxPtr rootMtx = MR::getJointMtx(mActor, mName);
+    LiveActor* actor;
+    DynamicJointCtrlNode* node;
+    MtxPtr mtx;
+    const char* name;
     J3DJoint* joint = MR::getJoint(mActor, mName);
     if (mParams->mCtrlJointNumMax > 0) {
         _8 = mParams->mCtrlJointNumMax;
@@ -168,13 +172,13 @@ void DynamicJointCtrl::init() {
 
     for (s32 i = 0; i < _8; i++) {
         if (i < _8 - 1) {
-            LiveActor* actor = mActor;
-            MtxPtr mtx = MR::getJointMtx(actor, joint->getJntNo());
+            actor = mActor;
+            mtx = MR::getJointMtx(actor, joint->getJntNo());
             TVec3f pos(mtx[0][3], mtx[1][3], mtx[2][3]);
             length = pos.distance(previousPos);
             previousPos.set(pos);
-            DynamicJointCtrlNode* node = new DynamicJointCtrlNode(this, mtx, length);
-            const char* name = MR::getJointName(actor, joint->getJntNo());
+            node = new DynamicJointCtrlNode(this, mtx, length);
+            name = MR::getJointName(actor, joint->getJntNo());
             node->mJointController = MR::createJointDelegator<DynamicJointCtrlNode>(node, actor, &DynamicJointCtrlNode::updateJointMtxCallBack, nullptr, name);
             mCtrlNodes[i] = node;
             if (i == 0 && mParams->mSupportJointName) joint = MR::getJoint(mActor, mParams->mSupportJointName);

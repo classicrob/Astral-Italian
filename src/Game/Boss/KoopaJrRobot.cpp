@@ -156,10 +156,10 @@ void KoopaJrRobot::kill() {
     LiveActor::kill();
 }
 
-// NONMATCHING: iterator/end pointer register allocation differs.
 void KoopaJrRobot::killParts() {
     MR::deleteEffectAll(this);
-    std::for_each(mParts, mParts + 4, std::mem_fun(&KoopaJrRobotPart::kill));
+    KoopaJrRobotPart** partsEnd = mParts + 4;
+    std::for_each(mParts, partsEnd, std::mem_fun(&KoopaJrRobotPart::kill));
 }
 
 bool KoopaJrRobot::isStateNerve() const {

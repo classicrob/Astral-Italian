@@ -456,16 +456,22 @@ bool BossBussun::isAttackingNerve() const {
     return false;
 }
 
+namespace {
+    inline void setHomeAxis(TVec3f& axis, f32 x, f32 y, f32 z) {
+        axis.set< f32 >(x, y, z);
+    }
+}
+
 void BossBussun::resetToHomePos() {
     TPos3f mtx;
     mtx.identity();
     MR::tryFindLinkNamePos(this, "ボスブッスン位置", mtx.toMtxPtr());
-    mFrontDir.set< f32 >(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
+    setHomeAxis(mFrontDir, mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
     TVec3f up;
-    up.set< f32 >(mtx.mMtx[0][1], mtx.mMtx[1][1], mtx.mMtx[2][1]);
+    setHomeAxis(up, mtx.mMtx[0][1], mtx.mMtx[1][1], mtx.mMtx[2][1]);
     mGravity.set(-up);
     TVec3f pos;
-    pos.set< f32 >(mtx.mMtx[0][3], mtx.mMtx[1][3], mtx.mMtx[2][3]);
+    setHomeAxis(pos, mtx.mMtx[0][3], mtx.mMtx[1][3], mtx.mMtx[2][3]);
     MR::resetPosition(this, pos);
 }
 

@@ -78,26 +78,28 @@ void CymbalsStep::exeClose() {
     mCloseRate += 0.1f;
     MR::clamp(mCloseRate, 0.0f, 1.0f);
 }
-// NONMATCHING: scale x/z use swapped floating-point registers.
+namespace {
+    inline void setCymbalScale(TPos3f* mtx, f32 x, f32 y, f32 z) {
+        mtx->zeroTrans();
+        mtx->mMtx[0][0] = x;
+        mtx->mMtx[0][1] = 0.0f;
+        mtx->mMtx[0][2] = 0.0f;
+        mtx->mMtx[1][0] = 0.0f;
+        mtx->mMtx[1][1] = y;
+        mtx->mMtx[1][2] = 0.0f;
+        mtx->mMtx[2][0] = 0.0f;
+        mtx->mMtx[2][1] = 0.0f;
+        mtx->mMtx[2][2] = z;
+    }
+}
+
 bool CymbalsStep::move(TPos3f* mtx, const JointControllerInfo&) {
     if (isNerve(&NrvCymbalsStep::CymbalsStepNrvClose::sInstance) && mCloseRate >= 0.99f) return true;
     TVec3f scale;
     mtx->getScale(scale);
     TVec3f trans;
     mtx->getTrans(trans);
-    f32 x = scale.x;
-    f32 y = scale.y;
-    f32 z = scale.z;
-    mtx->zeroTrans();
-    mtx->mMtx[0][0] = x;
-    mtx->mMtx[0][1] = 0.0f;
-    mtx->mMtx[0][2] = 0.0f;
-    mtx->mMtx[1][0] = 0.0f;
-    mtx->mMtx[1][1] = y;
-    mtx->mMtx[1][2] = 0.0f;
-    mtx->mMtx[2][0] = 0.0f;
-    mtx->mMtx[2][1] = 0.0f;
-    mtx->mMtx[2][2] = z;
+    setCymbalScale(mtx, scale.x, scale.y, scale.z);
     mtx->setTrans(trans);
     return true;
 }

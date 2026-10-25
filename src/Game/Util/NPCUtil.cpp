@@ -360,30 +360,29 @@ namespace MR {
         }
     }
 
-    // NONMATCHING: equivalent turning/short-talk boolean materialization and branch arrangement
+    inline bool isTalkTurnAnimationPlaying(NPCActor* pActor) {
+        bool turning;
+        if (isNullOrEmptyString(pActor->mParam._20)) {
+            turning = false;
+        } else {
+            turning = false;
+            if (!isAnyAnimPlaying(pActor, pActor->mParam._1C) && isAnyAnimPlaying(pActor, pActor->mParam._20)) {
+                turning = true;
+            }
+        }
+        return turning;
+    }
+
     bool tryStartTalkAction(NPCActor* pActor) {
         TalkMessageCtrl* talk = pActor->mMsgCtrl;
         const char* action = nullptr;
         if (isTalkStart(talk)) {
             action = selectNPCTalkAction(pActor);
         } else if (isTalkTalking(talk)) {
-            if (isShortTalk(talk)) {
+            if (isShortTalk(talk) || isTalkTurnAnimationPlaying(pActor) || isBckOneTimeAndStopped(pActor)) {
                 action = selectNPCTalkAction(pActor);
-            } else {
-                bool turning;
-                if (isNullOrEmptyString(pActor->mParam._20)) {
-                    turning = false;
-                } else {
-                    turning = false;
-                    if (!isAnyAnimPlaying(pActor, pActor->mParam._1C) && isAnyAnimPlaying(pActor, pActor->mParam._20)) {
-                        turning = true;
-                    }
-                }
-                if (turning || isBckOneTimeAndStopped(pActor)) {
-                    action = selectNPCTalkAction(pActor);
-                } else if (pActor->mParam._1) {
-                    pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10);
-                }
+            } else if (pActor->mParam._1) {
+                pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10);
             }
         } else {
             return tryStartTurnAction(pActor);

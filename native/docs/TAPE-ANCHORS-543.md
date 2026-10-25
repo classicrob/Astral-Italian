@@ -257,3 +257,23 @@ one untimestamped frame before playback. `test_tape_anchors543.sh` builds/runs
 these five native targets on the server; no M1 compiler is used. The source test
 removes only the opt-in replay block and binds the remaining original input body
 to the preserved002 hash, keeping the live/default-null implementation exact.
+
+
+## r5 canonical and reciprocal bindings
+
+r4 converted ref072 successfully with17028 exact actual reads/connections;
+ref002's legacy conversion retained its initEnd383/row544 FAIL. Neither outcome
+is replaced. `--schema2-only --canonical-source QUALIFIED_R4_REF072_CAPTURE`
+starts a new ten-arm plan with no conversion retry. `TAPE-MANIFEST.json` seals
+the canonical route CSV/KPD/sidecar/actions SHA256 plus launch/RESULT/native
+qualification hashes before the first arm; each arm rechecks the bound canonical
+before launch. Both references and the candidate use this ONE canonical.
+
+Only a strict fully successful ref002 schema2 fresh replay admits a reciprocal
+capture. Its independent proof must identify source schema2 and all actual
+read/connection bytes; it is bound into `RECIPROCAL-ADMISSION.json` and the
+manifest. Each reciprocal arm checks the admission unchanged. A failed schema1
+capture can never supply this source. Canonical runs observe120s; reciprocal
+runs observe150s to retain the new120s capture plus positive neutral post-roll.
+There is no trimming, new anchor, retry, tolerance or predicate change. Once
+r5 finishes or fails, release the M1 to SOL A's GPU trace overhead measurement.

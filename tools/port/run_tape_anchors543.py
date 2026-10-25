@@ -78,8 +78,48 @@ def prepare(source, target, kind, expected):
         reference_is_test_instrument=kind=='server-instrumented-reference',owner='SOL B thr_65jasku4ah'))
 
 
-def plan(out, controls_only=False, candidate=None, reference072=None, reference002=None, schema2_only=False):
+def tape_binding(tape):
+    return dict(tape=str(tape), files={name:sha(tape/name) for name in
+                ('route.csv','route.kpd','route.tape.json','route.actions')})
+
+
+def verify_tape_binding(binding):
+    need(tape_binding(Path(binding['tape'])) == binding, 'bound canonical tape changed before launch')
+
+
+def qualified_tape(tape, source_schema=None):
+    """Bind a strict successful capture; never admit a failed legacy conversion."""
+    binding=tape_binding(tape)
+    result=json.loads((tape/'RESULT.json').read_text())
+    metadata=json.loads((tape/'route.tape.json').read_text())
+    proof=result.get('input_proof') or {}
+    need(result.get('passed') is True and result.get('checks') and all(result['checks'].values()),
+         'canonical source must have a fully successful strict RESULT')
+    need(metadata.get('schema')==2 and metadata.get('complete') is True and
+         proof.get('passed') is True and proof.get('captured_schema')==2 and
+         proof.get('actual_payloads_independently_checked') is True,
+         'canonical source lacks strict actual-read/connection qualification')
+    if source_schema is not None:
+        need(proof.get('source_schema')==source_schema, 'reciprocal source was not a schema2 replay')
+    for path,expected in proof['hashes'].items():
+        need(sha(Path(path))==expected, 'qualified source proof file changed')
+    for name,expected in binding['files'].items():
+        need(proof['hashes'].get(str(tape/name))==expected, 'canonical bytes absent from qualification')
+    native=json.loads((tape/'replay/divergence.json').read_text())
+    need(native.get('finished') is True and not native.get('stopped'), 'qualified native replay unfinished')
+    launch=json.loads((tape/'launch.json').read_text())
+    need(all(launch['environment'].get(k)==v for k,v in PRODUCTION_PIPELINE_ENV.items()),
+         'canonical source diagnostics settings differ')
+    return dict(binding=binding,result_sha256=sha(tape/'RESULT.json'),
+                launch_sha256=sha(tape/'launch.json'),native_sha256=sha(tape/'replay/divergence.json'),
+                source_schema=proof['source_schema'],actual_reads=proof['actual_reads'],
+                exact_recorded_reads=proof['exact_recorded_reads'],exact_neutral_reads=proof['exact_neutral_reads'])
+
+
+def plan(out, controls_only=False, candidate=None, reference072=None, reference002=None, schema2_only=False, canonical=None):
     need(ROOT.resolve() in out.parents and not out.exists(), 'fresh owned output required')
+    need(canonical is None or (schema2_only and not controls_only), 'external canonical requires schema2-only plan')
+    qualification=qualified_tape(canonical) if canonical else None
     builds={
         'legacy072':(ROOT/'candidates/07223918','frozen-control','07223918'),
         'legacy002':(ROOT/'candidates/00221126','frozen-control','00221126')}
@@ -94,9 +134,9 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
     sources=[Path(__file__),HERE/'capture_schema2_tape.py',HERE/'tape_phase_audit.py',HERE/'replay_tape.py',Path(common.__file__),Path(common.__file__).with_name('promotion54m.py')]
     for source in sources: shutil.copy2(source,harness/source.name)
     arms=[]
-    def add(name,build,kind,tape,warm=None):
+    def add(name,build,kind,tape,warm=None,observe=None):
         arms.append(dict(name=name,build=build,kind=kind,tape=str(tape),warm_from=str(warm) if warm else None,
-                         out=str(out/'runs'/name),observe_seconds=90 if kind in ('legacy','conversion') else 120))
+                         out=str(out/'runs'/name),observe_seconds=observe if observe is not None else (90 if kind in ('legacy','conversion') else 120)))
         return out/'runs'/name
     for build in (() if schema2_only else ('legacy072','legacy002')):
         fresh=add(build+'-fresh',build,'legacy',SOURCE)
@@ -104,22 +144,26 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
     if schema2_only:
         builds={k:v for k,v in builds.items() if not k.startswith('legacy')}
     if not controls_only:
-        canonical072=add('convert-ref072','ref072','conversion',SOURCE)
-        canonical002=add('convert-ref002','ref002','conversion',SOURCE)
+        canonical072=canonical if canonical else add('convert-ref072','ref072','conversion',SOURCE)
+        canonical002=out/'runs/matrix-ref002-fresh' if canonical else add('convert-ref002','ref002','conversion',SOURCE)
         for build in ('ref072','ref002'):
             fresh=add('matrix-'+build+'-fresh',build,'schema2',canonical072)
             add('matrix-'+build+'-warm',build,'schema2',canonical072,fresh)
-        fresh=add('reciprocal-ref002-to-ref072-fresh','ref072','schema2',canonical002)
-        add('reciprocal-ref002-to-ref072-warm','ref072','schema2',canonical002,fresh)
+        reciprocal_seconds=150 if canonical else 120
+        fresh=add('reciprocal-ref002-to-ref072-fresh','ref072','schema2',canonical002,observe=reciprocal_seconds)
+        add('reciprocal-ref002-to-ref072-warm','ref072','schema2',canonical002,fresh,observe=reciprocal_seconds)
         for label,tape in (('072',canonical072),('002',canonical002)):
-            fresh=add('candidate-from'+label+'-fresh','candidate','schema2',tape)
-            add('candidate-from'+label+'-warm','candidate','schema2',tape,fresh)
+            duration=reciprocal_seconds if label=='002' else 120
+            fresh=add('candidate-from'+label+'-fresh','candidate','schema2',tape,observe=duration)
+            add('candidate-from'+label+'-warm','candidate','schema2',tape,fresh,observe=duration)
     write(out/'PLAN.json',dict(status='planned-not-launched',builds={k:dict(source=str(v[0]),kind=v[1],expected=v[2]) for k,v in builds.items()},
         arms=arms,nice=0,bundle=OWN,heavy_then_native=[str(HEAVY),str(NATIVE)],no_outer_lock=True,
         no_retries=True,legacy_controls_only=controls_only,schema2_only=schema2_only,
-        production_pipeline_env=PRODUCTION_PIPELINE_ENV,canonical_selection='one strict conversion per reference, fail closed; no failure substituted',
-        schema2_observation='120s minimum to retain full 90s converted prefix AND a positive neutral tail; original >=90s/50audio/0underrun predicates unchanged',
+        production_pipeline_env=PRODUCTION_PIPELINE_ENV,qualified_canonical=qualification,
+        canonical_selection='one pre-qualified r4 schema2 canonical; reciprocal only from successful ref002 schema2 fresh replay' if canonical else 'one strict conversion per reference, fail closed; no failure substituted',
+        schema2_observation='120s for90s canonical;150s for120s reciprocal; complete prefix plus positive neutral tail; >=90s/50audio/0underrun unchanged',
         source_hashes={p.name:sha(p) for p in harness.iterdir()},acceptance_claimed=False))
+    if qualification:write(out/'TAPE-MANIFEST.json',dict(canonical=qualification,reciprocal='not admitted until successful strict ref002 schema2 replay',acceptance_claimed=False))
 
 
 def legacy(arm, app, prep, control):
@@ -167,6 +211,19 @@ def arm(out, name):
         original=Path(prep['original_app'])
         need(common.tree(original)==prep['original_tree'],'immutable original differs from PREP')
         with (app/'Contents/Info.plist').open('rb') as f:need(plistlib.load(f)['CFBundleIdentifier']==OWN,'wrong B namespace')
+        if spec.get('qualified_canonical'):
+            canonical=spec['qualified_canonical']
+            verify_tape_binding(canonical['binding'])
+            need(sha(Path(canonical['binding']['tape'])/'RESULT.json')==canonical['result_sha256'], 'canonical qualification changed')
+            write(control/'canonical-check.json',dict(verified_before_launch=True,canonical=canonical))
+            if a['tape']!=canonical['binding']['tape']:
+                reciprocal=qualified_tape(Path(a['tape']),source_schema=2)
+                source_launch=json.loads((Path(a['tape'])/'launch.json').read_text())
+                need(source_launch.get('warm_from') is None and source_launch.get('exe_sha256')==json.loads(
+                     (out/'apps/ref002/PREP.json').read_text())['perf_sha256'], 'reciprocal must come from exact ref002 fresh replay')
+                admission=json.loads((out/'RECIPROCAL-ADMISSION.json').read_text())
+                need(reciprocal==admission, 'admitted reciprocal changed before launch')
+                write(control/'reciprocal-check.json',dict(verified_before_launch=True,qualification=reciprocal))
         if a['kind']=='legacy':legacy(a,app,prep,control)
         else:
             common.wait_quiet(control/'quiet.json');common.disk()
@@ -181,6 +238,10 @@ def arm(out, name):
                 '--observe-seconds',str(a['observe_seconds']),'--bound','600','--require-pointer-evidence']
             if a['kind']=='conversion':command+=['--allow-incomplete']
             if a['warm_from']:command+=['--warm-from',a['warm_from'],'--real-audio']
+            if spec.get('qualified_canonical'):
+                verify_tape_binding(spec['qualified_canonical']['binding'])
+                if a['tape']!=spec['qualified_canonical']['binding']['tape']:
+                    verify_tape_binding(json.loads((out/'RECIPROCAL-ADMISSION.json').read_text())['binding'])
             write(control/'command.json',dict(command=command,nice=0,locks=['heavy via parent lockf','native via current PID'],pid=os.getpid()))
             subprocess.run(command,check=False)
         result=Path(a['out'])/'RESULT.json';need(result.exists(),'no actual RESULT; stop, no replacement')
@@ -188,6 +249,11 @@ def arm(out, name):
              'original/prepared resources changed during replay')
         result=json.loads(result.read_text());process=json.loads((Path(a['out'])/'process.json').read_text())
         need(process['exit']==0 and not process.get('timed_out'),'abnormal app exit; stop')
+        if spec.get('qualified_canonical') and a['name']=='matrix-ref002-fresh' and result['passed'] is True:
+            admission=qualified_tape(Path(a['out']),source_schema=2)
+            write(out/'RECIPROCAL-ADMISSION.json',admission)
+            manifest=json.loads((out/'TAPE-MANIFEST.json').read_text());manifest['reciprocal']=admission
+            write(out/'TAPE-MANIFEST.json',manifest)
         write(control/'COMPLETE.json',dict(arm=a,passed=result['passed'],process=process,result_sha256=sha(Path(a['out'])/'RESULT.json')))
         return 0 if result['passed'] or a['kind']=='legacy' else 1
 
@@ -225,11 +291,12 @@ def main():
     modes=p.add_mutually_exclusive_group(required=True);modes.add_argument('--plan-only',action='store_true');modes.add_argument('--run',action='store_true');modes.add_argument('--arm');modes.add_argument('--detach',action='store_true')
     p.add_argument('--release-receipt',type=Path)
     scope=p.add_mutually_exclusive_group();scope.add_argument('--legacy-controls-only',action='store_true');scope.add_argument('--schema2-only',action='store_true')
+    p.add_argument('--canonical-source',type=Path,help='qualified existing schema2 capture; skips legacy conversions')
     p.add_argument('--candidate-dir',type=Path);p.add_argument('--reference072-dir',type=Path);p.add_argument('--reference002-dir',type=Path)
     p.add_argument('--notify-thread',help='authorised milestone recipient; one message at final completion/stop only')
     a=p.parse_args();out=a.out.resolve()
     try:
-        if a.plan_only:plan(out,a.legacy_controls_only,a.candidate_dir,a.reference072_dir,a.reference002_dir,a.schema2_only);return 0
+        if a.plan_only:plan(out,a.legacy_controls_only,a.candidate_dir,a.reference072_dir,a.reference002_dir,a.schema2_only,a.canonical_source.resolve() if a.canonical_source else None);return 0
         if a.arm:return arm(out,a.arm)
         need(a.release_receipt is not None,'release receipt required')
         if a.detach:

@@ -13,6 +13,9 @@ from pathlib import Path
 from common import HERE,ROOT,FROZEN,sha,write,rows
 def is_tier_gate(name,candidate_mode):
  return candidate_mode and name in ('v2-cold-stall','fifo-default-cadence-latency')
+def excluded_by_functional_scope(name,functional_only):
+ return functional_only and name in ('v2-cold-stall','fifo-default-cadence-latency','wii-proof','wii-old-baseline-lineage')
+
 def requires_refusal(name,passed,measurement_verified,candidate_mode):
  return not passed and (not is_tier_gate(name,candidate_mode) or not measurement_verified)
 REQUIRED=('macos-15-compat','seed-pack','gx-fresh-warm','normal-route-grandmap','intro-skip','flipswap-cappy','v2-cold-stall','v2-image-pair','v2-warm-pairs','fifo-default-cadence-latency','audio-thread-priority','wii-proof')
@@ -71,10 +74,14 @@ def summary(g):
  return json.dumps(d,ensure_ascii=False,separators=(',',':'))[:220]
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');p.add_argument('--latency-result',type=Path,help='approved finite WALL-TIME27 driver result; original cadence evidence remains unchanged');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');p.add_argument('--functional-only',action='store_true');p.add_argument('--latency-result',type=Path,help='approved finite WALL-TIME27 driver result; original cadence evidence remains unchanged');a=p.parse_args()
  base=a.campaign.resolve();m=readj(base/'MANIFEST.json');label=m['label'];candidate_mode=m.get('build_kind')=='server-candidate';meta=m['candidate_build'] if candidate_mode else m['frozen'];expected=meta['perf_exe_sha256'];frozen=meta['build_metadata'] if candidate_mode else readj(FROZEN/'BUILD.json');gates=[];issues=[]
  assert not a.latency_result or candidate_mode
+ assert a.functional_only is m.get('functional_only',False) and (not a.functional_only or candidate_mode)
+ excluded=[]
  def gate(name,paths,fn,status,limits=()):
+  if excluded_by_functional_scope(name,a.functional_only):
+   excluded.append({'gate':name,'authority':m['scope_authority'],'measured_here':False});return
   try:
    detail=fn();ok=detail.pop('passed') is True
   except Exception as e:ok=False;detail={'error':repr(e)}
@@ -213,7 +220,9 @@ def main():
  gate('audio-thread-priority',[runpath('audio-'+mode)/'RESULT.json' for mode in ('cold','warm')]+[base/('thr-'+mode+'.tsv') for mode in ('cold','warm')],audiocheck,'real CoreAudio thread probe, zero underruns')
  if candidate_mode:
   old=pcheck(('wii-source-unchanged',))
-  gates.append({'gate':'wii-old-baseline-lineage','passed':old['passed'],'classification':'source-comparison','status':('PASS ' if old['passed'] else 'FAIL ')+'unchanged since a23609ca (preserved source comparison)','required_for_functional_acceptance':False,'measurement_verified':True,'receipt':str(platform),'build_kind':'server-candidate','source':meta['source'],'source_exe_sha256':meta['source_exe_sha256'],'perf_exe_sha256':expected,'nice':m['nice'],'limits':['PORT authorized main71353 lineage plus fresh candidate Wii/hash/oracle as the current functional proof; this older-source comparison remains unchanged.'],'evidence_sha256':{str(platform):sha(platform),str(base/'platform/wii-source-diff.log'):sha(base/'platform/wii-source-diff.log')},'details':old})
+  if not a.functional_only:
+   gates.append({'gate':'wii-old-baseline-lineage','passed':old['passed'],'classification':'source-comparison','status':('PASS ' if old['passed'] else 'FAIL ')+'unchanged since a23609ca (preserved source comparison)','required_for_functional_acceptance':False,'measurement_verified':True,'receipt':str(platform),'build_kind':'server-candidate','source':meta['source'],'source_exe_sha256':meta['source_exe_sha256'],'perf_exe_sha256':expected,'nice':m['nice'],'limits':['PORT authorized main71353 lineage plus fresh candidate Wii/hash/oracle as the current functional proof; this older-source comparison remains unchanged.'],'evidence_sha256':{str(platform):sha(platform),str(base/'platform/wii-source-diff.log'):sha(base/'platform/wii-source-diff.log')},'details':old})
+  else:excluded.append({'gate':'wii-old-baseline-lineage','authority':m['scope_authority'],'measured_here':False})
   from candidate_wii54m import validate as validate_wii
   gate('wii-proof',[base/'candidate-wii-proof.json'],lambda:validate_wii(base/'candidate-wii-proof.json',meta['candidate_directory']),'main71353 lineage plus fresh candidate Wii/hash and strict dispatch')
  else:gate('wii-proof',[platform,base/'platform/wii-source-diff.log'],lambda:pcheck(('wii-source-unchanged',)),'release source has no Wii changes relative to a23609ca',('Original Wii build/hash/oracle evidence belongs to release; this M1 run rechecks source lineage only.',))
@@ -228,9 +237,10 @@ def main():
   except Exception as e:identity=False;issues.append('protected inputs: '+repr(e))
  if not identity:issues.append('selected build identity/priority')
  interrupted=readj(base/'INTERRUPTED.json') if (base/'INTERRUPTED.json').is_file() else None
- validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','campaign_interruption':interrupted,'frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'input_latency_evidence_override':str(a.latency_result) if a.latency_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
+ validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','campaign_interruption':interrupted,'functional_only':a.functional_only,'excluded_gates':excluded,'frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'input_latency_evidence_override':str(a.latency_result) if a.latency_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
  write(base/'VALIDATION.json',validation)
  lines=[('M1 server candidate '+frozen['source'] if candidate_mode else 'M1 frozen 5.4')+' versus server (actual evidence; nice 0 on M1)','',f"Source exe {frozen['binary_sha256']}; re-signed perfm1a exe {expected}.",'M1 Max / macOS 15.1 / built-in 120 Hz ProMotion. Panel cadence is recorded per run.','Server promotion/normal/intro/Cappy used nice 19; PORT approved nice 0 on M1 because the shared harness is load-sensitive.','', '| Gate | Server | M1 | Comparison |','| --- | --- | --- | --- |']
+ if a.functional_only:lines[0:0]=['Functional-only scope: '+m['scope_authority']+'. Excluded rows are omitted, never reported PASS.','']
  if interrupted:lines[0:0]=['Superseded partial campaign: '+interrupted['authority']+'. Remaining measurements were not run; see INTERRUPTED.json.','']
  for g in gates:
   detail=summary(g)
@@ -238,7 +248,8 @@ def main():
  if a.promotion_result:lines+=['',f'Promotion evidence explicitly re-run after the initial harness table-parser failure: {a.promotion_result}. The initial campaign manifest/log remains unchanged.']
  if a.latency_result:lines+=['',f'PORT-approved latency harness fix: {a.latency_result}. Finite27 independent WALL-TIME Space presses with absolute send/release/read ledger; movement script Space removed, original host random gap distribution and60ms holds retained. Predicate remains exactly27/27 at2frames in all4arms. Original26/25/25/25 arms, cadence tier observations and initial refusal are preserved; see VALIDATION-initial-input-latency-failure.json and LATENCY-07223918-EXISTING-LOG-FINDING.json. Frozen5.4 also showed25/26; the collision predates5.4.1.']
  lines+=['','Each GX session holds heavy then native.lock. Only the owned perfm1a Metal cache is cleared. Private pipeline caches, user copies and raw captures are deleted after their dependent measurements; CSV/log summaries remain.','Candidate evidence is labelled separately; it does not change frozen54 gate status.']
- if candidate_mode:lines+=['The normal-route and normal-boot-ui rows reuse SOL B\'s actual perfm1b runs; their signed hashes are recorded separately and bound to the same original server candidate. Cold and cadence thresholds are tier observations; input latency remains functional.']
+ if a.functional_only:lines+=['Tape rows are fresh SOL A perf54r runs with separate PREP/signature bindings. The host27 collision reference is historical072 evidence; no failed002 latency measurements are invented. Cold/cadence and Wii proof are excluded by PORT scope, not accepted by this collector.']
+ if candidate_mode and not a.functional_only:lines+=['The normal-route and normal-boot-ui rows reuse SOL B\'s actual perfm1b runs; their signed hashes are recorded separately and bound to the same original server candidate. Cold and cadence thresholds are tier observations; input latency remains functional.']
  (base/'COMPARISON.md').write_text('\n'.join(lines)+'\n')
  if issues:
   print('receipts54m: REFUSED; no receipt directory written: '+', '.join(issues));return 1

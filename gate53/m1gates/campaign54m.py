@@ -7,10 +7,12 @@ from common import *
 STAGES=('YosshiHomeGalaxy','MokumokuValleyGalaxy','MarioFaceShipGalaxy')
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');p.add_argument('--pointer-tape',type=Path,default=ROOT/'tapes/tape-worldmap-54');p.add_argument('--wii-proof-log',type=Path);p.add_argument('--full-star-results',type=Path,nargs=3);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('label');p.add_argument('--only');p.add_argument('--quiet-seconds',type=int,default=900);p.add_argument('--tape-result',type=Path);p.add_argument('--candidate-app',type=Path);p.add_argument('--candidate-sha');p.add_argument('--candidate-source');p.add_argument('--candidate-original-app',type=Path);p.add_argument('--candidate-original-sha');p.add_argument('--tape',type=Path,default=ROOT/'tapes/tape-normal-54');p.add_argument('--allow-incomplete-tape',action='store_true');p.add_argument('--server-candidate-dir',type=Path);p.add_argument('--normal-results',type=Path,nargs=3);p.add_argument('--require-bounded-identity',action='store_true');p.add_argument('--pointer-tape',type=Path,default=ROOT/'tapes/tape-worldmap-54');p.add_argument('--wii-proof-log',type=Path);p.add_argument('--full-star-results',type=Path,nargs=3);p.add_argument('--functional-only',action='store_true');a=p.parse_args()
  assert re.fullmatch(r'[A-Za-z0-9_-]+',a.label),'safe unique label required'
  assert os.getpriority(os.PRIO_PROCESS,0)==0,'run campaign at nice 0'
  candidate_mode=a.server_candidate_dir is not None
+ assert not a.functional_only or candidate_mode
+ assert not a.functional_only or not a.wii_proof_log
  assert not a.require_bounded_identity or candidate_mode
  assert not a.wii_proof_log or candidate_mode
  assert not a.full_star_results or candidate_mode
@@ -25,6 +27,8 @@ def main():
  base=ROOT/'campaigns'/a.label;base.mkdir(parents=True,exist_ok=False)
  manifest={'schema':1,'label':a.label,'host':platform.node(),'platform':platform.platform(),'nice':0,'build_kind':'server-candidate' if candidate_mode else 'frozen54','priority_reason':'Normal priority approved by PORT; server promotion/normal/intro/Cappy ran nice 19, a documented load-sensitive harness difference.',('candidate_build' if candidate_mode else 'frozen'):{k:v for k,v in meta.items() if k!='resource_tree'},'steps':[],'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'reference_root':str(HOME/'MacioGalaxy2-team/scratch-port/gate53/m1gates/srv-ref')}
  if candidate_mode:manifest.update(app=str(app),normal_results=[str(q.resolve()) for q in a.normal_results],require_bounded_identity=a.require_bounded_identity,pointer_tape=str(a.pointer_tape.resolve()),full_star_results=[str(q.resolve()) for q in a.full_star_results] if a.full_star_results else None,tier_authority='PORT/head final candidate ruling: cold stall and Fifo cadence are M1 TIER rows; all functional gates required')
+ manifest['functional_only']=a.functional_only
+ if a.functional_only:manifest['scope_authority']='PORT 5.4.2: functional set only; cold/cadence measured by SOL B, Wii proof owned by PORT/server'
  write(base/'MANIFEST.json',manifest)
  if candidate_mode:
   from promotion54m import prepare_m1_fixture
@@ -50,6 +54,9 @@ def main():
   command(name,args);return ROOT/'runs'/label
  if a.wii_proof_log:command('candidate-wii-proof',[sys.executable,'-B',HERE/'candidate_wii54m.py',a.server_candidate_dir,base/'candidate-wii-proof.json','--server-log',a.wii_proof_log])
  selected=(a.only or ('platform,tape,promotion,intro,cappy,cold,image,warm,cadence,audio' if candidate_mode else 'platform,promotion,intro,cappy,cold,image,warm,cadence,audio,tape')).split(',')
+ if a.functional_only:
+  selected=(a.only or 'platform,tape,promotion,intro,cappy,image,warm,audio').split(',')
+  assert set(selected)<=set('platform,tape,promotion,intro,cappy,image,warm,audio'.split(','))
  for gate in selected:
   try:
    if gate=='platform':command('platform',[sys.executable,'-B',HERE/'platform54m.py',base/'platform']+(['--candidate-dir',a.server_candidate_dir] if candidate_mode else []))
@@ -139,7 +146,7 @@ def main():
   protection_after=protected_inputs(a.server_candidate_dir)
   write(base/'protected-inputs-after.json',protection_after)
   write(base/'protected-inputs.json',{'passed':protection_before==protection_after,'before':str(base/'protected-inputs-before.json'),'before_sha256':sha(base/'protected-inputs-before.json'),'after':str(base/'protected-inputs-after.json'),'after_sha256':sha(base/'protected-inputs-after.json')})
- command('receipts',[sys.executable,'-B',HERE/'receipts54m.py',base,base/'receipts'])
+ command('receipts',[sys.executable,'-B',HERE/'receipts54m.py',base,base/'receipts']+(['--functional-only'] if a.functional_only else []))
  print('CAMPAIGN EVIDENCE',base,flush=True)
  return manifest['steps'][-1]['exit']
 if __name__=='__main__':sys.exit(main())

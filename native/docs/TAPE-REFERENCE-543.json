@@ -1,0 +1,43 @@
+{
+  "kind": "instrumented game-code reference; NEVER a release candidate or frozen exe",
+  "base": "0022112615c9a39cbbc508f2eba0c5580d159c06",
+  "instrumentation_commits": [
+    "e657d2ad",
+    "c641c501"
+  ],
+  "root_src_include_libs_delta": [],
+  "unchanged_trees": {
+    "src": {
+      "base": "38a76a4707008d98998673ffedfa81f901a57da2",
+      "reference": "38a76a4707008d98998673ffedfa81f901a57da2"
+    },
+    "include": {
+      "base": "26c06b4358265cf43efc4ae8f0799b7bb8759ee7",
+      "reference": "26c06b4358265cf43efc4ae8f0799b7bb8759ee7"
+    },
+    "libs": {
+      "base": "98780cbc5ba2edcfcb0d47054f14d5bed45135a0",
+      "reference": "98780cbc5ba2edcfcb0d47054f14d5bed45135a0"
+    },
+    "native/gx": {
+      "base": "ee32fd60cf9c93835944b293e165de82b247f049",
+      "reference": "ee32fd60cf9c93835944b293e165de82b247f049"
+    },
+    "native/data": {
+      "base": "93c3a556bc4657a13b38b5a1c13cb57fd4c19332",
+      "reference": "93c3a556bc4657a13b38b5a1c13cb57fd4c19332"
+    }
+  },
+  "unchanged_seed_packs": {
+    "pipeline-seeds.v13.xz": "617705ccb472767ad12498840be0d07384c3342832e96c52568c6d6469d51d44",
+    "pipeline-seeds.v14.xz": "3079e867e85983182e5d19eac14fd62b418e677cacd52746a842fb1f6bce04a9"
+  },
+  "original_native_startup_and_renderer_preserved": true,
+  "integration_context": "Replay-only additions applied cleanly; original 002 frontend boot retained",
+  "local_python_source_checks": {
+    "passed": 42,
+    "cpp_tests": "pending PORT server, no local build"
+  },
+  "candidate_format_docs": "TAPE-ANCHORS-543.md describes candidate v14; this reference retains the base pack unchanged",
+  "expected_seed_check": "v14, 64 DB + 57 .pfd, original 542 bundle expectations"
+}

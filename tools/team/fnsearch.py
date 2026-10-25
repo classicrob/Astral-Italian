@@ -25,6 +25,7 @@ import random
 import re
 import shutil
 import signal
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -679,7 +680,7 @@ def main():
                         dependency_sha256=pins, workers=args.workers, baseline=baseline['function_score'], best=best_score,
                         accepted_index=accepted['index'] if accepted else None, variants=len(rows)-1,
                         compiled_variants=sum(r['compile_seconds'] > 0 for r in rows[1:]),
-                        compile_mean_seconds=sum(compiles)/len(compiles), compile_median_seconds=sorted(compiles)[len(compiles)//2],
+                        compile_mean_seconds=sum(compiles)/len(compiles), compile_median_seconds=statistics.median(compiles),
                         compile_under_1s=sum(t < 1 for t in compiles), wall_seconds=time.monotonic()-start,
                         lock_wait_seconds=lock_wait_seconds,
                         search_seconds_limit=args.seconds,

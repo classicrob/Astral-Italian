@@ -627,8 +627,9 @@ namespace MR {
             return triangle.mParts;
         }
         if (getFirstPolyOnLineCategory(nullptr, &triangle, start, direction, nullptr, nullptr, 0)) {
+            CollisionParts* parts = triangle.mParts;
             CollisionParts* sameParts = nullptr;
-            getCollisionDirector()->getCategoryKeeper(3)->searchSameHostParts(&sameParts, triangle.mParts);
+            getCollisionDirector()->getCategoryKeeper(3)->searchSameHostParts(&sameParts, parts);
             return sameParts;
         }
         return nullptr;

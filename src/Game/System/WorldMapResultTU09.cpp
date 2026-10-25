@@ -77,8 +77,10 @@ void WorldMapResultStateEnterHome::exeApproach() {
     }
 
     f32 rate = MR::calcNerveEaseInRate(this, 30);
-    f32 inv = 1.0f - rate;
-    f32 scale = (1.0f - lbl_807E3140) + inv * lbl_807E3140;
+    f32 inv;
+    f32 range = lbl_807E3140;
+    inv = 1.0f - rate;
+    f32 scale = (1.0f - range) + inv * range;
     MR::setScale(mHost->getRocket(), scale);
 
     if (MR::isStep(this, 16)) {
@@ -144,8 +146,10 @@ void WorldMapResultStateEnterHome::exeExit() {
     }
 
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    f32 inv = 1.0f - rate;
-    f32 scale = (1.0f - lbl_807E3140) + (1.0f - inv) * lbl_807E3140;
+    f32 inv;
+    f32 range = lbl_807E3140;
+    inv = 1.0f - rate;
+    f32 scale = (1.0f - range) + (1.0f - inv) * range;
     MR::setScale(mHost->getRocket(), scale);
 
     if (MR::isGreaterEqualStep(this, 30)) {

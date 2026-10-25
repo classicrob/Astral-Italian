@@ -3357,6 +3357,20 @@ void Mario::checkWallStick() {
     }
 }
 
+namespace {
+inline f32 calcWallStickStepHeight(Mario* mario, const TVec3f& shadowDelta, f32* limit) {
+    const TVec3f& up = -*mario->getGravityVec();
+    const MarioConstTable* table = mario->mActor->getConst().getTable();
+    f32 height = shadowDelta.dot(up);
+    *limit = table->mWallStickStepHeight;
+    return height;
+}
+
+inline bool checkWallStickReach(Mario* mario, const TVec3f& position, f32 distance) {
+    return mario->fn_803B2880(position, mario->mFrontVec * distance);
+}
+}
+
 bool Mario::isEnableStickWall() {
     switch (getPlayerMode()) {
     case PlayerMode_Teresa:
@@ -3409,10 +3423,9 @@ bool Mario::isEnableStickWall() {
     }
 
     if ((static_cast<u32>(mMovementStates.mLowBits.mBit10)) && (static_cast<u32>(mMovementStates.mLowBits.mBit29)) && (static_cast<u32>(mMovementStates.mHighBits.mBit6))) {
-        TVec3f shadowDelta = _4A4 - mShadowPos;
-        const TVec3f& up = -*getGravityVec();
-        const MarioConstTable* table = mActor->getConst().getTable();
-        if (shadowDelta.dot(up) < table->mWallStickStepHeight) {
+        f32 limit;
+        f32 height = calcWallStickStepHeight(this, _4A4 - mShadowPos, &limit);
+        if (height < limit) {
             return false;
         }
     }
@@ -3482,7 +3495,7 @@ bool Mario::isEnableStickWall() {
         distance = -120.0f;
     }
 
-    if (!fn_803B2880(position, mFrontVec * distance)) {
+    if (!checkWallStickReach(this, position, distance)) {
         return false;
     }
 

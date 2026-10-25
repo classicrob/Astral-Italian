@@ -197,20 +197,25 @@ void MiniMeister::exeWait() {
 
 // fn_804E40F0: turns the meister toward the camera.
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+namespace {
+    inline f32 meisterAngleDegrees(f32 radians) {
+        return 57.29578f * radians;
+    }
+}
+
 void MiniMeister::exeTalk() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Talk");
     }
-    TQuat4f quat;
-    quat.setEuler(mRotation.x, mRotation.y, mRotation.z);
-    TVec3f camDiff = MR::getCamPos() - mPosition;
-    TVec3f toCam;
-    MR::normalizeOrZero(&toCam, camDiff);
     TQuat4f turned;
-    MR::turnQuatZDirRad(&turned, quat, toCam, 0.017453292f);
+    TQuat4f quat;
+    TVec3f toCam;
     TVec3f euler;
+    quat.setEuler(mRotation.x, mRotation.y, mRotation.z);
+    MR::normalizeOrZero(&toCam, MR::getCamPos() - mPosition);
+    MR::turnQuatZDirRad(&turned, quat, toCam, 0.017453292f);
     turned.getEuler(euler);
-    MR::setRotation(this, euler.x * 57.29578f, euler.y * 57.29578f, euler.z * 57.29578f);
+    MR::setRotation(this, meisterAngleDegrees(euler.x), meisterAngleDegrees(euler.y), meisterAngleDegrees(euler.z));
 }
 
 // fn_41B0

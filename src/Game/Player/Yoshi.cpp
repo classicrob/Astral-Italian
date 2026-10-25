@@ -1917,6 +1917,16 @@ void Yoshi::fn_80411ED0() {
     }
 }
 
+namespace {
+inline void setWaterRippleScale(MultiEmitter* emitter) {
+    TVec3f scale;
+    scale.x = 0.2f;
+    scale.y = 0.2f;
+    scale.z = 0.2f;
+    emitter->setGlobalScale(scale, -1);
+}
+}
+
 void Yoshi::fn_804121A0(const TVec3f& position, const TVec3f& normal) {
     TPos3f matrix;
     MR::makeMtxUpNoSupportPos(&matrix, normal, TVec3f(0.0f));
@@ -1924,11 +1934,7 @@ void Yoshi::fn_804121A0(const TVec3f& position, const TVec3f& normal) {
     MR::makeRTFromMtxPtr(nullptr, &rotation, matrix.toMtxPtr(), true);
     MultiEmitter* emitter = MR::tryEmitEffect(this, "水波紋");
     if (emitter) {
-        TVec3f scale;
-        scale.x = 0.2f;
-        scale.y = 0.2f;
-        scale.z = 0.2f;
-        emitter->setGlobalScale(scale, -1);
+        setWaterRippleScale(emitter);
     }
     if (emitter) emitter->setGlobalTranslation(position, -1);
     if (emitter) emitter->setGlobalRotationDegree(rotation, -1);
@@ -2091,9 +2097,8 @@ void YoshiEscapeDirection::update() {
     if (mStep < 16) {
         mStep++;
         TVec3f direction(0.0f, 0.0f, 150.0f);
-        TVec3f axis(0.0f, 1.0f, 0.0f);
         TQuat4f rotation;
-        rotation.setRotate(axis, 6.28318548f * mStep * 0.0625f);
+        rotation.setRotate(TVec3f(0.0f, 1.0f, 0.0f), (6.28318548f * mStep) / 16.0f);
         rotation.transform(direction);
         TVec3f start(0.0f, 100.0f, 0.0f);
         TVec3f ray(direction);

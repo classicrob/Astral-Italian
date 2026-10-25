@@ -484,6 +484,14 @@ void KinopioPostman::exeFinish() {
 }
 
 // NONMATCHING: local vector stack offsets differ.
+namespace {
+    inline void turnPostmanToMario(KinopioPostman* postman) {
+        TVec3f position;
+        MR::findNamePos(sMarioPosName, &position, nullptr);
+        KinopioPostmanFunction::turnQuaternion(&postman->mOrientationQuat, -postman->mGravity, position - postman->mPosition, -1.0f);
+    }
+}
+
 void KinopioPostman::exeDemo() {
 
 
@@ -492,9 +500,7 @@ void KinopioPostman::exeDemo() {
             MR::onCalcShadowOneTime(this, nullptr);
         }
         this->trySelectDefaultTalk();
-        TVec3f sp8;
-        MR::findNamePos(sMarioPosName, &sp8, nullptr);
-        KinopioPostmanFunction::turnQuaternion(&this->mOrientationQuat, -this->mGravity, sp8 - this->mPosition, -1.0f);
+        turnPostmanToMario(this);
         MR::startAction(this, "Talk");
     }
     if (!MR::isTimeKeepDemoActive()) {

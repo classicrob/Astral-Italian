@@ -477,63 +477,63 @@ static BOOL nandInspectPermission(const u8 perm) {
   }
 }
 
-// The target copies this 66-byte character set into a by-value membership argument.
-// It contains no terminator.
-typedef struct {
-  char value[66];
-} NANDPathCharacters;
+BOOL nandCheckCharacter(char character);
 
-static BOOL nandIsPathCharacter(char value, NANDPathCharacters allowed) {
-  u32 i;
-  for (i = 0; i < sizeof(allowed.value); i++) {
-    if (value == allowed.value[i]) {
-      return TRUE;
+// Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/nand/nand.c
+BOOL nandCheckPathName(const char* path) {
+    char absNewPath[64];
+    char relativeName[13];
+    u32 len;
+
+
+    len = strlen(path);
+    if (len == 0) {
+        return 0;
+    } else {
+        u32 i;
+        if (nandIsRelativePath(path)) {
+            for (i = 0; i < len; i++) {
+                if (!nandCheckCharacter(path[i])) {
+                    return 0;
+                }
+            }
+        } else {
+            strcpy(absNewPath, path);
+            if (absNewPath[len - 1] == '/' && len - 1 != 0) {
+                absNewPath[len - 1] = 0;
+            }
+
+            nandGetRelativeName(relativeName, absNewPath);
+            len = strlen(relativeName);
+
+            for (i = 0; i < len; i++) {
+                if (!nandCheckCharacter(relativeName[i])) {
+                    return 0;
+                }
+            }
+        }
     }
-  }
-  return FALSE;
+
+    return 1;
 }
 
-// NONMATCHING: GPR allocation, table-temporary stack slots, copy scheduling
-// and loop-NOP placement after three source forms; bounded PPC checks agree.
-BOOL nandCheckPathName(const char* path) {
-  u32 length = strlen(path);
-  char absPath[NAND_MAX_PATH];
-  char relativeName[13];
-  if (length == 0) {
-    return FALSE;
-  }
-
-  if (nandIsRelativePath(path)) {
-    NANDPathCharacters allowed = {
-        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_./"};
+// Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/nand/nand.c
+BOOL nandCheckCharacter(char character) {
     u32 i;
-    for (i = 0; i < length; i++) {
-      char character = *path;
-      if (!nandIsPathCharacter(character, allowed)) {
-        return FALSE;
-      }
-      path++;
-    }
-  } else {
-    strcpy(absPath, path);
-    if (absPath[length - 1] == '/' && length - 1 != 0) {
-      absPath[length - 1] = '\0';
-    }
-    nandGetRelativeName(relativeName, absPath);
-    length = strlen(relativeName);
-    {
-      NANDPathCharacters allowed = {
-          "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_./"};
-      const char* name = relativeName;
-      u32 i;
-      for (i = 0; i < length; i++) {
-        char character = *name;
-        if (!nandIsPathCharacter(character, allowed)) {
-          return FALSE;
+    const char legal_characters[66] = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b',
+        'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+        'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+        'Y', 'Z', '-', '_', '.', '/',
+    };
+
+    for (i = 0; i < sizeof(legal_characters); i++) {
+        if (character == legal_characters[i]) {
+            return TRUE;
         }
-        name++;
-      }
     }
-  }
-  return TRUE;
+
+    return FALSE;
 }

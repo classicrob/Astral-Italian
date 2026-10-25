@@ -101,7 +101,7 @@ public:
     void fn_80389D90(f32 (*m)[4], const TVec3f* col2, const TVec3f* col1, const TVec3f* col0);
     void fn_8038A560(f32 (*arg1)[4], s32 arg2);
     void fn_8038A600();
-    void fn_8038A840(void*, f32 x, f32 y, f32 z);
+    void fn_8038A840(f32 x, f32 y, f32 z);
     s32 fn_8038A8A0(f32 (*arg1)[4], TVec3f* arg2);
     void fn_8038A9D0();
     bool fn_8038AA30();

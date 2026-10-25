@@ -353,8 +353,7 @@ bool ItemDrill::startDrill() {
     mUnk20C = -1;
     if (isAdjusted) {
         TVec3f limitPos = mLimitPos->mPosition + gravity.scaleInline(50.0f);
-        TVec3f diff = limitPos - playerPos;
-        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, playerPos, diff)) {
+        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, playerPos, limitPos - playerPos)) {
             mMtx12C.setTrans(mLimitPos->mPosition);
             mUnk20C = 0;
         }

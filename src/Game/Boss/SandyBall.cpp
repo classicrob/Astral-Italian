@@ -88,10 +88,8 @@ void SandyBall::kill() {
 
 // 800FBD50
 // NONMATCHING: TVec3f operator+/negateInternal inline-vs-call decisions differ (target was a separate TU).
-void SandyBall::calcTargetPos(TVec3f* pOut) {
-    if (mType == 3) {
-        SandyHand* pHand = static_cast< SandyHand* >(mOwner);
-        Sandy* pSandy = pHand->mSandy;
+namespace {
+    inline void calcSandyHandBallTarget(TVec3f* pOut, SandyBall* ball, SandyHand* pHand, Sandy* pSandy) {
         TVec3f groundPos;
         MR::getPlayerGroundPos(&groundPos);
         TVec3f diff = groundPos - pSandy->mPosition;
@@ -101,36 +99,40 @@ void SandyBall::calcTargetPos(TVec3f* pOut) {
             diff.setLength(2500.0f);
         }
         groundPos.set(pSandy->mPosition + diff);
-        TVec3f toGround = groundPos - mPosition;
-        TVec3f hitPos(mPosition);
-        TVec3f up(mGravity);
-        up.scale(1000.0f);
-        TVec3f start = (mPosition + toGround) - up;
-        TVec3f dir(mGravity);
-        dir.scale(2000.0f);
-        if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, start, dir)) {
-            toGround.set(hitPos - mPosition);
+        TVec3f toGround = groundPos - ball->mPosition;
+        TVec3f hitPos(ball->mPosition);
+        TVec3f start = (ball->mPosition + toGround) - ball->mGravity.scaleInline(1000.0f);
+        if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, start, ball->mGravity.scaleInline(2000.0f))) {
+            toGround.set(hitPos - ball->mPosition);
         }
         TVec3f handUp;
         handUp.negate(pHand->mGravity);
         if (pSandy->isMinisDownOrDead()) {
             TVec3f side(toGround);
-            MR::vecKillElement(side, mGravity, &side);
+            MR::vecKillElement(side, ball->mGravity, &side);
             TVec3f cross;
             PSVECCrossProduct(&side, &handUp, &cross);
             if (!pHand->mIsRight) {
                 cross.negate();
             }
-            cross.setLength(1.3f * MR::getSensorRadius(this, "Body"));
-            pOut->set((mPosition + toGround) + cross);
+            cross.setLength(1.3f * MR::getSensorRadius(ball, "Body"));
+            pOut->set((ball->mPosition + toGround) + cross);
         } else {
             f32 angle = 17.0f;
             if (pHand->mIsRight) {
                 angle *= -1.0f;
             }
             MR::rotateVecDegree(&toGround, handUp, angle);
-            pOut->set(toGround + mPosition);
+            pOut->set(toGround + ball->mPosition);
         }
+    }
+}
+
+void SandyBall::calcTargetPos(TVec3f* pOut) {
+    if (mType == 3) {
+        SandyHand* pHand = static_cast< SandyHand* >(mOwner);
+        Sandy* pSandy = pHand->mSandy;
+        calcSandyHandBallTarget(pOut, this, pHand, pSandy);
     } else {
         MR::getPlayerGroundPos(pOut);
     }

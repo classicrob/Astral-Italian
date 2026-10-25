@@ -1314,22 +1314,14 @@ void Mario::fn_8039A1C0() {
 
 // NONMATCHING: temporary allocation and register scheduling.
 void Mario::fn_8039A2A0() {
-    f32 d = this->calcDistToCeil(false);
-    if (!(d >= 160.0f)) {
-        f32 g = this->cutGravityElementFromJumpVec(true);
-        MR::isNearZero(mAirGravityVec, 0.001f);
-        TVec3f sp20(mAirGravityVec);
-        sp20 *= d;
-        TVec3f sp2C(this->mPosHolder->mPos);
-        sp2C -= sp20;
-        this->playEffectTrans("天井ヒット", sp2C);
-        f32 f31 = (this->_430 == 6 || this->_430 == 4) ? 0.9f : 0.6f;
-        MR::isNearZero(mAirGravityVec, 0.001f);
-        TVec3f sp8(mAirGravityVec);
-        sp8 *= g;
-        TVec3f sp14(sp8);
-        sp14 *= f31;
-        this->mJumpVec += sp14;
+    f32 distance = calcDistToCeil(false);
+    if (!(distance >= 160.0f)) {
+        f32 speed = cutGravityElementFromJumpVec(true);
+        playEffectTrans("天井ヒット", mPosHolder->mPos - getAirGravityVec() * distance);
+        f32 ratio;
+        if (_430 == 6 || _430 == 4) ratio = 0.9f;
+        else ratio = 0.6f;
+        mJumpVec += getAirGravityVec() * speed * ratio;
     }
 }
 
@@ -1398,26 +1390,21 @@ void Mario::fn_8039A5B0() {
 void Mario::fn_8039A600() {
     u32 t = this->mMovementStates.mLowWord;
     if ((t >> 8) & 1) {
-        MarioConst* constants = mActor->mConst;
-        MarioConstTable* e = constants->mTable[constants->mCurrentTable];
+        f32 f31;
+        f32 f30;
+        f32 f29;
+        MarioConstTable* e = getActor()->getConst().getTable();
         f32 v1 = (f32)_3BC / (f32)e->mSlipUpSpdCtrlTimer;
         if (v1 > 1.0f) {
             v1 = 1.0f;
         }
         f32 f2 = 1.0f - v1;
-        constants = mActor->mConst;
-        f32 f1 = constants->mTable[constants->mCurrentTable]->mSlipUpSpdRatio;
-        f32 f29 = f1 + f2 * (1.0f - f1);
+        f32 f1 = getActor()->getConst().getTable()->mSlipUpSpdRatio;
+        f29 = f1 + f2 * (1.0f - f1);
         this->addVelocity(this->mJumpVec, f29);
-        f32 f30 = this->fn_8039AA40();
-        f32 f31 = this->calcJumpGravity();
-        TVec3f sp20(this->mActor->mAppliedGravityVec);
-        sp20 *= f31;
-        TVec3f sp2C(sp20);
-        sp2C *= f30;
-        TVec3f sp38(sp2C);
-        sp38 *= f29;
-        this->mJumpVec += sp38;
+        f30 = this->fn_8039AA40();
+        f31 = this->calcJumpGravity();
+        this->mJumpVec += this->mActor->mAppliedGravityVec * f31 * f30 * f29;
         this->moveWallSlide(1.0f);
         return;
     }
@@ -1490,11 +1477,7 @@ void Mario::fn_8039A600() {
         this->addVelocity(this->mJumpVec);
         f32 f31 = this->fn_8039AA40();
         f32 f30 = this->calcJumpGravity();
-        TVec3f sp8(this->mActor->mAppliedGravityVec);
-        sp8 *= f30;
-        TVec3f sp14(sp8);
-        sp14 *= f31;
-        this->mJumpVec += sp14;
+        this->mJumpVec += this->mActor->mAppliedGravityVec * f30 * f31;
     }
 }
 
@@ -4099,15 +4082,16 @@ void Mario::fn_803A1600(u8* arg1) {
                 }
             }
         }
-        if (this->isActiveTask(&Mario::taskOnSlipTurn) && this->isAnimationRun("ターンブレーキ滑り床")) {
-            TVec3f front = -this->_220;
-            this->setFrontVecKeepUp(front);
-            *arg1 = 1;
-            this->stopAnimation("ターンブレーキ滑り床", static_cast<const char*>(nullptr));
-            this->_74C = 0.0f;
-            this->_754 = 0;
-            this->mWalkSpeed = 0.0f;
-            this->popTask(&Mario::taskOnSlipTurn);
+        if (this->isActiveTask(&Mario::taskOnSlipTurn)) {
+            if (this->isAnimationRun("ターンブレーキ滑り床")) {
+                this->setFrontVecKeepUp(-this->_220);
+                *arg1 = 1;
+                this->stopAnimation("ターンブレーキ滑り床", static_cast<const char*>(nullptr));
+                this->_74C = 0.0f;
+                this->_754 = 0;
+                this->mWalkSpeed = 0.0f;
+                this->popTask(&Mario::taskOnSlipTurn);
+            }
         }
     }
 }
@@ -4618,25 +4602,22 @@ s32 Mario::fn_803A2D80() {
         this->mFlags14.mLowBits.mBit5 = 0;
         return 1;
     }
-    if (!this->mActor->isRequestJump() && !(static_cast<u32>(this->mFlags20.mBits.mBit21)) && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit7))) {
+    if (!this->mActor->isRequestJump() && !static_cast<u32>(this->mFlags20.mBits.mBit21) && !static_cast<u32>(this->mMovementStates.mHighBits.mBit7)) {
         return 0;
     }
     if ((static_cast<u32>(this->mMovementStates.mLowBits.mBit21)) && this->calcDistToCeil(false) < 160.0f) {
         this->mActor->sendMsgUpperPunch(this->_730);
         this->changeAnimation("しゃがみアッパー", (const char*)nullptr);
-        return 0;
-    }
-    if (this->isStatusActive(0x1F)) {
+    } else if (this->isStatusActive(0x1F)) {
         this->mSkate->fn_803F4AF0();
         this->closeStatus(this->mSkate);
-        return 0;
-    }
-    if (this->_436 != 0 && this->mStickPos.z >= 0.5f) {
+    } else if (this->_436 != 0 && this->mStickPos.z >= 0.5f) {
         this->fn_803A2EF0();
-        return 0;
+    } else {
+        this->fn_803A2FC0();
+        return 1;
     }
-    this->fn_803A2FC0();
-    return 1;
+    return 0;
 }
 
 void Mario::fn_803A2EF0() {
@@ -4669,22 +4650,20 @@ s32 Mario::fn_803A3030() {
     if (!(static_cast<u32>(this->mMovementStates.mLowBits.mBit30))) {
         if (this->_3C0 != 0 && !(static_cast<u32>(this->mMovementStates.mHighBits.mBit28)) && MR::isNearZero(this->_8F8, 0.001f)) {
             this->_3C0 -= 1;
-            return 0;
-        }
-        if (!this->mActor->_EA4) {
+        } else if (!this->mActor->_EA4) {
             this->tryDrop();
             this->_420 = 0;
             return 1;
         }
-        return 0;
-    }
-    MarioConstTable* entry = this->mActor->mConst->getTable();
-    if (this->mStickPos.z < entry->mWallBackHangStickPower) {
-        this->_3C0 = 0;
-    } else if (static_cast<u32>(this->mDrawStates.mBits.mBit21)) {
-        this->_3C0 = 0;
-    } else if (this->_3C0 < entry->mDropWaitTime) {
-        this->_3C0 = entry->mDropWaitTime;
+    } else {
+        MarioConstTable* entry = this->mActor->mConst->getTable();
+        if (this->mStickPos.z < entry->mWallBackHangStickPower) {
+            this->_3C0 = 0;
+        } else if (static_cast<u32>(this->mDrawStates.mBits.mBit21)) {
+            this->_3C0 = 0;
+        } else if (this->_3C0 < entry->mDropWaitTime) {
+            this->_3C0 = entry->mDropWaitTime;
+        }
     }
     return 0;
 }

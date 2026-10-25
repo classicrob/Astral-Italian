@@ -41,6 +41,12 @@ FireBubble::FireBubble(const char* pName)
 }
 
 // NONMATCHING: Vector temporary stack slots and register allocation differ.
+namespace {
+    inline void initFireBubbleBodySensor(LiveActor* actor) {
+        MR::addHitSensorAtJointEnemy(actor, "Body", "Body", 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+    }
+}
+
 void FireBubble::init(const JMapInfoIter& rIter) {
     if (MR::isValidInfo(rIter)) {
         initMapToolInfo(rIter);
@@ -49,7 +55,7 @@ void FireBubble::init(const JMapInfoIter& rIter) {
     MR::initActor(this, "FireBubble", false);
     MR::connectToSceneEnemy(this);
     initHitSensor(1);
-    MR::addHitSensorAtJointEnemy(this, "Body", "Body", 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+    initFireBubbleBodySensor(this);
     initBinder(::cBinderRadius, 40.0f, 0);
     initEffectKeeper(1, nullptr, false);
     MR::initStarPointerTargetAtJoint(this, "Body", ::cStarWandRadius, TVec3f(0.0f, 0.0f, 0.0f));

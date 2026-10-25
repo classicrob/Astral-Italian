@@ -36,17 +36,21 @@ void SnowStep::init(const JMapInfoIter& rIter) {
     makeActorDead();
 }
 
+namespace {
+    inline TVec3f calcSnowStepPosition(const TVec3f& position, const TVec3f& up) {
+        TVec3f offset(up);
+        offset *= 20.0f;
+        return position + offset;
+    }
+}
+
 void SnowStep::appearSnowStep(const TVec3f& rPos, const TVec3f& rUp, s32 extendStep, s32 waitStep, s32 shrinkStep, f32 size) {
     mSize = size;
     mExtendStep = extendStep;
     mWaitStep = waitStep;
     mShrinkStep = shrinkStep;
     setNerve(&NrvSnowStep::SnowStepNrvExtend::sInstance);
-    TVec3f offset(rUp);
-    offset *= 20.0f;
-    TVec3f pos(rPos);
-    pos += offset;
-    MR::setPosition(this, pos);
+    MR::setPosition(this, calcSnowStepPosition(rPos, rUp));
     MR::setScale(this, 0.01f);
     MR::makeQuatUpNoSupport(&mQuat, rUp);
     appear();

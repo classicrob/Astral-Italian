@@ -414,7 +414,8 @@ bool SuperSpinDriver::tryBind(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    _C4 = (mBindActor = MR::getSensorHost(pSender))->mPosition;
+    const TVec3f& bindPosition = (mBindActor = MR::getSensorHost(pSender))->mPosition;
+    _C4 = bindPosition;
     _D0 = *MR::getPlayerLastMove();
 
     f32 length = _D0.length();

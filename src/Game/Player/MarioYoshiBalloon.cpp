@@ -216,7 +216,13 @@ void MarioYoshiBalloon::fn_80414B90(const TVec3f& vertical) {
     addVelocity(velocity);
 }
 
-// NONMATCHING: temporary stack slots, GPR allocation and multiply-result register.
+namespace {
+inline void calcBalloonHorizontal(MarioYoshiBalloon* balloon, const TVec3f& direction, TVec3f* result) {
+    const TVec3f& gravity = balloon->getAirGravityVec();
+    JMAVECScaleAdd(gravity, direction, *result, -gravity.dot(direction));
+}
+}
+
 void MarioYoshiBalloon::fn_80414CD0() {
     const TVec3f* gravity;
     const TVec3f& pad = getWorldPadDir();
@@ -231,13 +237,12 @@ void MarioYoshiBalloon::fn_80414CD0() {
     JMAVECScaleAdd(gravity2, velocity, horizontal, -gravity2.dot(velocity));
     TVec3f newVelocity(horizontal * 0.95f + desired * 0.05f);
     addVelocity(newVelocity);
-    getPlayer()->setHeadVec(-getAirGravityVec());
+    TVec3f headUp(-getAirGravityVec());
+    getPlayer()->setHeadVec(headUp);
     getPlayer()->fixFrontVecFromUpSide();
-    TVec3f current;
-    TVec3f opposite(-desired);
-    const TVec3f& gravity3 = getAirGravityVec();
     TVec3f facing;
-    JMAVECScaleAdd(gravity3, opposite, facing, -gravity3.dot(opposite));
+    calcBalloonHorizontal(this, -desired, &facing);
+    TVec3f current;
     const TVec3f* gravity4;
     const TVec3f& front = getFrontVec();
     gravity4 = &getAirGravityVec();

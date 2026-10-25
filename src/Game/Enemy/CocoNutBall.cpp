@@ -547,9 +547,7 @@ void CocoNutBall::exeRebound() {
         return;
     }
 
-    f32 diffDotDir = diff.dot(dir);
-    TVec3f dirScaled(dir);
-    dirScaled.scale(diffDotDir);
+    TVec3f dirScaled(dir * diff.dot(dir));
 
     TVec3f tangent(diff);
     if (MR::normalizeOrZero(&tangent)) {
@@ -561,21 +559,17 @@ void CocoNutBall::exeRebound() {
         return;
     }
 
+    f32 diffDotTangent;
+    f32 rate;
     f32 velDotTangent = tangent.dot(vel);
-    f32 diffDotTangent = diff.dot(tangent);
-    TVec3f tangentScaled(tangent);
-    tangentScaled.scale(diffDotTangent);
-    tangent = tangentScaled;
+    tangent = tangent * diff.dot(tangent);
 
-    f32 rate = MR::calcNerveRate(this, 1, (s32)(1.0f + mFlightSteps));
+    rate = MR::calcNerveRate(this, 1, (s32)(1.0f + mFlightSteps));
     if (velDotTangent < 0.0f) {
         if (mGravity.dot(diff) < 0.0f) {
             tangent.set<f32>(0.0f, 0.0f, 0.0f);
         } else {
-            diffDotTangent = mGravity.dot(diff);
-            TVec3f gravityScaled(mGravity);
-            gravityScaled.scale(diffDotTangent);
-            tangent.set(gravityScaled);
+            tangent.set(mGravity * mGravity.dot(diff));
         }
 
     diffDotTangent = mVelocity.dot(mGravity);

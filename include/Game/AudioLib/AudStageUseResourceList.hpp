@@ -15,7 +15,7 @@ public:
     static const char* getFileSelectResourceName();
     static const char* getFaceShipResourceName();
     static const char* getPeachCastleResourceName();
-    void loadStaticSound();
+    void loadStaticSound() const;
     void loadResource(const JMapInfo*, bool, bool);
     void load();  // fn_8008A390
 

@@ -269,15 +269,21 @@ void StoryBookDemo::exeTurnEnd() {
 }
 void StoryBookDemo::calcAnim() { LiveActor::calcAnim(); if (mShadow) mShadow->calcAnim(); }
 // NONMATCHING: regalloc
+namespace {
+    inline void calcStoryBookCameraPosition(TVec3f* pos, const TVec3f& camZ, const TVec3f& camPos) {
+        JMAVECScaleAdd(&camZ, &camPos, pos, 174.6f);
+    }
+    inline void addStoryBookCameraUp(TVec3f* pos, const TVec3f& camY) {
+        JMAVECScaleAdd(&camY, pos, pos, 0.05f);
+    }
+}
+
 void StoryBookDemo::calcAndSetBaseMtx() {
     TPos3f mtx;
     TVec3f pos;
     pos.x = 0.0f; pos.y = 0.0f; pos.z = 0.0f;
-    TVec3f camPos = MR::getCamPos();
-    TVec3f camZ = MR::getCamZdir();
-    JMAVECScaleAdd(&camZ, &camPos, &pos, 174.6f);
-    TVec3f camY = MR::getCamYdir();
-    JMAVECScaleAdd(&camY, &pos, &pos, 0.05f);
+    calcStoryBookCameraPosition(&pos, MR::getCamZdir(), MR::getCamPos());
+    addStoryBookCameraUp(&pos, MR::getCamYdir());
     mtx.setTrans(pos);
     MR::makeMtxUpFrontPos(&mtx, MR::getCamYdir(), -MR::getCamZdir(), pos);
     MR::setBaseTRMtx(this, mtx);

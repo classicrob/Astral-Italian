@@ -94,6 +94,7 @@ public:
     }
 
     virtual void emitAppearEffects();
+    virtual ~MorphItemNeoHopper();
 
     virtual int getPowerUp() {
         return PowerUpHopper;
@@ -116,6 +117,7 @@ public:
     }
 
     virtual void emitAppearEffects();
+    virtual ~MorphItemNeoFire();
 
     virtual int getPowerUp() {
         return PowerUpFire;

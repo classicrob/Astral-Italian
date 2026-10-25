@@ -279,6 +279,14 @@ bool StemFruit::isNerveActive() const {
 // StemFruitChild (the fruit's sprout/pick-up child, 0xBC bytes)
 // ---------------------------------------------------------------------------
 
+namespace {
+    inline TVec3f makeStemFruitZeroOffset() {
+        TVec3f offset;
+        offset.setAll<f32>(0.0f);
+        return offset;
+    }
+}
+
 StemFruitChild::StemFruitChild(StemFruit* pParent, const JMapInfoIter& rIter) : LiveActor("\x8e\xc0") {
     mParent = pParent;
     mFixedPos = nullptr;
@@ -302,18 +310,14 @@ StemFruitChild::StemFruitChild(StemFruit* pParent, const JMapInfoIter& rIter) : 
     f32 starRadius = static_cast<f32>(pParent->getParam()->mStarPointerRadiusS32);
     MR::initStarPointerTarget(this, starRadius, TVec3f(0.0f, pParent->getParam()->mStarPointerOffsetY, 0.0f));
 
-    TVec3f zeroLock;
-    zeroLock.setAll<f32>(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), zeroLock);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), makeStemFruitZeroOffset());
     MR::offCalcGravity(this);
     mGravity.set(pParent->mGravity);
 
     mFixedPos = new FixedPosition(mParent, "FruitPos", TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
 
     mBaseScale.set(mScale);
-    TVec3f zeroSound;
-    zeroSound.setAll<f32>(0.0f);
-    initSound(4, "StemFruit", nullptr, zeroSound);
+    initSound(4, "StemFruit", nullptr, makeStemFruitZeroOffset());
     initNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvWait), 0);
     makeActorAppeared();
     MR::useStageSwitchAwake(this, rIter);

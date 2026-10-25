@@ -634,8 +634,8 @@ void KingTossin::exeRollingLv2() {
     MR::moveAndTurnToDirection(this, &mFront, mMoveDir, sRollingLv2Param._0, sRollingLv2Param._4, sRollingLv2Param._8, sRollingLv2Param._C);
 
     if (tryEndTargetInSight()) {
-        mRollCount++;
         mIsTargetInSight = false;
+        mRollCount++;
         mTimer = 60;
         mMoveDir.cross(-mGravity, mMoveDir);
         MR::rotateVecDegree(&mMoveDir, mGravity, 45.0f * MR::getRandom(0L, 5L));

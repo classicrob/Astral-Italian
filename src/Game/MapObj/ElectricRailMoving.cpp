@@ -29,6 +29,16 @@ ElectricRailMovingPoint::ElectricRailMovingPoint(const char* pName) : LiveActor(
     mIsActive = 1;
 }
 
+namespace {
+    inline TVec3f makeElectricRailPointerOffset() {
+        TVec3f offset;
+        offset.x = 0.0f;
+        offset.y = 0.0f;
+        offset.z = 0.0f;
+        return offset;
+    }
+}
+
 void ElectricRailMovingPoint::init(const JMapInfoIter& rIter) {
     MR::initActor(this, "ElectricRailPoint", false);
     MR::connectToSceneMapObjDecoration(this);
@@ -40,11 +50,7 @@ void ElectricRailMovingPoint::init(const JMapInfoIter& rIter) {
 
     initHitSensor(1);
     MR::addHitSensorMapObj(this, "Body", 8, 35.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    TVec3f pointerOffset;
-    pointerOffset.x = 0.0f;
-    pointerOffset.y = 0.0f;
-    pointerOffset.z = 0.0f;
-    MR::initStarPointerTarget(this, 50.0f, pointerOffset);
+    MR::initStarPointerTarget(this, 50.0f, makeElectricRailPointerOffset());
     initEffectKeeper(1, "ElectricRailMovingPoint", false);
     MR::addEffect(this, "PointerTouch");
     makeActorAppeared();

@@ -187,11 +187,11 @@ namespace PoltaFunction {
         }
 
         switch (rockType) {
-        case 0:
-            pRock->setColorWhite();
-            break;
         case 1:
             pRock->setColorBlack();
+            break;
+        case 0:
+            pRock->setColorWhite();
             break;
         case 2:
             pRock->setColorYellow();

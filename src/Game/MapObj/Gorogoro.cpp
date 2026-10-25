@@ -114,8 +114,7 @@ void Gorogoro::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             TVec3f side;
             MR::calcSideVec(&side, this);
             if (MR::isEqualSensor(pSender, this, "AttackRight")) {
-                TVec3f negSide = -side;
-                side = negSide;
+                side = -side;
             }
 
             TVec3f toPlayer = *MR::getPlayerPos() - *MR::getSensorPos(pSender);
@@ -128,13 +127,7 @@ void Gorogoro::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             } else {
                 if (dot >= 0.0f && dot < 30.0f) {
                     TVec3f reflectBase(*MR::getSensorPos(this, "ReflectSensorBase"));
-                    TVec3f scaledSide(side);
-                    scaledSide.x *= 10.0f;
-                    scaledSide.y *= 10.0f;
-                    scaledSide.z *= 10.0f;
-                    TVec3f newPos(*MR::getSensorPos(pReceiver));
-                    newPos.add(scaledSide);
-                    MR::setSensorPos(this, "ReflectSensorBase", newPos);
+                    MR::setSensorPos(this, "ReflectSensorBase", *MR::getSensorPos(pReceiver) + side.multInLine(10.0f));
                     MR::sendMsgGorogoroReflect(pReceiver, getSensor("ReflectSensorBase"));
                     MR::setSensorPos(this, "ReflectSensorBase", reflectBase);
                 }
@@ -161,6 +154,13 @@ void Gorogoro::exeWait() {
     }
 }
 
+namespace {
+    inline TVec3f calcPositionFromCamera(const TVec3f& position) {
+        TVec3f cameraPosition = MR::getCamPos();
+        return position - cameraPosition;
+    }
+}
+
 void Gorogoro::exeMove() {
     if (MR::isFirstStep(this)) {
         MR::tryEmitEffect(this, "GorogoroSand");
@@ -168,8 +168,7 @@ void Gorogoro::exeMove() {
 
     doRailMove();
 
-    TVec3f camPos = MR::getCamPos();
-    TVec3f diff = mPosition - camPos;
+    TVec3f diff = calcPositionFromCamera(mPosition);
     TVec3f camZdir = MR::getCamZdir();
     if (camZdir.dot(diff) < 800.0f) {
         mSandModel->appear();

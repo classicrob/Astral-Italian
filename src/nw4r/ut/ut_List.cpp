@@ -35,17 +35,18 @@ namespace ut {
         }
     }
 
+    // Ported from zeldaret/ss@96f2dd5497c4ceb595de76fd897fbb1542b27323:src/nw4r/ut/ut_list.cpp
     void List_Remove(List* list, void* object) {
-        Link* link = GetLink_(list, object);
+        Link* link = ((Link*)((char*)object + list->offset));
         if (link->prev == NULL) {
             list->head = link->next;
         } else {
-            GetLink_(list, link->prev)->next = link->next;
+            ((Link*)((char*)link->prev + list->offset))->next = link->next;
         }
         if (link->next == NULL) {
             list->tail = link->prev;
         } else {
-            GetLink_(list, link->next)->prev = link->prev;
+            ((Link*)((char*)link->next + list->offset))->prev = link->prev;
         }
         link->prev = NULL;
         link->next = NULL;

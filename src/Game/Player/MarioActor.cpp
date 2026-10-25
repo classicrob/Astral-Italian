@@ -6827,11 +6827,16 @@ void MarioActor::bodyClap() {
     }
 }
 
-// NONMATCHING: vector stack slots, saved registers, and pooled scalar offsets.
+namespace {
+inline bool checkEnemyAttackOffset(Mario* player, HitSensor* sender, const TVec3f& offset) {
+    LiveActor* host = MR::getSensorHost(sender);
+    return player->fn_803B28E0(*MR::getSensorPos(sender), offset, host);
+}
+}
+
 bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     Mario* player;
     const TVec3f* sensorPos;
-    LiveActor* host;
     if (mPlayerMode == 6) {
         if (msg == 0x69) {
             setPlayerMode(0, true, true);
@@ -6862,8 +6867,7 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
             return false;
         }
         if (!mMario->isDamaging()) {
-            TVec3f offset(*MR::getSensorPos(pSender) - *MR::getSensorPos(pReceiver));
-            if (checkAndTryTrampleAttack(pSender, offset.length(), true)) return false;
+            if (checkAndTryTrampleAttack(pSender, (*MR::getSensorPos(pSender) - *MR::getSensorPos(pReceiver)).length(), true)) return false;
         }
     }
     bool handled;
@@ -6875,10 +6879,7 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
     if (msg == 0x64) {
         player = mMario;
         sensorPos = MR::getSensorPos(pSender);
-        TVec3f offset(_240);
-        offset -= *sensorPos;
-        host = MR::getSensorHost(pSender);
-        if (player->fn_803B28E0(*MR::getSensorPos(pSender), offset, host)) return false;
+        if (checkEnemyAttackOffset(player, pSender, _240 - *sensorPos)) return false;
     }
     MR::getSensorRadius(pSender);
     TVec3f direction(*MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender));
@@ -13531,6 +13532,16 @@ void MarioActor::fn_803D8BD0(TVec3f* a, TVec3f* b) {
     }
 }
 
+namespace {
+inline f32 calcGravityAlongOffset(Mario* player, const TVec3f& offset) {
+    return player->getGravityVec()->dot(offset);
+}
+
+inline f32 calcOffsetAlongGravity(Mario* player, const TVec3f& offset) {
+    return offset.dot(*player->getGravityVec());
+}
+}
+
 void MarioActor::fn_803D8E30(TVec3f* v) {
     if (v->dot(*this->mMario->getGravityVec()) < -40.0f) {
         TVec3f start = this->mPosition - *this->mMario->getGravityVec() * 100.0f;
@@ -13539,9 +13550,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
         Triangle* tri = this->mMario->fn_803EFA20();
         TVec3f hit;
         if (this->mMario->fn_803B2770(&hit, tri, start, dir)) {
-            TVec3f d(hit);
-            d -= this->mPosition;
-            if (!(this->mMario->getGravityVec()->dot(d) >= -5.0f)) {
+            if (!(calcGravityAlongOffset(this->mMario, hit - this->mPosition) >= -5.0f)) {
                 CollisionParts* h = tri->mParts;
                 if (h != nullptr && h->mStationaryFrames == 0) {
                     if (((this->mMario)->mMovementStates.mHighWord & 3) == 1) {
@@ -13572,9 +13581,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
                 i++;
             }
         }
-        TVec3f d((this->mMario)->mShadowPos);
-        d -= this->mPosition;
-        if (d.dot(*this->mMario->getGravityVec()) < 0.0f && !this->fn_803D9370(this->mMario->_45C->mParts, v)) {
+        if (calcOffsetAlongGravity(this->mMario, this->mMario->mShadowPos - this->mPosition) < 0.0f && !this->fn_803D9370(this->mMario->_45C->mParts, v)) {
             this->mPosition = (this->mMario)->mShadowPos;
             (this->mMario)->mJumpVec.zero();
             (this->mMario)->_148.zero();

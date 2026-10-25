@@ -2,7 +2,7 @@
 #include "revolution/gx/GXRegs.h"
 #include "revolution/gx/GXTypes.h"
 
-// NONMATCHING: perspective FIFO packing uses different volatile registers and integer scheduling.
+// Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/gx/GXPixel.c
 void GXSetFog(GXFogType type, f32 startz, f32 endz, f32 nearz, f32 farz, GXColor color) {
     u32 fogclr = 0, fog0 = 0, fog1 = 0, fog2 = 0, fog3 = 0;
     f32 A, B, B_mant, C, a, c;
@@ -46,15 +46,14 @@ void GXSetFog(GXFogType type, f32 startz, f32 endz, f32 nearz, f32 farz, GXColor
 
         a = A / (1 << (B_expn + 1));
         b_m = (u32)(B_mant * 8388638);
+        b_s = B_expn + 1;
         c = C;
 
         SC_TEV_FOG_PARAM_1_SET_B_MAG(fog1, b_m);
         SC_TEV_FOG_PARAM_1_SET_RID(fog1, 0xEF);
-        GX_WRITE_RA_REG(fog1);
-
-        b_s = B_expn + 1;
         SC_TEV_FOG_PARAM_2_SET_B_SHF(fog2, b_s);
         SC_TEV_FOG_PARAM_2_SET_RID(fog2, 0xF0);
+        GX_WRITE_RA_REG(fog1);
         GX_WRITE_RA_REG(fog2);
     }
 

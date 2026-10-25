@@ -31,7 +31,7 @@ public:
     bool trySetAllFrame(f32);
     const char* getCurrentAnimName() const;
     bool isExistAnim(const char*);  // SMG2 callee of MR::isExistAnimInKeeper (symbol isExistAnim__15ActorAnimKeeperFPCc)
-    bool isAnyAnimPlaying(const char*);  // SMG2 callee of isAnyAnimPlaying (symbol isAnyAnimPlaying__15ActorAnimKeeperFPCc)
+    bool isAnyAnimPlaying(const char*) const;  // SMG2 callee of isAnyAnimPlaying (symbol isAnyAnimPlaying__15ActorAnimKeeperCFPCc)
     bool initAnimData();
     ActorAnimKeeperInfo* findAnimInfo(const char*) const;
     static ActorAnimKeeper* tryCreate(LiveActor*);

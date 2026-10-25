@@ -617,7 +617,8 @@ namespace MR {
 #endif
 
         TVec3f forceNorm;
-        if ((rPlaneBasePos - forceIntersectPos).dot(planeNorm) < 0.0f) {
+        TVec3f planeOffset = rPlaneBasePos - forceIntersectPos;
+        if (planeOffset.dot(planeNorm) < 0.0f) {
             forceNorm = -planeNorm;
         } else {
             forceNorm = planeNorm;

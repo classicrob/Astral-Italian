@@ -247,15 +247,16 @@ void Sandy::updateTarget() {
 
 // 800FB4C0
 // NONMATCHING: TVec3f negate/+= expanded inline in the target (per-TU inline decision), out of line calls here.
+namespace {
+    inline void addDamageDropOffset(TVec3f* position, const TVec3f& gravity) {
+        *position += (-gravity).multInLine(300.0f);
+    }
+}
+
 void Sandy::appearStarPieceOnDamage() {
     if (!isNerve(&NrvSandy::SandyNrvPhase3::sInstance)) {
         TVec3f pos(mPosition);
-        TVec3f down = -mGravity;
-        TVec3f up(down);
-        up.x *= 300.0f;
-        up.y *= 300.0f;
-        up.z *= 300.0f;
-        pos += up;
+        addDamageDropOffset(&pos, mGravity);
         MR::appearStarPiece(this, pos, 8, 45.0f, 50.0f, false);
     }
 }

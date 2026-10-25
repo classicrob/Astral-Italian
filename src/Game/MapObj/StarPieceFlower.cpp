@@ -94,6 +94,12 @@ void StarPieceFlower::calcAndSetBaseMtx() {
     }
 }
 
+namespace {
+    inline void addPlayerPush(TVec3f* push, const TVec3f& playerVelocity) {
+        *push += playerVelocity;
+    }
+}
+
 void StarPieceFlower::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorPlayer(pReceiver)) {
         return;
@@ -105,7 +111,7 @@ void StarPieceFlower::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     f32 kPush = 40.0f;
     TVec3f push = mGravity * -kPush;
     TVec3f playerVel = *MR::getPlayerVelocity() * 0.8f;
-    push += playerVel;
+    addPlayerPush(&push, playerVel);
 
     TVec3f killDir;
     killDir.negate(mGravity);

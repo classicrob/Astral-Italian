@@ -14,3 +14,6 @@ void MorphItemRock::killTransformation() {
     mRock->makeActorDead();
 }
 int MorphItemRock::getPowerUp() { return 8; }
+
+MorphItemNeoHopper::~MorphItemNeoHopper() {}
+MorphItemNeoFire::~MorphItemNeoFire() {}

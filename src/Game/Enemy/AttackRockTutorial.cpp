@@ -310,18 +310,13 @@ void calcBoundVelocity(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSens
 void bouncePlayerAndCalcVelocity(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed) {
     TVec3f sensorDir;
     MR::calcSensorDirectionNormalize(&sensorDir, pSender, pReceiver);
-    TVec3f jump = sensorDir * -10.0f;
-    MR::jumpPlayer(jump);
-    TVec3f dir = *pDir * 0.5f;
+    MR::jumpPlayer(sensorDir * -10.0f);
     TVec3f result;
-    TVec3f difference(sensorDir);
-    JMathInlineVEC::PSVECSubtract(&difference, &dir, &difference);
-    result.set(difference);
+    result.set(sensorDir - *pDir * 0.5f);
     if (MR::normalizeOrZero(&result)) {
         result.set(sensorDir);
     }
-    TVec3f vel = result * speed;
-    pOut->set(vel);
+    pOut->set(result * speed);
 }
 #pragma auto_inline on
 

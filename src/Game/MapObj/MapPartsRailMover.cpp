@@ -593,8 +593,9 @@ void MapPartsRailMover::updatePosition() {
     mPosition.y = pos.y;
     mPosition.z = pos.z;
     if (mSnapFramesRemaining > 0) {
+        f32 remaining;
         f32 total = mSnapDuration;
-        f32 remaining = mSnapFramesRemaining;
+        remaining = mSnapFramesRemaining;
         TVec3f offset(mSnapOffset);
         offset.scale(remaining);
         TVec3f scaled(offset);

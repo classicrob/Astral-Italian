@@ -128,7 +128,24 @@ void BellyDragonPod::killFireGrounds() {
     }
 }
 
-// NONMATCHING: scalar/paired vector copy lowering and register/stack layout (FP order/grouping checked).
+namespace {
+    inline void turnSparkDirection(TVec3f* direction, const TVec3f& front, const TVec3f& up) {
+        MR::turnVecToVecDegree(direction, front, up, lbl_807D7860, TVec3f(0, 1, 0));
+    }
+    inline TVec3f calcSparkPosition(const TVec3f& pos, const TVec3f& front, const TVec3f& up) {
+        TVec3f upOffset(up);
+        upOffset.scale(lbl_807E2FE0);
+        TVec3f frontOffset(front);
+        frontOffset.scale(lbl_807D7864);
+        TVec3f forwardPos(pos);
+        forwardPos.add(frontOffset);
+        TVec3f sparkPos(forwardPos);
+        sparkPos.add(upOffset);
+        return sparkPos;
+    }
+}
+
+
 void BellyDragonPod::appearSparks(s32 count) {
     if (BellyDragonUtil::isLv2(mHost) == 0) {
         return;
@@ -152,25 +169,15 @@ void BellyDragonPod::appearSparks(s32 count) {
         dir.scale(lbl_807D7848);
         if (count == 1) {
             MR::setPosition(pActor, pos);
-            TVec3f axis(0, 1, 0);
-            MR::turnVecToVecDegree(&dir, dir, up, lbl_807D785C, axis);
+            MR::turnVecToVecDegree(&dir, dir, up, lbl_807D785C, TVec3f(0, 1, 0));
             dir.scale(lbl_807D7858);
         } else {
-            TVec3f sp14(up);
-            sp14.scale(lbl_807E2FE0);
-            TVec3f sp20(front);
-            sp20.scale(lbl_807D7864);
-            TVec3f sp2C(pos);
-            sp2C.add(sp20);
-            TVec3f sp38(sp2C);
-            sp38.add(sp14);
-            MR::setPosition(pActor, sp38);
-            TVec3f axis(0, 1, 0);
-            MR::turnVecToVecDegree(&dir, front, up, lbl_807D7860, axis);
+            MR::setPosition(pActor, calcSparkPosition(pos, front, up));
+            turnSparkDirection(&dir, front, up);
             MR::rotateVecDegree(&dir, front, baseDeg + step * (f32)i);
             dir.scale(MR::getRandom(lbl_807D7854, lbl_807D7858));
         }
-        pActor->mVelocity = dir;
+        pActor->mVelocity.set(dir);
         pActor->appear();
     }
 }

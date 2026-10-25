@@ -1,6 +1,7 @@
 #include "tape_scene.hpp"
 #include "tape_record.hpp"
 #include "tape_play.hpp"
+#include "Game/LiveActor/HitSensor.hpp"
 #include "smoke_observe_safety.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"

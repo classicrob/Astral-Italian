@@ -14,6 +14,12 @@ class OriginalPath(unittest.TestCase):
             depth += (text[end] == '{') - (text[end] == '}')
             if depth == 0:
                 original = text[start:end+1]; break
+        # Remove only the new opt-in replay block. Everything else (including
+        # the live path and null-provider headless replay) remains byte exact.
+        first = original.index('    // replay-only synchronous connection begin\n')
+        last = original.index('    // replay-only synchronous connection end\n', first)
+        last += len('    // replay-only synchronous connection end\n')
+        original = original[:first] + original[last:]
         self.assertEqual(hashlib.sha256(original.encode()).hexdigest(),
                          'b0a78a556d91b355c46be71a91859e8f46cd8d8c1b68b7f917ee3890f1787d7d')
 

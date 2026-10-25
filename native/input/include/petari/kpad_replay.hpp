@@ -4,6 +4,10 @@ namespace PetariNative::Input {
 struct KpadReplayHooks {
     s32 (*read)(s32 channel, KPADStatus* buffer, u32 capacity, s32* error, void* user) = nullptr;
     void* user = nullptr;
+    // Optional synchronous connection source for the upcoming raw read. Called
+    // before samples return, after the tape's pre-read scene marker. Default
+    // null preserves the existing headless/legacy host-thread API.
+    bool (*connection)(s32 channel, s32* probeError, u32* deviceType, void* user) = nullptr;
 };
 // Mod buttons (petari_mod_take_press / petari_mod_held) come from the host action layer, not from KPAD. A tape
 // replay answers them from the recorded <tape>.actions instead; `press` is asked once per frame and mod (a press is

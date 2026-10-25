@@ -127,13 +127,17 @@ namespace nw4r {
             PPCHalt();
         }
 
+        inline void ShowLatestWarningLine_(ConsoleHandle const& console) {
+            Console_ShowLatestLine(console);
+        }
+
         void Warning(const char* file, int line, const char* fmt, ...) {
             va_list args;
             va_start(args, fmt);
             if (sAssertionConsole != NULL) {
                 Console_Printf(sAssertionConsole, "%s:%d Warning:", file, line);
                 Console_Printf(sAssertionConsole, "\n");
-                Console_ShowLatestLine(sAssertionConsole);
+                ShowLatestWarningLine_(sAssertionConsole);
                 if (sDispWarningAuto) {
                     const u32 time = sWarningTime;
                     if (sAssertionConsole != NULL) {

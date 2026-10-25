@@ -94,15 +94,16 @@ bool Binder::compSensor(const HitInfo* pPlane1, const HitInfo* pPlane2) {
 static inline void addBinderOffset(const Binder* binder, TVec3f& position) {
     if (binder->mOffsetVec) {
         if (binder->_1EC._4 && binder->_C) {
-            position.x += binder->_C[0][0] * binder->mOffsetVec->x;
-            position.y += binder->_C[1][0] * binder->mOffsetVec->x;
-            position.z += binder->_C[2][0] * binder->mOffsetVec->x;
-            position.x += binder->_C[0][1] * binder->mOffsetVec->y;
-            position.y += binder->_C[1][1] * binder->mOffsetVec->y;
-            position.z += binder->_C[2][1] * binder->mOffsetVec->y;
-            position.x += binder->_C[0][2] * binder->mOffsetVec->z;
-            position.y += binder->_C[1][2] * binder->mOffsetVec->z;
-            position.z += binder->_C[2][2] * binder->mOffsetVec->z;
+            const TVec3f* offset = binder->mOffsetVec;
+            position.x += binder->_C[0][0] * offset->x;
+            position.y += binder->_C[1][0] * offset->x;
+            position.z += binder->_C[2][0] * offset->x;
+            position.x += binder->_C[0][1] * offset->y;
+            position.y += binder->_C[1][1] * offset->y;
+            position.z += binder->_C[2][1] * offset->y;
+            position.x += binder->_C[0][2] * offset->z;
+            position.y += binder->_C[1][2] * offset->z;
+            position.z += binder->_C[2][2] * offset->z;
         } else {
             position.x += binder->mOffsetVec->x;
             position.y += binder->mOffsetVec->y;

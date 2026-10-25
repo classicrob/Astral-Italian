@@ -795,13 +795,20 @@ namespace {
     }
 }
 
-bool Kanina::tryAvoidWaterAhead() {
-    if (!isKaninaInWater(this)) {
+inline bool isKaninaUpperWater(const LiveActor* actor) {
+    TVec3f up = -actor->mGravity;
+    return MR::isInWater(actor, up * 150.0f);
+}
+
+inline bool isKaninaWaterAhead(const LiveActor* actor) {
+    if (!isKaninaInWater(actor)) {
         return false;
     }
+    return isKaninaUpperWater(actor);
+}
 
-    TVec3f up = -mGravity;
-    if (!MR::isInWater(this, up * 150.0f)) {
+bool Kanina::tryAvoidWaterAhead() {
+    if (!isKaninaWaterAhead(this)) {
         return false;
     }
 

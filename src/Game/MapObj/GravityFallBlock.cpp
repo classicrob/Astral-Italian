@@ -66,6 +66,10 @@ namespace {
     }
 }
 
+inline const TVec3f& getGravityFallBlockPosition(const GravityFallBlock& actor) {
+    return actor.mPosition;
+}
+
 void GravityFallBlock::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::onBind(this);
@@ -73,7 +77,7 @@ void GravityFallBlock::exeFall() {
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
     MR::addVelocityToGravity(this, 0.4f);
     if (MR::isGreaterStep(this, 30) && MR::isBindedGround(this) && MR::isNearZero(MR::getGroundActor(this)->mVelocity, 0.001f)) {
-        TVec3f diff = displacementFromBase(mPosition, mBasePos);
+        TVec3f diff = displacementFromBase(getGravityFallBlockPosition(*this), mBasePos);
         mPosition.set(mGravity * diff.dot(mGravity) + mBasePos);
         MR::zeroVelocity(this);
         MR::offBind(this);

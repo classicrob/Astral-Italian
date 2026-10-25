@@ -47,9 +47,13 @@ void BossBussunStateDamage::exeDamage() {
     }
 }
 
+inline const TVec3f* getBussunDamageUp(const BossBussun& actor) {
+    return &actor.mUpVec;
+}
+
 void BossBussunStateDamage::updateDamagePos() {
     TVec3f dirFromHome;
-    MR::calcVecToTargetPosH(&dirFromHome, mHost, mHost->mHomePos, &mHost->mUpVec);
+    MR::calcVecToTargetPosH(&dirFromHome, mHost, mHost->mHomePos, getBussunDamageUp(*mHost));
     if (MR::isNearZero(dirFromHome, 0.001f)) {
         dirFromHome.set(mHost->mFrontDir);
     }

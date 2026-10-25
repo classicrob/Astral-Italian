@@ -30,6 +30,16 @@
 
 
 namespace {
+    inline void subtractLaunchVector(TVec3f& result, const TVec3f& offset) {
+        result.sub(offset);
+    }
+
+    inline TVec3f launchVectorDifference(const TVec3f& first, const TVec3f& second) {
+        TVec3f result(first);
+        subtractLaunchVector(result, second);
+        return result;
+    }
+
     static const f32 sEjectSpeed = 40.0f;
     static const f32 sGravityScale = 0.8f;
     static const f32 sGravityRatio = 0.95f;
@@ -367,8 +377,7 @@ void MarioLauncher::exeReject() {
         MR::extractMtxYDir(getBaseMtx(), &jumpY);
         TVec3f jumpZ;
         MR::extractMtxZDir(getBaseMtx(), &jumpZ);
-        const TVec3f& jump = jumpY * ::sRejectJumpY - jumpZ * ::sRejectJumpZ;
-        MR::endBindAndPlayerJump(this, jump, 0);
+        MR::endBindAndPlayerJump(this, launchVectorDifference(jumpY * ::sRejectJumpY, jumpZ * ::sRejectJumpZ), 0);
         MR::startLevelSoundPlayer("JumpSV", -1, -1);
     }
 

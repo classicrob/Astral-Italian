@@ -217,8 +217,12 @@ void DanceFlower::startBlowDownReaction(HitSensor* pSender, HitSensor* pReceiver
 }
 
 // NONMATCHING: argument setup order differs for the copied probe position.
+inline const TVec3f& getDanceFlowerPosition(const DanceFlower& actor) {
+    return actor.mPosition;
+}
+
 void DanceFlower::snapToFloorPos() {
-    TVec3f pos = mPosition + mGravity * -250.0f;
+    TVec3f pos = getDanceFlowerPosition(*this) + mGravity * -250.0f;
     TVec3f hit(0.0f, 0.0f, 0.0f);
     if (MR::getFirstPolyOnLineToMap(&hit, nullptr, pos, mGravity * 500.0f)) MR::setPosition(this, hit);
 }

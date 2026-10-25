@@ -344,8 +344,8 @@ void KoopaBattleStage::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pSender, getHost(), "HandR")) {
         if (MR::isSensorPlayer(pReceiver)) {
             MR::sendMsgEnemyAttackStrongOrPush(pReceiver, pSender);
-        } else {
-            MR::sendMsgKoopaPunchAttack(pReceiver, pSender);
+        } else if (MR::sendMsgKoopaPunchAttack(pReceiver, pSender)) {
+            return;
         }
     }
 }

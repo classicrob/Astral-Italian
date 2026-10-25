@@ -480,6 +480,10 @@ bool DinoPackun::isSensorEgg(const HitSensor* pSensor) const {
     return getSensor("egg") == pSensor;
 }
 
+inline const TVec3f& getDinoResetPosition(const DinoPackun& actor) {
+    return actor.mPosition;
+}
+
 void DinoPackun::resetPosition() {
     mPoseQuat.set(mInitialQuat);
     mPoseQuat.getZDir(mFront);
@@ -487,7 +491,7 @@ void DinoPackun::resetPosition() {
     MR::zeroVelocity(this);
 
     TPos3f v28;
-    v28.setQT(mPoseQuat, mPosition);
+    v28.setQT(mPoseQuat, getDinoResetPosition(*this));
     TVec3f v27;
     v28.mult(::sMarioSetLocalPos, v27);
     TVec3f v26;

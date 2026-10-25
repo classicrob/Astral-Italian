@@ -64,20 +64,28 @@ void VolumeDrawer::setScaleDownRate(s32 frames) {
 }
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+namespace {
+    inline TVec3f scaledVolumePass(const TVec3f& value, s32 pass) {
+        TVec3f scale(value);
+        scale.x *= (f32)pass;
+        scale.y *= (f32)pass;
+        scale.z *= (f32)pass;
+        return scale;
+    }
+    inline void subtractPassScale(TVec3f& value, const TVec3f& scale) { value.sub(scale); }
+    inline TVec3f passScaleDifference(const TVec3f& one, const TVec3f& scale) {
+        TVec3f value(one);
+        subtractPassScale(value, scale);
+        return value;
+    }
+}
+
 void VolumeDrawer::preScaleDrawPass(s32 pass) const {
     TVec3f out;
     f32 mtx[3][4];
     PSMTXConcat(MR::getCameraViewMtx(), getBaseMtx(), mtx);
 
-    TVec3f scale(mScale);
-    scale.x *= (f32)pass;
-    scale.y *= (f32)pass;
-    scale.z *= (f32)pass;
-
-    TVec3f one(1.0f);
-    TVec3f diff(one);
-    diff.sub(scale);
-    out.mul(LiveActor::mScale, diff);
+    out.mul(LiveActor::mScale, passScaleDifference(TVec3f(1.0f), scaledVolumePass(mScale, pass)));
 
     MR::preScaleMtx(mtx, out);
     GXLoadPosMtxImm(mtx, 0);

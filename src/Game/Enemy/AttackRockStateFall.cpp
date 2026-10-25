@@ -183,6 +183,13 @@ void AttackRockStateFall::exeFallAppear() {
 }
 #pragma auto_inline on
 
+namespace {
+    inline f32 scaledRockRadius(const AttackRock& host, f32 ratio) {
+        f32 radius = ratio * host.getRockBaseRadius();
+        return radius * host.mScale.y;
+    }
+}
+
 // NONMATCHING: Only GPR assignment of the two mHost copies (r30/r31 swapped) differs; calls, operands and fields match.
 void AttackRockStateFall::exeFallWait() {
     if (MR::isFirstStep(this)) {
@@ -197,9 +204,8 @@ void AttackRockStateFall::exeFallWait() {
         this->mVolumeDrawer->setScaleUpRate(60);
         MR::setShadowProjection(this->mHost, nullptr, this->mLandPos, this->mLandNormal, true);
     }
-    AttackRock* pHost = this->mHost;
-    f32 base = 0.05f * pHost->getRockBaseRadius() * pHost->mScale.y;
-    f32 radius = MR::calcNerveEaseInOutValue(this->mHost, 88, base, 0.95f * this->mHost->getRockBaseRadius() * this->mHost->mScale.y);
+    f32 base = scaledRockRadius(*this->mHost, 0.05f);
+    f32 radius = MR::calcNerveEaseInOutValue(this->mHost, 88, base, scaledRockRadius(*this->mHost, 0.95f));
     MR::setShadowVolumeSphereRadius(this->mHost, nullptr, radius);
     MR::setScale(this->mVolumeDrawer, TVec3f(1.2f * radius / 100.0f));
     this->updateFallBezierVelocity();

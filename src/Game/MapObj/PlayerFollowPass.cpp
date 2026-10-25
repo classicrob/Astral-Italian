@@ -35,8 +35,7 @@ void PlayerFollowPass::reset() {
     if (!MR::calcGravityVectorOrZero(this, position, &gravity, nullptr, 0)) gravity.set<f32>(*MR::getPlayerGravity());
     JMAVECScaleAdd(&gravity, &front, &front, -gravity.dot(front));
     if (MR::isNearZero(front, 0.001f)) MR::getPlayerFrontVec(&front);
-    TVec3f initial(position - front * 150.0f);
-    mPositions[0].set<f32>(initial);
+    mPositions[0].set<f32>(position - front * 150.0f);
     mDistances[0] = 0.0f;
     mPositions[1].set<f32>(position);
     mDistances[1] = 150.0f;

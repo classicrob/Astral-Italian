@@ -74,6 +74,10 @@ void BenefitItemInvincible::initEscape() {
     _13A = 60;
 }
 // NONMATCHING: last ~5% is register choice: target keeps the temp vector pointer in r31 across the TVec3f ctor (callee-saved), ours re-derives it from r4
+inline const TVec3f& getInvincibleItemGravity(const BenefitItemInvincible& actor) {
+    return actor.mGravity;
+}
+
 void BenefitItemInvincible::doEscape() {
     MR::calcGravity(this);
 
@@ -83,7 +87,7 @@ void BenefitItemInvincible::doEscape() {
         MR::vecKillElement(mFwdAxis, mGravity, &mFwdAxis);
         MR::normalizeOrZero(&mFwdAxis);
 
-        _C4 = mFwdAxis * 10.0f - mGravity * ::cBoundUpSpd;
+        _C4 = mFwdAxis * 10.0f - getInvincibleItemGravity(*this) * ::cBoundUpSpd;
 
         MR::startActionSound(this, "OjPowInvincibleBound");
 

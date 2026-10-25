@@ -47,14 +47,14 @@ void CrescentSeesawPlanet::calcAndSetBaseMtx() {
     MR::concatMtxKeepSecondTranslation(getBaseMtx(), rotation, initial);
 }
 // NONMATCHING: scalar register allocation and component-load scheduling differ.
-inline f32 calcCrescentSpringForce(f32 angle) {
-    return angle * -0.0006f;
+inline f32 calcCrescentSpringForce(f32 angle, f32 stiffness) {
+    return angle * stiffness;
 }
 
 void CrescentSeesawPlanet::move() {
     f32 speed = mAngularVelocity;
     speed *= 0.999f;
-    f32 acceleration = calcCrescentSpringForce(mAngle);
+    f32 acceleration = calcCrescentSpringForce(mAngle, -0.0006f);
     f32 damping = speed;
     damping *= -0.012f;
     mAngularVelocity = speed + (acceleration + damping);

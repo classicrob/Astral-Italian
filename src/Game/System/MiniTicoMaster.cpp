@@ -63,7 +63,7 @@ MiniTicoMaster::MiniTicoMaster(WorldMapResultWorld* world, s32 partsIndex, s32* 
     mUnkA4 = pointIndex;
     mUnkA8 = nextPoint;
     mUnk9C = GameDataFunction::getTicoFatStarPieceAlmsFromWorld(world->getWorldId(), mUnkA0);
-    mUnk98 = MR::max(*mUnk94 - mUnk9C, 0);
+    mUnk98 = MR::max(0, *mUnk94 - mUnk9C);
     if (mUnk9C < *mUnk94) {
         mUnk90->setLinkProgressFull(mUnkA4, mUnkA8);
     }
@@ -145,11 +145,9 @@ void MiniTicoMaster::control() {
     TPos3f scaleMtx;
     MR::separateMtxScale(joint.toMtxPtr(), scaleMtx.toMtxPtr(), MR::getJointMtx(this, "Center"));
     TVec3f scale;
-    scale.x = JGeometry::TUtil<f32>::sqrt(scaleMtx.mMtx[0][0] * scaleMtx.mMtx[0][0] + scaleMtx.mMtx[1][0] * scaleMtx.mMtx[1][0] + scaleMtx.mMtx[2][0] * scaleMtx.mMtx[2][0]);
-    scale.y = JGeometry::TUtil<f32>::sqrt(scaleMtx.mMtx[0][1] * scaleMtx.mMtx[0][1] + scaleMtx.mMtx[1][1] * scaleMtx.mMtx[1][1] + scaleMtx.mMtx[2][1] * scaleMtx.mMtx[2][1]);
-    scale.z = JGeometry::TUtil<f32>::sqrt(scaleMtx.mMtx[0][2] * scaleMtx.mMtx[0][2] + scaleMtx.mMtx[1][2] * scaleMtx.mMtx[1][2] + scaleMtx.mMtx[2][2] * scaleMtx.mMtx[2][2]);
+    scaleMtx.getScale(scale);
     TVec3f pos;
-    pos.set<f32>(joint.mMtx[0][3], joint.mMtx[1][3], joint.mMtx[2][3]);
+    joint.getTrans(pos);
     MR::setScale(mModelA, (scale * 11.0f) * mScale.y);
     MR::setScale(mModelB, (scale * 11.0f) * mScale.y);
     TVec3f groundPos(pos.x, mPosition.y, pos.z);

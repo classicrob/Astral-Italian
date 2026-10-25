@@ -48,10 +48,23 @@ def audit_tail(meta,reads,policy=LEGACY_POLICY):
         sample_exemptions=[],advancing_read_envelope_fields=['frame','ordinal','returned','sample_count'],connections={str(c):list(v) for c,v in connections.items()})
 
 
-def audit_recording(out):
+def origin_policy_file(proof):
+    """Keep the original policy path in an admission re-audit across run roots."""
+    current=Path(__file__).with_name('native-neutral-controls-v1.json')
+    paths=[Path(p) for p in proof['hashes'] if Path(p).name==current.name]
+    need(len(paths)==1,'native origin policy binding missing or ambiguous')
+    path=paths[0]
+    need(proof['hashes'][str(path)]==sha(current)==sha(path),'native origin policy bytes changed')
+    return path
+
+
+def audit_recording(out,policy_file=None):
     from capture_schema2_tape import PRODUCTION_PIPELINE_ENV
     from tape_phase_audit import load_meta
     out=Path(out);meta=load_meta(out/'route.tape.json');launch=json.loads((out/'launch.json').read_text());process=json.loads((out/'process.json').read_text())
+    current_policy=Path(__file__).with_name('native-neutral-controls-v1.json')
+    policy_file=current_policy if policy_file is None else Path(policy_file)
+    need(sha(policy_file)==sha(current_policy),'native audit policy bytes differ')
     need(launch.get('child_nice_at_spawn')==0,'native producer child not nice0')
     need(launch.get('kind')=='native-script-recording' and launch.get('neutral_tail_policy')==POLICY,'native origin/policy binding missing')
     need(launch.get('neutral_tail_policy_sha256')==sha(Path(__file__).with_name('native-neutral-controls-v1.json')),'native policy file binding differs')
@@ -86,14 +99,14 @@ def audit_recording(out):
     return dict(passed=True,source_kind='native-input-script-v1',captured_schema=2,actual_payloads_independently_checked=True,
         neutral_tail_policy=POLICY,tail=rest,phases=phase,actual_reads=len(reads),actual_samples=sum(len(r['samples']) for r in reads),
         pointer_valid_rows=len(pointer_rows),pointer_distinct_positions=len(positions),session_events=events,scene_chain=chain,
-        shutdown_rows=meta['seams']-events[-1]['before_input_frame'],hashes={**{str(out/n):sha(out/n) for n in filenames},str(Path(__file__).with_name('native-neutral-controls-v1.json')):sha(Path(__file__).with_name('native-neutral-controls-v1.json'))},
+        shutdown_rows=meta['seams']-events[-1]['before_input_frame'],hashes={**{str(out/n):sha(out/n) for n in filenames},str(policy_file):sha(policy_file)},
         replay_equality_claimed=False,scope='Literal native recording; every retained SDK byte becomes canonical. Strict replay is a separate required matrix.')
 
 
 def qualify_origin(out):
     out=Path(out);result=json.loads((out/'RESULT.json').read_text())
     need(result.get('kind')=='native-script-recording' and result.get('passed') is True and result.get('checks') and all(result['checks'].values()),'native origin failed admission')
-    proof=audit_recording(out)
+    proof=audit_recording(out,policy_file=origin_policy_file(result['native_recording_proof']))
     need(proof==result.get('native_recording_proof'),'native origin audit/bytes changed')
     return dict(path=str(out),result_sha256=sha(out/'RESULT.json'),policy=POLICY,hashes=proof['hashes'])
 

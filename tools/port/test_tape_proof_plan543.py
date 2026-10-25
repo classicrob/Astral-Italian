@@ -5,11 +5,44 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from run_tape_anchors543 import tape_binding, verify_tape_binding, qualified_tape, plan
+from unittest.mock import patch
+from run_tape_anchors543 import tape_binding, verify_tape_binding, qualified_tape, plan,verify_prior_reference,prior_reference_proof
 from test_tape_power_audit import fixture as power_fixture
 from capture_schema2_tape import sha
 
 class ProofBindings(unittest.TestCase):
+    def test_remaining_plan_reuses_bound_native_canonical_without_recording(self):
+        root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
+        with tempfile.TemporaryDirectory(prefix='remaining-plan-',dir=root) as temporary:
+            base=Path(temporary);canonical=base/'canonical';canonical.mkdir()
+            (canonical/'route.tape.json').write_text(json.dumps(dict(power_fixture(),neutral_tail_policy='native-neutral-controls-v1')))
+            builds=[]
+            for name in ('candidate','ref072','ref002'):
+                d=base/name;d.mkdir();builds.append(d)
+                (d/'BUILD.json').write_text(json.dumps(dict(source=name,build_host='SERVER',native_tests_passed=True,candidate_suite_passed=True)))
+            q=dict(native_recording=True,binding=dict(tape=str(canonical),files={}),result_sha256='admitted')
+            inherited=dict(files={},root=str(base/'prior'))
+            with patch('run_tape_anchors543.qualified_tape',return_value=q),patch('run_tape_anchors543.prior_reference_proof',return_value=inherited) as carry:
+                plan(base/'out',candidate=builds[0],reference072=builds[1],reference002=builds[2],schema2_only=True,canonical=canonical,power_protocol=True,prior_proof=base/'prior')
+                self.assertEqual(carry.call_count,1)
+            spec=json.loads((base/'out/PLAN.json').read_text())
+            self.assertEqual(spec['neutral_tail_policy'],'native-neutral-controls-v1')
+            self.assertEqual(spec['prior_reference_proof'],inherited)
+            self.assertEqual(len(spec['arms']),8)
+            self.assertEqual([a['name'] for a in spec['arms'][:2]],['matrix-ref002-fresh','matrix-ref002-warm'])
+            self.assertTrue(all(a['kind']=='schema2' and a['observe_seconds']==90 for a in spec['arms']))
+            self.assertEqual(spec['arms'][0]['tape'],str(canonical))
+            self.assertEqual(spec['arms'][1]['warm_from'],str(base/'out/runs/matrix-ref002-fresh'))
+            self.assertEqual(spec['qualified_canonical'],q)
+
+    def test_prior_evidence_cannot_change_after_plan_binding(self):
+        with tempfile.TemporaryDirectory(prefix='prior-binding-') as temporary:
+            path=Path(temporary)/'RESULT.json';path.write_text('{"passed":true}')
+            proof=dict(files={str(path):sha(path)})
+            verify_prior_reference(proof)
+            path.write_text('{"passed":false}')
+            with self.assertRaisesRegex(RuntimeError,'evidence changed'):verify_prior_reference(proof)
+
     def test_native_plan_has_no_legacy_conversion_and_all_arms_bind_policy(self):
         root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
         with tempfile.TemporaryDirectory(prefix='native-plan-',dir=root) as temporary:

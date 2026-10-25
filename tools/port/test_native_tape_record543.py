@@ -3,11 +3,25 @@ import copy
 import json
 from pathlib import Path
 import unittest
-from native_tape_record543 import audit_tail,POLICY,LEGACY_POLICY
+import tempfile
+from native_tape_record543 import audit_tail,POLICY,LEGACY_POLICY,origin_policy_file,sha
 from tape_phase_audit import bootstrap,audit_session_controls
 from test_tape_power_audit import fixture
 
 class NativeTail(unittest.TestCase):
+    def test_reused_origin_keeps_its_exact_policy_binding(self):
+        with tempfile.TemporaryDirectory(prefix='native-policy-binding-') as temporary:
+            path=Path(temporary)/'native-neutral-controls-v1.json'
+            path.write_bytes(Path(__file__).with_name(path.name).read_bytes())
+            proof=dict(hashes={str(path):sha(path)})
+            self.assertEqual(origin_policy_file(proof),path)
+            with self.assertRaisesRegex(ValueError,'missing or ambiguous'):origin_policy_file(dict(hashes={}))
+            other=Path(temporary)/'other'/path.name
+            with self.assertRaisesRegex(ValueError,'missing or ambiguous'):
+                origin_policy_file(dict(hashes={**proof['hashes'],str(other):sha(path)}))
+            path.write_text('changed')
+            with self.assertRaisesRegex(ValueError,'bytes changed'):origin_policy_file(proof)
+
     def meta(self):
         return dict(fixture(),neutral_tail_policy=POLICY)
     def reads(self):

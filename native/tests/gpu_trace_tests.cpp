@@ -7,6 +7,10 @@
 #include <string>
 
 using namespace PetariNative::GpuTrace;
+// PORT can inspect this Release symbol: one flag load/branch before any access.
+extern "C" void petari_gpu_trace_off_probe(int* pointer) {
+    PETARI_GPU_TRACE(++*pointer);
+}
 static int sideEffects = 0;
 static std::vector<int> transcript;
 static int sideEffect() { ++sideEffects; return sideEffects; }
@@ -23,6 +27,7 @@ int main() {
     assert(!configure("0", "/unused"));
     assert(!configure("1", "relative.jsonl"));
     assert(run == nullptr && !enabled.load());
+    petari_gpu_trace_off_probe(nullptr); // disabled path must not dereference arguments
     protocol(false); const auto baseline = transcript; transcript.clear();
     protocol(true);
     assert(transcript == baseline && sideEffects == 0 && run == nullptr);
@@ -77,7 +82,7 @@ int main() {
     PETARI_GPU_TRACE(emit("must_not_exist", {}, sideEffect()));
     assert(producerSequence == sequence && sideEffects == 0);
     std::ifstream input(path);
-    std::string contents((std::istreambuf_iterator<char>(input)), {});
+    std::string contents((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
     assert(contents.find("writer_fixture") != std::string::npos);
     assert(contents.find("must_not_exist") == std::string::npos);
     assert(contents.find("\"drops\":0") != std::string::npos);

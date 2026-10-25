@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 #include "editor_m4_smoke.hpp"
 #include "display_settings.hpp"
 #include "display_window.hpp"
@@ -856,6 +857,8 @@ App::FrameStats::Phase framePhaseForPipelines() {
 }  // namespace
 
 int main(int argc, char** argv) {
+    PetariNative::GpuTrace::configure(std::getenv("PETARI_PIPELINE_DIAG"), std::getenv("PETARI_GPU_TRACE"),
+        std::getenv("PETARI_GPU_TRACE_BINDING_SHA256"));
     App::AppLocations locations;
     App::Paths paths;
     try {

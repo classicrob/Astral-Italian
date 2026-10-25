@@ -818,3 +818,36 @@ if(APPLE AND _petari_build_testing)
     add_test(NAME native_boot_splash COMMAND petari_boot_splash_tests)
     add_test(NAME native_boot_splash_hidden COMMAND petari_boot_splash_tests hidden)
 endif()
+
+# Boundary trace composes LAST: generated sources retain all existing policy
+# patches. No dependency edits, revision changes or extra work while disabled.
+foreach(_trace_pair
+    "aurora_gx|${CMAKE_CURRENT_BINARY_DIR}/ubershader/frame.cpp|frame|gfx"
+    "aurora_gx|${CMAKE_CURRENT_BINARY_DIR}/allocation-safe/lib/gfx/render_worker.cpp|worker|gfx"
+    "aurora_core|${CMAKE_CURRENT_BINARY_DIR}/present/lib/aurora.cpp|aurora|.")
+    string(REPLACE "|" ";" _trace_parts "${_trace_pair}")
+    list(GET _trace_parts 0 _trace_target)
+    list(GET _trace_parts 1 _trace_input)
+    list(GET _trace_parts 2 _trace_kind)
+    list(GET _trace_parts 3 _trace_folder)
+    set(_trace_output "${CMAKE_CURRENT_BINARY_DIR}/gpu-trace/${_trace_kind}.cpp")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_gpu_trace.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/gpu_trace_dawn.hpp")
+    execute_process(COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_gpu_trace.py"
+        "${_trace_input}" "${_trace_output}" "${_trace_kind}" COMMAND_ERROR_IS_FATAL ANY)
+    get_target_property(_trace_sources ${_trace_target} SOURCES)
+    list(FIND _trace_sources "${_trace_input}" _trace_source_index)
+    if(_trace_source_index LESS 0)
+        message(FATAL_ERROR "GPU trace missing final patched source: ${_trace_input}")
+    endif()
+    list(REMOVE_ITEM _trace_sources "${_trace_input}")
+    list(APPEND _trace_sources "${_trace_output}")
+    set_property(TARGET ${_trace_target} PROPERTY SOURCES "${_trace_sources}")
+    set_source_files_properties("${_trace_output}" TARGET_DIRECTORY ${_trace_target} PROPERTIES
+        COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/${_trace_folder};-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR};-iquote${CMAKE_CURRENT_SOURCE_DIR}/present")
+endforeach()
+if(_petari_build_testing)
+    add_test(NAME native_gpu_trace_patch COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_SOURCE_DIR}/native/tests/gpu_trace_patch_tests.py" "${aurora_SOURCE_DIR}")
+endif()

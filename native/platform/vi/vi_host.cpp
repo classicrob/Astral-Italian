@@ -1,3 +1,5 @@
+#include <petari/gpu_trace.hpp>
+namespace GpuTrace = PetariNative::GpuTrace;
 #include <petari/floating_point.hpp>
 // Native VI. Replaces src/RVL_SDK/vi/{vi,vi3in1,i2c}.c. Register programming
 // becomes pending/flushed/latched state (see petari/platform/vi.hpp). The
@@ -135,6 +137,8 @@ VIN::DisplayState snapshotLocked() {
 // __VIRetraceHandler. Interrupts disabled, on a host (interrupt) thread.
 void retraceInterrupt() {
     gRetraceCount++;
+    PETARI_GPU_TRACE(GpuTrace::deliveryContext.detail = gRetraceCount;
+        GpuTrace::emit("vi_interrupt_enter", GpuTrace::deliveryContext));
     PetariNative::FrameTelemetry::lastRetraceNs.store(PetariNative::FrameTelemetry::nowNs(), std::memory_order_relaxed);
     if (gPreCB) {
         gPreCB(gRetraceCount);
@@ -167,6 +171,7 @@ void retraceInterrupt() {
         std::fprintf(stderr, "PETARI VI: screen %s at retrace %u\n", gDimmed ? "dimmed (idle)" : "undimmed (input)",
                      gRetraceCount);
     }
+    PETARI_GPU_TRACE(GpuTrace::emit("vi_interrupt_exit", GpuTrace::deliveryContext); GpuTrace::deliveryContext = {});
 }
 
 // Retrace timer thread scheduling: a Mach time-constraint (real-time) thread,
@@ -241,13 +246,20 @@ void* viThreadMain(void*) {
             sleepUntil(next);
         }
         const auto woke = Clock::now();
+        PETARI_GPU_TRACE(GpuTrace::Context c{};
+            c.span = GpuTrace::nextId(); GpuTrace::deliveryContext = c;
+            GpuTrace::emitAt("vi_timer_due", c, std::chrono::duration_cast<std::chrono::nanoseconds>(next.time_since_epoch()).count());
+            GpuTrace::emitAt("vi_timer_woke", c, std::chrono::duration_cast<std::chrono::nanoseconds>(woke.time_since_epoch()).count()));
         const auto scheduled = next;
         if (woke > next) {
             Telemetry::add(Telemetry::ViTimerLate, std::chrono::duration_cast<std::chrono::nanoseconds>(woke - next).count());
         }
         const auto ownerAtWake = OS::interruptOwner();
+        PETARI_GPU_TRACE(GpuTrace::emit("vi_interrupt_lock_request", GpuTrace::deliveryContext));
         OSDisableInterrupts();
         const auto acquired = Clock::now();
+        PETARI_GPU_TRACE(GpuTrace::emitAt("vi_interrupt_lock_acquired", GpuTrace::deliveryContext,
+            std::chrono::duration_cast<std::chrono::nanoseconds>(acquired.time_since_epoch()).count()));
         const bool slowDelivery = acquired - next > std::chrono::milliseconds(50);
         const auto lastOwner = slowDelivery ? OS::lastInterruptReleaseTiming() : OS::InterruptReleaseTiming{};
         Telemetry::add(Telemetry::ViInterruptLockWait,
@@ -441,6 +453,9 @@ void VIFlush(void) {
 }
 
 void VIWaitForRetrace(void) {
+    PETARI_GPU_TRACE(GpuTrace::waitContext = {}; GpuTrace::waitContext.span = GpuTrace::nextId();
+        GpuTrace::waitContext.subject = reinterpret_cast<std::uintptr_t>(OS::boundThread());
+        GpuTrace::emit("vi_wait_begin", GpuTrace::waitContext));
     VIN::WaitDriver driver;
     u32 before = 0;
     if (VIN::gHasWaitDriver.load(std::memory_order_acquire)) {
@@ -455,6 +470,7 @@ void VIWaitForRetrace(void) {
         if (released) petari_os_end_host_blocking();
         OS::InterruptGuard guard;
         if (before == gRetraceCount) OS::fatal("virtual VI wait returned without a retrace");
+        PETARI_GPU_TRACE(GpuTrace::emit("vi_wait_return", GpuTrace::waitContext, gRetraceCount); GpuTrace::waitContext = {});
         return;
     }
     BOOL enabled = OSDisableInterrupts();
@@ -462,6 +478,7 @@ void VIWaitForRetrace(void) {
     do {
         OSSleepThread(&gRetraceQueue);
     } while (count == gRetraceCount);
+    PETARI_GPU_TRACE(GpuTrace::emit("vi_wait_return", GpuTrace::waitContext, gRetraceCount); GpuTrace::waitContext = {});
     OSRestoreInterrupts(enabled);
 }
 

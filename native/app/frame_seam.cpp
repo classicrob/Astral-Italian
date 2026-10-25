@@ -1,3 +1,5 @@
+#include <petari/gpu_trace.hpp>
+namespace GpuTrace = PetariNative::GpuTrace;
 #include "test_crash.hpp"
 // The per-frame host seam (petari/app.hpp). Aurora and SDL side.
 
@@ -253,11 +255,16 @@ void recordFrame(std::uint64_t entry, FrameStats::Phase phase) {
             takeCounter(static_cast<Telemetry::Counter>(counter));
             takeMax(static_cast<Telemetry::Counter>(counter));
         }
+        PETARI_GPU_TRACE(GpuTrace::emitAt("csv_seed", {}, entry));
         t.lastEntry = entry;
         return;
     }
     FrameStats::Frame frame;
     frame.index = ++t.frames;
+    PETARI_GPU_TRACE(
+        GpuTrace::Context c{}; c.csv = frame.index; c.detail = static_cast<unsigned>(phase);
+        GpuTrace::emitAt("csv_interval_open", c, t.lastEntry);
+        GpuTrace::emitAt("csv_interval_close", c, entry));
     frame.entryNs = entry;
     frame.intervalMs = static_cast<double>(entry - t.lastEntry) / 1e6;
     frame.phase = phase;
@@ -853,6 +860,7 @@ void reportFrameStats() {
     }
     // Pipeline scheduler state at exit (pending/failed/skipped); normal exits skip aurora_shutdown.
     petari_gx_pipeline_report();
+    PETARI_GPU_TRACE(GpuTrace::shutdown());
     std::fflush(stderr);
 }
 
@@ -923,6 +931,7 @@ namespace AgentReplay {
 using namespace PetariNative::App;
 
 extern "C" void petari_host_frame_mark(int mark) {
+    PETARI_GPU_TRACE(GpuTrace::emit("game_frame_mark", {}, mark));
     const std::uint64_t now = Telemetry::nowNs();
     if (mark == PETARI_FRAME_MARK_RETRACE_DONE) {
         gTiming.retraceDone = now;
@@ -940,6 +949,7 @@ extern "C" void petari_host_frame_seam(void) {
     TestCrash::frame();
     LaunchStage::testReturnToShipFrame();
     const std::uint64_t entry = Telemetry::nowNs();
+    PETARI_GPU_TRACE(GpuTrace::emitAt("game_seam_enter", {}, entry));
     PetariNative::HostAllocationScope host;
     recordRouteFrame(SmokeBackground::enabled);
     {
@@ -948,6 +958,7 @@ extern "C" void petari_host_frame_seam(void) {
         static bool wasInPlay = false;
         static unsigned long long seams = 0;
         ++seams;
+        PETARI_GPU_TRACE(GpuTrace::Context c{}; c.detail = seams; GpuTrace::emitAt("game_seam_number", c, entry));
         Host::updatePlayerInPlay();
         const bool inPlay = Host::playerInPlay();
         if (inPlay) PetariNative::Input::playControlShown();
@@ -1091,4 +1102,5 @@ extern "C" void petari_host_frame_seam(void) {
     gTiming.seamNs[2] = reacquireStart - beginStart;
     gTiming.seamNs[3] = exit - reacquireStart;
     gTiming.lastExit = exit;
+    PETARI_GPU_TRACE(GpuTrace::emitAt("game_seam_exit", {}, exit));
 }

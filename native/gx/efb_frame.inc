@@ -1,3 +1,4 @@
+#include "gpu_trace_dawn.hpp"
 #include <petari/frame_telemetry.hpp>
 
 namespace aurora::gfx {
@@ -24,10 +25,14 @@ bool petari_sync_segments() {
 // recorder switches its own slot at once and does not wait for the worker.
 void petari_submit_segment(detail::FramePacket& frame, const PetariNative::GX::SnapshotSource& source,
                            uint64_t ticket, PetariNative::GX::SnapshotReady ready) {
+  PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("capture_staging_wait_begin",
+      PetariNative::GpuTrace::captureContext(frame.frameId, ticket)));
   const auto nextSlot = [] {
     PetariNative::FrameTelemetry::Scope timing{PetariNative::FrameTelemetry::EfbStagingWait};
     return acquire_mapped_staging_buffer();
   }();
+  PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("capture_staging_wait_end",
+      PetariNative::GpuTrace::captureContext(frame.frameId, ticket)));
   AURORA_ASSERT(nextSlot.has_value(), "Cannot acquire staging memory for an EFB segment");
   const size_t packetIndex = static_cast<size_t>(&frame - g_framePackets.data());
   AURORA_ASSERT(packetIndex < petariRecordingSlotCount, "EFB segment for an unknown frame packet");
@@ -49,12 +54,26 @@ void petari_submit_segment(detail::FramePacket& frame, const PetariNative::GX::S
   auto completion = sync ? complete->get_future() : std::future<void>{};
   {
     PetariNative::FrameTelemetry::Scope timing{PetariNative::FrameTelemetry::EfbSubmitWait};
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("capture_enqueue",
+        PetariNative::GpuTrace::captureContext(frame.frameId, ticket)));
     render_worker::enqueue_work([&frame, source, ticket, ready, oldSlot, newSlot = *nextSlot, complete] {
+      PETARI_GPU_TRACE(
+          PetariNative::GpuTrace::workerContext.packet = frame.frameId;
+          PetariNative::GpuTrace::workerContext.ticket = ticket;
+          PetariNative::GpuTrace::emit("capture_worker_begin", PetariNative::GpuTrace::workerContext));
       auto mapReadback = PetariNative::GX::encodeSnapshot(frame.encoder, source, ticket, ready);
       g_stagingBuffers[oldSlot].Unmap();
       g_mappingStates[oldSlot].store(BufferMapState::Unmapped, std::memory_order_release);
+      PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("encoder_finish_begin", PetariNative::GpuTrace::workerContext));
       const auto commands = frame.encoder.Finish();
+      PETARI_GPU_TRACE(
+          PetariNative::GpuTrace::emit("encoder_finish_end", PetariNative::GpuTrace::workerContext);
+          PetariNative::GpuTrace::workerContext.submission = PetariNative::GpuTrace::nextId();
+          PetariNative::GpuTrace::emit("submit_begin", PetariNative::GpuTrace::workerContext));
       g_queue.Submit(1, &commands);
+      PETARI_GPU_TRACE(
+          PetariNative::GpuTrace::emit("submit_return", PetariNative::GpuTrace::workerContext);
+          PetariNative::GpuTrace::observeSubmission(g_queue, PetariNative::GpuTrace::workerContext));
       for (auto& callback : frame.afterSubmitCallbacks) callback();
       frame.afterSubmitCallbacks.clear();
       mapReadback();
@@ -64,6 +83,7 @@ void petari_submit_segment(detail::FramePacket& frame, const PetariNative::GX::S
       frame.stagingBuffer = newSlot;  // later pass encodes copy from the new slot
       map_staging_buffer(oldSlot, true);
       process_events();
+      PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("capture_worker_end", PetariNative::GpuTrace::workerContext));
       if (complete) complete->set_value();
     });
     if (sync) completion.get();

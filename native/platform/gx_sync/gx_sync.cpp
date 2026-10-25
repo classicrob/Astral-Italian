@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 #include <petari/floating_point.hpp>
 // GP interrupts and GX synchronisation. See petari/platform/gx_sync.hpp and
 // docs/dev/GX_SYNC_PLAN.md.
@@ -128,11 +129,22 @@ void notifyHostWaiters(State& s) {
 }
 
 void deliver(State& s, const Event& e) {
+    PETARI_GPU_TRACE(
+        GpuTrace::deliveryContext = {}; GpuTrace::deliveryContext.ticket = e.ticket;
+        GpuTrace::deliveryContext.span = GpuTrace::nextId();
+        GpuTrace::deliveryContext.subject = e.position;
+        GpuTrace::deliveryContext.detail = static_cast<unsigned>(e.kind);
+        GpuTrace::emit("gx_interrupt_lock_request", GpuTrace::deliveryContext, e.token));
     BOOL enabled = OSDisableInterrupts();
+    PETARI_GPU_TRACE(GpuTrace::emit("gx_interrupt_lock_acquired", GpuTrace::deliveryContext));
     if (!OS::waitVirtualAsync(e.virtualTicket)) {
         OSRestoreInterrupts(enabled);
         return;
     }
+    PETARI_GPU_TRACE(GpuTrace::emit("gx_delivery_begin", GpuTrace::deliveryContext,
+        (e.virtualTicket ? 1 : 0) | (e.lostDrawDones ? 2 : 0));
+        if (e.virtualTicket) GpuTrace::emit("gx_delivery_virtual_ticket", GpuTrace::deliveryContext, e.virtualTicket);
+        if (e.lostDrawDones) GpuTrace::emit("gx_delivery_lost_draw_dones", GpuTrace::deliveryContext, e.lostDrawDones));
     switch (e.kind) {
     case Kind::Token:
         tDeliveringTicket = e.ticket;
@@ -144,12 +156,14 @@ void deliver(State& s, const Event& e) {
             s.delivered.store(e.ticket, std::memory_order_release);
         }
         s.tokensDelivered.fetch_add(1, std::memory_order_acq_rel);
+        PETARI_GPU_TRACE(GpuTrace::emit("gx_token_frontier", GpuTrace::deliveryContext, s.tokensDelivered.load()));
         break;
     case Kind::DrawDone:
         if (GXDrawDoneCallback cb = s.drawDone.load(std::memory_order_acquire)) {
             cb();
         }
         s.drawDoneDelivered.fetch_add(1 + e.lostDrawDones, std::memory_order_acq_rel);
+        PETARI_GPU_TRACE(GpuTrace::emit("gx_draw_done_frontier", GpuTrace::deliveryContext, s.drawDoneDelivered.load()));
         OSWakeupThread(&s.drawDoneWaitQueue);
         break;
     case Kind::Breakpoint:
@@ -158,8 +172,10 @@ void deliver(State& s, const Event& e) {
         }
         break;
     }
+    PETARI_GPU_TRACE(GpuTrace::emit("gx_delivery_end", GpuTrace::deliveryContext));
     OS::finishVirtualAsync(e.virtualTicket);
     OSRestoreInterrupts(enabled);
+    PETARI_GPU_TRACE(GpuTrace::deliveryContext = {});
     if (e.kind == Kind::DrawDone || e.kind == Kind::Token) {
         notifyHostWaiters(s);
     }
@@ -383,6 +399,8 @@ void reportToken(std::uint16_t token, std::uint64_t position) {
         }
         enqueueLocked(s, e);
     }
+    PETARI_GPU_TRACE(GpuTrace::Context c{}; c.ticket = ticket; c.subject = position;
+        c.detail = token; GpuTrace::emit("gx_token_reported", c));
     if (hook != nullptr) {
         hook(ticket, token, position, user);  // processor thread, no lock held
     }
@@ -393,6 +411,7 @@ void setTokenRegister(std::uint16_t token) {
 }
 
 void reportDrawDone(std::uint64_t position) {
+    PETARI_GPU_TRACE(GpuTrace::Context c{}; c.subject = position; GpuTrace::emit("gx_draw_done_reported", c));
     enqueue({Kind::DrawDone, 0, position});
 }
 
@@ -477,10 +496,12 @@ void snapshotReady(std::uint64_t ticket) {
                 OSPanic(__FILE__, __LINE__, "GX sync: snapshot ticket %llu completed twice", static_cast<unsigned long long>(ticket));
             }
             e.ready = true;
+            PETARI_GPU_TRACE(GpuTrace::emit("gx_snapshot_marked_ready", GpuTrace::captureContext(0, ticket)));
             s.changed.notify_one();
             return;
         }
     }
+    PETARI_GPU_TRACE(GpuTrace::emit("gx_snapshot_discarded", GpuTrace::captureContext(0, ticket)));
     // Not queued: already delivered, or discarded by shutdown. Tickets are
     // never reused, so a late completion cannot release another capture.
 }
@@ -540,6 +561,9 @@ bool drawDoneWaitPending() {
 }
 
 void waitDrawDone(std::uint64_t count) {
+    PETARI_GPU_TRACE(GpuTrace::waitContext = {}; GpuTrace::waitContext.span = GpuTrace::nextId();
+        GpuTrace::waitContext.subject = reinterpret_cast<std::uintptr_t>(OS::boundThread());
+        GpuTrace::waitContext.detail = count; GpuTrace::emit("gx_draw_done_wait_begin", GpuTrace::waitContext));
     State& s = state();
     const auto done = [&] { return s.drawDoneDelivered.load(std::memory_order_acquire) >= count; };
     {
@@ -561,6 +585,7 @@ void waitDrawDone(std::uint64_t count) {
     }
     std::lock_guard<std::mutex> guard(s.lock);
     --s.drawDoneWaiters;
+    PETARI_GPU_TRACE(GpuTrace::emit("gx_draw_done_wait_return", GpuTrace::waitContext); GpuTrace::waitContext = {});
 }
 
 void waitTokensDelivered() {
@@ -578,6 +603,9 @@ void waitTokensDelivered() {
     if (OS::interruptsDisabled()) {
         OSPanic(__FILE__, __LINE__, "waiting for draw-sync tokens with interrupts disabled would never complete");
     }
+    PETARI_GPU_TRACE(GpuTrace::waitContext = {}; GpuTrace::waitContext.span = GpuTrace::nextId();
+        GpuTrace::waitContext.subject = reinterpret_cast<std::uintptr_t>(OS::boundThread());
+        GpuTrace::waitContext.detail = target; GpuTrace::emit("gx_token_wait_begin", GpuTrace::waitContext));
     const std::uint64_t start = Telemetry::nowNs();
     const bool osThread = OS::boundThread() != nullptr;
     if (osThread) {
@@ -604,6 +632,7 @@ void waitTokensDelivered() {
         petari_os_end_host_blocking();
     }
     Telemetry::add(Telemetry::TokenBarrierWait, Telemetry::nowNs() - start);
+    PETARI_GPU_TRACE(GpuTrace::emit("gx_token_wait_return", GpuTrace::waitContext, delivered() ? 0 : 1); GpuTrace::waitContext = {});
 }
 
 void waitProcessed(std::uint64_t position) {

@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 #include "efb_snapshot.hpp"
 #include "sync_backend.h"
 #include "gx/gx.hpp"
@@ -241,6 +242,7 @@ Resources& prepareResources(std::uint64_t storageBytes) {
 
 aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& encoder,
     const SnapshotSource& source, std::uint64_t ticket, SnapshotReady ready) {
+    PETARI_GPU_TRACE(GpuTrace::emit("capture_encode_begin", GpuTrace::workerContext));
     HostAllocationScope host;
     using aurora::webgpu::g_device;
     if (!source.color || !source.depth || !source.width || !source.height ||
@@ -272,11 +274,15 @@ aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& enco
     pass.DispatchWorkgroups((source.width + 7) / 8, (source.height + 7) / 8);
     pass.End();
     encoder.CopyBufferToBuffer(r.storage, 0, readback, 0, bytes);
+    PETARI_GPU_TRACE(GpuTrace::emit("capture_encode_end", GpuTrace::workerContext));
     return [readback, bytes, generation, ticket, ready, width = source.width, height = source.height,
             requested = source.requestedNs] {
+        PETARI_GPU_TRACE(GpuTrace::emit("map_request", GpuTrace::captureContext(0, ticket)));
         readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,
             [readback, bytes, generation, ticket, ready, width, height, requested](wgpu::MapAsyncStatus status,
                                                                                    wgpu::StringView) {
+                PETARI_GPU_TRACE(GpuTrace::emit("map_callback_enter", GpuTrace::captureContext(0, ticket),
+                    status == wgpu::MapAsyncStatus::Success ? 0 : 1));
                 HostAllocationScope host;
                 if (status != wgpu::MapAsyncStatus::Success) fail("GPU readback mapping failed");
                 const auto* data = static_cast<const Pixel*>(readback.GetConstMappedRange(0, bytes));
@@ -300,7 +306,9 @@ aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& enco
                 if (requested != 0) {
                     FrameTelemetry::add(FrameTelemetry::EfbCaptureLatency, FrameTelemetry::nowNs() - requested);
                 }
+                PETARI_GPU_TRACE(GpuTrace::emit("readback_cpu_complete", GpuTrace::captureContext(0, ticket)));
                 ready(ticket);
+                PETARI_GPU_TRACE(GpuTrace::emit("snapshot_ready_return", GpuTrace::captureContext(0, ticket)));
             });
     };
 }

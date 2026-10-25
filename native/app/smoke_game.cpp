@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 // Observation for the smoke run (smoke.hpp): read-only queries of game and VI
 // state. SDK side: no Aurora or SDL headers here.
 
@@ -342,6 +343,7 @@ void recordRouteFrame(bool background) {
             std::fprintf(stderr, "[native first valid] stage=%s route_row=%lu monotonic_ns=%lld wall_ns=%lld\n",
                 row.stage, routeRow, static_cast<long long>(mono), static_cast<long long>(wall));
         }
+        PETARI_GPU_TRACE(GpuTrace::Context c{}; c.route = routeRow; GpuTrace::emit("route_csv_row", c));
         ++routeRow;
         writer.write(row);
         TapeRecord::Seam seam;

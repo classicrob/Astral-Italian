@@ -10,6 +10,7 @@ import csv
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 
 
@@ -22,8 +23,9 @@ def csv_rows(path):
         return list(csv.DictReader(stream))
 
 
-def distributions(rows, seconds=300):
-    selected, elapsed = [], 0.0
+def distributions(rows, seconds=300, global100=None):
+    if not math.isfinite(seconds) or seconds <= 0: raise ValueError("positive finite window required")
+    selected, selected_rows, elapsed = [], [], 0.0
     for row in rows:
         duration = float(row['interval_ms'])
         if not math.isfinite(duration) or duration <= 0:
@@ -32,21 +34,26 @@ def distributions(rows, seconds=300):
         if elapsed >= seconds * 1000:
             break
         selected.append(duration)
+        selected_rows.append(row)
         elapsed += duration
     if elapsed < seconds * 1000:
         raise ValueError('CSV does not cover the requested fixed window')
     def quantile(values, q):
         values = sorted(values)
         return values[max(0, math.ceil(q * len(values)) - 1)]
+    post = [float(r["interval_ms"]) for r in selected_rows if global100 is not None and int(r["frame"]) > global100]
     return dict(frames=len(selected), covered_ms=elapsed,
+                actual_global100_csv_frame=global100, post100_p99=quantile(post, .99) if post else None,
+                pipeline_resolves=sum(int(r.get("pipeline_resolves", 0)) for r in selected_rows),
                 gt50=sum(x > 50 for x in selected), maximum=max(selected),
                 p50=quantile(selected, .5), p95=quantile(selected, .95),
                 p99=quantile(selected, .99), samples_ms=selected)
 
 
-def compare(off_rows, on_rows, seconds=300):
-    off, on = distributions(off_rows, seconds), distributions(on_rows, seconds)
+def compare(off_rows, on_rows, seconds=300, off_global100=None, on_global100=None):
+    off, on = distributions(off_rows, seconds, off_global100), distributions(on_rows, seconds, on_global100)
     delta = {key: on[key] - off[key] for key in ('gt50', 'maximum', 'p50', 'p95', 'p99')}
+    delta['post100_p99'] = on['post100_p99'] - off['post100_p99'] if on['post100_p99'] is not None and off['post100_p99'] is not None else None
     return dict(off=off, on=on, delta=delta, seconds=seconds,
                 acceptance=False, materiality='review paired distributions and retained individual arms; no automatic acceptance')
 
@@ -124,6 +131,16 @@ def join(records, rows):
         e['origin_packet'] = packet or None
         e['origin_csv_frame'] = observed(origin['ns']) if origin else None
         e['observed_csv_frame'] = observed(e['ns'])
+    births = {}
+    for e in events:
+        if e['event'] == 'thread_birth': births.setdefault(e['subject'], []).append(e)
+    for e in events:
+        is_thread = e['event'].startswith('thread_') or e['event'].startswith(('gx_draw_done_wait_', 'gx_token_wait_', 'vi_wait_'))
+        if not is_thread or not e['subject']: continue
+        known = births.get(e['subject'], [])
+        i = bisect.bisect_right([b['ns'] for b in known], e['ns']) - 1
+        require(i >= 0, f'unbound thread lifetime {e["subject"]}')
+        e['thread_lifetime'] = known[i]['span'] if i >= 0 else None
     # Duplicate or missing completion callbacks invalidate the relevant chain.
     # Footer pending callbacks from the unobserved tail stay explicitly separate.
     callback_counts = {}
@@ -245,6 +262,13 @@ def worst_rows(events, intervals, rows, count=10):
                 completion_limit='submit-to-queue-done-observed includes queue/GPU and callback dispatch')
 
 
+def global100_frame(path):
+    if path is None: return None
+    matches = re.findall(r'\[graphics preparation\] event=actual-global-100 [^\n]*?frame=(\d+)', path.read_text())
+    if len(matches) > 1: raise ValueError('multiple actual-global-100 events')
+    return int(matches[0]) if matches else None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--trace', type=Path)
@@ -252,6 +276,8 @@ def main():
     parser.add_argument('--off-frames', type=Path)
     parser.add_argument('--on-frames', type=Path)
     parser.add_argument('--seconds', type=float, default=300)
+    parser.add_argument('--off-log', type=Path)
+    parser.add_argument('--on-log', type=Path)
     parser.add_argument('--binding', type=Path, required=True, help='preserved command/PREP provenance; SHA bound, not inferred')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
@@ -272,7 +298,10 @@ def main():
         with (args.output / 'JOINED.jsonl').open('w') as stream:
             for event in joined: stream.write(json.dumps(event) + '\n')
     if args.off_frames and args.on_frames:
-        result.update(overhead=compare(csv_rows(args.off_frames), csv_rows(args.on_frames), args.seconds),
+        result.update(overhead=compare(csv_rows(args.off_frames), csv_rows(args.on_frames), args.seconds,
+                                      global100_frame(args.off_log), global100_frame(args.on_log)),
+                      off_log_sha256=sha(args.off_log) if args.off_log else None,
+                      on_log_sha256=sha(args.on_log) if args.on_log else None,
                       off_sha256=sha(args.off_frames), on_sha256=sha(args.on_frames))
     if 'mapping_valid' not in result and 'overhead' not in result:
         parser.error('provide trace+frames and/or off-frames+on-frames')

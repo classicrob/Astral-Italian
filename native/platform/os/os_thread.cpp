@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 #include <petari/floating_point.hpp>
 // Native OS thread scheduler.
 //
@@ -485,6 +486,8 @@ void giveCpu(OSThread* next) {
     // already executing.
     gCurrentRunning = next == tBound || forceParked;
     gCurrent.store(next, std::memory_order_release);
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_baton_assigned",
+        PetariNative::GpuTrace::withSubject({}, next), (forceParked ? 2 : 0) | (next == tBound ? 1 : 0)));
     publishHolder();
     if (forceParked) {
         found->second->forceParked = false;
@@ -529,6 +532,8 @@ void waitForCpu(OSThread* self) {
         terminateHostThread();
     }
     gCurrentRunning = true;  // interrupt lock held (hostWait returns with it)
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_cpu_resumed",
+        PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, self)));
     publishHolder();
 }
 
@@ -1909,6 +1914,8 @@ void __OSThreadInit(void) {
         tHost = host;
     }
     tBound = thread;
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.span = PetariNative::GpuTrace::nextId();
+        PetariNative::GpuTrace::emit("thread_birth", PetariNative::GpuTrace::withSubject(c, thread)));
     PetariNative::setGameAllocationThread(true);  // the default thread runs game code
     if (envEnabled("PETARI_BATON_DIAG") && !gBatonDiag) {
         const char* sample = std::getenv("PETARI_BATON_SAMPLE");
@@ -2053,6 +2060,8 @@ BOOL OSCreateThread(OSThread* thread, void* (*func)(void*), void* param, void* s
         hosts()[thread] = host;
     }
     activeEnqueue(thread);
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.span = PetariNative::GpuTrace::nextId();
+        PetariNative::GpuTrace::emit("thread_birth", PetariNative::GpuTrace::withSubject(c, thread)));
     OSRestoreInterrupts(enabled);
     return TRUE;
 }
@@ -2237,6 +2246,8 @@ void OSSleepThread(OSThreadQueue* queue) {
     requireRunningOsThread("OSSleepThread");
     OSThread* currentThread = tBound;
 
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_sleep",
+        PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, currentThread, reinterpret_cast<std::uintptr_t>(queue))));
     currentThread->state = kStateWaiting;
     currentThread->queue = queue;
     enqueuePrio(queue, currentThread);
@@ -2250,6 +2261,8 @@ void OSWakeupThread(OSThreadQueue* queue) {
     while (queue->head) {
         OSThread* thread = dequeueHead(queue);
         thread->state = kStateReady;
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_wake_ready",
+            PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::deliveryContext, thread, reinterpret_cast<std::uintptr_t>(queue)), thread->suspend));
         if (!isSuspended(thread->suspend)) {
             setRun(thread);
         }

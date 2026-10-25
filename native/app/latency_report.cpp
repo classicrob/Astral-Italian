@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 // Input-to-present latency (petari/latency_probe.hpp): the Metal layer's
 // presentation settings, one log line per measured press, and a test driver.
 #include "latency_report.hpp"
@@ -62,6 +63,13 @@ id trackedNextDrawable(id self, SEL cmd) {
             (reinterpret_cast<unsigned long (*)(void*, SEL)>(objc_msgSend)(gNSWindow, sel_registerName("occlusionState")) & 2UL) == 0;
         const auto drawableId = reinterpret_cast<unsigned long (*)(id, SEL)>(objc_msgSend)(drawable, sel_registerName("drawableID"));
         PresentStats::noteAcquired(frame, Probe::nowNs(), drawableId, occluded);
+        PETARI_GPU_TRACE(
+            const auto traceContext = PetariNative::GpuTrace::workerContext;
+            void (^traceHandler)(id) = ^(id) {
+                PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("drawable_presented_observed", traceContext));
+            };
+            reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(drawable, sel_registerName("addPresentedHandler:"),
+                                                               reinterpret_cast<id>(traceHandler)));
         void (^handler)(id) = ^(id presented) {
             PresentStats::notePresented(frame, presentedTimeOf(presented));
         };
@@ -94,7 +102,7 @@ void configureLayer(void* window) {
     auto* view = static_cast<SDL_MetalView>(SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow), "aurora.metal_view", nullptr));
     gLayer = view != nullptr ? SDL_Metal_GetLayer(view) : nullptr;
     if (gLayer == nullptr) return;
-    if (PresentStats::enabled()) {
+    if (PresentStats::enabled() || PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)) {
         gNSWindow = SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow), "SDL.window.cocoa.window", nullptr);
         // The display's refresh rate for the off-cadence count (a ProMotion panel reports its maximum).
         if (const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(sdlWindow)); mode != nullptr) {

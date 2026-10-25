@@ -18,6 +18,7 @@
 
 namespace PetariNative::GpuTrace {
 inline std::atomic<bool> enabled{false};
+static_assert(std::atomic<bool>::is_always_lock_free, "trace flag must be one cached lock-free load");
 struct Context {
     std::uint64_t packet = 0, ticket = 0, submission = 0, span = 0;
     std::uint64_t csv = 0, route = 0, subject = 0, detail = 0;

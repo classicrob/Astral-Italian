@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 #include <petari/frame_telemetry.hpp>
 
 namespace aurora::gfx {
@@ -8,6 +9,8 @@ void petari_capture_current_efb(uint64_t ticket, PetariNative::GX::SnapshotReady
   AURORA_ASSERT(g_recorder.active() && g_recorder.currentRenderPass != UINT32_MAX,
                 "EFB capture requires an active render pass");
   auto& frame = current_frame_packet();
+  PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("capture_request",
+      PetariNative::GpuTrace::captureContext(frame.frameId, ticket)));
   auto& previous = current_render_passes()[g_recorder.currentRenderPass];
   const auto logical = vi::configured_fb_size();
   const auto size = previous.colorAttachments[SceneColorAttachmentIndex].size;

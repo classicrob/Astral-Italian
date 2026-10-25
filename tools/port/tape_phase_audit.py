@@ -49,6 +49,98 @@ def has_control(sample):
     return False
 
 
+POWER_PROTOCOL = 'native-post-seam-power-v1'
+POWER_BOUNDARY = 'after-route-seam-before-next-update'
+
+
+def load_meta(path):
+    text=Path(path).read_text()
+    value=json.loads(text)
+    if any(k in value for k in ('session_control_protocol','session_events','session_control_error')):
+        def unique(items):
+            result={}
+            for k,v in items:
+                need(k not in result,'duplicate session-control JSON field')
+                result[k]=v
+            return result
+        value=json.loads(text,object_pairs_hook=unique)
+    return value
+
+
+def power_events(meta):
+    if 'session_control_protocol' not in meta:
+        need('session_events' not in meta and 'session_control_error' not in meta,'unversioned session controls')
+        return []
+    need(meta['session_control_protocol']==POWER_PROTOCOL and meta.get('session_control_error')=='',
+         'unknown/rejected session-control protocol')
+    events=meta.get('session_events');phases=meta['input_phases']
+    need(isinstance(events,list) and len(events)<=2,'missing/ambiguous session events')
+    for i,event in enumerate(events):
+        need(type(event.get('id')) is int and event['id']==i and event.get('boundary')==POWER_BOUNDARY,
+             'ambiguous session event identity/boundary')
+        phase=event.get('phase_id');after=event.get('after_route_row')
+        need(integer(phase,0,len(phases)-1) and integer(after) and event.get('before_input_frame')==after+1,
+             'ambiguous session frame ordering')
+        need(phases[phase]['first_input_frame']<=after<phases[phase]['end_input_frame_exclusive'] and after<meta['seams']-1,
+             'session event outside phase/prefix')
+        elapsed=event.get('neutral_elapsed_seconds')
+        need(type(elapsed) in (int,float) and math.isfinite(elapsed) and elapsed>=0,'invalid neutral-tail observation')
+        kind=event.get('kind')
+        need((kind=='neutral-tail-begin' and i==0 and event.get('callback_observed') is False) or
+             (kind=='power-request' and event.get('callback_observed') is True and phase==len(phases)-1),
+             'unknown/unacknowledged session event')
+        if i:
+            need(events[i-1]['kind']=='neutral-tail-begin' and kind=='power-request' and
+                 events[i-1]['after_route_row']<after and events[i-1]['phase_id']==phase,'unordered/duplicate session controls')
+    if meta.get('complete'):
+        need(events and events[-1]['kind']=='power-request','complete session missing power event')
+    return events
+
+
+def event_offset(report,event):
+    segment=report['segments'][event['phase_id']]
+    ready=segment.get('play_ready_state_check') or {}
+    if ready.get('checked') and event['after_route_row']>=ready['recorded_frame']:
+        return ready['frame_offset']
+    return report['input_phases'][event['phase_id']]['frame_offset']
+
+
+def audit_session_controls(source_meta,meta,source_rows,rows,reads,report):
+    events=power_events(meta)
+    if not events:return None
+    tail=next((e for e in events if e['kind']=='neutral-tail-begin'),None)
+    power=events[-1]
+    if tail:
+        for read in reads:
+            if tail['before_input_frame']<=read['frame']<=power['after_route_row']:
+                need(payload(read)==payload(bootstrap(read['channel'],read['capacity'])),
+                     'non-neutral raw read inside declared observation tail')
+    if source_meta.get('session_control_protocol'):
+        original=power_events(source_meta);control=report.get('session_control') or {}
+        need(len(events)==len(original)==len(control.get('events',[])),'captured control count differs')
+        for want,seen,native in zip(original,events,control['events']):
+            offset=event_offset(report,want)
+            need((want['id'],want['kind'],want['phase_id'])==(seen['id'],seen['kind'],seen['phase_id']) and
+                 seen['after_route_row']==want['after_route_row']+offset==native['actual_after_route_row'],
+                 'power/neutral event feeding boundary shifted')
+        start=original[-1]['before_input_frame']
+        offset=event_offset(report,original[-1])
+        def state(row):
+            return tuple(row[k] for k in ('stage','scenario','valid','grounded','dead'))+tuple(
+                struct.pack('>f',float(row[k])).hex() for k in ('x','y','z'))
+        need(meta['seams']==source_meta['seams']+offset,'shutdown gained/lost a recorded row')
+        for row in range(start,source_meta['seams']):
+            need(state(source_rows[row])==state(rows[row+offset]),'independent shutdown state/position differs')
+    else:
+        observation=report.get('observation') or {};roll=observation.get('post_roll') or {}
+        need(tail and tail['after_route_row']==roll.get('start_route_row') and
+             power['after_route_row']==roll.get('end_route_row') and observation.get('completed') is True,
+             'converted control event is not bound to original neutral/quit seam')
+    return dict(protocol=POWER_PROTOCOL,events=events,real_power_callback_observed=power['callback_observed'],
+                source_power_protocol=source_meta.get('session_control_protocol'),
+                shutdown_exact=source_meta.get('session_control_protocol')==POWER_PROTOCOL)
+
+
 def validate(meta, route, reads, actions=None):
     need(meta.get('schema') == 2 and meta.get('marker_protocol') == PROTOCOL, 'unsupported schema/marker protocol')
     need(meta.get('marker_error') == '', 'recorder rejected marker path')
@@ -94,6 +186,7 @@ def validate(meta, route, reads, actions=None):
         if f < meta['seams'] and any(buttons):
             need(any(p['first_input_frame'] <= f < p['end_input_frame_exclusive'] for p in phases),
                  'mod action outside executable input phases')
+    power_events(meta)
     return {'phases': len(phases), 'active_input_loops': sum(p['end_input_frame_exclusive'] - p['first_input_frame'] for p in phases)}
 
 
@@ -115,7 +208,7 @@ def payload(r):
     return tuple(r[k] for k in ('channel', 'capacity', 'returned', 'error', 'probe', 'device')) + (tuple(r['samples']),)
 
 
-def audit_inputs(canonical, actual, mapping, report):
+def audit_inputs(canonical, actual, mapping, report, meta=None):
     need(report.get('finished') is True and not report.get('stopped'), 'source replay did not finish strictly')
     need(report.get('anchor_policy') in ('interactive-and-play-ready-v1', POLICY), 'unsupported source replay policy')
     originals = {(r['frame'], r['ordinal']): r for r in canonical}
@@ -131,11 +224,22 @@ def audit_inputs(canonical, actual, mapping, report):
         m = ledger[identity]
         need(all(m.get(k) == r[k] for k in ('channel', 'capacity', 'returned', 'error')), 'mapping differs from actual output')
         need(m.get('samples') == len(r['samples']), 'actual sample count differs')
-        if m['source'] == 'recorded':
+        if meta and meta.get('session_control_protocol'):
+            offset=event_offset(report,meta['session_events'][-1])
+            first=meta['input_phases'][-1]['end_input_frame_exclusive']
+            if first+offset<=r['frame']<meta['seams']+offset:
+                need(m['source']=='recorded-shutdown','recorded shutdown raw read replaced with neutral')
+        if m['source'] in ('recorded', 'recorded-shutdown'):
             idx = m.get('phase'); need(integer(idx, 0, len(report['segments'])-1), 'mapping phase missing')
             segment = report['segments'][idx]
             cp = segment.get('play_ready_state_check')
-            if cp and cp.get('checked') and r['frame'] > cp['replay_frame']:
+            if m['source'] == 'recorded-shutdown':
+                need(meta is not None and power_events(meta), 'unversioned shutdown read provenance')
+                need(idx == len(meta['input_phases'])-1, 'shutdown input changed scene anchor')
+                expected_frame = r['frame'] - event_offset(report, meta['session_events'][-1])
+                need(meta['input_phases'][-1]['end_input_frame_exclusive'] <= expected_frame < meta['seams'],
+                     'shutdown read outside recorded final interval')
+            elif cp and cp.get('checked') and r['frame'] > cp['replay_frame']:
                 expected_frame = r['frame'] - cp['frame_offset']
             else:
                 expected_frame = r['frame'] - segment['scene_anchor_frame_offset']
@@ -187,11 +291,11 @@ def audit_actions(canonical, actual, mapping, source_seams, actual_seams):
         frames[read['actual_frame']] = item
     expected = {}
     for frame, (kind, source) in frames.items():
-        if frame >= actual_seams or kind != 'recorded': continue
+        if frame >= actual_seams or kind not in ('recorded', 'recorded-shutdown'): continue
         for mod, buttons in byframe.get(source, []): expected[frame, mod] = buttons
     seen = {k: v for k, v in actual.items() if k[0] < actual_seams and any(v)}
     need(seen == expected, 'actual consumed mod actions differ from canonical game-frame mapping')
-    used = {source for kind, source in frames.values() if kind == 'recorded'}
+    used = {source for kind, source in frames.values() if kind in ('recorded', 'recorded-shutdown')}
     need(all(not any(v) or f in used or f >= source_seams for (f, _), v in canonical.items()), 'canonical mod action was omitted')
     return len(expected)
 
@@ -247,6 +351,15 @@ def audit_native(report, meta):
         return
     need(report.get('anchor_policy') == POLICY and report.get('marker_protocol') == PROTOCOL and
          report.get('tape_schema') == 2 and report.get('legacy_policy') is False, 'schema2 report label missing')
+    if meta.get('session_control_protocol'):
+        expected=power_events(meta);control=report.get('session_control') or {}
+        required=meta['seams']-expected[-1]['before_input_frame']
+        need(control.get('protocol')==POWER_PROTOCOL and
+             control.get('events_required')==control.get('events_delivered')==len(expected) and
+             control.get('power_callback_verified') is True and control.get('power_reached_early') is False and
+             control.get('normal_exit_verified') is True and control.get('shutdown_position_bit_exact') is True and
+             control.get('shutdown_rows_required')==control.get('shutdown_rows_compared')==required,
+             'power callback, clock gate or full strict shutdown proof missing')
     phases = report.get('input_phases')
     need(isinstance(phases, list) and len(phases) == len(meta['input_phases']) == len(segments), 'native phase accounting differs')
     for want, seen, segment in zip(meta['input_phases'], phases, segments):
@@ -273,8 +386,8 @@ def audit_native(report, meta):
 
 def qualify(source, capture, report_path, map_path):
     source, capture = Path(source), Path(capture)
-    original_meta = json.loads((source/'route.tape.json').read_text())
-    meta = json.loads((capture/'route.tape.json').read_text())
+    original_meta = load_meta(source/'route.tape.json')
+    meta = load_meta(capture/'route.tape.json')
     report = json.loads(Path(report_path).read_text())
     audit_native(report, original_meta)
     mapping = [json.loads(x) for x in Path(map_path).read_text().splitlines() if x]
@@ -289,10 +402,11 @@ def qualify(source, capture, report_path, map_path):
          'capture KPD frame/sample counters differ from complete sidecar')
     actual_actions = parse_actions((capture/'route.actions').read_text())
     summary = validate(meta, rows, actual, actual_actions)
-    proof = audit_inputs(canonical, actual, mapping, report)
+    proof = audit_inputs(canonical, actual, mapping, report, original_meta)
     proof['exact_mod_action_frames'] = audit_actions(parse_actions((source/'route.actions').read_text()),
         actual_actions, mapping, original_meta['seams'], meta['seams'])
     checkpoints = audit_play_ready(original_meta, source_rows, meta, rows, report)
+    controls = audit_session_controls(original_meta,meta,source_rows,rows,actual,report)
     need(proof['exact_recorded_reads'] > 0, 'no source inputs captured')
     need(meta['kpd_reads'] == len(actual), 'capture metadata read count differs')
     for seg in report['segments']:
@@ -305,6 +419,7 @@ def qualify(source, capture, report_path, map_path):
     files += [Path(report_path), Path(map_path)]
     return dict(passed=True, source_schema=original_meta['schema'], captured_schema=2,
                 source_policy=report['anchor_policy'], policy=POLICY, **summary, **proof, play_ready_checkpoints=checkpoints,
+                session_control_proof=controls,
                 captured_phase_inputs=input_phase_evidence(meta, actual),
                 captured_non_interactive_gaps=input_gap_evidence(meta, actual),
                 hashes={str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in files},

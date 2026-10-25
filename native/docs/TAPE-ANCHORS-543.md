@@ -277,3 +277,57 @@ capture can never supply this source. Canonical runs observe120s; reciprocal
 runs observe150s to retain the new120s capture plus positive neutral post-roll.
 There is no trimming, new anchor, retry, tolerance or predicate change. Once
 r5 finishes or fails, release the M1 to SOL A's GPU trace overhead measurement.
+
+## Explicit power-request events (5.4.3 lifecycle fix)
+
+The r5 proof stopped at route row 4225 because its source requested power after
+row 4224 but the tape contained no such event. `finish()` did not take another
+sample: the real power callback froze the scene on the next update. The r5
+failure, extra-read accounting and unchanged source tapes remain retained in
+`m1g/solb/solb-543-tape-proof-r5/`.
+
+New schema-2 recordings add `session_control_protocol: native-post-seam-power-v1`,
+`session_control_error` and ordered `session_events`. Each event records its ID,
+kind, phase ID, `after_route_row`, `before_input_frame=after_route_row+1`, boundary
+`after-route-seam-before-next-update`, actual callback acknowledgement, and
+observed neutral-tail seconds. A neutral-tail-begin may precede the one final
+power-request. The request must occur in the last active input phase. Unknown,
+duplicate, missing or ambiguous fields, an out-of-seam/cross-thread request, or
+an unacknowledged game flag reject replay. Crash checkpoints remain incomplete.
+Normal finalization only closes/flushes retained data; it does not sample state.
+
+Replay uses the SAME existing phase/play-ready offset for the event and its
+inputs/state. At the exact post-route snapshot, `Host::requestQuit()` calls the
+real `Platform::Power::pressPowerButton()` and verifies the game's
+`GameSystemResetAndPowerProcess::mIsValidPowerOff`. No cross-thread wait or new
+clock is introduced. The existing power implementation owns the Interrupts
+lock; no WPAD/KPAD lock is acquired by this new call. Every following state row,
+including invalid teardown rows, is bit-exact. Raw shutdown KPAD bytes, read
+shape and connections are replayed from a final retained raw segment on the
+last phase's clock; `recorded-shutdown` read-map entries make this independently
+auditable. Normal exit is successful only after all events, reads and state
+rows finish exactly; early exit or an extra seam fails.
+
+Reports label these tapes `game-phase-v2-power-v1`. Schema 1 stays `legacy-v1`;
+older schema-2 tapes stay `game-phase-v2-legacy-no-power`. Neither is silently
+upgraded. Live input is untouched. Recorder event work is behind its cached
+active flag; replay event work is only enabled by the explicit protocol.
+
+Head's lifecycle option (1) requires a NEW canonical with at least 150 seconds
+of recorded neutral input before power-off. A strict legacy-prefix conversion
+can record this without human input using
+`PETARI_TAPE_PLAY_POST_ROLL_SECONDS=180` (the native observation minimum) and
+actual-output recording. The original >=90-second wall/audio gates remain.
+The new replay issues power at its recorded row; if it reaches power before the
+requested observation is complete, it fails immediately without postponement
+or padding. Old failed receipts are never used to prime a warm arm.
+
+Pure Python tests cover event parsing, provenance and byte/connection audit.
+`native_tape_power` drives the real native power callback through exact and
+shifted existing phase clocks; early/late/missing/duplicate events, wrong
+acknowledgement, early observation/exit, and missing/extra shutdown reads must
+fail. `native_tape_record` checks normal `_Exit`, atexit, crash checkpoint,
+ambiguous/missing power events, idempotence and that finish never resamples.
+These tests establish code behavior; the fresh/warm reference matrix and
+candidate runs establish runtime acceptance. Builds for this revision run only
+on the M1, under heavy->native locks.

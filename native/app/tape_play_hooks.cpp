@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <thread>
+#include <functional>
 
 #include <petari/kpad_replay.hpp>
 #include <petari/kpad_record.hpp>
@@ -22,9 +23,13 @@ bool gReported = false;
 bool gCaptureReplay = false;
 Observation gObservation;
 std::chrono::steady_clock::time_point gObservationStart;
+std::atomic<std::size_t> gGameThread{0};
+std::atomic<bool> gUnexpectedPower{false};
+std::size_t threadToken() { return std::hash<std::thread::id>{}(std::this_thread::get_id()) | 1; }
 
 std::int32_t hookRead(std::int32_t channel, KPADStatus* buffer, std::uint32_t capacity, std::int32_t* error, void*) {
-    if (gObservation.pending() && gSession->finished() && !gSession->gaveUp()) ++gObservation.neutralReads;
+    if (gObservation.pending() && (gSession->finished() || gSession->neutralTailActive()) && !gSession->gaveUp())
+        ++gObservation.neutralReads;
     return gSession->read(channel, capacity, buffer, error);
 }
 bool hookPress(int mod, void*) {
@@ -108,6 +113,12 @@ bool configure(const std::string& dir, std::string* error) {
                 throw H::ReplayError("PETARI_TAPE_PLAY_OBSERVE_SECONDS must be in (0, 3600]");
             gObservation.requestedSeconds = value;
         }
+        if (const char* seconds=std::getenv("PETARI_TAPE_PLAY_POST_ROLL_SECONDS");seconds && *seconds) {
+            char* end=nullptr;const double value=std::strtod(seconds,&end);
+            if (!end || *end || !std::isfinite(value) || value<0 || value>3600)
+                throw H::ReplayError("PETARI_TAPE_PLAY_POST_ROLL_SECONDS must be in [0,3600]");
+            gObservation.minimumPostSeconds=value;
+        }
         gTapeDir = std::filesystem::absolute(dir);
         const char* whole = std::getenv("PETARI_TAPE_PLAY_SESSION");
         gSession = std::make_unique<Session>(gTapeDir, whole && std::string(whole) == "1"
@@ -132,12 +143,19 @@ const Meta* meta() { return gSession ? &gSession->meta() : nullptr; }
 
 Step seam(const SeamState& state) {
     if (!gSession) return {};
+    std::size_t unset=0;gGameThread.compare_exchange_strong(unset,threadToken());
+    if (gUnexpectedPower.exchange(false)) gSession->rejectUnexpectedPower();
     const auto before = gSession->currentSegment();
     const bool wasDone = gSession->finished();
-    const Step step = gSession->seam(state);
+    Step step = gSession->seam(state);
     const bool observed = gObservation.completed;
+    if (step.neutralTailBegin) gObservation.recordedTail=true;
     gObservation.update(std::chrono::duration<double>(std::chrono::steady_clock::now() - gObservationStart).count(),
-                        gSession->seams() - 1, gSession->finished() && !gSession->gaveUp());
+                        gSession->seams() - 1, (gSession->finished() || gSession->neutralTailActive()) && !gSession->gaveUp());
+    // A recorded control boundary is never postponed to satisfy a measurement.
+    if (step.powerRequest && gObservation.requestedSeconds>0 && !gObservation.completed) {
+        gSession->rejectEarlyPower();step.kind=Step::Kind::GaveUp;
+    }
     if (!wasDone && gSession->currentSegment() != before)
         std::fprintf(stderr, "PETARI TAPE PLAY: %s\n", gSession->segmentLine(before).c_str());
     if (step.kind == Step::Kind::Finished || step.kind == Step::Kind::GaveUp) writeReport();
@@ -158,6 +176,23 @@ bool acknowledgeSeed(std::uint32_t seed) {
     const bool ok = gSession->acknowledgeSeed(seed);
     if (!ok) writeReport();
     return ok;
+}
+
+bool beforePowerRequest() {
+    if (!gSession || !gSession->meta().powerProtocol) return false;
+    if (gGameThread.load()!=threadToken()) { gUnexpectedPower.store(true);return false; }
+    const bool result=gSession->beforePowerRequest();
+    if (!result && gSession->gaveUp()) writeReport(true);
+    return result;
+}
+void acknowledgePower(bool actualPowerFlag) {
+    if (gSession && !gSession->acknowledgePower(actualPowerFlag)) writeReport(true);
+}
+void normalExit() {
+    if (!gSession || !gSession->meta().powerProtocol) return;
+    if (gUnexpectedPower.exchange(false)) gSession->rejectUnexpectedPower();
+    gSession->normalExit();
+    writeReport(true);
 }
 
 void flushReadMap() { if (gSession) gSession->flushReadMap(); }

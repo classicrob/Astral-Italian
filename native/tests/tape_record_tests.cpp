@@ -34,7 +34,16 @@ int main(int argc,char** argv) {
                 KP::read(0,120,0,0,0,0,&empty);
             }
             PetariNative::App::RouteRecordFrame row; row.stage="TestGalaxy"; row.valid=true; row.x=i;
-            writer.write(row); TR::seam(seam);
+            TR::beginControlSeam();
+            const std::string mode=argv[1];
+            if (i==104) TR::neutralTailBegin();
+            if (i==204 && mode!="--power-missing") {
+                if (mode=="--power-ambiguous") {
+                    TR::endControlSeam();TR::powerRequest();TR::beginControlSeam();
+                } else if (TR::powerRequest()) TR::acknowledgePower(mode!="--power-unacknowledged");
+                if (mode=="--power-duplicate") TR::powerRequest();
+            }
+            writer.write(row); TR::seam(seam);TR::endControlSeam();
         }
         if(std::string(argv[1])=="--killed") { ::kill(::getpid(),SIGKILL); std::_Exit(2); }
         if(std::string(argv[1])=="--atexit") return 0;
@@ -45,7 +54,7 @@ int main(int argc,char** argv) {
         std::_Exit(0); // the app's normal power exit uses this, without running destructors or atexit
     }
     const auto base=fs::temp_directory_path()/("tape_record_tests_"+std::to_string(::getpid()));
-    for(const char* mode:{"--normal","--atexit","--killed"}) {
+    for(const char* mode:{"--normal","--atexit","--killed","--power-missing","--power-ambiguous","--power-duplicate","--power-unacknowledged"}) {
         const auto dir=base/mode;fs::create_directories(dir);
         const pid_t child=::fork();require(child>=0,"fork");
         if(child==0) { ::execl(argv[0],argv[0],mode,dir.c_str(),nullptr); std::_Exit(127); }
@@ -57,8 +66,24 @@ int main(int argc,char** argv) {
         require(text.find(killed ? "\"seams\": 300," : "\"seams\": 307,")!=std::string::npos,"sidecar covers final seams or last checkpoint");
         require(text.find("\"schema\": 2")!=std::string::npos && text.find("\"marker_error\": \"\"")!=std::string::npos,"new recordings have validated schema2 markers");
         require(text.find("\"first_input_frame\": 1")!=std::string::npos && text.find("\"end_input_frame_exclusive\": 205")!=std::string::npos,"phase entry and exit are explicit read loops");
+        const bool invalidPower=std::string(mode).find("--power-")==0;
+        const auto control=text.find("\"session_control_error\":\"\"");
+        require(invalidPower ? control==std::string::npos : control!=std::string::npos,"missing/ambiguous power ordering fails closed");
+        if(!invalidPower)require(text.find("\"after_route_row\":204")!=std::string::npos &&
+            text.find("\"before_input_frame\":205")!=std::string::npos && text.find("\"callback_observed\":true")!=std::string::npos,
+            "real boundary and callback acknowledgement retained");
         std::ifstream csv(dir/"route.csv");std::string line;unsigned lines=0;while(std::getline(csv,line))++lines;
         require(lines==(killed?301u:308u),"CSV final partial block is flushed only on normal exit");
+        if(!killed) {
+            std::ifstream complete(dir/"route.csv");std::getline(complete,line);unsigned row=0;
+            while(std::getline(complete,line)) {
+                require(line.rfind(std::to_string(row)+",",0)==0,"finish neither inserts nor renumbers a row");
+                std::istringstream fields(line);std::string value;
+                for(unsigned column=0;column<=5;++column)require(static_cast<bool>(std::getline(fields,value,',')),"route x column exists");
+                require(std::stof(value)==static_cast<float>(row),"finish never resamples/changes the saved actor x");++row;
+            }
+            require(row==307,"every original row retained, no finish sample");
+        }
         std::ifstream kpd(dir/"route.kpd",std::ios::binary);char magic[8];kpd.read(magic,8);
         require(be64(kpd)==(killed?301u:308u),"KPD frame header includes the open loop, as specified");
         require(be64(kpd)==(killed?299u:306u),"KPD final read count or checkpoint count");

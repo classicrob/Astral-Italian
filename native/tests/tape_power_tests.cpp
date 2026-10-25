@@ -1,5 +1,6 @@
 // Game-free session driven through the REAL native power callback. No GUI.
 #include "tape_play.hpp"
+#include "smoke_observe_safety.hpp"
 #include <petari/platform/power.hpp>
 #include <revolution/os.h>
 #include <revolution/kpad.h>
@@ -9,6 +10,8 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <atomic>
+#include <thread>
 #include <unistd.h>
 namespace TP=PetariNative::App::TapePlay;
 namespace PH=PetariNative::App::TapePhase;
@@ -150,10 +153,53 @@ void nativeTailTests() {
     bad=next;bad.channel=4;reject(bad,"invalid channel");
     check(N::parse(N::name(N::Policy::NativeControls))==N::Policy::NativeControls,"versioned native policy");
 }
+void teardownObserverTests() {
+    // The worker changes ONLY its scene slot. Main/game-thread lifecycle state
+    // stays reset=true, Initialize_End, exactly like prepareReset/destroyScene.
+    // The slot counts reads: even looking at a late/freed pointer is forbidden.
+    struct Slot {
+        std::atomic<bool> alive{true};
+        mutable unsigned reads=0;
+        explicit operator bool() const {++reads;return alive.load();}
+    };
+    struct Controller {
+        bool mIsResetProcessing=false;
+        bool initialized=true;
+        Slot mScene;
+        mutable unsigned initReads=0;
+        bool isSceneInitializeState(int) const {++initReads;return initialized;}
+    };
+    const auto rows=[&](bool early) {
+        Controller c;
+        check(PetariNative::App::Smoke::canObserveScene(&c,6),"normal initialized scene remains observable");
+        c.mIsResetProcessing=true; // game's prepareReset, before any async destroy
+        std::atomic<bool> release{false},done{false};
+        std::thread worker([&]{while(!release.load())std::this_thread::yield();c.mScene.alive.store(false);done.store(true);});
+        if(early) {release.store(true);while(!done.load())std::this_thread::yield();}
+        std::vector<std::array<std::uint32_t,4>> result;
+        for(unsigned row=0;row<33;++row) {
+            std::array<std::uint32_t,4> state{};
+            if(PetariNative::App::Smoke::canObserveScene(&c,6)) state={1,bits(-50000),bits(1101.32971f),0};
+            result.push_back(state);
+        }
+        release.store(true);worker.join();
+        check(c.mScene.reads==1 && c.initReads==1,"teardown observer never reads worker-owned scene or init fields");
+        return result;
+    };
+    const auto early=rows(true),late=rows(false);
+    check(early==late && early.size()==33,"early and late async destruction produce identical strict shutdown rows");
+    for(const auto& row:early)check(row==std::array<std::uint32_t,4>{},"defined teardown state has invalid player and zero position bits");
+    Controller loading;loading.initialized=false;
+    check(!PetariNative::App::Smoke::canObserveScene(&loading,6) && loading.mScene.reads==0,"ordinary change/load cannot read scene before Initialize_End");
+    const Controller* missing=nullptr;
+    check(!PetariNative::App::Smoke::canObserveScene(missing,6),"missing controller is not observable");
+    std::puts("observer lifetime: early/late worker, 33 identical rows, zero teardown scene-slot reads PASS");
+}
 }
 int main() {
     __OSThreadInit();
     nativeTailTests();
+    teardownObserverTests();
     const auto base=fs::temp_directory_path()/("tape-power-tests-"+std::to_string(getpid()));
     tape(base/"correct");check(drive(base/"correct"),"real callback preserves every state including shutdown");
     tape(base/"native",5,false,true,true);check(drive(base/"native"),"bound native policy accepts exact multi-sample tail and shutdown");

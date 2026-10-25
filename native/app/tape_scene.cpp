@@ -34,7 +34,7 @@ TapePhase::State observe() {
     s.scene = c->mCurrSceneControlInfo.mScene;
     s.stage = c->mCurrSceneControlInfo.mStage;
     s.scenario = c->mCurrSceneControlInfo.mScenarioNo;
-    const bool initialized = c->mScene && c->isSceneInitializeState(SceneInitializeState_End);
+    const bool initialized = Smoke::canObserveScene(c,SceneInitializeState_End);
     const bool normal = initialized && c->getCurrentSceneForExecute() == c->mScene;
     if (c->mScenarioSelectScene && c->mScenarioSelectScene->mSpine && c->mScenarioSelectScene->isExecForeground())
         s.kind = "scenario-foreground";

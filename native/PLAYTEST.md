@@ -902,3 +902,14 @@ These native changes alter the renderer/cache identity. PFD1, the v14 pack and
 its 64 databases/57 sidecars, generated membership and gameplay queue ordering
 are unchanged. Only a new server-built candidate can establish the cold-launch
 range, responsiveness and acceptance result.
+
+### Game-defined tape phases (schema 2)
+
+New recordings include pre-read controller-Normal / foreground-overlay markers.
+Whole-session replay (`PETARI_TAPE_PLAY_SESSION=1`) anchors input feeding and
+strict state comparison together at those game-defined markers, with no
+init-End fallback. Old schema-1 tapes retain labelled `legacy-v1` behavior.
+Missing/invalid new markers fail closed. The existing arrival/play-ready exact
+state/RNG rule remains. See [schema-2 format, scene audit and reference proof](docs/TAPE-ANCHORS-543.md).
+`PETARI_TAPE_CAPTURE_REPLAY=1` is an opt-in actual-output recording mode for strict
+legacy-to-schema2 conversion and reference audits; it is not a pass override.

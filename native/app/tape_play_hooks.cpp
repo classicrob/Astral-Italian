@@ -11,6 +11,7 @@
 #include <thread>
 
 #include <petari/kpad_replay.hpp>
+#include <petari/kpad_record.hpp>
 
 namespace PetariNative::App::TapePlay {
 namespace H = PetariNative::Headless;
@@ -19,6 +20,7 @@ namespace {
 std::unique_ptr<Session> gSession;
 std::filesystem::path gTapeDir;
 bool gReported = false;
+bool gCaptureReplay = false;
 Observation gObservation;
 std::chrono::steady_clock::time_point gObservationStart;
 
@@ -26,8 +28,16 @@ std::int32_t hookRead(std::int32_t channel, KPADStatus* buffer, std::uint32_t ca
     if (gObservation.pending() && gSession->finished() && !gSession->gaveUp()) ++gObservation.neutralReads;
     return gSession->read(channel, capacity, buffer, error);
 }
-bool hookPress(int mod, void*) { return gSession->press(mod); }
-bool hookHeld(int mod, void*) { return gSession->held(mod); }
+bool hookPress(int mod, void*) {
+    const bool answer=gSession->press(mod);
+    if (gCaptureReplay) Input::KpadRecord::modPress(mod,answer);
+    return answer;
+}
+bool hookHeld(int mod, void*) {
+    const bool answer=gSession->held(mod);
+    if (gCaptureReplay) Input::KpadRecord::modHeld(mod,answer);
+    return answer;
+}
 
 // The recorded controller connection (probe state and device type per channel) is applied from a host thread, as the headless
 // driver's worker does each frame (replayConnection needs a non-game thread); the same thread completes pending WPAD commands
@@ -95,6 +105,8 @@ void writeReport(bool update = false) {
 
 bool configure(const std::string& dir, std::string* error) {
     try {
+        const char* capture=std::getenv("PETARI_TAPE_CAPTURE_REPLAY");
+        gCaptureReplay=capture && std::string(capture)=="1";
         gObservationStart = std::chrono::steady_clock::now();
         if (const char* seconds = std::getenv("PETARI_TAPE_PLAY_OBSERVE_SECONDS"); seconds && *seconds) {
             char* end = nullptr;
@@ -142,6 +154,13 @@ Step seam(const SeamState& state) {
     return step;
 }
 
+Step beforeRead(const TapePhase::State& state) {
+    if (!gSession || gSession->meta().schema!=2) return {};
+    const auto step=gSession->beforeRead(state);
+    if (gFeeder) gFeeder->publish();
+    return step;
+}
+
 bool shouldQuit() { return gSession && gSession->finished(); }
 bool observationPending() { return gSession && !gSession->gaveUp() && gObservation.pending(); }
 bool acknowledgeSeed(std::uint32_t seed) {
@@ -150,5 +169,7 @@ bool acknowledgeSeed(std::uint32_t seed) {
     if (!ok) writeReport();
     return ok;
 }
+
+void flushReadMap() { if (gSession) gSession->flushReadMap(); }
 
 }  // namespace PetariNative::App::TapePlay

@@ -35,6 +35,11 @@ struct Segment {
 std::vector<Segment> gSegments;
 bool gVisitHasSegment = false;
 std::string gSceneKey;  // scene visit identity at the last seam
+std::vector<TapePhase::Phase> gInputPhases;
+std::string gPhaseKey, gPhaseError;
+bool gMapWait = false, gGalaxyMap = false;
+std::string gLaunchStage;
+int gLaunchScenario = 1;
 
 std::string exeSha256() {
 #ifdef __APPLE__
@@ -85,7 +90,7 @@ void writeSidecar(bool final) {
     if (!f) return;
     const auto stats = Input::KpadRecord::stats();
     static const std::string sha = exeSha256();  // computed when the tape opens (seam()), never in play
-    std::fprintf(f, "{\n  \"schema\": 1,\n  \"complete\": %s,\n  \"route_csv\": %s,\n  \"kpd\": %s,\n  \"actions\": %s,\n",
+    std::fprintf(f, "{\n  \"schema\": 2,\n  \"complete\": %s,\n  \"route_csv\": %s,\n  \"kpd\": %s,\n  \"actions\": %s,\n",
                  final ? "true" : "false", json(gRoute).c_str(), json(gBase + ".kpd").c_str(), json(gBase + ".actions").c_str());
     std::fprintf(f, "  \"seams\": %llu,\n  \"exe_sha256\": %s,\n  \"source\": %s,\n  \"mods\": %s,\n",
                  static_cast<unsigned long long>(gRow), json(sha).c_str(),
@@ -119,7 +124,42 @@ void writeSidecar(bool final) {
         std::fprintf(f, "%s\n    {\"row\": %llu, \"stage\": %s, \"scenario\": %d, \"rng_seed\": %u}", i ? "," : "",
                      static_cast<unsigned long long>(r.row), json(r.stage).c_str(), r.scenario, r.seed);
     }
-    std::fputs("\n  ]\n}\n", f);
+    std::fprintf(f, "\n  ],\n  \"launch\": {\"stage\":%s,\"scenario\":%d},\n  \"marker_protocol\": %s,\n  \"marker_error\": %s,\n  \"input_phases\": [",
+                 json(gLaunchStage).c_str(), gLaunchScenario, json(TapePhase::kProtocol).c_str(), json(gPhaseError).c_str());
+    bool firstPhase = true;
+    for (const auto& phase : gInputPhases) {
+        const auto end = phase.open ? gRow : phase.endInputFrame;
+        if (phase.marker.inputFrame >= end) continue; // never publish an unfinished input loop
+        std::fprintf(f, "%s\n    {\"id\": %llu, \"first_input_frame\": %llu, \"end_input_frame_exclusive\": %llu, \"end_kind\": %s, \"marker\": %s, \"checkpoints\": [",
+            firstPhase ? "" : ",", static_cast<unsigned long long>(phase.id),
+            static_cast<unsigned long long>(phase.marker.inputFrame), static_cast<unsigned long long>(end),
+            json(phase.open ? "recording-prefix" : "phase-transition").c_str(), TapePhase::stateJson(phase.marker).c_str());
+        firstPhase = false;
+        bool firstCheckpoint = true;
+        for (const auto& point : phase.checkpoints) {
+            if (point.state.inputFrame >= end) continue;
+            std::fprintf(f, "%s{\"kind\":%s,\"state\":%s}", firstCheckpoint ? "" : ",",
+                         json(point.kind).c_str(), TapePhase::stateJson(point.state).c_str());
+            firstCheckpoint = false;
+        }
+        std::fputs("]}", f);
+    }
+    std::fputs("\n  ],\n  \"input_gaps\": [", f);
+    std::uint64_t cursor=0;
+    bool firstGap=true;
+    const auto gap=[&](std::uint64_t first,std::uint64_t end) {
+        if (first>=end) return;
+        std::fprintf(f,"%s{\"first_input_frame\":%llu,\"end_input_frame_exclusive\":%llu,\"input\":\"neutral-no-executable-scene\"}",
+            firstGap ? "" : ",",static_cast<unsigned long long>(first),static_cast<unsigned long long>(end));
+        firstGap=false;
+    };
+    for (const auto& phase:gInputPhases) {
+        const auto end=phase.open ? gRow : phase.endInputFrame;
+        if (phase.marker.inputFrame>=end) continue;
+        gap(cursor,phase.marker.inputFrame); cursor=end;
+    }
+    gap(cursor,gRow);
+    std::fputs("]\n}\n", f);
     std::fclose(f);
     std::rename((path + ".tmp").c_str(), path.c_str());
 }
@@ -165,6 +205,37 @@ bool background() {
     if (!gInit) init();
     return gBackground;
 }
+
+void beforeRead(const TapePhase::State& s) {
+    if (!gOpen || gFinished) return;
+    if (s.inputFrame != gRow) { gPhaseError = "pre-read input clock differs from recorder"; return; }
+    const auto key = s.kind == "none" ? std::string() : s.key();
+    const bool restarted = s.kind=="controller-normal" && s.firstNormal && !gInputPhases.empty() &&
+        gInputPhases.back().marker.inputFrame!=s.inputFrame;
+    if (key != gPhaseKey || restarted) {
+        const bool resumedOverlay = !gInputPhases.empty() && gInputPhases.back().marker.kind == "scenario-foreground";
+        if (!gInputPhases.empty() && gInputPhases.back().open) {
+            gInputPhases.back().open = false;
+            gInputPhases.back().endInputFrame = s.inputFrame;
+        }
+        if (!key.empty()) {
+            if (s.kind == "controller-normal" && !s.firstNormal && !resumedOverlay)
+                gPhaseError = "Normal phase did not begin on its first update or overlay resume";
+            TapePhase::Phase phase;
+            phase.id = gInputPhases.size(); phase.marker = s;
+            gInputPhases.push_back(std::move(phase));
+        }
+        gPhaseKey = key;
+        gMapWait = gGalaxyMap = false;
+    }
+    if (!key.empty()) {
+        if (s.mapWait && !gMapWait) gInputPhases.back().checkpoints.push_back({"map-wait",s});
+        if (s.galaxyMap && !gGalaxyMap) gInputPhases.back().checkpoints.push_back({"galaxy-map",s});
+        gMapWait = s.mapWait; gGalaxyMap = s.galaxyMap;
+    }
+}
+
+void setLaunch(const std::string& stage, int scenario) { gLaunchStage=stage; gLaunchScenario=scenario; }
 
 void seam(const Seam& s) {
     if (gFinished) return;

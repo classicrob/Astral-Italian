@@ -85,11 +85,20 @@ void frontendOnlyTest() {
     std::lock_guard lock{g_pipelineMutex};
     g_pipelineQueue.push_back({901, [] { return CompiledPipeline{true}; }});
     petariPipelineSamples[901].drawBlocking = true;
-    petariUberPrePresent = true;
-    for (unsigned worker = 0; worker < 4; ++worker)
-        require(petari_runnable_queue(worker) == nullptr, "pre-present allowed a specialised job");
-    petariUberPrePresent = false;
-    require(petari_runnable_queue(0) == &g_pipelineQueue, "pre-present failed to restore draw scheduling");
+    for (const bool armed : {true, false}) {
+        petariUberFrontendArmed = armed;
+        petariUberPrePresent = !armed;
+        for (unsigned worker = 0; worker < 4; ++worker)
+            require(petari_runnable_queue(worker) == &g_pipelineQueue,
+                    "normal splash blocked a draw-requested utility pipeline");
+        petariPipelineSamples[901].drawBlocking = false;
+        for (unsigned worker = 0; worker < 4; ++worker)
+            require(petari_runnable_queue(worker) == nullptr,
+                    "normal splash allowed a speculative specialised job");
+        petariPipelineSamples[901].drawBlocking = true;
+    }
+    petariUberPrePresent = petariUberFrontendArmed = false;
+    require(petari_runnable_queue(0) == &g_pipelineQueue, "normal splash failed to restore draw scheduling");
     g_pipelineQueue.clear(); petariPipelineSamples.clear();
 }
 void priorityTest() {

@@ -19,10 +19,12 @@ int main(int argc,char** argv) {
         auto err=AECreateDesc(typeKernelProcessID,&pid,sizeof(pid),&target);
         if(!err)err=AECreateAppleEvent('Ptra','ping',&target,kAutoGenerateReturnID,kAnyTransactionID,&event);
         if(!err)err=AESendMessage(&event,&reply,kAEWaitReply|kAENeverInteract|kAEDoNotPromptForUserConsent,30);
-        SInt32 cookie=0;DescType actual=0;Size size=0;
+        SInt32 cookie=0,replyError=0;DescType actual=0;Size size=0,errorSize=0;
+        const auto sendStatus=err;
+        const auto errorStatus=!err?AEGetParamPtr(&reply,keyErrorNumber,typeSInt32,&actual,&replyError,sizeof(replyError),&errorSize):err;
         if(!err)err=AEGetParamPtr(&reply,keyDirectObject,typeSInt32,&actual,&cookie,sizeof(cookie),&size);
+        std::fprintf(stderr,"cross-PID no-prompt heartbeat status=%d send_status=%d reply_type=%08x reply_error_status=%d reply_error=%d cookie=%x size=%ld\n",err,sendStatus,(unsigned)reply.descriptorType,errorStatus,replyError,(unsigned)cookie,(long)size);
         AEDisposeDesc(&reply);AEDisposeDesc(&event);AEDisposeDesc(&target);
-        std::fprintf(stderr,"cross-PID no-prompt heartbeat status=%d cookie=%x size=%ld\n",err,(unsigned)cookie,(long)size);
         return err==noErr && cookie==0x50455441 && size==4?0:1;
     }
     @autoreleasepool {

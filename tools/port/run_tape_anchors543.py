@@ -112,8 +112,16 @@ def qualified_tape(tape, source_schema=None, require_power=False):
         need(proof['hashes'].get(str(tape/name))==expected, 'canonical bytes absent from qualification')
     native=json.loads((tape/'replay/divergence.json').read_text())
     need(native.get('finished') is True and not native.get('stopped'), 'qualified native replay unfinished')
-    if require_power:audit_native(native,metadata)
     launch=json.loads((tape/'launch.json').read_text())
+    if require_power:
+        # This native report describes replay of the SOURCE, not the new capture.
+        # Conversion uses schema1; reciprocal schema2 captures may have an offset.
+        source_meta_path=Path(launch['environment']['PETARI_TAPE_PLAY'])/'route.tape.json'
+        need(proof['hashes'].get(str(source_meta_path))==sha(source_meta_path),
+             'native source metadata absent from canonical qualification')
+        source_metadata=load_meta(source_meta_path)
+        need(source_metadata['schema']==proof['source_schema'],'native source schema binding differs')
+        audit_native(native,source_metadata)
     need(all(launch['environment'].get(k)==v for k,v in PRODUCTION_PIPELINE_ENV.items()),
          'canonical source diagnostics settings differ')
     return dict(binding=binding,result_sha256=sha(tape/'RESULT.json'),

@@ -6,8 +6,35 @@ from pathlib import Path
 import tempfile
 import unittest
 from run_tape_anchors543 import tape_binding, verify_tape_binding, qualified_tape, plan
+from test_tape_power_audit import fixture as power_fixture
+from capture_schema2_tape import sha
 
 class ProofBindings(unittest.TestCase):
+    def test_power_conversion_native_report_is_bound_to_legacy_source(self):
+        root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
+        with tempfile.TemporaryDirectory(prefix='power-source-binding-',dir=root) as temporary:
+            tape=Path(temporary)/'capture';source=Path(temporary)/'source'
+            (tape/'replay').mkdir(parents=True);source.mkdir()
+            (source/'route.tape.json').write_text(json.dumps(dict(schema=1)))
+            for name in ('route.csv','route.kpd','route.actions'):(tape/name).write_text(name)
+            (tape/'route.tape.json').write_text(json.dumps(power_fixture()))
+            (tape/'launch.json').write_text(json.dumps(dict(environment=dict(
+                PETARI_PIPELINE_DIAG='0',PETARI_TRACE_BOOT='0',PETARI_TAPE_PLAY=str(source)))))
+            native=dict(finished=True,stopped='',mode='whole-session',interactive_position_bit_exact=True,
+                anchor_policy='interactive-and-play-ready-v1',segments=[dict(tape_frames=3,rows_compared=4,
+                identity_rows_skipped=0,pointer_rows_compared=3,identity_offset_checked=True,
+                identity_offset_passed=True,identity_offset_limit=30,identity_frame_offset=0)])
+            (tape/'replay/divergence.json').write_text(json.dumps(native))
+            hashes={str(tape/n):sha(tape/n) for n in ('route.csv','route.kpd','route.actions','route.tape.json','replay/divergence.json')}
+            hashes[str(source/'route.tape.json')]=sha(source/'route.tape.json')
+            result=dict(passed=True,checks=dict(strict=True),input_proof=dict(passed=True,captured_schema=2,
+                actual_payloads_independently_checked=True,source_schema=1,actual_reads=12,
+                exact_recorded_reads=4,exact_neutral_reads=8,hashes=hashes))
+            (tape/'RESULT.json').write_text(json.dumps(result))
+            self.assertEqual(qualified_tape(tape,require_power=True)['source_schema'],1)
+            (source/'route.tape.json').write_text(json.dumps(dict(schema=2)))
+            with self.assertRaises(RuntimeError):qualified_tape(tape,require_power=True)
+
     def test_power_plan_has_one_conversion_and_no_failed_reference_legacy_dependency(self):
         root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
         with tempfile.TemporaryDirectory(prefix='power-plan-unit-',dir=root) as temporary:

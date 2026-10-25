@@ -11,10 +11,11 @@ A native Apple Silicon Mac port of Super Mario Galaxy 2, built on the community 
 - Found a problem? Press **M** (or F9) right after it happens, run `Collect Bug Report.command`, and open an issue with the zip. Guide: [docs/TESTING.md](https://github.com/classicrob/Astral-Italian/blob/main/docs/TESTING.md).
 
 ### Known limits
-- Not a full-game completion claim: free movement and mission coverage are partial. Switch 2 Pro Controller does not work yet; Switch Pro layouts are untested with a physical pad.
+- Not a full-game completion claim: free movement and mission coverage are partial. Switch 2 Pro Controller support is experimental and not yet confirmed on hardware; Switch Pro layouts are untested with a physical pad.
 - On M1-class Macs the title screen can show intermittent bursts of slow frames on a relaunch (in our measurements 7-41 frames over 50 ms in the first 5 minutes, worst 70-600 ms); 5.4.1 shows the same intermittently, so it is not new in this build.
 - Rare gameplay stalls remain: one 258 ms frame in the VsKoopaLv1 Bowser battle galaxy and one 111 ms frame on the first visit to Sky Station.
 - The cold-start menu can still be slightly less even than 5.4.1 on some runs, though its worst frames are far better.
+- On M1-class Macs, audio can occasionally crackle or drop out for a moment, sometimes in short bursts; we are investigating. If it happens, press M (or F9) right after, and mention it in the note when you run Collect Bug Report.command.
 - A direct boot into World 8's map galaxy crashes (not reachable in normal play).
 - Windowed play adds some input latency compared with fullscreen (VSync Auto turns VSync off in fullscreen).
 

@@ -16,8 +16,8 @@ below is the most useful thing you can do for us.
 - **Your own copy of Super Mario Galaxy 2, USA version (game ID SB4E01).** No game data is included or available here.
   Accepted: a disc image (`.iso`, `.wbfs`, `.rvz`, `.wia`) or an already extracted folder that holds `files/` and `sys/`.
   Other regions and revisions are refused with a message saying so.
-- Optional: a game controller (Xbox or PlayStation pads work; Switch Pro layouts are untested; the Switch 2 Pro Controller
-  does not work yet).
+- Optional: a game controller (Xbox or PlayStation pads work; Switch Pro layouts are untested with a physical pad; Switch 2 Pro
+  Controller support is experimental and not yet confirmed on hardware).
 
 ## Install
 
@@ -65,6 +65,11 @@ on an M1, about 2 on an M4) before the title appears: the game prepares the grap
 finish; the window stays responsive.
 
 Rarely, the first time a new effect appears the game can still hitch for a moment while a shader compiles; that settles down. Known limits are listed in the release notes.
+
+**Audio crackle:** on M1-class Macs the sound can occasionally crackle or drop out for a moment, sometimes in short bursts; we are
+investigating. If you hear it, **press M (or F9) right after**, then write what you heard in the note when you run Collect Bug
+Report.command (which galaxy, whether it was during a loud scene or while loading, headphones or speakers). The capture and the
+session tape let us line your report up with what the game was doing.
 
 ## What to test
 

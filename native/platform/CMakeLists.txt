@@ -79,6 +79,7 @@ add_library(petari_platform_os STATIC
     os/os_clock.cpp
     os/os_interrupts.cpp
     os/os_thread.cpp
+    os/monitor_wait.cpp
     os/os_alarm.cpp
     os/os_time.cpp
     os/os_report.cpp
@@ -184,6 +185,18 @@ if(BUILD_TESTING)
     target_link_libraries(petari_mod_galaxy_tests PRIVATE petari_platform)
     add_test(NAME native_mod_galaxy COMMAND petari_mod_galaxy_tests)
 
+    add_executable(petari_monitor_wait_protocol_tests ${PETARI_REPO_ROOT}/native/tests/monitor_wait_protocol_tests.cpp)
+    target_include_directories(petari_monitor_wait_protocol_tests PRIVATE os)
+    target_compile_features(petari_monitor_wait_protocol_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_monitor_wait_protocol_tests PRIVATE -UNDEBUG)
+    add_test(NAME native_monitor_wait_protocol COMMAND petari_monitor_wait_protocol_tests)
+    add_executable(petari_monitor_wait_backend_tests ${PETARI_REPO_ROOT}/native/tests/monitor_wait_backend_tests.cpp os/monitor_wait.cpp)
+    target_include_directories(petari_monitor_wait_backend_tests PRIVATE os ${PETARI_REPO_ROOT}/native/include)
+    target_compile_features(petari_monitor_wait_backend_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_monitor_wait_backend_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_monitor_wait_backend_tests PRIVATE petari_gpu_trace_host Threads::Threads)
+    add_test(NAME native_monitor_wait_backend COMMAND petari_monitor_wait_backend_tests)
+    set_tests_properties(native_monitor_wait_backend PROPERTIES RUN_SERIAL TRUE TIMEOUT 15)
     add_executable(petari_platform_os_tests ${PETARI_REPO_ROOT}/native/tests/platform_os_tests.cpp)
     target_include_directories(petari_platform_os_tests PRIVATE os dvd)
     target_link_libraries(petari_platform_os_tests PRIVATE petari_platform)

@@ -14,12 +14,3 @@ public:
     const TVec3f* mTargetPosition;
     TQuat4f mQuat;
 };
-
-namespace NrvEatDemoCoin {
-    class EatDemoCoinNrvShoot : public Nerve {
-    public:
-        EatDemoCoinNrvShoot();
-        virtual void execute(Spine*) const;
-        static EatDemoCoinNrvShoot sInstance;
-    };
-}

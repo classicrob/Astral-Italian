@@ -5,7 +5,7 @@
 #include "Game/AudioLib/AudLimitedSound.hpp"
 #include <JSystem/JAudio2/JAIAudible.hpp>
 #include <JSystem/JAudio2/JAIAudience.hpp>
-#include <JSystem/JAudio2/JAUStdSoundInfo.hpp>
+class JAUStdSoundInfo;
 #include <JSystem/JAudio2/JASAudioReseter.hpp>
 #include <JSystem/JAudio2/JAUSoundMgr.hpp>
 #include <JSystem/JGeometry/TMatrix.hpp>
@@ -225,3 +225,5 @@ public:
 
 AudSystem* AudNewAudSystem(JKRHeap*, JKRSolidHeap*, AudArchiveSet*);
 AudSystem* AudNewAudSystem_(JKRHeap*, JAUSectionHeap*, int, AudArchiveSet*) NO_INLINE;
+
+#include <JSystem/JAudio2/JAUStdSoundInfo.hpp>

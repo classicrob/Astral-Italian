@@ -1,5 +1,6 @@
-#include "Game/Player/YoshiEgg.hpp"
+#include "Game/Util/Functor.hpp"
 #include "Game/Player/YoshiNest.hpp"
+#include "Game/Player/YoshiEgg.hpp"
 #include "Game/MapObj/MapObjConnector.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/YoshiUtil.hpp"
@@ -83,14 +84,14 @@ namespace NrvYoshiEgg {
         static State11 sInstance;
     };
     State11 State11::sInstance ATTRIBUTE_WEAK;
-    void State8::execute(Spine* spine) const {
+    inline void State8::execute(Spine* spine) const {
         YoshiEgg* egg = static_cast<YoshiEgg*>(spine->mExecutor);
         if (MR::isActionEnd(egg)) {
             MR::fn_80422480(egg);
             egg->setNerve(&State0::sInstance);
         }
     }
-    void State10::execute(Spine* spine) const {
+    inline void State10::execute(Spine* spine) const {
         YoshiEgg* egg = static_cast<YoshiEgg*>(spine->mExecutor);
         if (MR::isActionEnd(egg)) {
             MR::fn_80422480(egg);

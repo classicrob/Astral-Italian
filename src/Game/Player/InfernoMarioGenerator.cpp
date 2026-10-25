@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/Player/InfernoMarioGenerator.hpp"
 #include "Game/Player/InfernoMario.hpp"
 #include "Game/Player/InfernoMarioManager.hpp"

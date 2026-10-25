@@ -2271,6 +2271,9 @@ config.libs = [
             Object(NonMatching, "Game/Boss/KingTossin.cpp"),
             Object(NonMatching, "Game/Boss/KoopaBattle.cpp"),
             Object(NonMatching, "Game/Boss/KoopaBattleAccessor.cpp"),
+            # Original camera TU boundaries restore single-consumer vector inlining.
+            Object(NonMatching, "Game/Boss/KoopaBattleCamera.cpp"),
+            Object(NonMatching, "Game/Boss/KoopaLastBattleCamera.cpp"),
             Object(NonMatching, "Game/Boss/KoopaDemoChamber.cpp"),
             Object(NonMatching, "Game/Boss/KoopaFinalBattlePos.cpp"),
             Object(NonMatching, "Game/Boss/KoopaFinalBattlePosTU01.cpp"),
@@ -2623,6 +2626,7 @@ config.libs = [
             Object(NonMatching, "Game/Enemy/KameckFireBall.cpp"),
             Object(NonMatching, "Game/Enemy/KameckTurtle.cpp"),
             Object(NonMatching, "Game/Enemy/Kanina.cpp"),
+            Object(NonMatching, "Game/Enemy/KaninaYoshiStateFunction.cpp"),
             Object(NonMatching, "Game/Enemy/KaninaYoshiState.cpp"),
             Object(NonMatching, "Game/Enemy/Karikari.cpp"),
             Object(NonMatching, "Game/Enemy/KarikariDirector.cpp"),

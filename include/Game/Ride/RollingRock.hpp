@@ -77,7 +77,7 @@ public:
     }
 };
 
-class RollingRockStateParent : public RollingRockStateBase {
+class RollingRockStateParent : public ActorStateBase< RollingRock > {
 public:
     RollingRockStateParent(RollingRock* pHost);
 

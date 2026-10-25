@@ -223,7 +223,7 @@ namespace NrvRollingRockStateParent {
 };  // namespace NrvRollingRockStateParent
 
 RollingRockStateParent::RollingRockStateParent(RollingRock* pHost)
-    : RollingRockStateBase(sNameParentState, pHost), mRollState(nullptr), mItemSensor(nullptr), mIsCancel(false) {
+    : ActorStateBase< RollingRock >(sNameParentState, pHost), mRollState(nullptr), mItemSensor(nullptr), mIsCancel(false) {
     initNerve(&NrvRollingRockStateParent::RollingRockStateParentNrvWait::sInstance, 2);
     mRollState = new RollingRockStateRoll(mHost);
     MR::initActorState(this, mRollState, &NrvRollingRockStateParent::RollingRockStateParentNrvRoll::sInstance, nullptr);

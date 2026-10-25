@@ -58,18 +58,18 @@ void KoopaJrRobotRock::exeAppear() {
     }
 }
 
+void KoopaJrRobotRock::exeWait() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
+    }
+}
+
 void KoopaJrRobotRock::exeDisappear() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Disappear");
     }
     if (MR::isActionEnd(this)) {
         kill();
-    }
-}
-
-void KoopaJrRobotRock::exeWait() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Wait");
     }
 }
 

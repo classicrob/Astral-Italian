@@ -408,8 +408,7 @@ public:
     /* 0xC0 */ LiveActor* mHandL;
     /* 0xC4 */ LiveActor* mHandR;
     /* 0xC8 */ StarPieceGroup* mStarPieceGroup;
-    /* 0xCC */ MR::AssignableArray< LiveActor* > mChildren;
-    /* 0xD4 */ s32 mChildCount;
+    /* 0xCC */ MR::Vector< MR::AssignableArray< LiveActor* > > mChildren;
     /* 0xD8 */ KoopaJrRobotStateA* mStateA;
     /* 0xDC */ KoopaJrRobotStateB* mStateB;
     /* 0xE0 */ KoopaJrRobotStateC* mStateC;

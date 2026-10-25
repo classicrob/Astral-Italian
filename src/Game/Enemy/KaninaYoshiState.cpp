@@ -8,6 +8,7 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/GeometryBindUtil.hpp"
 
+namespace KaninaYoshiStateFunction { LiveActor* createClaw(Kanina*); }
 namespace NrvKaninaYoshiState {
     NEW_NERVE(KaninaYoshiStateNrvWait, KaninaYoshiState, Wait);
     NEW_NERVE(KaninaYoshiStateNrvEaten, KaninaYoshiState, Eaten);
@@ -17,23 +18,19 @@ namespace NrvKaninaYoshiState {
     NEW_NERVE(KaninaYoshiStateNrvTongue, KaninaYoshiState, Tongue);
 }
 namespace {
+    inline bool isRedKanina(const Kanina& host) { return host.mType == Kanina::KaninaType_Red; }
     TVec3f sForwardTangent(0.0f, 0.0f, 0.0f);
     TVec3f sPeakTangent(0.0f, 0.0f, 0.0f);
     TVec3f sReturnTangent(0.0f, 0.0f, 2000.0f);
 
-    LiveActor* createClaw(Kanina* host) NO_INLINE {
-        LiveActor* claw = MR::createDemoObj("カニーナのツメ", "KaninaClaw", host->getBaseMtx());
-        claw->initWithoutIter();
-        claw->makeActorDead();
-        return claw;
-    }
+
 }
 
 KaninaYoshiState::KaninaYoshiState(Kanina* host, bool shotMode)
     : ActorStateBase<Kanina>("ツメ状態", host), mShotMode(shotMode), mClaw(NULL), mHit(false), mLocalVelocity(TVec3f(0.0f)),
       mFront(0.0f, 0.0f, 1.0f), mStopMovement(false), mArcHeight(0.0f), mArcStep(0) {
     initNerve(&NrvKaninaYoshiState::KaninaYoshiStateNrvWait::sInstance, 0);
-    mClaw = createClaw(mHost);
+    mClaw = KaninaYoshiStateFunction::createClaw(mHost);
     mShotMtx.identity();
 }
 
@@ -201,9 +198,7 @@ void KaninaYoshiState::startShot() {
     mClaw->appear();
     MR::showModelIfHidden(mClaw);
     MR::startAction(mClaw, "Spin");
-    const char* color = "Blue";
-    if (mHost->mType == Kanina::KaninaType_Red) color = "Red";
-    MR::startAction(mClaw, color);
+    MR::startAction(mClaw, isRedKanina(*mHost) ? "Red" : "Blue");
     MR::startActionSound(mClaw, "Shot", -1, -1, -1);
     MR::invalidateClipping(mClaw);
 }

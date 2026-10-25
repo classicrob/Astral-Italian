@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Fail-closed coverage of resumed play-ready RNG and real star-count evidence."""
 import copy
+import csv
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "gate53/m1gates"))
 import full_star_tape_gate as gate
+from test_normal_tape_gate import AUDIO_LOG
 
 
 class FullStarTests(unittest.TestCase):
@@ -22,6 +26,25 @@ class FullStarTests(unittest.TestCase):
 
     def check(self):
         return gate.checkpoints(self.rows, self.rows, self.meta, self.actual, self.report)[0]
+
+    def test_fullstar_inherits_strict_audio_and_retains_every_positive_line(self):
+        self.assertIn("real_audio_reports", gate.CHECKS)
+        with tempfile.TemporaryDirectory(prefix="fullstar-audio-") as temporary:
+            case = Path(temporary)
+            with (case / "route.csv").open("w") as stream:
+                writer = csv.DictWriter(stream, fieldnames=[*self.rows[0], "pointer_y"])
+                writer.writeheader()
+                writer.writerows(dict(row, pointer_y="0") for row in self.rows)
+            (case / "route.tape.json").write_text(json.dumps(dict(self.actual, complete=True)))
+            for log, passed in ((AUDIO_LOG, True), ("", False),
+                                (AUDIO_LOG.rsplit("[audio] level", 1)[0], False),
+                                (AUDIO_LOG + "[audio] level 0/1722 frames, underrun 1 frames\n", False)):
+                checks, details = gate.evaluate(self.rows, log, self.report,
+                    dict(self.meta, seams=len(self.rows)), case, case)
+                self.assertEqual(checks["real_audio_reports"], passed)
+                if "underrun 1 frames" in log:
+                    self.assertEqual(details["audio_underrun_frames"], 1)
+                    self.assertEqual(len(details["audio_positive_reports"]), 1)
 
     def test_all_resumes_require_natural_rng_match(self):
         self.assertTrue(self.check())

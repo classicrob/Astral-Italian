@@ -9,6 +9,8 @@ frozen-5.4 baseline and cannot pass the whole-session check. Tape/app hash equal
 is evidence, not a gate: a candidate necessarily differs from the recording build.
 The unlocked fixture and the supplied app are read-only; the run uses a fresh save
 copy, private pipeline cache and an already prepared perf bundle identifier.
+From 5.4.3, real CoreAudio is required: >=50 reports, zero underrun frames,
+with every positive report retained. A failed run is not retried until clean.
 """
 import argparse
 import csv
@@ -31,6 +33,12 @@ ROOT = HOME / "MacioGalaxy2-gamedata/port53/m1g"
 SEED = HOME / "MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture"
 DISC = HOME / "MacioGalaxy2-gamedata/SB4E01-extracted"
 HEAVY = HOME / "MacioGalaxy2-team/slots/m1-heavy.lock"
+AUDIO_MIN_REPORTS = 50
+AUDIO_ENV = {"PETARI_SMOKE_REAL_AUDIO": "1", "PETARI_AUDIO_DIAG": "1", "SDL_AUDIO_DRIVER": "coreaudio"}
+AUDIO_POLICY = {"id": "functional-real-audio-zero-underruns-v1", "minimum_reports": AUDIO_MIN_REPORTS,
+                "backend": "coreaudio", "maximum_underrun_frames": 0,
+                "authority": "Head 5.4.3 ruling; docs/RELEASING.md item 5 (5289891f)",
+                "rerun_until_clean": False}
 ANCHOR_POLICY = {
     "id": "interactive-and-play-ready-v1",
     "authority": "PORT final ruling 2026-10-24 after withdrawing scene-identity",
@@ -52,7 +60,7 @@ CHECKS = ("scene_chain", "destination_300_consecutive_valid", "no_faults",
           "no_invalid_worldmap_request", "existing_unlocked_file1", "seed_unchanged",
           "binary_unchanged", "no_divergence", "whole_session_replay", "replay_completed",
           "lossless_tape", "tape_unchanged", "game_pointer_buffers_compared",
-          "anchor_policy_applied", "play_ready_state_checks", "identity_offsets_bounded")
+          "anchor_policy_applied", "play_ready_state_checks", "identity_offsets_bounded", "real_audio_reports")
 
 
 def sha(path):
@@ -65,6 +73,25 @@ def sha(path):
 
 def tree(root):
     return {str(p.relative_to(root)): sha(p) for p in sorted(root.rglob("*")) if p.is_file()}
+
+
+def audio_evidence(log):
+    reports, positives, malformed = [], [], []
+    for number, line in enumerate(log.splitlines(), 1):
+        match = re.search(r"\bunderrun:? (\d+) (?:silent )?frames\b", line)
+        if line.startswith("[audio] level "):
+            if match:
+                reports.append(int(match[1]))
+            else:
+                malformed.append({"line": number, "text": line})
+        if match and int(match[1]) > 0:
+            positives.append({"line": number, "underrun_frames": int(match[1]), "text": line})
+    backend = any(line.startswith("[audio] latency:") and "CoreAudio" in line for line in log.splitlines())
+    details = {"audio_policy": AUDIO_POLICY, "audio_reports": len(reports),
+               "audio_underrun_frames": sum(p["underrun_frames"] for p in positives),
+               "audio_positive_reports": positives, "audio_malformed_reports": malformed,
+               "coreaudio_latency_report_present": backend}
+    return backend and len(reports) >= AUDIO_MIN_REPORTS and not positives and not malformed, details
 
 
 def evaluate(rows, log, replay):
@@ -87,7 +114,9 @@ def evaluate(rows, log, replay):
         and isinstance(s.get("identity_rows_skipped"), int) and s["identity_rows_skipped"] >= 0
         and s.get("rows_compared", -1) + s["identity_rows_skipped"] == s.get("tape_frames", -2) + 1 for s in segments)
     divergence = next((s for s in segments if s.get("diverged")), None)
+    audio_passed, audio = audio_evidence(log)
     checks = {
+        "real_audio_reports": audio_passed,
         "scene_chain": order[:4] == ["FileSelect", "MarioFaceShipGalaxy", "WorldMap01Galaxy", "IslandFleetGalaxy"],
         "destination_300_consecutive_valid": best >= 300,
         "no_faults": not faults,
@@ -109,7 +138,7 @@ def evaluate(rows, log, replay):
              all((s.get("play_ready_state_check") or {}).get(k) is True for k in ("checked", "passed", "position_bit_exact")) and
              ((s.get("play_ready_state_check") or {}).get("rng") or {}).get("verified") is True) for s in segments),
     }
-    return checks, {"stage_order": order, "destination_max_consecutive_valid": best,
+    return checks, {**audio, "stage_order": order, "destination_max_consecutive_valid": best,
                     "faults": faults[:20], "first_divergence": divergence,
                     "replay_stopped": replay.get("stopped"),
                     "scene_anchors": [{k: s.get(k) for k in ("stage", "scenario", "anchor", "scene_anchor_recorded_frame",
@@ -170,7 +199,7 @@ def main(argv=None, profile=None):
                PETARI_CACHE_DIR=str(case / "cache"), PETARI_FRAME_CSV=str(case / "frames.csv"),
                PETARI_ROUTE_RECORD=str(case / "route.csv"), PETARI_TAPE_PLAY_OUT=str(case / "replay"),
                PETARI_TAPE_PLAY_SESSION="1" if a.mode == "whole-session" else "0", PETARI_TAPE_PLAY_QUIT="1",
-               PETARI_FRAME_STATS="1", PETARI_AUDIO_DIAG="1", PETARI_SMOKE_REAL_AUDIO="1", LANG="C", LC_ALL="C")
+               PETARI_FRAME_STATS="1", LANG="C", LC_ALL="C", **AUDIO_ENV)
     for key, value in (meta.get("replay_env") or {}).items():
         if key != "PETARI_TEST_RETURN_TO_SHIP":
             parser.error(f"unsupported recorded scene hook: {key}")
@@ -181,6 +210,7 @@ def main(argv=None, profile=None):
     checks = dict.fromkeys(profile.CHECKS if profile else CHECKS, False)
     result = {"passed": False, "checks": checks, "source": a.source, "build_kind": a.build_kind,
               "anchor_policy": ANCHOR_POLICY,
+              "audio_policy": AUDIO_POLICY,
               "locks": {"heavy": str(HEAVY), "heavy_kind": "lockf -k", "order": ["heavy", "native"]},
               "gate_script_sha256": sha(Path(__file__)),
               "binary_sha256": a.sha256, "tape_exe_sha256": meta.get("exe_sha256"),
@@ -203,7 +233,7 @@ def main(argv=None, profile=None):
             wait_quiet(case / "quiet.json")
             start = time.time()
             (case / "command.json").write_text(json.dumps({**result, "command": cmd, "bound_seconds": a.bound,
-                "environment": {k: v for k, v in env.items() if k.startswith("PETARI_")},
+                "environment": {k: v for k, v in env.items() if k.startswith("PETARI_") or k in AUDIO_ENV},
                 "save_seed": None if profile else str(SEED), "save_before": before, "start_epoch": start}, indent=2) + "\n")
             with (case / "app.log").open("wb") as log:
                 child = subprocess.Popen(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
@@ -241,6 +271,11 @@ def main(argv=None, profile=None):
     except Exception as exc:
         result["error"] = f"{type(exc).__name__}: {exc}"
     finally:
+        log_path = case / "app.log"
+        if log_path.exists():
+            audio_passed, audio = audio_evidence(log_path.read_text(errors="replace"))
+            result.update(audio)
+            checks["real_audio_reports"] &= audio_passed
         result["elapsed_seconds"] = time.time() - start if start else 0
         result["acceptance_passed"] = result["passed"] and a.build_kind == "server-candidate"
         # Preserve logs and summaries, discard duplicate tape/captures and the private shader cache before another run.

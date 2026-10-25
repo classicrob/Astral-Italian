@@ -9,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("normal_tape_gate", ROOT / "gate53/m1gates/normal_tape_gate.py")
 gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
+AUDIO_LOG = "[audio] latency: ring base 1536 frames (48.0 ms); CoreAudio device latency 70\n" + (
+    "[audio] level 1722/1722 frames, largest request 186, underrun 0 frames, AI replayed 0 blocks\n" * 50)
 
 
 class VerdictTests(unittest.TestCase):
@@ -22,7 +24,30 @@ class VerdictTests(unittest.TestCase):
             identity_frame_offset=0, identity_offset_limit=30)])
 
     def evaluate(self, log="", report=None):
-        return gate.evaluate(self.rows, log, self.replay if report is None else report)[0]
+        return gate.evaluate(self.rows, AUDIO_LOG + log, self.replay if report is None else report)[0]
+
+    def test_audio_requires_fifty_real_backend_reports(self):
+        for log in ("", AUDIO_LOG.rsplit("[audio] level", 1)[0], AUDIO_LOG.replace("CoreAudio", "dummy")):
+            checks, _ = gate.evaluate(self.rows, log, self.replay)
+            self.assertFalse(checks["real_audio_reports"])
+        self.assertTrue(self.evaluate()["real_audio_reports"])
+        self.assertEqual(gate.AUDIO_ENV, {"PETARI_SMOKE_REAL_AUDIO": "1", "PETARI_AUDIO_DIAG": "1", "SDL_AUDIO_DRIVER": "coreaudio"})
+
+    def test_any_positive_audio_report_fails_and_all_lines_are_retained(self):
+        log = AUDIO_LOG + "[audio] level 1/1722 frames, underrun 1 frames\n" + "[audio] level 0/1722 frames, underrun 147 frames\n"
+        checks, details = gate.evaluate(self.rows, log, self.replay)
+        self.assertFalse(checks["real_audio_reports"])
+        self.assertFalse(all(checks.values()))
+        self.assertEqual(details["audio_reports"], 52)
+        self.assertEqual(details["audio_underrun_frames"], 148)
+        self.assertEqual([p["underrun_frames"] for p in details["audio_positive_reports"]], [1, 147])
+        for report in details["audio_positive_reports"]:
+            self.assertEqual(log.splitlines()[report["line"] - 1], report["text"])
+
+    def test_extra_or_malformed_underrun_line_cannot_hide_behind_fifty_clean_reports(self):
+        for tail in ("SDL audio underrun: 2 silent frames\n", "[audio] level 0/1722 frames, underrun unknown frames\n"):
+            checks, _ = gate.evaluate(self.rows, AUDIO_LOG + tail, self.replay)
+            self.assertFalse(checks["real_audio_reports"])
 
     def test_complete_route_with_verified_replay_passes(self):
         self.assertTrue(all(self.evaluate().values()))

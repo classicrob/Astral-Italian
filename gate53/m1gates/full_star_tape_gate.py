@@ -5,6 +5,8 @@ APP SHA256 SOURCE LABEL --build-kind server-candidate --allow-incomplete
 Uses a fresh private user, the recorded direct-stage launch and raw KPAD only.
 Checks every available declared row, every play-ready checkpoint (also resumes),
 and the game's own zero-to-one power-star transition. Tape hash is informational.
+The shared normal-route runner forces real CoreAudio and requires >=50 reports
+with zero underrun frames; this check and every positive line remain in RESULT.
 """
 import csv
 import json

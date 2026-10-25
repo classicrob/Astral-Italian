@@ -193,3 +193,68 @@ Open questions for implementation proof: whether K actually removes this
 M1's~2ms return delay without adding monitor wakeups; RT policy acceptance
 and effective budget under code learning; error/fork behavior; M4 latency;
 measurable CPU/energy cost. No success is assumed from an API name.
+
+## Implementation submitted for server compilation (source-only)
+
+`PETARI_BATON_WAIT_MODE=legacy|critical|realtime`, read once at monitor startup;
+unset is legacy. No combined mode exists. Neither a policy nor timer choice
+is promoted as a default. Only K creates a kqueue, only R requests RT policy.
+Experimental setup/runtime errors print FATAL with native error/readback and
+abort the arm; no fallback can masquerade as a successful requested mode.
+
+The K backend publishes its notification availability only after the
+persistent user filter is registered and acknowledged. The monitor primes
+an already-pending startup request once before its first wait. Notification
+coalescing/clear-before-state-inspection is shared with the original semaphore
+path. User+timer delivery is one work iteration. A generation-tagged one-shot
+is cancelled/acknowledged after delivery; ENOENT after automatic one-shot
+removal is normal. EINTR re-enters a blocking receive with no deadline change;
+stale generations cannot complete a current wait. Unexpected/error results
+are exposed, not silently retried. Child close is limited to inherited
+kqueue and lock-free atomics under the existing atfork ordering.
+
+The K trace distinguishes raw `monitor_kevent_return` (before event decoding
+and cancellation) from `host_wait_return`/`monitor_woke` (whole helper,
+including cancellation). Mach samples are bracketed by two explicit steady_ns
+samples. Lower/upper mapped deadline events expose that clock-conversion
+uncertainty; the wait's deadline field is labelled as the UPPER bound, never
+an assumed exact cross-clock offset. Raw Mach deadline, cause, return count,
+interrupts and stale events are retained. Idle timers omit NOTE_CRITICAL;
+requested leeway remains0 and nominal waits/backoff are unchanged.
+
+R logs requested500/250/500us and actual tick fields, set/get/port-release
+errors and default/count readback. Trace-on R reads the same policy at every
+monitor wake and records its fields, API result and host sample. A failed or
+mismatching readback fails the experimental arm. This public readback is
+reported as such, not a guarantee that the kernel never transiently demoted
+the thread between samples. No RT policy change is made to any other thread.
+
+New server targets/tests:
+
+* `petari_monitor_wait_protocol_tests` / `native_monitor_wait_protocol`: real
+  production protocol with a fake blocking backend; conversion/overflow,
+  no combined mode, RT contract/default mismatch, generation rollover,
+  notification coalescing before/after clear and publication, before-block
+  and cancellation races, simultaneous timer+user, unchanged deadline across
+  EINTR/stale delivery, immediate retry, arm/receive/cancel/cleanup errors,
+  empty/oversized/malformed batches. Assertions explicitly enabled in Release.
+* `petari_monitor_wait_backend_tests` / `native_monitor_wait_backend`: actual
+  Darwin critical backend, sticky pre-wait notification, cancelled-timer
+  isolation, immediate timer, asynchronous user event and fork-child descriptor
+  isolation. No new latency threshold; the original OS timing test remains
+  authoritative. Assertions enabled, serial,15s external test cap.
+
+No native compile, syntax check, fixture execution or measurement was run on
+the M1 for this change: SOL B owns r8. Source review/whitespace checks only;
+server compile and all native results are PENDING. The existing source-only
+proposal and e2 diagnostic receipts remain preserved. Required server checks:
+new2 tests; unchanged native_platform_os x3 legacy; trace/probe/patch/analysis/
+attribution; VI/GX/backend/seam and tape suite. Then, only in the assigned M1
+slot, inspect exact-production off-codegen again, rerun the PORT-contaminated
+e2 overhead cohort, and conduct approved L/K/R measurement arms. No success
+or <=1.5ms claim is made by this source submission.
+
+New K helper codegen must also be inspected: its single explicit cached-flag
+branch outlines the complete paired-clock/trace body; the false branch only
+calculates the normal Mach timer plan. No zero-initialized trace clock locals
+are placed before that flag. Actual new compiler placement remains PENDING.

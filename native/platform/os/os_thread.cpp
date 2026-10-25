@@ -51,6 +51,7 @@
 
 #include "petari/platform/crash.hpp"
 #include "os_internal.hpp"
+#include "monitor_wait.hpp"
 #include "os_sdk_private.h"
 #include "petari/host_allocation.hpp"
 #include "petari/platform/diagnostics.hpp"
@@ -101,14 +102,16 @@ std::atomic<std::int64_t> gPreemptSince{0};
 // Wakes the baton monitor when a preemption becomes pending, so a forced
 // preemption follows gPreemptAfterMs later instead of at its next 2 ms poll.
 std::atomic<semaphore_t> gMonitorWake{MACH_PORT_NULL};
-std::atomic<bool> gMonitorWakePending{false};
+MonitorWait::NotificationGate gMonitorWakePending;
 std::int64_t nowTicks();
 void setPreemptPending(bool pending) {
     if (pending && !gPreemptPending) {
         gPreemptSince.store(nowTicks(), std::memory_order_relaxed);
-        if (const semaphore_t wake = gMonitorWake.load(std::memory_order_relaxed);
-            wake != MACH_PORT_NULL && !gMonitorWakePending.exchange(true)) {
-            semaphore_signal(wake);
+        if (MonitorWait::mode() == MonitorWait::Mode::Critical) {
+            gMonitorWakePending.request(MonitorWait::notificationAvailable(), [] { MonitorWait::notify(); });
+        } else {
+            const semaphore_t wake = gMonitorWake.load(std::memory_order_relaxed);
+            gMonitorWakePending.request(wake != MACH_PORT_NULL, [wake] { semaphore_signal(wake); });
         }
     } else if (!pending) {
         gPreemptSince.store(0, std::memory_order_relaxed);
@@ -1214,6 +1217,12 @@ void* batonMonitor(void*) {
     // It must observe stalls when every core is busy (first-use compiles);
     // each poll is one thread_info call.
     pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
+    MonitorWait::applyThreadPolicy(); // Opt-in R only; K and legacy keep the existing QoS.
+    if (MonitorWait::mode() == MonitorWait::Mode::Critical && gPreemptSince.load(std::memory_order_relaxed)) {
+        // A request may precede backend publication at startup. Queue one
+        // notification before the first wait; the gate coalesces an existing one.
+        gMonitorWakePending.request(MonitorWait::notificationAvailable(), [] { MonitorWait::notify(); });
+    }
     Dl_info self{};
     dladdr(reinterpret_cast<void*>(&publishHolder), &self);
     Stretch stretch;
@@ -1226,13 +1235,25 @@ void* batonMonitor(void*) {
         PETARI_GPU_TRACE(PetariNative::GpuTrace::monitorContext = {};
             PetariNative::GpuTrace::monitorContext.span = PetariNative::GpuTrace::nextId();
             PetariNative::GpuTrace::emit("monitor_wait_plan", PetariNative::GpuTrace::monitorContext, static_cast<std::int64_t>(waitMs * 1e6)));
-        if (const semaphore_t wake = gMonitorWake.load(std::memory_order_relaxed); wake != MACH_PORT_NULL) {
+        if (MonitorWait::mode() == MonitorWait::Mode::Critical) {
+            const auto ns = static_cast<std::uint64_t>(waitMs * 1e6);
+            const bool forcedPending = gPreemptSince.load(std::memory_order_relaxed) != 0 &&
+                                       gForcePreemption.load(std::memory_order_relaxed);
+            const auto result = MonitorWait::waitCritical(ns, forcedPending);
+            if (result.notification) {
+                PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("monitor_user_event_received", PetariNative::GpuTrace::monitorContext));
+                // Clear BEFORE inspecting the current pending/holder state. A
+                // notification coalesced during cancellation is handled by that
+                // inspection; a later new pending transition queues a new edge.
+                gMonitorWakePending.consumed();
+            }
+        } else if (const semaphore_t wake = gMonitorWake.load(std::memory_order_relaxed); wake != MACH_PORT_NULL) {
             const auto ns = static_cast<long long>(waitMs * 1e6);
             PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("mach-semaphore-timedwait", PetariNative::GpuTrace::deadlineAfter(ns), PetariNative::GpuTrace::monitorContext));
             if (semaphore_timedwait(wake, mach_timespec_t{static_cast<unsigned>(ns / 1000000000),
                                                         static_cast<clock_res_t>(ns % 1000000000)}) == KERN_SUCCESS) {
                 PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("monitor_semaphore_signaled", PetariNative::GpuTrace::monitorContext));
-                gMonitorWakePending.store(false);
+                gMonitorWakePending.consumed();
             }
             PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
         } else {
@@ -1240,7 +1261,8 @@ void* batonMonitor(void*) {
             std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(waitMs));
             PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
         }
-        PETARI_GPU_TRACE(PetariNative::GpuTrace::emitAt("monitor_woke", PetariNative::GpuTrace::monitorContext, PetariNative::GpuTrace::lastWaitReturnNs));
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::emitAt("monitor_woke", PetariNative::GpuTrace::monitorContext, PetariNative::GpuTrace::lastWaitReturnNs);
+            MonitorWait::traceThreadPolicy());
         waitMs = kMonitorPollMs;
         std::lock_guard<std::mutex> quiesce(monitorQuiesce());
         const std::uint64_t poll = gMonitorPolls.fetch_add(1, std::memory_order_relaxed) + 1;
@@ -1355,9 +1377,12 @@ void startBatonMonitor() {
     if (const char* ms = std::getenv("PETARI_PREEMPT_AFTER_MS"); ms != nullptr && std::atof(ms) >= 0) {
         gPreemptAfterMs.store(std::atof(ms));
     }
-    semaphore_t wake = MACH_PORT_NULL;
-    if (semaphore_create(mach_task_self(), &wake, SYNC_POLICY_FIFO, 0) == KERN_SUCCESS) {
-        gMonitorWake.store(wake);
+    MonitorWait::configure();
+    if (MonitorWait::mode() != MonitorWait::Mode::Critical) {
+        semaphore_t wake = MACH_PORT_NULL;
+        if (semaphore_create(mach_task_self(), &wake, SYNC_POLICY_FIFO, 0) == KERN_SUCCESS) {
+            gMonitorWake.store(wake);
+        }
     }
     mainText();
     knownCode();
@@ -1377,6 +1402,7 @@ void startBatonMonitor() {
         },
         [] {
             gMonitorWake.store(MACH_PORT_NULL);  // the child has no monitor, nor the semaphore
+            MonitorWait::afterForkChild();
             blockStats().lock.unlock();
             monitorQuiesce().unlock();
         });

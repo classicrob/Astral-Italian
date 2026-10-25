@@ -12,6 +12,7 @@
 #include "Game/Util/SingletonHolder.hpp"
 
 #include "host.hpp"
+#include "smoke_observe_safety.hpp"
 
 namespace PetariNative::App::Host {
 
@@ -21,7 +22,7 @@ bool rawPlayerInPlay() {
     // not the file select or a world map, with no pause menu or system talk.
     const GameSystem* pGameSystem = SingletonHolder< GameSystem >::get();
     const GameSystemSceneController* pController = pGameSystem != nullptr ? pGameSystem->mSceneController : nullptr;
-    if (pController == nullptr || pController->mScene == nullptr || !pController->isSceneInitializeState(SceneInitializeState_End)) {
+    if (!Smoke::canObserveScene(pController,SceneInitializeState_End)) {
         return false;
     }
     const SceneControlInfo& info = pController->mCurrSceneControlInfo;

@@ -381,3 +381,44 @@ The planner accepts either M1 or these authorised SERVER builds only with
 after the M4 admission suite. BUILD/PREP, full source SHA, original/perf binary
 hashes and the canonical's file hashes remain bound per arm. This supersedes the
 earlier M1-only build note for this specific round; measurement stays on the M1.
+
+## Defined game-thread teardown observation (r9)
+
+r8's first replay matched all interactive state, native tail reads and the real
+power request at row 12836. Both producer and replay froze at the same position
+on the next update, ended controller-Normal input at 12839, and wrote 33 shutdown
+rows. Only row 12840 differed: the native producer had no observable player;
+replay still exposed the frozen player for one more row. All subsequent CSV rows
+matched, but that later equality is diagnostic only: the strict run failed and
+no dependent arm ran.
+
+This was not a power-delivery offset. Both calls run in the same post-snapshot,
+pre-next-update control seam, use the same synchronous callback and acknowledge
+the same row/phase. Scene destruction runs asynchronously. The old observer
+tested Initialize_End and the scene pointer even after reset had requested
+destruction, so it observed a worker-owned lifetime rather than game state.
+
+The shared native observer gate now checks the game's own `mIsResetProcessing`
+FIRST, then Initialize_End, and only then the scene pointer. `prepareReset()`
+raises that flag on the game thread before requesting destruction. Ordinary
+`requestChangeScene()` already clears Initialize_End before deletion. A teardown
+row retains the controller's stage/scenario and reports the default player
+state: invalid, zero position, grounded=false, dead=false. It does not read the
+scene, actor, camera or scene-object holder while the worker may free them.
+Every shutdown row remains compared strictly, including invalid rows. No row is
+skipped, no timing bound changes and no failed receipt becomes a pass. r9 records
+a NEW canonical; the old r8 tape keeps its original values.
+
+The same gate protects the pre-read tape observer, route/seam recorder, smoke
+observation, stall-context telemetry, progress observer, and Host's read-only
+play-ready query. The latter now becomes false at reset preparation rather than
+at worker completion. No warp/player mutation, input delivery, game update,
+power callback, comparison, SDK, GX, src/include/libs or data code changes.
+
+The mandatory native power test runs a real host worker with both schedules:
+it completes deletion before the 33 observations, or after all 33. The rows must
+be identical and invalid in both schedules, and a counted scene slot must never
+be read after the game-thread reset flag. Normal/initializing/missing-controller
+cases and source guards protect the lifecycle ordering and every call site.
+Native builds/tests remain on PORT's server; M1 work is released to SOL A until
+the new exact, admitted builds and the next slot are available.

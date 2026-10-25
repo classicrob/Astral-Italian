@@ -1034,8 +1034,11 @@ signed-offset definition as cold qualification. It must preserve every pair's
 packet order, including ties, in BOTH warm maps; PFD1 retains warm-1's actual
 packet values. Original raw warm disagreements remain reported as failures
 alongside the independently qualified native-clock result. Missing anchors or
-any residual normalized difference fail closed. TimerSwitchingPlatform has one
-quiet fresh-prime/two-warm retry; another disagreement means whole-stage fallback.
+any residual normalized difference fail closed. TimerSwitchingPlatform's single quiet fresh-prime/two-warm retry reproduced the
+same four differences as b23r, with identical origin392/initEnd416/playReady1271:
+`5cd334436f755e51` scene -664/-665 and `6ec5631b82301661`,
+`872391ca090a7743`, `adef0b699eb9c8b9` scene -544/-545. Both failed pairs are
+retained; this stage keeps whole-stage first-use fallback, with no third attempt.
 
 Title and no-input map observations end at the unique native `Petari: quitting`
 log marker. Every target first-use hash must bind to exactly one stage-config
@@ -1055,7 +1058,9 @@ them absent from the stage DB are not added. Six in-window hashes absent from
 global remain explicitly uncovered (no row or deadline is invented):
 `4562580ba2df567a`, `8db8e4b30c1350c0`, `8e4579239ed88676`,
 `93d0175121192f3a`, `be4af1fe8a906da2`, `f70e3120d70014f8`.
-This specific title qualification does not change StaffRoll's whole-stage fallback.
+This specific title qualification is limited to these six known uncovered hashes;
+any additional unknown global hash fails closed. It does not change StaffRoll's
+whole-stage fallback.
 
 `WorldMap08Galaxy` keeps first-use fallback: all three direct-boot recording arms
 crashed (SIGSEGV in WorldMapOwner::setupWorldName / setTextBoxMessage). This is a

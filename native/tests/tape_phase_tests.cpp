@@ -30,8 +30,9 @@ TP::SeamState row(unsigned canonical) {
 struct Range { unsigned first,end;const char* kind;bool firstNormal,open,map; };
 void tape(const fs::path& p,const std::vector<Range>& ranges) {
     fs::create_directories(p);
+    const unsigned seams=ranges.back().open ? ranges.back().end : 20;
     std::ofstream meta(p/"route.tape.json");
-    meta << "{\"schema\":2,\"complete\":true,\"seams\":20,\"marker_protocol\":\"" << PH::kProtocol
+    meta << "{\"schema\":2,\"complete\":true,\"seams\":" << seams << ",\"marker_protocol\":\"" << PH::kProtocol
          << "\",\"marker_error\":\"\",\"launch\":{\"stage\":\"WorldMap01Galaxy\",\"scenario\":1},\"play_ready_seams\":[],\"input_phases\":[";
     for(unsigned i=0;i<ranges.size();++i) {
         const auto& r=ranges[i];auto s=marker(r.first,r.first,r.firstNormal,r.kind,r.map && r.first>=5);
@@ -46,9 +47,9 @@ void tape(const fs::path& p,const std::vector<Range>& ranges) {
     }
     meta << "]}";meta.close();
     std::ofstream route(p/"route.csv");route << "frame,stage,scenario,valid,x,y,z,grounded,dead\n";
-    for(unsigned i=0;i<20;++i)route << i << ",WorldMap01Galaxy,1,1," << i << ".5,2,3,1,0\n";
-    std::ofstream k(p/"route.kpd",std::ios::binary);k << "SMG2KPD1";number(k,20,8);number(k,20,8);
-    for(unsigned f=0;f<20;++f) {
+    for(unsigned i=0;i<seams;++i)route << i << ",WorldMap01Galaxy,1,1," << i << ".5,2,3,1,0\n";
+    std::ofstream k(p/"route.kpd",std::ios::binary);k << "SMG2KPD1";number(k,seams+1,8);number(k,seams+1,8);
+    for(unsigned f=0;f<=seams;++f) {
         bool active=false;for (const auto& r:ranges)active|=f>=r.first && f<r.end;
         const unsigned n=1+f%3;
         number(k,f,8);number(k,0,4);number(k,0,4);number(k,120,4);

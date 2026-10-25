@@ -67,6 +67,7 @@ def validate(meta, route, reads, actions=None):
         first, end = p.get('first_input_frame'), p.get('end_input_frame_exclusive')
         need(integer(first, 1) and integer(end) and first < end <= meta['seams'], 'phase outside complete prefix')
         need(p.get('end_kind') in ('phase-transition', 'recording-prefix'), 'unknown phase exit')
+        need(p['end_kind'] != 'recording-prefix' or end == meta['seams'], 'open phase does not cover prefix end')
         s = p.get('marker'); state(s)
         need(s['input_frame'] == first and s['kind'] in ('controller-normal', 'scenario-foreground'), 'wrong phase marker')
         if previous:
@@ -278,12 +279,14 @@ def qualify(source, capture, report_path, map_path):
     audit_native(report, original_meta)
     mapping = [json.loads(x) for x in Path(map_path).read_text().splitlines() if x]
     _, canonical = parse_kpd((source/'route.kpd').read_bytes(), allow_trailing=not original_meta.get('complete'))
-    _, actual = parse_kpd((capture/'route.kpd').read_bytes())
+    actual_frames, actual = parse_kpd((capture/'route.kpd').read_bytes())
     rows = list(csv.DictReader((capture/'route.csv').open()))
     source_rows = list(csv.DictReader((source/'route.csv').open()))
     need(meta.get('mods') == original_meta.get('mods') and meta.get('replay_env') == original_meta.get('replay_env'),
          'capture changed recorded mods or scene hooks')
     need(meta.get('complete') is True and meta.get('lossy_samples') == meta.get('unencodable_samples') == 0, 'capture incomplete/lossy')
+    need(actual_frames == meta['seams'] + 1 and meta['kpd_samples'] == sum(len(r['samples']) for r in actual),
+         'capture KPD frame/sample counters differ from complete sidecar')
     actual_actions = parse_actions((capture/'route.actions').read_text())
     summary = validate(meta, rows, actual, actual_actions)
     proof = audit_inputs(canonical, actual, mapping, report)

@@ -12,7 +12,7 @@ def marker(f=3):
 
 def fixture():
     phase = dict(id=0, first_input_frame=3, end_input_frame_exclusive=7, end_kind='recording-prefix', marker=marker(), checkpoints=[])
-    meta = dict(schema=2, marker_protocol='game-scene-pre-read-v1', marker_error='', seams=8,
+    meta = dict(schema=2, marker_protocol='game-scene-pre-read-v1', marker_error='', seams=7,
                 launch=dict(stage='WorldMap01Galaxy', scenario=1), input_phases=[phase])
     reads = [dict(bootstrap(0, 120), frame=f, ordinal=0) for f in range(3, 7)]
     route = [dict(frame=str(f)) for f in range(8)]
@@ -39,6 +39,7 @@ class Audit(unittest.TestCase):
     def test_bad_recorder(self): self.reject_meta(lambda m: m.update(marker_error='missed first Normal'))
     def test_wrong_first(self): self.reject_meta(lambda m: m['input_phases'][0].update(first_input_frame=4))
     def test_outside_prefix(self): self.reject_meta(lambda m: m['input_phases'][0].update(end_input_frame_exclusive=9))
+    def test_short_open_prefix(self): self.reject_meta(lambda m: m.update(seams=8))
     def test_invented_resume(self): self.reject_meta(lambda m: m['input_phases'][0]['marker'].update(first_normal_update=False))
     def test_nonfinite(self): self.reject_meta(lambda m: m['input_phases'][0]['marker'].update(position_bits=[0x7fc00000, 0, 0]))
     def test_unobserved_checkpoint(self):

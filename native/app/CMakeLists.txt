@@ -305,8 +305,13 @@ if(BUILD_TESTING)
     target_compile_options(petari_gpu_trace_tests PRIVATE -UNDEBUG)
     find_package(Threads REQUIRED)
     target_link_libraries(petari_gpu_trace_tests PRIVATE Threads::Threads)
+    if(APPLE)
+        target_link_libraries(petari_gpu_trace_tests PRIVATE "-framework CoreFoundation" "-framework IOKit")
+    endif()
     add_test(NAME native_gpu_trace COMMAND petari_gpu_trace_tests)
     find_package(Python3 COMPONENTS Interpreter REQUIRED)
     add_test(NAME native_gpu_trace_analysis COMMAND "${Python3_EXECUTABLE}" -B
         "${PETARI_REPO_ROOT}/native/tests/gpu_trace_analysis_tests.py")
+    add_test(NAME native_gpu_trace_attribution COMMAND "${Python3_EXECUTABLE}" -B
+        "${PETARI_REPO_ROOT}/native/tests/gpu_trace_attribution_tests.py")
 endif()

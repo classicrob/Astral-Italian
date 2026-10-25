@@ -9,7 +9,9 @@
 using namespace PetariNative::GpuTrace;
 // PORT can inspect this Release symbol: one flag load/branch before any access.
 extern "C" void petari_gpu_trace_off_probe(int* pointer) {
-    PETARI_GPU_TRACE(++*pointer);
+    PETARI_GPU_TRACE(++*pointer; emitScheduling("off_host", {}, {}, *pointer);
+        waitBegin("off_wait", *pointer); waitEnd();
+        baton.grant(*pointer, *pointer, "off_grant"));
 }
 static int sideEffects = 0;
 static std::vector<int> transcript;
@@ -33,6 +35,39 @@ int main() {
     assert(transcript == baseline && sideEffects == 0 && run == nullptr);
     assert(threadId == 0 && producerSequence == 0); // no trace-side evaluation
 
+    // Fake-clock state tests: reassignment closes an unresumed assignment;
+    // refusal preserves ownership, and an idle release ends the duration.
+    BatonState state;
+    auto first = state.grant(100, 7, "initial");
+    assert(first.holder == 0 && first.waiter == 7 && first.heldNs == 0);
+    auto refused = state.attributes(115, "refusal-system-code", 9);
+    assert(refused.holder == 7 && refused.waiter == 9 && refused.heldNs == 15);
+    assert(state.holder == 7 && state.sinceNs == 100 && state.generation == 1);
+    auto second = state.grant(130, 9, "reassign-unresumed");
+    assert(second.holder == 7 && second.waiter == 9 && second.heldNs == 30);
+    auto idle = state.grant(160, 0, "host-blocking");
+    assert(idle.holder == 9 && idle.heldNs == 30 && state.sinceNs == 0);
+    assert(state.grant(200, 7, "interrupt-idle-grant").heldNs == 0);
+    auto late = waitAttributes({"timed-cond", {}, 100, 120}, 135);
+    assert(late.deadlineNs == 120 && late.waitNs == 35 && late.lateNs == 15);
+    auto early = waitAttributes({"timed-cond", {}, 100, 120}, 110);
+    assert(early.waitNs == 10 && early.lateNs == 0);
+    auto untimed = waitAttributes({"untimed-cond", {}, 100, 0}, 500);
+    assert(untimed.waitNs == 400 && untimed.deadlineNs == 0 && untimed.lateNs == 0);
+    CpuTopology topology; topology.ncpu = 10; topology.logical = {8, 2};
+    assert(std::all_of(topology.cluster.begin(), topology.cluster.end(), [](char c) { return !c; }));
+    // Deliberately non-monotone CPU IDs: no ordering/count-derived P/E map.
+    topology.add(8, 'E'); topology.add(1, 'P'); topology.add(3, 'X');
+    assert(topology.cluster[8] == 'E' && topology.cluster[1] == 'P' && !topology.cluster[3]);
+    topology.add(8, 'P'); assert(topology.conflict[8] && !topology.cluster[8]);
+    topology.add(8, 'E'); assert(!topology.cluster[8]); // conflict is sticky
+    topology.add(1000, 'P'); // bounded, never indexes outside the table
+#if defined(__APPLE__)
+    assert(propertyCluster(CFSTR("P")) == 'P');
+    assert(propertyCluster(CFSTR("Efficiency")) == 0); // no guessed encoding
+    unsigned cpu = 99;
+    assert(!propertyCpu(CFSTR("2"), cpu));
+#endif
     Ring<4> ring;
     Record event{"a", 10, 1, 1, {}};
     for (int i = 0; i < 4; ++i) { event.context.packet = i + 1; assert(ring.push(event)); }
@@ -75,7 +110,11 @@ int main() {
     const std::string path = std::string(temporary) + "/trace.jsonl";
     const char* binding = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     assert(configure("1", path.c_str(), binding));
-    PETARI_GPU_TRACE(emit("writer_fixture"));
+    PETARI_GPU_TRACE(emit("writer_fixture");
+        emitScheduling("host_fixture");
+        waitBegin("outer-untimed"); waitBegin("inner-timed", deadlineAfter(1000000000));
+        waitEnd(); waitEndIf("different"); assert(waitDepth == 1);
+        waitEndIf("outer-untimed"); assert(waitDepth == 0));
     shutdown();
     assert(!enabled.load() && !run->ioErrors.load());
     const auto sequence = producerSequence;
@@ -84,6 +123,10 @@ int main() {
     std::ifstream input(path);
     std::string contents((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
     assert(contents.find("writer_fixture") != std::string::npos);
+    assert(contents.find("\"schema\":2") != std::string::npos);
+    assert(contents.find("\"topology\":") != std::string::npos);
+    assert(contents.find("\"host\":") != std::string::npos);
+    assert(contents.find("\"primitive\":\"inner-timed\"") != std::string::npos);
     assert(contents.find("must_not_exist") == std::string::npos);
     assert(contents.find("\"drops\":0") != std::string::npos);
     assert(contents.find("\"complete\":true") != std::string::npos);

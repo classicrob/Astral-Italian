@@ -8,10 +8,18 @@ import argparse
 import bisect
 import csv
 import hashlib
+import importlib.util
 import json
 import math
 import re
 from pathlib import Path
+
+
+def scheduling_audit(events):
+    spec = importlib.util.spec_from_file_location('petari_trace_attribution', Path(__file__).with_name('gpu_trace_attribution.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.audit(events)
 
 
 def sha(path):
@@ -66,7 +74,7 @@ def join(records, rows):
     headers = [x for x in records if x.get('type') == 'header']
     if headers:
         require(headers[0].get('clock') == 'steady_clock_ns', 'wrong clock')
-        require(headers[0].get('schema') == 1, 'wrong schema')
+        require(headers[0].get('schema') in (1, 2), 'wrong schema')
     footers = [x for x in records if x.get('type') == 'footer']
     require(len(footers) == 1, 'missing/duplicate footer')
     if footers:
@@ -135,7 +143,7 @@ def join(records, rows):
     for e in events:
         if e['event'] == 'thread_birth': births.setdefault(e['subject'], []).append(e)
     for e in events:
-        is_thread = e['event'].startswith('thread_') or e['event'].startswith(('gx_draw_done_wait_', 'gx_token_wait_', 'vi_wait_'))
+        is_thread = e['event'].startswith('thread_') or e['event'].startswith(('gx_draw_done_wait_', 'gx_token_wait_', 'vi_wait_', 'host_blocking_')) or e['event'] in ('baton_grant', 'holder_first_os_observation')
         if not is_thread or not e['subject']: continue
         known = births.get(e['subject'], [])
         i = bisect.bisect_right([b['ns'] for b in known], e['ns']) - 1
@@ -291,6 +299,17 @@ def main():
         if header.get('binding_sha256') != sha(args.binding):
             errors.append('trace binding SHA does not match supplied provenance')
         attribution = worst_rows(joined, intervals, rows)
+        if header.get('schema') == 2:
+            scheduling = scheduling_audit(joined)
+            errors.extend(scheduling['errors'])
+            result['scheduling_attribution'] = scheduling
+            for worst in attribution['worst']:
+                start, end = worst['start_ns'], worst['end_ns']
+                worst['baton_assignments'] = [x for x in scheduling['assignments'] if x['holder'] and
+                    x['start_ns'] < end and x['end_ns'] > start]
+                worst['primitive_waits'] = [x for x in scheduling['waits'] if x['start_ns'] < end and x['end_ns'] > start]
+                worst['host_and_phase_events'] = [e for e in joined if start <= e['ns'] < end and
+                    ('host' in e or e['event'].startswith(('startup_', 'packet_open_phase_', 'frame_slot_', 'frame_staging_', 'queue_callback_')))]
         result.update(trace_sha256=sha(args.trace), frames_sha256=sha(args.frames),
                       mapping_errors=errors, mapping_valid=not errors, footer=footer,
                       attribution_valid=not errors and bool(footer and footer.get('complete')) and

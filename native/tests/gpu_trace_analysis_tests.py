@@ -55,6 +55,15 @@ class TraceAnalysisTests(unittest.TestCase):
         self.assertTrue(any(x['begin'] == 'capture_request' for x in spans))
         self.assertNotIn('total', result)
 
+    def test_schema2_retains_exact_csv_join_and_does_not_invent_backend_end(self):
+        data = fixture(); data[0]['schema'] = 2
+        events, _, errors, _ = report.join(data, self.rows)
+        self.assertEqual(errors, [])
+        audit = report.scheduling_audit(events)
+        self.assertEqual(audit['errors'], [])
+        self.assertIn('inseparable', audit['backend_observation'])
+        self.assertFalse(audit['acceptance'])
+
     def test_fixed_window_no_late_frame_trimming(self):
         rows = [dict(interval_ms='100'), dict(interval_ms='100'), dict(interval_ms='100')]
         result = report.compare(rows, rows, .25)

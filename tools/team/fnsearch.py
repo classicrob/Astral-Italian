@@ -463,6 +463,14 @@ class Search:
         self.relative = Path(edge['source'])
         if self.relative.is_absolute() or '..' in self.relative.parts: raise ValueError('source must be repo-relative')
 
+    def discard(self, row):
+        path = row.pop('work', None)
+        if path is None: return
+        path = Path(path)
+        if path.parent != self.work or not re.fullmatch(r'candidate-\d{5}', path.name) or path.is_symlink():
+            raise ValueError('refusing candidate cleanup outside private scratch')
+        if path.exists(): shutil.rmtree(path)
+
     def compile(self, index, text, label):
         if index and time.monotonic() >= self.deadline:
             return dict(index=index, transform=label, compile_seconds=0, diff_seconds=0,
@@ -598,6 +606,7 @@ def main():
         for module in (sys.modules[__name__], permute, flagsearch, sg):
             path = Path(module.__file__).resolve()
             pins[str(path)] = sha(path.read_bytes())
+        search.discard(baseline)
         rows.append(baseline)
         texts[0] = source
         seen.add(sha(source.encode()))
@@ -624,6 +633,7 @@ def main():
                         if row['guard_drops']: row['status'] = 'other_function_regressed'
                         elif row['function_score'] <= baseline['function_score']: row['status'] = 'no_improvement'
                         else: row['status'] = 'improved_diff'
+                    if row['status'] != 'improved_diff': search.discard(row)
                     rows.append(row)
             candidates = sorted([r for r in rows if r['status'] == 'improved_diff' and r['function_score'] > best_score], key=lambda r: (-r['function_score'], r['index']))
             next_best = None
@@ -631,6 +641,7 @@ def main():
                 if time.monotonic() >= search.deadline:
                     row['status'] = 'unverified_deadline'; break
                 report = search.report(row)
+                search.discard(row)
                 report_drops = drops(baseline_report, report, symbol)
                 if report_drops or report.get(symbol, 0) < baseline_report.get(symbol, 0):
                     row.update(status='report_regressed', report_drops=report_drops)
@@ -643,6 +654,7 @@ def main():
                 row.update(status='accepted', report_score=report.get(symbol, 0), report_drops={})
                 next_best = row
                 break
+            for row in rows: search.discard(row)
             if next_best is None: break
             accepted, best_score = next_best, next_best['function_score']
             current = texts[accepted['index']]

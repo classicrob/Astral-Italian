@@ -12,7 +12,12 @@ namespace {
 namespace NrvHipDropMoveBlock {
     class HipDropMoveBlockNrvWait : public Nerve {
     public:
-        virtual void execute(Spine*) const;
+        virtual void execute(Spine* pSpine) const {
+            LiveActor* pActor = reinterpret_cast<LiveActor*>(pSpine->mExecutor);
+            if (MR::isFirstStep(pActor)) {
+                MR::validateClipping(pActor);
+            }
+        }
 
         static HipDropMoveBlockNrvWait sInstance;
     };
@@ -246,11 +251,4 @@ void HipDropMoveBlock::exeMove() {
 }
 
 HipDropMoveBlock::~HipDropMoveBlock() {
-}
-
-void NrvHipDropMoveBlock::HipDropMoveBlockNrvWait::execute(Spine* pSpine) const {
-    LiveActor* pActor = reinterpret_cast<LiveActor*>(pSpine->mExecutor);
-    if (MR::isFirstStep(pActor)) {
-        MR::validateClipping(pActor);
-    }
 }

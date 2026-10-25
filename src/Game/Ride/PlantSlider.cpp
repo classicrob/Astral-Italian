@@ -602,38 +602,6 @@ void PlantSlider::exeWait() {
     updatePoints();
 }
 
-PlantSliderPoint::PlantSliderPoint(const TVec3f& pPos, const TVec3f& pUp, const TVec3f& pAxis, f32 thickness)
-    : PlantPoint(pPos, pUp, thickness, pAxis), mBasePos(pPos), mVelocity(0.0f, 0.0f, 0.0f), mTargetPos(pPos) {
-}
-
-#pragma dont_inline on
-// NONMATCHING: vector temporary stack placement differs.
-void PlantSliderPoint::updateSpring(f32 pScale, f32 pDamping) {
-    mVelocity.scale(pDamping);
-    TVec3f diff = mBasePos - mPosition;
-    TVec3f offset(diff);
-    offset.scale(pScale);
-    mVelocity += offset;
-    mPosition += mVelocity;
-    mTargetPos.x = mPosition.x;
-    mTargetPos.y = mPosition.y;
-    mTargetPos.z = mPosition.z;
-}
-
-#pragma dont_inline reset
-
-// Vector operators are expanded differently by the compiler; the spring and blend operands follow the target.
-// NONMATCHING: vector temporary stack placement and operator+= inlining differ.
-void PlantSliderPoint::updateSprings(f32 pHeight, f32 pInterp, f32 pDamping, f32 pAccel) {
-    TVec3f base(mBasePos);
-    base.y -= pHeight;
-    mVelocity.scale(pAccel);
-    TVec3f offset = (mBasePos - mPosition).scaleInline(pDamping);
-    mVelocity += offset;
-    mTargetPos += mVelocity;
-    TVec3f pos = base.scaleInline(pInterp) + mTargetPos.scaleInline(1.0f - pInterp);
-    mPosition = pos;
-}
 
 namespace {
     s32 sLeafPointStart = 0;

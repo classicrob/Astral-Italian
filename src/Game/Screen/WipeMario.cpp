@@ -55,6 +55,6 @@ bool WipeMario::isWipeOut() const { return isNerve(&WipeMarioNrvWipeOut::sInstan
 s32 WipeMario::getWipeType() const { return 2; }
 WipeMario::~WipeMario() {}
 namespace NrvWipeMario {
-    void WipeMarioNrvWipeIn::execute(Spine* spine) const { static_cast<WipeMario*>(spine->mExecutor)->exeWipeIn(); }
-    void WipeMarioNrvWipeOut::execute(Spine* spine) const { static_cast<WipeMario*>(spine->mExecutor)->exeWipeOut(); }
+    inline void WipeMarioNrvWipeIn::execute(Spine* spine) const { static_cast<WipeMario*>(spine->mExecutor)->exeWipeIn(); }
+    inline void WipeMarioNrvWipeOut::execute(Spine* spine) const { static_cast<WipeMario*>(spine->mExecutor)->exeWipeOut(); }
 }

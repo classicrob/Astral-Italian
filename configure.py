@@ -1672,6 +1672,7 @@ config.libs = [
             Object(NonMatching, "Game/Ride/GliBirdTutorial.cpp"),
             Object(NonMatching, "Game/Ride/PlantLeaf2.cpp"),
             Object(NonMatching, "Game/Ride/PlantSlider.cpp"),
+            Object(NonMatching, "Game/Ride/PlantSliderPoint.cpp"),
             Object(NonMatching, "Game/Ride/RollingRock.cpp"),
             Object(NonMatching, "Game/Ride/RollingRockStateParent.cpp"),
             Object(NonMatching, "Game/Ride/RollingRockStateRoll.cpp"),

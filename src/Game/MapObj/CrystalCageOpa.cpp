@@ -17,17 +17,6 @@ namespace NrvCrystalCageOpa {
     NEW_NERVE(CrystalCageOpaNrvBreakAfter, CrystalCageOpa, BreakAfter);
 };  // namespace NrvCrystalCageOpa
 
-namespace NrvCrystalCage {
-    class CrystalCageNrvFall : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const;
-    };
-};  // namespace NrvCrystalCage
-
-void NrvCrystalCage::CrystalCageNrvFall::execute(Spine* pSpine) const {
-    static_cast<CrystalCage*>(pSpine->mExecutor)->exeFall();
-}
-
 CrystalCageOpa::CrystalCageOpa(const char* pName)
     : LiveActor(pName), mWaitTime(1000), mIsStartAnim(false), mIsHideModel(false), mObjName(nullptr), mItemType(-1), mStarPieceNum(5) {}
 

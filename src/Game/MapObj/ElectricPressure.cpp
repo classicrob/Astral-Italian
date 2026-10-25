@@ -11,51 +11,57 @@
 
 
 namespace NrvElectricPressure {
-    // ShotStart and Shot are declared first so the inline executes of WaitFirst and Wait can reference them.
-    // Their sInstance definitions are placed below in sinit order.
-    class ElectricPressureNrvShotStart : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const {
-            ElectricPressure* actor = reinterpret_cast< ElectricPressure* >(pSpine->mExecutor);
-            actor->exeShotStart();
-        };
-
-        static ElectricPressureNrvShotStart sInstance;
-    };
-
-    class ElectricPressureNrvShot : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const {
-            ElectricPressure* actor = reinterpret_cast< ElectricPressure* >(pSpine->mExecutor);
-            actor->exeShot();
-        };
-
-        static ElectricPressureNrvShot sInstance;
-    };
-
     class ElectricPressureNrvWaitFirst : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
-            ElectricPressure* actor = reinterpret_cast< ElectricPressure* >(pSpine->mExecutor);
-            if (MR::isOnSwitchB(actor)) {
-                actor->setNerve(&ElectricPressureNrvShotStart::sInstance);
-            }
-        };
+        virtual void execute(Spine* pSpine) const;
 
         static ElectricPressureNrvWaitFirst sInstance;
     };
 
     class ElectricPressureNrvWait : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
+        virtual void execute(Spine* pSpine) const;
+
+        static ElectricPressureNrvWait sInstance;
+    };
+
+    class ElectricPressureNrvShotStart : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+
+        static ElectricPressureNrvShotStart sInstance;
+    };
+
+    class ElectricPressureNrvShot : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+
+        static ElectricPressureNrvShot sInstance;
+    };
+
+    inline void ElectricPressureNrvWaitFirst::execute(Spine* pSpine) const {
+            ElectricPressure* actor = reinterpret_cast< ElectricPressure* >(pSpine->mExecutor);
+            if (MR::isOnSwitchB(actor)) {
+                actor->setNerve(&ElectricPressureNrvShotStart::sInstance);
+            }
+        }
+
+    inline void ElectricPressureNrvWait::execute(Spine* pSpine) const {
             ElectricPressure* actor = reinterpret_cast< ElectricPressure* >(pSpine->mExecutor);
             if (MR::isStep(actor, actor->mWaitFrames)) {
                 actor->setNerve(&ElectricPressureNrvShotStart::sInstance);
             }
-        };
+        }
 
-        static ElectricPressureNrvWait sInstance;
-    };
+    inline void ElectricPressureNrvShotStart::execute(Spine* pSpine) const {
+            ElectricPressure* actor = reinterpret_cast< ElectricPressure* >(pSpine->mExecutor);
+            actor->exeShotStart();
+        }
+
+    inline void ElectricPressureNrvShot::execute(Spine* pSpine) const {
+            ElectricPressure* actor = reinterpret_cast< ElectricPressure* >(pSpine->mExecutor);
+            actor->exeShot();
+        }
 
     ElectricPressureNrvWaitFirst ElectricPressureNrvWaitFirst::sInstance ATTRIBUTE_WEAK;
     ElectricPressureNrvWait ElectricPressureNrvWait::sInstance ATTRIBUTE_WEAK;

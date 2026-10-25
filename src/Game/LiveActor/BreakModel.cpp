@@ -59,10 +59,10 @@ namespace NrvBreakModel {
     BreakModelNrvWait BreakModelNrvWait::sInstance ATTRIBUTE_WEAK;
     BreakModelNrvBreak BreakModelNrvBreak::sInstance ATTRIBUTE_WEAK;
 
-    void BreakModelNrvWait::execute(Spine* pSpine) const {
+    inline void BreakModelNrvWait::execute(Spine* pSpine) const {
     }
 
-    void BreakModelNrvBreak::execute(Spine* pSpine) const {
+    inline void BreakModelNrvBreak::execute(Spine* pSpine) const {
         BreakModel* pBreakModel = reinterpret_cast< BreakModel* >(pSpine->mExecutor);
         pBreakModel->exeBreak();
     }

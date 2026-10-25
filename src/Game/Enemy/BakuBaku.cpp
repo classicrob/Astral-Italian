@@ -187,6 +187,6 @@ bool BakuBaku::isMoveTurnOrSuccessNerve() {
 BakuBaku::~BakuBaku() {
 }
 
-void NrvBakuBaku::BakuBakuNrvFreeze::execute(Spine* pSpine) const {
+inline void NrvBakuBaku::BakuBakuNrvFreeze::execute(Spine* pSpine) const {
     MR::updateActorStateAndNextNerve(reinterpret_cast<LiveActor*>(pSpine->mExecutor), GET_BAKUBAKU_NERVE(BakuBakuNrvMove));
 }

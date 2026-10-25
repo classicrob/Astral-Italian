@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"  // FunctorBase is defined before the actor classes (weak vtable order)
 #include "Game/Util/BossBussun.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/LiveActor/MaterialCtrl.hpp"

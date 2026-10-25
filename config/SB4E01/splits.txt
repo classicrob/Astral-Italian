@@ -1113,7 +1113,7 @@ auto_10_807D0F74_sbss:
 Game/Util/BossBussun.cpp:
 	.text       start:0x80097F50 end:0x80099AF0
 	.ctors      start:0x80643D98 end:0x80643D9C
-	.data       start:0x8066D668 end:0x8066D7F0
+	.data       start:0x8066D668 end:0x8066D8E0
 	.bss        start:0x80728A88 end:0x80728AC4
 	.sbss       start:0x807D0F78 end:0x807D0FB4
 	.sdata2     start:0x807D7930 end:0x807D796C
@@ -3673,6 +3673,7 @@ Game/Enemy/BakuBaku.cpp:
 	.text       start:0x801556B0 end:0x801560F0
 	.ctors      start:0x80644084 end:0x80644088
 	.rodata     start:0x80647FA8 end:0x80647FB0
+	.data       start:0x80682948 end:0x80682A40
 	.sdata      start:0x807CF7C0 end:0x807CF7C4
 	.sbss       start:0x807D1FB8 end:0x807D1FC8
 
@@ -5194,7 +5195,7 @@ Game/LiveActor/Binder.cpp:
 Game/LiveActor/BreakModel.cpp:
 	.text       start:0x8022F3B0 end:0x8022F6B0
 	.ctors      start:0x80644288 end:0x8064428C
-	.data       start:0x80694CF0 end:0x80694D60
+	.data       start:0x80694CF0 end:0x80694D80
 	.sbss       start:0x807D34A8 end:0x807D34B0
 
 Game/LiveActor/ChangeObj.cpp:
@@ -5645,7 +5646,7 @@ Game/Map/FileSelector.cpp:
 	.text       start:0x8024F220 end:0x80253360
 	.ctors      start:0x806442AC end:0x806442B0
 	.rodata     start:0x80648B78 end:0x80648B90
-	.data       start:0x80697058 end:0x80697540
+	.data       start:0x80697058 end:0x80697770
 	.sdata      start:0x807CFB10 end:0x807CFB18
 	.sbss       start:0x807D3560 end:0x807D35EC
 	.sdata2     start:0x807DC720 end:0x807DC770
@@ -6417,15 +6418,16 @@ auto_10_807D39F4_sbss:
 	.sbss       start:0x807D39F4 end:0x807D39F8 align:4
 
 Game/MapObj/CrystalCage.cpp:
-	.text       start:0x80291A70 end:0x80292ED0
+	.text       start:0x80291A70 end:0x80292EE0
 	.ctors      start:0x8064438C end:0x80644390
 	.rodata     start:0x80649208 end:0x80649220
-	.data       start:0x8069EEB8 end:0x8069EF78
+	.data       start:0x8069ED20 end:0x8069EF88
 	.sbss       start:0x807D39F8 end:0x807D3A08
 
 Game/MapObj/CrystalCageOpa.cpp:
-	.text       start:0x80292ED0 end:0x802934E0
+	.text       start:0x80292EE0 end:0x802934E0
 	.ctors      start:0x80644390 end:0x80644394
+	.data       start:0x8069EF88 end:0x8069F050
 	.sbss       start:0x807D3A08 end:0x807D3A14
 
 auto_10_807D3A14_sbss:
@@ -6505,6 +6507,7 @@ auto_10_807D3A74_sbss:
 Game/MapObj/ElectricPressure.cpp:
 	.text       start:0x80298520 end:0x80298B20
 	.ctors      start:0x806443AC end:0x806443B0
+	.data       start:0x8069FB90 end:0x8069FC90
 	.sbss       start:0x807D3A78 end:0x807D3A88
 
 Game/MapObj/ElectricRail.cpp:
@@ -6636,6 +6639,7 @@ auto_10_807D3AFC_sbss:
 Game/MapObj/FireRingBall.cpp:
 	.text       start:0x802A2D70 end:0x802A3180
 	.ctors      start:0x806443DC end:0x806443E0
+	.data       start:0x806A0C18 end:0x806A0CE0
 	.sbss       start:0x807D3B00 end:0x807D3B08
 
 Game/MapObj/FlipPanel.cpp:
@@ -6802,6 +6806,7 @@ auto_10_807D3C44_sbss:
 Game/MapObj/HipDropMoveBlock.cpp:
 	.text       start:0x802ADB00 end:0x802AE550
 	.ctors      start:0x80644428 end:0x8064442C
+	.data       start:0x806A2280 end:0x806A23D0
 	.sbss       start:0x807D3C48 end:0x807D3C54
 	.sdata2     start:0x807DD6F8 end:0x807DD708
 
@@ -7024,6 +7029,7 @@ auto_10_807D3E34_sbss:
 Game/MapObj/LiftFlower.cpp:
 	.text       start:0x802C3830 end:0x802C4110
 	.ctors      start:0x80644490 end:0x80644494
+	.data       start:0x806A4BB0 end:0x806A4D08
 	.sbss       start:0x807D3E38 end:0x807D3E58
 
 Game/MapObj/LightFruit.cpp:
@@ -10086,9 +10092,14 @@ Game/Ride/PlantLeaf.cpp:
 	.data       start:0x806ED548 end:0x806ED628
 
 Game/Ride/PlantSlider.cpp:
-	.text       start:0x804369D0 end:0x80438AC0
+	.text       start:0x804369D0 end:0x80438870
 	.ctors      start:0x80644834 end:0x80644838
 	.rodata     start:0x8064BFF0 end:0x8064BFF8
+	.data       start:0x806ED628 end:0x806ED7C0
+
+Game/Ride/PlantSliderPoint.cpp:
+	.text       start:0x80438870 end:0x80438AC0
+	.data       start:0x806ED7C0 end:0x806ED7CC
 
 Game/Ride/PlantStalk.cpp:
 	.text       start:0x80438AC0 end:0x80439A80
@@ -11427,7 +11438,7 @@ Game/Screen/WipeMario.cpp:
 	.text       start:0x804A7640 end:0x804A7B80
 	.ctors      start:0x806449C4 end:0x806449C8
 	.rodata     start:0x8064CE58 end:0x8064CE60
-	.data       start:0x806F99C0 end:0x806F9A38
+	.data       start:0x806F99C0 end:0x806F9A78
 	.sdata      start:0x807D0350 end:0x807D0358
 	.sbss       start:0x807D5AB0 end:0x807D5AC0
 	.sdata2     start:0x807E18E0 end:0x807E18E4

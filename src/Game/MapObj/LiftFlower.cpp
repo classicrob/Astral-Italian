@@ -154,12 +154,12 @@ void LiftFlower::exeAppear() {
 LiftFlower::~LiftFlower() {
 }
 
-void NrvLiftFlower::LiftFlowerNrvWaitImmediate::execute(Spine* spine) const {
+inline void NrvLiftFlower::LiftFlowerNrvWaitImmediate::execute(Spine* spine) const {
     LiftFlower* actor = static_cast<LiftFlower*>(spine->mExecutor);
     if (actor->exeWait(0)) actor->setNerve(&LiftFlowerNrvMoveUp::sInstance);
 }
 
-void NrvLiftFlower::LiftFlowerNrvWait::execute(Spine* spine) const {
+inline void NrvLiftFlower::LiftFlowerNrvWait::execute(Spine* spine) const {
     LiftFlower* actor = static_cast<LiftFlower*>(spine->mExecutor);
     if (actor->exeWait(actor->mStopStep)) actor->setNerve(&LiftFlowerNrvMoveUp::sInstance);
 }

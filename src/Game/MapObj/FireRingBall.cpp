@@ -22,14 +22,14 @@ namespace NrvFireRingBall {
     FireRingBallNrvBindStarPointer FireRingBallNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvFireRingBall
 
-void NrvFireRingBall::FireRingBallNrvWait::execute(Spine* pSpine) const {
+inline void NrvFireRingBall::FireRingBallNrvWait::execute(Spine* pSpine) const {
     FireRingBall* pActor = reinterpret_cast< FireRingBall* >(pSpine->mExecutor);
     if (pActor->mBindStarPointerState->tryStartPointBind()) {
         pActor->setNerve(&NrvFireRingBall::FireRingBallNrvBindStarPointer::sInstance);
     }
 }
 
-void NrvFireRingBall::FireRingBallNrvBindStarPointer::execute(Spine* pSpine) const {
+inline void NrvFireRingBall::FireRingBallNrvBindStarPointer::execute(Spine* pSpine) const {
     LiveActor* pActor = reinterpret_cast< LiveActor* >(pSpine->mExecutor);
     MR::updateActorStateAndNextNerve(pActor, &NrvFireRingBall::FireRingBallNrvWait::sInstance);
 }

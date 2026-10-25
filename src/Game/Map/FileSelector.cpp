@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"  // FunctorBase is defined before the actor classes (weak vtable order)
 #include "Game/System/GameDataFunction.hpp"
 #ifdef GALAXY_NATIVE
 #include "Game/System/NativeCompleteSave.hpp"

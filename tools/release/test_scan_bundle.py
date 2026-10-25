@@ -46,6 +46,22 @@ class Bundle(unittest.TestCase):
         found = self.problems()
         self.assertEqual(len(found), 3, found)
 
+    def test_pfd_metadata_is_allowed(self):
+        self.put("Resources/pipeline-seeds/A.pfd", b"PFD1" + bytes(64))
+        self.assertEqual(self.problems(), [])
+
+    def test_pfd_fake_sb4e_disc_header_is_refused(self):
+        data = bytearray(64); data[:6] = b"SB4E01"
+        data[0x18:0x1c] = b"\x5d\x1c\x9e\xa3"
+        self.put("Resources/pipeline-seeds/A.pfd", data)
+        found = " ".join(self.problems())
+        self.assertIn("Wii disc header", found)
+        self.assertIn("game ID/title", found)
+
+    def test_pfd_embedded_game_id_is_still_binary_scanned(self):
+        self.put("Resources/pipeline-seeds/A.pfd", b"PFD1" + bytes(64) + b"SB4E01")
+        self.assertIn("game ID/title", " ".join(self.problems()))
+
     def test_unknown_type_and_bad_db(self):
         self.put("Resources/x.weird", b"1")
         self.put("Resources/seed.db", b"not sqlite")

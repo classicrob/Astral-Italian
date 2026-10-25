@@ -58,7 +58,9 @@ def arm(args, stage, repeat, spot):
     process = common.run(app, out, stage=stage, script=common.REPO / 'native/tools/perf_sweep_move.script',
                          extra={'PETARI_PIPELINE_DIAG': '0', 'PETARI_TRACE_BOOT': '0'}, cold=True, seconds=240)
     measured = tier_cold54m.analyze(out)
-    scored = gate542m.score(out)
+    deadline_counts = {'YosshiHomeGalaxy':183, 'MokumokuValleyGalaxy':168, 'MarioFaceShipGalaxy':74, 'VsKoopaLv1Galaxy':207}
+    # Island is an explicitly unqualified recording fallback; preserve its spot evidence.
+    scored = gate542m.score(out, require_deadlines={stage:deadline_counts[stage]} if stage in deadline_counts else None)
     old = subprocess.run([sys.executable, '-B', str(common.HERE / 'gate533.py'), str(out)], capture_output=True, text=True)
     legacy = json.loads(old.stdout)
     text = (out / 'app.log').read_text(errors='replace')

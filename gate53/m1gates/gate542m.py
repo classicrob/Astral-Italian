@@ -59,7 +59,27 @@ def state_events(text):
     return result, errors
 
 
-def score(folder, title=False, window_seconds=300.0):
+def deadline_requirements(values):
+    result = {}
+    for value in values:
+        match = re.fullmatch(r'([A-Za-z0-9_-]+):([1-9][0-9]*)', value)
+        if not match or match[1] in result:
+            raise ValueError('deadline requirement must be unique Stage:positive-count')
+        result[match[1]] = int(match[2])
+    return result
+
+
+def deadline_admissions(text, required):
+    result = {}
+    for stage, count in required.items():
+        lines = [line for line in text.splitlines() if line.startswith('[gx first-use deadlines] stage=' + stage + ' ')]
+        expected = f'[gx first-use deadlines] stage={stage} policy=frame-then-cost reason=validated configs={count}'
+        result[stage] = {'expected_configs': count, 'observed_lines': lines,
+                         'passed': bool(lines) and all(line == expected for line in lines)}
+    return result
+
+
+def score(folder, title=False, window_seconds=300.0, require_deadlines=None):
     folder = Path(folder)
     text = (folder / 'app.log').read_text(errors='replace')
     with (folder / 'frames.csv').open() as file:
@@ -111,10 +131,12 @@ def score(folder, title=False, window_seconds=300.0):
                       post100_samples=post_seconds >= 30,
                       showing_p99_le33=not showing or stats(showing)['p99_ms'] <= 33,
                       post100_p99_le22=bool(post) and stats(post)['p99_ms'] <= 22)
+    admissions = deadline_admissions(text, require_deadlines or {})
+    if admissions: checks['required_deadline_sidecars_admitted'] = all(r['passed'] for r in admissions.values())
     window = [r for r in menu if r['elapsed_s'] <= window_seconds]
     result = {'passed': all(checks.values()), 'case': str(folder), 'arm': 'title' if title else 'direct',
               'checks': checks, 'thresholds_ms': {'non_gameplay_max': 250, 'showing_p99': 33, 'post100_p99': 22,
-                                               'gameplay_max': 100}, 'split_status': split_status,
+                                               'gameplay_max': 100}, 'split_status': split_status, 'deadline_admission': admissions,
               'first_presented_frame': first, 'first_presented_source': 'explicit frames.csv presented_frame IDs',
               'unsplit': stats(menu), 'all_non_gameplay': stats(nonplay),
               'legacy_focused_menu': stats([r for r in rows if r['phase'] in ('startup', 'menu') and r.get('unfocused') == '0']),
@@ -137,10 +159,14 @@ def main():
     parser.add_argument('--title', action='store_true')
     parser.add_argument('--window-seconds', type=float, default=300)
     parser.add_argument('--out', type=Path)
+    parser.add_argument('--require-deadline-stage', action='append', default=[], metavar='Stage:count',
+                        help='Require exact validated frame-then-cost runtime admission; never use for historical baseline')
     args = parser.parse_args()
     if not math.isfinite(args.window_seconds) or args.window_seconds <= 0:
         parser.error('window-seconds must be positive and finite')
-    results = [score(p, args.title, args.window_seconds) for p in args.cases]
+    try: required = deadline_requirements(args.require_deadline_stage)
+    except ValueError as exc: parser.error(str(exc))
+    results = [score(p, args.title, args.window_seconds, required) for p in args.cases]
     if args.out:
         args.out.write_text(json.dumps({'passed': all(r['passed'] for r in results), 'runs': results}, indent=2) + '\n')
     for result in results: print(json.dumps(result))

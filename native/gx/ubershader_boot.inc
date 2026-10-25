@@ -343,7 +343,7 @@ static void petari_uber_admit_stage(const std::vector<gx::PipelineConfig>& confi
   if (!manifestPath.empty()) {
     auto* db = open_pipeline_cache_seed_db(manifestPath);
     if (db) {
-      auto sidecar = std::filesystem::path(manifestPath); sidecar.replace_extension(".first-use.bin");
+      auto sidecar = std::filesystem::path(manifestPath); sidecar.replace_extension(".pfd");
       loaded = PetariDeadlines::loadManifest(db, sidecar, stage);
       sqlite3_close(db);
     }

@@ -916,7 +916,7 @@ stage-prep gate wired at `GameSystemSceneController::startScene`, a stage waits 
 ## 5.4.2 frame-deadline metadata (v14 candidate)
 
 GX config ABI remains 13. The v14 pack uses the PSD2 envelope to carry versioned
-PFD1 `<Stage>.first-use.bin` sidecars alongside stage config rows. Each sidecar
+PFD1 `<Stage>.pfd` sidecars alongside stage config rows. Each sidecar
 binds its stage and explicit per-config frame groups to a fingerprint of the raw
 SQLite manifest rows. The raw recording build identity, captures, timestamps and
 paths remain in the external provenance receipts and never enter the pack.
@@ -1122,3 +1122,25 @@ the PFD1 codec. The final server candidate must still pass the M1 alternating
 true-cold gameplay/menu cohort, title arms, same-window 5.4.1 comparisons, two
 non-gate cold spot checks and the M4 no-regression set. No acceptance is inferred
 from successful recording or pack integrity.
+
+
+The bundled PFD1 extension is `.pfd` (release approval, 2026-10-24). The native
+loader, CMake resource glob, builder, expansion, verification and tests use
+`<Stage>.pfd`. PSD2 stores stage names and config/frame entries, not filenames:
+the v14 pack bytes and SHA above are unchanged. A fresh complete intake and
+expansion still produced64 DBs/57 `.pfd` files/zero `.bin`, each sidecar byte-
+identical to its earlier filename. Independent repacks were identical to the
+tracked pack; check/expand/verify and the release scanner on the full expansion
+passed. The new receipts are outside the pack at
+`port53/m1g/solb/item3-workers/v14-pfd-intake/`.
+
+Only `.pfd` was added to the release allowlist. The deny list and binary magic/
+game-ID scans are unchanged; tests reject both an SB4E Wii header and an embedded
+SB4E01 identifier inside `.pfd`. The runtime never loads the obsolete suffix.
+The build tool recognizes an unchanged generated expansion with old filenames
+solely to re-expand it safely even when the pack hash is unchanged. Modified
+local expansions remain untouched; packing/verifying legacy filenames fails
+rather than silently dropping metadata. A rebuild must also have no obsolete
+`.bin` files left in its app bundle; the existing release scanner still refuses
+those. The loader/CMake source rename changes the renderer cache identity even
+though the pack bytes are unchanged.

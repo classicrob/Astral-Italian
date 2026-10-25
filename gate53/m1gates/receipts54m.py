@@ -8,9 +8,9 @@ Only explicitly authorized candidate cold/cadence rows are TIER observations;
 missing or invalid tier measurements still refuse. Candidate results cannot
 satisfy frozen54 acceptance.
 """
-import argparse,json,math,os,re,sys
+import argparse,json,math,os,re,sys,subprocess
 from pathlib import Path
-from common import HERE,ROOT,FROZEN,sha,write,rows
+from common import HERE,ROOT,FROZEN,REPO,sha,write,rows
 def is_tier_gate(name,candidate_mode):
  return candidate_mode and name in ('v2-cold-stall','fifo-default-cadence-latency')
 def excluded_by_functional_scope(name,functional_only):
@@ -74,9 +74,10 @@ def summary(g):
  return json.dumps(d,ensure_ascii=False,separators=(',',':'))[:220]
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');p.add_argument('--functional-only',action='store_true');p.add_argument('--latency-result',type=Path,help='approved finite WALL-TIME27 driver result; original cadence evidence remains unchanged');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('campaign',type=Path);p.add_argument('out',type=Path);p.add_argument('--promotion-result',type=Path,help='explicit separate rerun results.json; identity and all 15 cases still checked');p.add_argument('--platform-result',type=Path,help='separate candidate-source platform recheck; original failure retained');p.add_argument('--functional-only',action='store_true');p.add_argument('--latency-result',type=Path,help='approved finite WALL-TIME27 driver result; original cadence evidence remains unchanged');a=p.parse_args()
  base=a.campaign.resolve();m=readj(base/'MANIFEST.json');label=m['label'];candidate_mode=m.get('build_kind')=='server-candidate';meta=m['candidate_build'] if candidate_mode else m['frozen'];expected=meta['perf_exe_sha256'];frozen=meta['build_metadata'] if candidate_mode else readj(FROZEN/'BUILD.json');gates=[];issues=[]
  assert not a.latency_result or candidate_mode
+ assert not a.platform_result or candidate_mode
  assert a.functional_only is m.get('functional_only',False) and (not a.functional_only or candidate_mode)
  excluded=[]
  def gate(name,paths,fn,status,limits=()):
@@ -97,11 +98,20 @@ def main():
   assert launch['app_sha256']==expected and launch['nice']==0 and proc['binary_unchanged'] and proc['seed_unchanged'] and proc['no_faults'] and proc['completed'],name
   assert (d/'frames.csv').is_file() and rows(d/'frames.csv'),name
   return r,launch,proc
- platform=base/'platform/RESULT.json'
+ platform=a.platform_result.resolve() if a.platform_result else base/'platform/RESULT.json'
+ platform_paths=[platform]
+ if a.platform_result:
+  assert platform.is_relative_to(ROOT)
+  platform_paths += [platform.parent/'candidate-source-scan_bundle.py',platform.parent/'scan-bundle.log']
  def pcheck(keys):
-  d=readj(platform);return {'passed':d['perf_exe_sha256']==expected and d['build']['source']==meta['source'] and all(d['checks'].get(k) is True for k in keys),'checks':{k:d['checks'].get(k) for k in keys},'macos':d['macos']}
- gate('macos-15-compat',[platform],lambda:pcheck(('weak-imports','scan-bundle','check-bundle','minos')),'platform compatibility')
- gate('seed-pack',[platform,base/'platform/seed-pack.json'],lambda:pcheck(('seed-pack-count','seed-integrity','resource-copy-identical')),'64 seed databases identical to selected source resources')
+  d=readj(platform)
+  if a.platform_result:
+   proof=d['scanner_provenance'];scanner=platform.parent/'candidate-source-scan_bundle.py'
+   assert proof['source']==meta['source'] and proof['git_path']=='tools/release/scan_bundle.py' and Path(proof['path'])==scanner and proof['sha256']==sha(scanner)
+   assert scanner.read_bytes()==subprocess.check_output(['git','show',meta['source']+':tools/release/scan_bundle.py'],cwd=REPO)
+  return {'passed':d['perf_exe_sha256']==expected and d['build']['source']==meta['source'] and all(d['checks'].get(k) is True for k in keys),'checks':{k:d['checks'].get(k) for k in keys},'macos':d['macos']}
+ gate('macos-15-compat',platform_paths,lambda:pcheck(('weak-imports','scan-bundle','check-bundle','minos')),'platform compatibility')
+ gate('seed-pack',[platform,platform.parent/'seed-pack.json'],lambda:pcheck(('seed-pack-count','seed-integrity','resource-copy-identical')),'64 seed databases identical to selected source resources')
  promo=a.promotion_result.resolve() if a.promotion_result else runpath('promotion')/'results.json'
  def promotion():
   rs=readj(promo);want={(n,mode) for n in ('yoshi','flip','fluffy','unlocked-stage-adapter','worldmap','return') for mode in ('fresh','warm')}|{(n,'functional') for n in ('cappy-fluffy','cappy-panel','cappy-spin-after-throw')}
@@ -237,7 +247,7 @@ def main():
   except Exception as e:identity=False;issues.append('protected inputs: '+repr(e))
  if not identity:issues.append('selected build identity/priority')
  interrupted=readj(base/'INTERRUPTED.json') if (base/'INTERRUPTED.json').is_file() else None
- validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','campaign_interruption':interrupted,'functional_only':a.functional_only,'excluded_gates':excluded,'frozen54_acceptance':not candidate_mode and not issues,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'input_latency_evidence_override':str(a.latency_result) if a.latency_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
+ validation={'build_kind':'server-candidate' if candidate_mode else 'frozen54','campaign_interruption':interrupted,'functional_only':a.functional_only,'excluded_gates':excluded,'frozen54_acceptance':not candidate_mode and not issues,'platform_evidence_override':str(a.platform_result) if a.platform_result else None,'promotion_evidence_override':str(a.promotion_result) if a.promotion_result else None,'input_latency_evidence_override':str(a.latency_result) if a.latency_result else None,'passed':not issues,'failed_gates':issues,'tier_threshold_failures':[g['gate'] for g in gates if g['classification']=='tier' and not g['passed']],'gates':gates,'identity_verified':identity,'nice':0,'receipts_written':False}
  write(base/'VALIDATION.json',validation)
  lines=[('M1 server candidate '+frozen['source'] if candidate_mode else 'M1 frozen 5.4')+' versus server (actual evidence; nice 0 on M1)','',f"Source exe {frozen['binary_sha256']}; re-signed perfm1a exe {expected}.",'M1 Max / macOS 15.1 / built-in 120 Hz ProMotion. Panel cadence is recorded per run.','Server promotion/normal/intro/Cappy used nice 19; PORT approved nice 0 on M1 because the shared harness is load-sensitive.','', '| Gate | Server | M1 | Comparison |','| --- | --- | --- | --- |']
  if a.functional_only:lines[0:0]=['Functional-only scope: '+m['scope_authority']+'. Excluded rows are omitted, never reported PASS.','']
@@ -246,6 +256,7 @@ def main():
   detail=summary(g)
   lines.append('| '+g['gate']+' | '+SERVER.get(g['gate'],'Derived functional check')+' | '+g['status']+': '+detail.replace('|','\\|').replace('\n',' ')+' | '+('Preserved older-source comparison' if g['classification']=='source-comparison' else 'M1 tier observation' if g['classification']=='tier' else 'Same acceptance met' if g['passed'] else 'Different: failed or unavailable')+' |')
  if a.promotion_result:lines+=['',f'Promotion evidence explicitly re-run after the initial harness table-parser failure: {a.promotion_result}. The initial campaign manifest/log remains unchanged.']
+ if a.platform_result:lines+=['',f'Platform evidence explicitly rechecked with the selected candidate source scanner: {a.platform_result}. Original platform failure and refused validation remain preserved. The a23609ca source comparison remains superseded and excluded by PORT.']
  if a.latency_result:lines+=['',f'PORT-approved latency harness fix: {a.latency_result}. Finite27 independent WALL-TIME Space presses with absolute send/release/read ledger; movement script Space removed, original host random gap distribution and60ms holds retained. Predicate remains exactly27/27 at2frames in all4arms. Original26/25/25/25 arms, cadence tier observations and initial refusal are preserved; see VALIDATION-initial-input-latency-failure.json and LATENCY-07223918-EXISTING-LOG-FINDING.json. Frozen5.4 also showed25/26; the collision predates5.4.1.']
  lines+=['','Each GX session holds heavy then native.lock. Only the owned perfm1a Metal cache is cleared. Private pipeline caches, user copies and raw captures are deleted after their dependent measurements; CSV/log summaries remain.','Candidate evidence is labelled separately; it does not change frozen54 gate status.']
  if a.functional_only:lines+=['Tape rows are fresh SOL A perf54r runs with separate PREP/signature bindings. The host27 collision reference is historical072 evidence; no failed002 latency measurements are invented. Cold/cadence and Wii proof are excluded by PORT scope, not accepted by this collector.']

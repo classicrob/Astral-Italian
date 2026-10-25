@@ -3,9 +3,16 @@ import argparse,json,os,re,sqlite3,subprocess,sys
 from common import *
 p=argparse.ArgumentParser();p.add_argument('out',type=Path);p.add_argument('--candidate-dir');a=p.parse_args()
 app,meta=campaign_build(a.candidate_dir);out=a.out;out.mkdir(parents=True,exist_ok=False);checks={}
+scanner=REPO/'tools/release/scan_bundle.py'
+scanner_proof=None
+if a.candidate_dir:
+ # Release policy belongs to the selected candidate, not the shared harness HEAD.
+ scanner=out/'candidate-source-scan_bundle.py'
+ scanner.write_bytes(subprocess.check_output(['git','show',meta['source']+':tools/release/scan_bundle.py'],cwd=REPO))
+ scanner_proof={'source':meta['source'],'git_path':'tools/release/scan_bundle.py','path':str(scanner.resolve()),'sha256':sha(scanner)}
 for name,cmd,marker in (
  ('weak-imports',[sys.executable,'-B',REPO/'tools/release/check_weak_imports.py',app],'0 weak import(s) missing'),
- ('scan-bundle',[sys.executable,'-B',REPO/'tools/release/scan_bundle.py','--min-macos','15.0',app],'scan_bundle: clean'),
+ ('scan-bundle',[sys.executable,'-B',scanner,'--min-macos','15.0',app],'scan_bundle: clean'),
  ('check-bundle',[sys.executable,'-B',REPO/'native/tools/check_app_bundle.py',app],'result: PASS'),
  ('minos',['otool','-l',app/'Contents/MacOS/Petari'],'minos 15.0')):
  r=subprocess.run([str(x) for x in cmd],capture_output=True,text=True);(out/(name+'.log')).write_text(r.stdout+r.stderr);checks[name]=r.returncode==0 and marker in r.stdout
@@ -23,5 +30,5 @@ write(out/'seed-pack.json',seedrows)
 r=subprocess.run(['git','diff','--name-only','a23609ca',build['source'],'--','src','include','libs'],cwd=REPO,capture_output=True,text=True)
 checks['wii-source-unchanged']=r.returncode==0 and not r.stdout.strip()
 (out/'wii-source-diff.log').write_text(r.stdout+r.stderr)
-write(out/'RESULT.json',{'passed':all(checks.values()),'checks':checks,'nice':os.getpriority(os.PRIO_PROCESS,0),'build':build,'build_kind':'server-candidate' if a.candidate_dir else 'frozen54','perf_exe_sha256':meta['perf_exe_sha256'],'macos':subprocess.check_output(['sw_vers','-productVersion'],text=True).strip()})
+write(out/'RESULT.json',{'passed':all(checks.values()),'checks':checks,'nice':os.getpriority(os.PRIO_PROCESS,0),'build':build,'build_kind':'server-candidate' if a.candidate_dir else 'frozen54','perf_exe_sha256':meta['perf_exe_sha256'],'macos':subprocess.check_output(['sw_vers','-productVersion'],text=True).strip(),'scanner_provenance':scanner_proof,'wii_comparison_baseline':'a23609ca','wii_comparison_classification':'superseded source comparison; functional acceptance owned separately'})
 sys.exit(not all(checks.values()))

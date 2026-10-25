@@ -2799,11 +2799,10 @@ void Mario::fn_803885F0() {
         f32 temp_f31 = 0.0f;
         u32 var_r29 = 0U;
         while (var_r29 < this->_578) {
-            Triangle* tri = this->_57C[var_r29];
             TVec3f sp8;
-            if (MR::vecKillElement(this->mVelocity, *tri->getNormal(0), &sp8) < temp_f31) {
+            if (MR::vecKillElement(this->mVelocity, *this->_57C[var_r29]->getNormal(0), &sp8) < temp_f31) {
                 this->mVelocity = sp8;
-                this->mSwim->fn_803F7C20(tri->getNormal(0));
+                this->mSwim->fn_803F7C20(this->_57C[var_r29]->getNormal(0));
             }
             var_r29 += 1;
         }
@@ -3177,24 +3176,27 @@ void Mario::fn_803896E0() {
     }
 }
 
+namespace {
+    inline TVec3f calcSlipCorrection(const TVec3f& difference, f32 component) {
+        TVec3f half(difference);
+        half *= 0.5f;
+        f32 magnitude = MR::abs(component);
+        TVec3f correction(half);
+        correction *= magnitude;
+        return correction;
+    }
+}
+
 void Mario::fn_803897A0() {
-    u32 temp_r4 = this->mMovementStates.mHighWord;
-    if (!((temp_r4 >> 28) & 1) || !(static_cast<u32>(this->mMovementStates.mLowBits.mBit30))) {
+    u32 flags = mMovementStates.mHighWord;
+    if (!((flags >> 28) & 1) || !static_cast<u32>(mMovementStates.mLowBits.mBit30)) {
         return;
     }
-    if (((temp_r4 >> 27) & 1) && this->isSlipPolygon(this->_460)) {
-        const TVec3f* nrm = this->_460->getNormal(0);
-        f32 temp_f31 = MR::vecKillElement(this->mVelocity, *nrm, &this->mVelocity);
-        nrm = this->_460->getNormal(0);
-        TVec3f sp14(this->_368);
-        sp14 -= *nrm;
-        TVec3f sp20(sp14);
-        sp20 *= 0.5f;
-        f32 temp_f31_2 = MR::abs(temp_f31);
-        TVec3f sp8(sp20);
-        sp8 *= temp_f31_2;
-        this->mVelocity += sp8;
+    if (!((flags >> 27) & 1) || !isSlipPolygon(_460)) {
+        return;
     }
+    f32 component = MR::vecKillElement(mVelocity, *_460->getNormal(0), &mVelocity);
+    mVelocity += calcSlipCorrection(_368 - *_460->getNormal(0), component);
 }
 
 // NONMATCHING: independent load scheduling and temporary/register allocation.
@@ -3488,7 +3490,7 @@ void Mario::fn_8038A600() {
         sensor = mActor->_924;
     }
     if (sensor == nullptr) {
-        fn_8038A840(nullptr, 0.8f * this->_58.x, 0.0f, 0.8f * this->_58.z);
+        fn_8038A840(0.8f * this->_58.x, 0.0f, 0.8f * this->_58.z);
         if (this->_12C != 0) {
             this->_12C--;
         }
@@ -3521,14 +3523,14 @@ void Mario::fn_8038A600() {
                     limit = 1.0471976f;
                 }
                 f32 clamped = MR::clamp(angle, -limit, limit);
-                fn_8038A840(nullptr, clamped, 0.0f, zero);
+                fn_8038A840(clamped, 0.0f, zero);
                 this->_12C = 0x10;
             }
         }
     }
 }
 
-void Mario::fn_8038A840(void*, f32 x, f32 y, f32 z) {
+void Mario::fn_8038A840(f32 x, f32 y, f32 z) {
     this->_58.set(x, y, z);
     MR::orderRotateMtx(0, this->_58, this->_64);
     MR::orderRotateMtx(0, -this->_58, this->_94);
@@ -3581,16 +3583,17 @@ bool Mario::fn_8038AA30() {
     if (this->_1FC.dot(this->getCamDirY()) < 0.0f) {
         alignment = -alignment;
     }
-    return (alignment < 0.0f && this->_74C < 0.0f) || (alignment > 0.0f && this->_74C > 0.0f);
+    if (alignment < 0.0f && this->_74C < 0.0f) return true;
+    if (alignment > 0.0f && this->_74C > 0.0f) return true;
+    return false;
 }
 
 void Mario::fn_8038AB10() {
     u32 count = this->_754;
     if (count != 0) {
-        f32 phase = this->_74C;
         this->_754 = count - 1;
         this->_750 = 0;
-        this->_74C = phase + ((3.1415927f - phase) / (f32)count);
+        this->_74C += (3.1415927f - this->_74C) / (f32)count;
     }
 }
 

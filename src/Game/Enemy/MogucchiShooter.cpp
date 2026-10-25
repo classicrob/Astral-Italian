@@ -262,9 +262,28 @@ void MogucchiShooter::getShooterTargetMotion(TVec3f* pPos, TVec3f* pVel) {
 
 }
 
-// NONMATCHING: vector temporary stack slots and f29/f30 allocation differ; calls, constants and branches match.
+namespace {
+    inline void refinePredictedTarget(TVec3f& best, f32& bestDist, const TVec3f& origin, const TVec3f& velocity, const TVec3f& muzzle, s32 i) {
+        TVec3f candidate(origin + velocity * i);
+        TVec3f direction(candidate);
+        direction.sub(muzzle);
+        MR::normalize(&direction);
+        TVec3f shot(muzzle + (direction * 22.0f) * i);
+        f32 distance = PSVECDistance(&shot, &candidate);
+        if (distance < bestDist) {
+            best.set(candidate);
+            bestDist = distance;
+        }
+    }
+
+    inline TVec3f calcShooterUp() {
+        TVec3f up;
+        up.set(0.0f, 1.0f, 0.0f);
+        return up;
+    }
+}
+
 void MogucchiShooter::aimShooterAtPredictedTarget(TVec3f* pFront, const TVec3f& rPos) {
-    f32 distance;
     f32 bestDist;
 
     TVec3f origin(0.0f);
@@ -274,23 +293,12 @@ void MogucchiShooter::aimShooterAtPredictedTarget(TVec3f* pFront, const TVec3f& 
     TVec3f muzzle(rPos + *pFront * 800.0f);
     bestDist = 3.4028234663852886e+38f;
     for (s32 i = 0; i < 150; i++) {
-        TVec3f candidate(origin + velocity * i);
-        TVec3f direction(candidate);
-        direction.sub(muzzle);
-        MR::normalize(&direction);
-        TVec3f shot(muzzle + (direction * 22.0f) * i);
-        distance = PSVECDistance(&shot, &candidate);
-        if (distance < bestDist) {
-            best.set(candidate);
-            bestDist = distance;
-        }
+        refinePredictedTarget(best, bestDist, origin, velocity, muzzle, i);
     }
     TVec3f dir(best);
     dir.sub(rPos);
     MR::normalize(&dir);
-    TVec3f up;
-    up.set(0.0f, 1.0f, 0.0f);
-    MR::turnVecToVecDegree(pFront, *pFront, dir, 0.3f, up);
+    MR::turnVecToVecDegree(pFront, *pFront, dir, 0.3f, calcShooterUp());
 
 }
 

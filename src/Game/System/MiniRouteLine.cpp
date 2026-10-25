@@ -50,7 +50,18 @@ MiniRouteLine::MiniRouteLine(const char* pName, WorldMapResultWorld*) : LiveActo
     mMtxSetter = nullptr;
 }
 
-// NONMATCHING: the three scaled copies of the side vector are low-slot temporaries in the target (chained scaleInline inlines too much)
+namespace {
+    inline f32 calcRouteRadius(f32 scale) {
+        return 1000.0f * (scale * 0.5f);
+    }
+
+    inline TVec3f scaleRouteSide(const TVec3f& side, f32 scale) {
+        TVec3f result(side);
+        result.scale(scale);
+        return result;
+    }
+}
+
 void MiniRouteLine::init(const JMapInfoIter&) {
     if (!MR::initActor(this, "MiniRouteLine", true)) {
         MR::connectToScene(this, -1, 20, 39, -1);
@@ -80,16 +91,9 @@ void MiniRouteLine::init(const JMapInfoIter&) {
 
     TVec3f sideVec;
     MR::calcSideVec(&sideVec, this);
-    f32 scaleX = mScale.x;
-    TVec3f a(sideVec);
-    a.scale(scaleX);
-    TVec3f b(a);
-    b.scale(0.5f);
-    TVec3f c(b);
-    c.scale(1000.0f);
-    mCenter.set(mPosition + c);
-    MR::setClippingTypeSphere(this, 1000.0f * (mScale.x * 0.5f), &mCenter);
-    MR::setClippingTypeSphere(mShadowActor, 1000.0f * (mScale.x * 0.5f), &mCenter);
+    mCenter.set(mPosition + scaleRouteSide(scaleRouteSide(scaleRouteSide(sideVec, mScale.x), 0.5f), 1000.0f));
+    MR::setClippingTypeSphere(this, calcRouteRadius(mScale.x), &mCenter);
+    MR::setClippingTypeSphere(mShadowActor, calcRouteRadius(mScale.x), &mCenter);
     MR::startAction(this, "Close");
     MR::startAction(mEffectActor, "Open");
     MR::startBrk(mEffectActor, "Normal");

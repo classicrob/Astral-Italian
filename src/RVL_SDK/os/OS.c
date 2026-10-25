@@ -372,6 +372,25 @@ static void DisableWriteGatherPipe(void) {
     PPCMthid2(hid2);
 }
 
+// Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/os/OS.c
+static void CheckFirmare(void) {
+    OSIOSRev iosRev;
+    u32 firmware;
+    GXColor bg = {0x00, 0x00, 0xFF, 0x00};
+    GXColor fg = {0xFF, 0xFF, 0xFF, 0x00};
+
+    __OSGetIOSRev(&iosRev);
+    firmware = iosRev.major << 0x10;
+    firmware |= iosRev.minor << 0x8;
+    firmware |= iosRev.micro;
+
+    if (iosRev.major != (*(u32*)0x80003188 >> 0x10) || (iosRev.major == (*(u32*)0x80003188 >> 0x10) && firmware < *(u32*)0x80003188)) {
+        OSReport("OS ERROR: This firmware is an improper version for this SDK. Please use a correct Firmware.\n");
+        OSFatal(fg, bg, "\n\nERROR #002\nAn error has occurred.\nPress the Eject Button, remove the\nGame Disc, and turn off the power to \nthe console. \nPlease read the Wii Operations Manual \nfor further instructions.\n");
+        OSPanic(__FILE__, 1243, "Failed to run app");
+    }
+}
+
 static void ReportOSInfo(void) {
     u32 consoleType;
     u32 sysMemSize;
@@ -459,11 +478,12 @@ static void ReportOSInfo(void) {
     OSReport("MEM2 Arena : 0x%x - 0x%x\n", MEM2Lo, MEM2Hi);
 }
 
-// NONMATCHING: compiler removes unused IOS revision fields; equivalent branch/arena-default code and pool symbols differ.
+// Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/os/OS.c
 void OSInit(void) {
     void* bi2StartAddr;
     void* arenaAddr;
     void* defaultArenaLo = (void*)OSRoundUp32B(__ArenaLo);
+    void* defaultArenaHi = (void*)0x81700000;
 
     if (AreWeInitialized != FALSE) {
         return;
@@ -529,7 +549,7 @@ void OSInit(void) {
 
     if (arenaAddr == NULL) {
         void* tmp = BootInfo->arenaHi;
-        arenaAddr = tmp == NULL ? (void*)__ArenaHi : tmp;
+        arenaAddr = tmp == NULL ? defaultArenaHi : tmp;
     }
 
     OSSetMEM1ArenaHi(arenaAddr);
@@ -609,28 +629,7 @@ void OSInit(void) {
 
     if (!__OSInIPL) {
         CheckTargets();
-        {
-            OSIOSRev ios;
-            u32 requiredVersion;
-            GXColor background = {0, 0, 255, 0};
-            GXColor foreground = {255, 255, 255, 0};
-
-            __OSGetIOSRev(&ios);
-            requiredVersion = *(u32*)OSPhysicalToCached(0x3188);
-            if (ios.major != (requiredVersion >> 16) ||
-                (ios.major == (requiredVersion >> 16) &&
-                 ((ios.major << 16) | (ios.minor << 8) | ios.micro) < requiredVersion)) {
-                OSReport("OS ERROR: This firmware is an improper version for this SDK. Please use a correct Firmware.\n");
-                OSFatal(foreground, background,
-                        "\n\nERROR #002\nAn error has occurred.\n"
-                        "Press the Eject Button, remove the\n"
-                        "Game Disc, and turn off the power to \n"
-                        "the console. \n"
-                        "Please read the Wii Operations Manual \n"
-                        "for further instructions.\n");
-                OSPanic(__FILE__, 0x4DB, "Failed to run app");
-            }
-        }
+        CheckFirmare();
         DVDInit();
 
         if (__OSIsGcam) {
@@ -746,10 +745,11 @@ entry __OSDBINTSTART
 entry __OSDBINTEND
 }
 
+// Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/os/OS.c
 static asm void __OSDBJump(void) {
     nofralloc
 entry __OSDBJUMPSTART
-    bla __OSDBJUMPDEST
+    bla 0x60
 entry __OSDBJUMPEND
 }
 

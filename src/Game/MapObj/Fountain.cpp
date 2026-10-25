@@ -27,7 +27,12 @@ inline void Fountain::initHitSensors(const char* hitSensor) {
     MR::addHitSensorMapObj(this, hitSensor, 16, ::sSensorRadius, TVec3f(0.0f, ::sSensorOffsetY, 0.0f));
 }
 
-// NONMATCHING: Euler-angle floating-point registers are exchanged.
+namespace {
+    inline void initFountainSound(LiveActor* actor) {
+        actor->initSound(4, "Fountain", nullptr, TVec3f(0.0f));
+    }
+}
+
 void Fountain::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     TPos3f mtx;
@@ -37,7 +42,7 @@ void Fountain::init(const JMapInfoIter& rIter) {
     MR::normalize(&mUp);
     MR::getObjectName(&mFountainName, rIter);
     initEffectKeeper(0, mFountainName, false);
-    initSound(4, "Fountain", nullptr, TVec3f(0.0f));
+    initFountainSound(this);
     initHitSensor(1);
     initHitSensors("Body");
     MR::setClippingTypeSphere(this, ::sClippingRadius);

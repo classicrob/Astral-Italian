@@ -1427,10 +1427,9 @@ namespace MR {
         pActor->mVelocity.add(vel);
     }
 
-    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     f32 calcHorizontalSpeed(const LiveActor* pActor) {
-        const TVec3f& rGravity = pActor->mGravity;
         const TVec3f& rVelocity = pActor->mVelocity;
+        const TVec3f& rGravity = pActor->mGravity;
         f32 dot = rGravity.dot(rVelocity);
 
         TVec3f tmp;
@@ -1700,11 +1699,10 @@ namespace MR {
         return MR::repeat(angle, 0.0f, 360.0f);
     }
 
-    // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
     void killVelocityVertical(LiveActor* pActor) {
-        TVec3f& rVelocity = pActor->mVelocity;
-        const TVec3f& rGravity = pActor->mGravity;
-        JMAVECScaleAdd(&rGravity, &rVelocity, &rVelocity, -rGravity.dot(rVelocity));
+        const TVec3f* velocity = pActor->getVelocity();
+        const TVec3f* gravity = pActor->getGravity();
+        pActor->mVelocity.killElement(*velocity, *gravity);
     }
 
     void killVelocityHorizon(LiveActor* pActor) {

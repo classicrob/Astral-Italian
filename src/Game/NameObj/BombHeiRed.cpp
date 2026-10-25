@@ -10,10 +10,13 @@ void BombHeiRed::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("BombHeiRed");
     caps.setDefault();
 
-    mParam._14 = "Wait";
-    mParam._18 = "Turn";
-    mParam._1C = "Talk";
-    mParam._20 = "Turn";
+    const char* turn = "Turn";
+    const char* wait = "Wait";
+    const char* talk = "Talk";
+    mParam._14 = wait;
+    mParam._18 = turn;
+    mParam._1C = talk;
+    mParam._20 = turn;
     mSpinAction = cNPCSpinDefault;
     mTrampledAction = cNPCTrampledDefault;
     mPointingAction = cNPCPointingDefault;
@@ -22,9 +25,10 @@ void BombHeiRed::init(const JMapInfoIter& rIter) {
 
     initialize(rIter, caps, "BombHeiRed", nullptr, nullptr);
 
+    const char* jointName = "Zenmai";
     bool (BombHeiRed::*pCalcFunc)(TPos3f*, const JointControllerInfo&) = &BombHeiRed::calcZenmaiRotation;
     JointControlDelegator< BombHeiRed >* pController = new JointControlDelegator< BombHeiRed >(this, pCalcFunc, nullptr);
-    MR::setJointControllerParam(pController, this, "Zenmai");
+    MR::setJointControllerParam(pController, this, jointName);
     mJointController = pController;
 
     makeActorAppeared();

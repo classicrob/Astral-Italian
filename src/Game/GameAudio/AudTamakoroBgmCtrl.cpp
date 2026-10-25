@@ -99,7 +99,7 @@ void AudTamakoroBgmCtrl::control(f32 speed, bool disabled, s32 frames) {
                         pitchRate = mPitchRateNormal;
                     }
                     if (mState != stateNum) {
-                        if (mState < stateNum) mPitchFrames = mInfo->mPitchRiseFrames;
+                        if (mState <= stateNum) mPitchFrames = mInfo->mPitchRiseFrames;
                         else mPitchFrames = mInfo->mPitchFallFrames;
                         mState = stateNum;
                     }

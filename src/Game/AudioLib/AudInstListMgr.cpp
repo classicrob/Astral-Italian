@@ -107,14 +107,20 @@ void AudInstListMgr::requestStageUseInstList(const char* stage) {
     if (info)
         requestInstList(info);
 }
+namespace {
+    inline void requestConvertedSound(AudInstListMgr* mgr, const char* name, bool protect) {
+        JAISoundID id = AudSoundNameConverter::getSoundIDFromName(name);
+        mgr->requestSoundWaves(id, protect);
+    }
+}
+
 void AudInstListMgr::requestInstList(const JMapInfo* info) {
     s32 count = MR::getCsvDataElementNum(info);
     const char* name = 0;
     for (s32 i = 0; i < count; ++i) {
         MR::getCsvDataStr(&name, info, "SoundName", i);
         if (!MR::isEqualString(name, "<Anonymous>")) {
-            JAISoundID id = AudSoundNameConverter::getSoundIDFromName(name);
-            requestSoundWaves(id, false);
+            requestConvertedSound(this, name, false);
         }
     }
 }
@@ -361,8 +367,7 @@ void AudInstListMgr::requestActionSounds(const ActionSoundData* data, bool prote
     for (s32 i = 0; i < count; ++i) {
         ActionSoundInfo* info = data->getInfo(i);
         if (info->fn_80220890()) {
-            JAISoundID id = AudSoundNameConverter::getSoundIDFromName(info->getSoundLabel());
-            requestSoundWaves(id, protect);
+            requestConvertedSound(this, info->getSoundLabel(), protect);
         }
     }
 }

@@ -789,13 +789,19 @@ bool Kanina::tryAvoidFallNextMove() {
     return false;
 }
 
-// NONMATCHING: temp stack slots of TVec3f(0)/-gravity are swapped (8 vs 32)
+namespace {
+    inline bool isKaninaInWater(const LiveActor* actor) {
+        return MR::isInWater(actor, TVec3f(0.0f, 0.0f, 0.0f));
+    }
+}
+
 bool Kanina::tryAvoidWaterAhead() {
-    if (!MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+    if (!isKaninaInWater(this)) {
         return false;
     }
 
-    if (!MR::isInWater(this, -mGravity * 150.0f)) {
+    TVec3f up = -mGravity;
+    if (!MR::isInWater(this, up * 150.0f)) {
         return false;
     }
 

@@ -58,7 +58,7 @@ public:
     void appearCometAtGalaxy(const char*, LiveActor*);  // was fn_804F0C60
     void setupCometGalaxy(const char*);  // was fn_804F0D00
     bool updateCometCamera(const char*, TVec3f*, TVec3f*, f32);  // was fn_804F0D90
-    bool updateRouteOpenSound(s32);  // was fn_804F0EE0
+    bool updateRouteOpenSound(s32) const;  // was fn_804F0EE0
 
     /* 0x14 */ s32 mWorldNum;
     /* 0x18 */ WorldMapResultWorld** mWorlds;

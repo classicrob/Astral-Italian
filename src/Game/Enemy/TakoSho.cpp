@@ -127,12 +127,8 @@ void TakoSho::init(const JMapInfoIter& rIter) {
 void TakoSho::initAfterPlacement() {
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f offset = up * 500.0f;
-    TVec3f start(mPosition);
-    start += offset;
-    TVec3f negUp = -up;
-    TVec3f end = negUp * 500.0f;
-    MR::getFirstPolyOnLineToMap(&mPosition, nullptr, start, end);
+    TVec3f start = mPosition + up * 500.0f;
+    MR::getFirstPolyOnLineToMap(&mPosition, nullptr, start, -up * 500.0f);
     if (mConnector != nullptr) {
         mConnector->attachToUnder();
     }

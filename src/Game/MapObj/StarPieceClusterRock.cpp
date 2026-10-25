@@ -43,10 +43,16 @@ bool StarPieceClusterRock::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor
 }
 
 // NONMATCHING: negation temporary uses r4/r3 in the opposite order.
+namespace {
+    inline void reverseDirection(TVec3f* direction) {
+        *direction = -*direction;
+    }
+}
+
 void StarPieceClusterRock::calcStarPieceDirection() {
     TVec3f up(0.0f), side(0.0f), front(0.0f);
     front.set(*MR::getPlayerVelocity());
-    if (MR::normalizeOrZero(&front)) { MR::calcFrontVec(&front, this); front = -front; }
+    if (MR::normalizeOrZero(&front)) { MR::calcFrontVec(&front, this); reverseDirection(&front); }
     MR::calcUpVec(&up, this);
     PSVECCrossProduct(&up, &front, &side);
     if (MR::normalizeOrZero(&side)) MR::calcSideVec(&side, this);

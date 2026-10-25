@@ -149,6 +149,13 @@ void Pyudon::exeFind() {
 
 // exeTrack
 // NONMATCHING: stack slot order of the gravity temporary and distance vector.
+namespace {
+    inline void blendPyudonToCamera(TVec3f* front, const TVec3f& direction) {
+        TVec3f facing = -direction;
+        MR::vecBlendSphere(front, *front, facing, 0.05f);
+    }
+}
+
 void Pyudon::exeTrack() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
@@ -172,7 +179,7 @@ void Pyudon::exeTrack() {
     updateTargetPos();
     updateVelocityToTarget(0.75f, 0.6f);
     dampVelocity(this, 0.97f, 0.98f);
-    MR::vecBlendSphere(&mFront, mFront, -MR::getCamZdir(), 0.05f);
+    blendPyudonToCamera(&mFront, MR::getCamZdir());
 }
 
 // exePyudonLockOn
@@ -384,11 +391,17 @@ void Pyudon::exeDamage() {
 
 // exeDamageAir
 // NONMATCHING: target builds both gravity temporaries before the start vector (instruction order only).
+namespace {
+    inline TVec3f calcPyudonGroundRayStart(const TVec3f& position, const TVec3f& gravity) {
+        return position - gravity * 100.0f;
+    }
+}
+
 void Pyudon::exeDamageAir() {
     if (MR::isFirstStep(this)) MR::validateHitSensor(this, "Damage");
     if (MR::updateActorState(this)) {
         MR::invalidateHitSensor(this, "Damage");
-        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, mPosition - mGravity * 100.0f, mGravity * 200.0f)) {
+        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, calcPyudonGroundRayStart(mPosition, mGravity), mGravity * 200.0f)) {
             setNerve(GET_NERVE(Pyudon, PyudonNrvRecoveryAir));
             return;
         }

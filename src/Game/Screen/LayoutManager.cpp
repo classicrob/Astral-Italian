@@ -754,8 +754,7 @@ void LayoutManager::replaceIndDummyTexture() {
     }
 
     for (u32 paneIdx = 0; paneIdx < mPaneCount; paneIdx++) {
-        nw4r::lyt::Pane* pCurrPane = mPaneInfoList[paneIdx].mPane;
-        nw4r::lyt::Picture* pPicPane = nw4r::ut::DynamicCast< nw4r::lyt::Picture* >(pCurrPane);
+        nw4r::lyt::Picture* pPicPane = nw4r::ut::DynamicCast< nw4r::lyt::Picture* >(mPaneInfoList[paneIdx].mPane);
 
         if (pPicPane == nullptr) {
             continue;

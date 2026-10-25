@@ -1175,13 +1175,8 @@ void MR::findNamePosOnGround(const char* pName, MtxPtr pMtx) {
     mtx.getZDir(front);
     calcGravityVector(nullptr, position, &gravity, nullptr, 0);
 
-    TVec3f offset(gravity);
-    offset.scale(100.0f);
-    TVec3f start(position);
-    start -= offset;
-    TVec3f ray(gravity);
-    ray.scale(1000.0f);
-    if (getFirstPolyOnLineToMap(&hitPos, &triangle, start, ray)) {
+    TVec3f start = position - gravity.scaleInline(100.0f);
+    if (getFirstPolyOnLineToMap(&hitPos, &triangle, start, gravity.scaleInline(1000.0f))) {
         makeMtxUpFrontPos(&mtx, -gravity, front, hitPos);
     }
 

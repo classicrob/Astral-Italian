@@ -87,13 +87,12 @@ void TeresaAtomic::init(const JMapInfoIter& rIter) {
     mChildParts = new PartsModel*[mChildCount];
     mPartsHost = MR::createPartsModelMapObj2(this, "取り巻きテレサ位置", "TeresaAtomicPosition", getBaseMtx());
     MR::startAction(mPartsHost, "Wait");
-    const char* const* followerNames = sFollowerNames;
     for (s32 i = 0; i < mChildCount; i++) {
         mChildParts[i] = new PartsModel(mPartsHost, "取り巻きテレサ", nullptr, nullptr, -1, false);
         MR::initActor(mChildParts[i], "Teresa", "TeresaFollower", false);
         mChildParts[i]->initWithoutIter();
-        mChildParts[i]->loadFixedPosition(followerNames[i], this);
-        MR::setSensorFollowPos(this, followerNames[i], &mChildParts[i]->mPosition);
+        mChildParts[i]->loadFixedPosition(sFollowerNames[i], this);
+        MR::setSensorFollowPos(this, sFollowerNames[i], &mChildParts[i]->mPosition);
     }
     initNerve(NRV(Appear), 0);
     MR::useStageSwitchSyncAppear(this, rIter);

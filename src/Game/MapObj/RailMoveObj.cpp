@@ -524,8 +524,7 @@ void RailMoveLavaProjmapObj::initAfterPlacement() {
 
     mGroundDistance = PSVECDistance(&mPosition, &mGroundPos);
 
-    TVec3f diff(mPosition);
-    diff -= mGroundPos;
+    TVec3f diff = mPosition - mGroundPos;
     if (diff.dot(mGravity) < 0.0f) {
         mGroundDistance *= -1.0f;
     }

@@ -237,19 +237,24 @@ void BrosStateJump::selectTarget() {
 }
 
 // NONMATCHING: stack slots of the dummy TVec3 and the negated-gravity temp are swapped (only addi r1 offsets differ).
+namespace {
+    inline void turnJumpFrontToPlayer(BrosBase* host, f32 turnRate) {
+        TVec3f toPlayer(0.0f);
+        MR::calcVecToPlayerH(&toPlayer, host, &host->mGravity);
+        MR::vecBlendSphere(&host->mFront, host->mFront, toPlayer, turnRate);
+    }
+}
+
 void BrosStateJump::updateJump() {
     mJumpVelocity.y -= 1.5f;
     TPos3f mtx;
     PSMTXIdentity(mtx.toMtxPtr());
-    TVec3f upDir = -mHost->mGravity;
-    MR::makeMtxUpFront(&mtx, upDir, mFront);
+    MR::makeMtxUpFront(&mtx, -mHost->mGravity, mFront);
     MR::extractMtxZDir(mtx.toMtxPtr(), &mFront);
     TVec3f dummy(0.0f);
     PSMTXMultVecSR(mtx.toMtxPtr(), &mJumpVelocity, &mHost->mVelocity);
     BrosBase* pHost = mHost;
-    TVec3f toPlayer(0.0f);
-    MR::calcVecToPlayerH(&toPlayer, pHost, &pHost->mGravity);
-    MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, sJumpTurnRate);
+    turnJumpFrontToPlayer(pHost, sJumpTurnRate);
     mStep++;
 }
 

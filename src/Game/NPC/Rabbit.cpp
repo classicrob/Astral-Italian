@@ -112,6 +112,14 @@ void Rabbit::control() {
 }
 
 // NONMATCHING: temporary vector stack slots exchanged.
+namespace {
+    inline void initAppearPath(ParabolicPath* path, const TVec3f& gravity, TVec3f* start) {
+        const TVec3f up = -gravity;
+        start->set(0.0f, cAppearHeight, 0.0f);
+        path->initFromUpVector(*start, TVec3f(0.0f, 0.0f, 0.0f), up, cAppearHop);
+    }
+}
+
 void Rabbit::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::emitEffect(this, "Light");
@@ -120,9 +128,7 @@ void Rabbit::exeAppear() {
 
     ParabolicPath path = ParabolicPath();
     TVec3f v9, v8;
-    const TVec3f up = -mGravity;
-    v8.set(0.0f, ::cAppearHeight, 0.0f);
-    path.initFromUpVector(v8, TVec3f(0.0f, 0.0f, 0.0f), up, ::cAppearHop);
+    initAppearPath(&path, mGravity, &v8);
     path.calcPosition(&v9, getNerveStep() / MR::getBckFrameMax(this));
     mJumpHeight = -v9.y;
 

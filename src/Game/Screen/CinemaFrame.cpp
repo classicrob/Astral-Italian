@@ -163,19 +163,26 @@ void CinemaFrame::exeFrameToScreen() {
 }
 
 // NONMATCHING: compiler duplicates equivalent false-result blocks.
+namespace {
+    inline bool isCinemaPowerStarGreen() {
+        if (MR::isInitializeStateEnd()) {
+            if (MR::isStageMarioFaceShip()) {
+                if (GameSequenceFunction::hasStageResultSequence() &&
+                    MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()))
+                    return true;
+            } else if (MR::isPowerStarGreenInCurrentStage()) {
+                return true;
+            }
+        } else if (MR::isScenarioDecided() && MR::isPowerStarGreenInCurrentStage()) {
+            return true;
+        }
+        return false;
+    }
+}
+
 void CinemaFrame::setColor() {
     MR::startAnim(this, "Color", 1);
-    bool green;
-    if (MR::isInitializeStateEnd()) {
-        if (MR::isStageMarioFaceShip()) {
-            if (GameSequenceFunction::hasStageResultSequence() &&
-                MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()))
-                green = true;
-            else green = false;
-        } else if (MR::isPowerStarGreenInCurrentStage()) green = true;
-        else green = false;
-    } else if (MR::isScenarioDecided() && MR::isPowerStarGreenInCurrentStage()) green = true;
-    else green = false;
+    bool green = isCinemaPowerStarGreen();
     if (green) MR::setAnimFrameAndStop(this, 1.0f, 1);
     else MR::setAnimFrameAndStop(this, 0.0f, 1);
 }

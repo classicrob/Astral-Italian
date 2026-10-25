@@ -265,7 +265,7 @@ public:
     static bool tryStrongStamp(NerveExecutor*, TwoLegs*, HitSensor*, HitSensor*);  // fn_80109770
     static bool tryStamp(NerveExecutor*, TwoLegs*, HitSensor*, HitSensor*);        // fn_801097D0
     static bool isStampTiming(NerveExecutor*, TwoLegs*, HitSensor*);               // fn_80109830
-    bool isWalkEnd();                   // fn_80109920
+    bool isWalkEnd() const;             // fn_80109920
     void exeReverseSign();              // fn_80109990
     void exeDown();                     // fn_80109A10
     void exeWalk();                     // fn_80109A90

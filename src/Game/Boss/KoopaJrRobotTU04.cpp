@@ -142,9 +142,7 @@ bool KoopaJrRobot::tryAttackMapSensorsAroundJoint(const char* pJoint, const TVec
         MR::vecKillElement(xDir, negGravity, &v);
         MR::normalize(&v);
         MR::rotateVecDegree(&v, negGravity, (360.0f / num) * i);
-        TVec3f scaled = v * range;
-        TVec3f start(origin);
-        start += scaled;
+        TVec3f start = origin + v * range;
         TVec3f copyStart;
         copyStart.x = start.x;
         copyStart.y = start.y;

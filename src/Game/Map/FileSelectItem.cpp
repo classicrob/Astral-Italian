@@ -100,6 +100,14 @@ FileSelectItem::FileSelectItem(s32 a1, bool a2, const FileSelectIconID& rID, con
     }
 }
 
+namespace {
+    inline TVec3f makeFileSelectSoundOffset() {
+        TVec3f offset;
+        offset.setAll<f32>(0.0f);
+        return offset;
+    }
+}
+
 void FileSelectItem::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     MR::createSceneObj(SceneObj_MiiFacePartsHolder);
@@ -110,9 +118,7 @@ void FileSelectItem::init(const JMapInfoIter& rIter) {
     MR::initStarPointerTarget(this, 1000.0f, TVec3f(0.0f, 900.0f, 0.0f));
     MR::invalidateClipping(this);
 
-    TVec3f soundPos;
-    soundPos.setAll<f32>(0.0f);
-    initSound(4, "FileSelectItem", nullptr, soundPos);
+    initSound(4, "FileSelectItem", nullptr, makeFileSelectSoundOffset());
 
     initNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvNewWait));
     MR::createCenterScreenBlur();

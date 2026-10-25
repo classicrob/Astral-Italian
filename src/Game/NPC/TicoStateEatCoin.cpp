@@ -55,7 +55,8 @@ void TicoStateEatCoin::exeTurn() {
 #endif
     TVec3f direction(0.0f, 0.0f, 1.0f);
     direction.sub(cameraPosition, mMouthPosition);
-    if (MR::faceToVector(&mActor->mOrientationQuat, direction, mActor->mParam._8)) setNerve(&TicoStateEatCoinNrvEat::sInstance);
+    NPCActor* actor = mActor;
+    if (MR::faceToVector(&actor->mOrientationQuat, direction, actor->mParam._8)) setNerve(&TicoStateEatCoinNrvEat::sInstance);
 }
 
 #pragma dont_inline reset

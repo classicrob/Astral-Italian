@@ -196,8 +196,10 @@ bool WorldMapResultCommand::updateCometCamera(const char* pName, TVec3f* pFrom, 
 }
 
 // NONMATCHING: target normalizes the first flag before the call (ori r4,r3,0)
-bool WorldMapResultCommand::updateRouteOpenSound(s32 worldId) {
+bool WorldMapResultCommand::updateRouteOpenSound(s32 worldId) const {
     WorldMapResultWorld* pWorld = mWorlds[worldId - 1];
-    bool hasValue = pWorld->mWorldData->startOpenSoundAll();
-    return (hasValue | pWorld->mUnit14->updateAll()) != 0;
+    bool hasValue = false;
+    hasValue |= pWorld->mWorldData->startOpenSoundAll();
+    hasValue |= pWorld->mUnit14->updateAll();
+    return hasValue;
 }

@@ -1475,9 +1475,15 @@ bool MarioAnimator::isAnimationRun(const char* name, u32 index) {
     }
     return true;
 }
+namespace {
+inline f32 getAnimationEndFrame(const XanimePlayer* player) {
+    return player->mFrameCtrl->mEnd;
+}
+}
+
 f32 MarioAnimator::fn_803DD530() {
     if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->mFrameCtrl->mEnd;
-    return mXanimePlayer->mFrameCtrl->mEnd;
+    return getAnimationEndFrame(mXanimePlayer);
 }
 
 #pragma auto_inline off
@@ -1751,10 +1757,16 @@ void MarioAnimator::fn_803DF2D0() {
 void MarioAnimator::fn_803DF8E0() {
     for (s32 i=0;i<MR::getJointNum(mActor);++i) mXanimePlayerExtra->mCore->mJointList[i]=mXanimePlayer->mCore->mJointList[i];
 }
+namespace {
+inline void clearYoshiWorldOffset(MarioAnimator* animator) {
+    TVec3f offset(0.0f,0.0f,0.0f);
+    animator->getYoshiAnimationPlayer()->mCore->getJointTransform(0)->mWorldTranslationOffset=offset;
+}
+}
+
 void MarioAnimator::fn_803DF9D0() {
     setYoshiJointMatrix("AllRoot",nullptr);setYoshiJointOffset("Center",TVec3f(0.0f,0.0f,0.0f));
-    TVec3f offset(0.0f,0.0f,0.0f);
-    getYoshiAnimationPlayer()->mCore->getJointTransform(0)->mWorldTranslationOffset=offset;
+    clearYoshiWorldOffset(this);
     for (s32 i=0;i<MR::getJointNum(mActor);++i) mXanimePlayer->mCore->mJointList[i]=mXanimePlayerExtra->mCore->mJointList[i];
 }
 void MarioAnimator::fn_803DFAC0() {

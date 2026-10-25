@@ -104,7 +104,7 @@ bool TwoLegsStateWalkDamage::isStampTiming(NerveExecutor* pState, TwoLegs* pHost
     return ret;
 }
 
-bool TwoLegsStateWalkDamage::isWalkEnd() {
+bool TwoLegsStateWalkDamage::isWalkEnd() const {
     if (mAttacked) {
         return true;
     }

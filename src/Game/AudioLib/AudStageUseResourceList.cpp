@@ -17,7 +17,7 @@ void AudStageUseResourceList::load() {
     mParsers[3] = MR::tryCreateStageUseResourceCsvParser("MarioFaceShipGalaxy", "sound_scenario_4");
     mParsers[4] = MR::tryCreateStageUseResourceCsvParser("PeachCastleGalaxy", "sound_scenario_2");
 }
-void AudStageUseResourceList::loadStaticSound() {
+void AudStageUseResourceList::loadStaticSound() const {
     const JMapInfo* parser = mParsers[0];
     AudInstListMgr* mgr = AudWrap::getInstListMgr();
     mgr->requestInstList(parser);

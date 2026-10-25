@@ -134,6 +134,13 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
 }
 
 // NONMATCHING: regalloc
+namespace {
+    inline void calcWaterStreamSide(TVec3f* cross, const LiveActor* actor, const TVec3f& up) {
+        TVec3f invUp = -up;
+        PSVECCrossProduct(&MR::getRailDirection(actor), &invUp, cross);
+    }
+}
+
 f32 WaterStream::calcNearestPos(const TVec3f& rPos, TVec3f* pPos, TVec3f* pDir, TVec3f* pSide) const {
     f32 coord = MR::calcNearestRailCoord(this, rPos);
     MR::calcRailPosAtCoord(pPos, this, coord);
@@ -144,8 +151,7 @@ f32 WaterStream::calcNearestPos(const TVec3f& rPos, TVec3f* pPos, TVec3f* pDir, 
         TVec3f up(0.0f, -1.0f, 0.0f);
         MR::calcGravityVector(this, railPos, &up, NULL, 0);
         TVec3f cross;
-        TVec3f invUp = -up;
-        PSVECCrossProduct(&MR::getRailDirection(this), &invUp, &cross);
+        calcWaterStreamSide(&cross, this, up);
         f32 halfWidth = mWidth * calcCurrentWidthRate(coord);
         TVec3f offsetA = cross;
         offsetA.scale(-halfWidth);

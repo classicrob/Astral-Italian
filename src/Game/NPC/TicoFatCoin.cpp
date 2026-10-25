@@ -109,8 +109,7 @@ void TicoFatCoin::exeTransform() {
     MR::startActionSound(this,"VolDownBgm",-1,-1,-1);
     TVec3f dir(mPosition-MR::getCamPos());
     MR::normalizeOrZero(&dir);
-    TVec3f position(MR::getCamPos()+dir*500.0f);
-    MR::makeMtxFrontUpPos(&mEffectMtx,-MR::getCamZdir(),MR::getCamYdir(),position);
+    MR::makeMtxFrontUpPos(&mEffectMtx,-MR::getCamZdir(),MR::getCamYdir(),MR::getCamPos()+dir*500.0f);
     MR::makeMtxFrontUpPos(&mSmokeMtx,-MR::getCamZdir(),MR::getCamYdir(),mPosition);
     if(!MR::isWipeActive()) {
         MR::stopBck(this);

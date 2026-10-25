@@ -125,7 +125,14 @@ void MapObjActor::kill() {
     LiveActor::kill();
 }
 
-// NONMATCHING: sensor flag load and vector copy scheduling differ.
+namespace {
+    inline f32 calcMapObjSensorRadius(const MapObjActorInitInfo& info, const TVec3f& scale) {
+        f32 radius = info.mSensorRadius;
+        if (info.mIsAffectedByScale) radius *= scale.x;
+        return radius;
+    }
+}
+
 void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInfo& rInfo) {
     if (rInfo.mModelName != nullptr) {
         mObjectName = rInfo.mModelName;
@@ -220,10 +227,7 @@ void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInf
 
     if (rInfo.mHasSensors) {
         initHitSensor(1);
-        f32 radius = rInfo.mSensorRadius;
-        if (rInfo.mIsAffectedByScale) {
-            radius *= mScale.x;
-        }
+        f32 radius = calcMapObjSensorRadius(rInfo, mScale);
 
         // NONMATCHING: target reloads mIsAffectedByScale (lbz) after the position copy; ours CSEs it (scheduling)
         TVec3f position(rInfo.mSensorPosition);

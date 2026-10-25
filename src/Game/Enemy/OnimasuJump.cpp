@@ -25,9 +25,7 @@ void OnimasuJump::calcJumpVelocity() {
 
     TVec3f moveToRailPos(dirToRailPointPos * distToMoveThisFrame);
 
-    TVec3f moveJump(-gravityDir * jumpStrength);
-
-    mVelocity.set(moveToRailPos + moveJump);
+    mVelocity.set(moveToRailPos + -gravityDir * jumpStrength);
 }
 
 s32 OnimasuJump::getLastPointNo() const {

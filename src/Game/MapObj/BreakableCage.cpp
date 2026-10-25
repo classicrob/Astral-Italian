@@ -310,15 +310,7 @@ void BreakableCage::exeWaitStartDemoBreak() {
 // NONMATCHING: equivalent enum comparison folding and register allocation differ.
 void BreakableCage::exeBreak() {
     u32 activateDeadEarly = 1;
-    u32 hasImmediateDeadCondition = 0;
-
-    if (mDelayDeadActivate || mItemModel != nullptr) {
-        hasImmediateDeadCondition = 1;
-    } else if (mCageType == CAGE_FIX) {
-        hasImmediateDeadCondition = 1;
-    } else if (mCageType == CAGE_TRASH) {
-        hasImmediateDeadCondition = 1;
-    }
+    bool hasImmediateDeadCondition = mDelayDeadActivate || mItemModel != nullptr || mCageType == CAGE_FIX || mCageType == CAGE_TRASH;
 
     if (!hasImmediateDeadCondition && mCageType != CAGE_NORMAL) {
         activateDeadEarly = 0;

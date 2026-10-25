@@ -94,16 +94,14 @@ namespace BattanKingVec {
     static TVec3f sOffset950(400.0f, 0.0f, 0.0f);
     static TVec3f sRange95C(1400.0f, 1750.0f, 400.0f);
     static TVec3f sPushOffset(0.0f, 250.0f, 0.0f);
-    static BattanKingVolumeParam sVolumeParam[8] = {
-        {TVec3f(1.6f, 1.0f, 2.0f), TVec3f(0.0f, -480.0f, 1500.0f)},
-        {TVec3f(0.4f, 1.0f, 0.2f), TVec3f(900.0f, -480.0f, 1550.0f)},
-        {TVec3f(0.4f, 1.0f, 0.2f), TVec3f(-900.0f, -480.0f, 1550.0f)},
-        {TVec3f(0.5f, 1.0f, 0.5f), TVec3f(1200.0f, -480.0f, 1550.0f)},
-        {TVec3f(0.5f, 1.0f, 0.5f), TVec3f(-1200.0f, -480.0f, 1550.0f)},
-        {TVec3f(0.5f, 1.0f, 0.8f), TVec3f(430.0f, -480.0f, 350.0f)},
-        {TVec3f(0.5f, 1.0f, 0.8f), TVec3f(-430.0f, -480.0f, 350.0f)},
-        {TVec3f(13.0f, 1.0f, 13.0f), TVec3f(0.0f, -480.0f, 1500.0f)},
-    };
+    static BattanKingVolumeParam sVolumeParam0 = {TVec3f(1.6f, 1.0f, 2.0f), TVec3f(0.0f, -480.0f, 1500.0f)};
+    static BattanKingVolumeParam sVolumeParam1 = {TVec3f(0.4f, 1.0f, 0.2f), TVec3f(900.0f, -480.0f, 1550.0f)};
+    static BattanKingVolumeParam sVolumeParam2 = {TVec3f(0.4f, 1.0f, 0.2f), TVec3f(-900.0f, -480.0f, 1550.0f)};
+    static BattanKingVolumeParam sVolumeParam3 = {TVec3f(0.5f, 1.0f, 0.5f), TVec3f(1200.0f, -480.0f, 1550.0f)};
+    static BattanKingVolumeParam sVolumeParam4 = {TVec3f(0.5f, 1.0f, 0.5f), TVec3f(-1200.0f, -480.0f, 1550.0f)};
+    static BattanKingVolumeParam sVolumeParam5 = {TVec3f(0.5f, 1.0f, 0.8f), TVec3f(430.0f, -480.0f, 350.0f)};
+    static BattanKingVolumeParam sVolumeParam6 = {TVec3f(0.5f, 1.0f, 0.8f), TVec3f(-430.0f, -480.0f, 350.0f)};
+    static BattanKingVolumeParam sVolumeParam7 = {TVec3f(13.0f, 1.0f, 13.0f), TVec3f(0.0f, -480.0f, 1500.0f)};
     static TVec3f sVolumeScale(0.08f, 0.0f, 0.08f);
 }  // namespace BattanKingVec
 
@@ -299,13 +297,13 @@ void BattanKing::control() {
         mShake.y = 0.0f;
     }
 
-    calcVolumeMtx(mVolumeMtxs[0], this, &BattanKingVec::sVolumeParam[0], mShake);
-    calcVolumeMtx(mVolumeMtxs[1], this, &BattanKingVec::sVolumeParam[1], mShake);
-    calcVolumeMtx(mVolumeMtxs[2], this, &BattanKingVec::sVolumeParam[2], mShake);
-    calcVolumeMtx(mVolumeMtxs[3], this, &BattanKingVec::sVolumeParam[3], mShake);
-    calcVolumeMtx(mVolumeMtxs[4], this, &BattanKingVec::sVolumeParam[4], mShake);
-    calcVolumeMtx(mVolumeMtxs[5], this, &BattanKingVec::sVolumeParam[5], mShake);
-    calcVolumeMtx(mVolumeMtxs[6], this, &BattanKingVec::sVolumeParam[6], mShake);
+    calcVolumeMtx(mVolumeMtxs[0], this, &BattanKingVec::sVolumeParam0, mShake);
+    calcVolumeMtx(mVolumeMtxs[1], this, &BattanKingVec::sVolumeParam1, mShake);
+    calcVolumeMtx(mVolumeMtxs[2], this, &BattanKingVec::sVolumeParam2, mShake);
+    calcVolumeMtx(mVolumeMtxs[3], this, &BattanKingVec::sVolumeParam3, mShake);
+    calcVolumeMtx(mVolumeMtxs[4], this, &BattanKingVec::sVolumeParam4, mShake);
+    calcVolumeMtx(mVolumeMtxs[5], this, &BattanKingVec::sVolumeParam5, mShake);
+    calcVolumeMtx(mVolumeMtxs[6], this, &BattanKingVec::sVolumeParam6, mShake);
 
     for (s32 i = 0; i < 7; i++) {
         mVolumeDrawers[i]->setColor(Color8(BattanKingParam::sVolumeColor));
@@ -313,7 +311,7 @@ void BattanKing::control() {
         mVolumeDrawers[i]->setScale(BattanKingVec::sVolumeScale);
     }
 
-    calcVolumeMtx(mEarthquakeMtx, this, &BattanKingVec::sVolumeParam[7], mShake);
+    calcVolumeMtx(mEarthquakeMtx, this, &BattanKingVec::sVolumeParam7, mShake);
     mEarthquakeDrawer->setColor(Color8(BattanKingParam::sEarthquakeColor));
     mEarthquakeDrawer->setDrawPasses(BattanKingParam::sEarthquakeDrawPasses);
     mEarthquakeDrawer->setScale(BattanKingVec::sVolumeScale);

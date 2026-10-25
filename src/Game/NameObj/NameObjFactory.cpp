@@ -1028,19 +1028,21 @@ namespace NameObjFactory {
     extern const PostCreationEntry cPostCreationTable[27];
 
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
+    inline const Name2CreateFunc* findCreatorEntry(const char* name) {
+        for (const Name2CreateFunc* entry = cCreateTable; entry != cCreateTable + 977; ++entry) {
+            if (entry->mName && MR::isEqualStringCase(entry->mName, name)) {
+                return entry;
+            }
+        }
+        return nullptr;
+    }
+
     CreatorFuncPtr getCreator(const char* name) {
         if (PlanetMapCreatorFunction::isRegisteredObj(name))
             return PlanetMapCreatorFunction::getPlanetMapCreator(name);
         if (MR::hasProductMapCreator(name))
             return MR::getProductMapCreator(name);
-        const Name2CreateFunc* end = cCreateTable + 977;
-        const Name2CreateFunc* entry = cCreateTable;
-        for (; entry != end; ++entry) {
-            if (entry->mName && MR::isEqualStringCase(entry->mName, name))
-                break;
-        }
-        if (entry == end)
-            entry = nullptr;
+        const Name2CreateFunc* entry = findCreatorEntry(name);
         if (entry == nullptr)
             return nullptr;
         return entry->mCreateFunc;

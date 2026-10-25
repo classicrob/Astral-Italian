@@ -121,7 +121,7 @@ bool ActorAnimKeeper::isExistAnim(const char* pName) {
 }
 
 // NONMATCHING: load/compare scheduling in prologue (FP order/grouping checked: no FP instructions).
-bool ActorAnimKeeper::isAnyAnimPlaying(const char* pName) {
+bool ActorAnimKeeper::isAnyAnimPlaying(const char* pName) const {
     ActorAnimKeeperInfo* info = mCurrentInfo;
     if (info != nullptr) {
         if (!MR::isEqualStringCase(info->mName, pName)) {

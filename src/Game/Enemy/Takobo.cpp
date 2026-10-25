@@ -137,12 +137,8 @@ void Takobo::init(const JMapInfoIter& rIter) {
 void Takobo::initAfterPlacement() {
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f offset = up * 500.0f;
-    TVec3f start(mPosition);
-    start += offset;
-    TVec3f negUp = -up;
-    TVec3f end = negUp * 500.0f;
-    if (MR::getFirstPolyOnLineToMap(&mPosition, nullptr, start, end)) {
+    TVec3f start = mPosition + up * 500.0f;
+    if (MR::getFirstPolyOnLineToMap(&mPosition, nullptr, start, -up * 500.0f)) {
         mStartPos.set(mPosition);
     }
     if (mConnector != nullptr) {
@@ -268,10 +264,7 @@ void Takobo::exeAttack() {
         pos += a;
         TVec3f b = up * 120.0f;
         pos += b;
-        TVec3f c = up * 2.0f;
-        TVec3f d = mFrontVec * 12.0f;
-        TVec3f dir(d);
-        dir += c;
+        TVec3f dir = mFrontVec * 12.0f + up * 2.0f;
         mInkHolder->spurtTakoboInk(pos, dir);
     }
     updateFallVelocity();
@@ -446,12 +439,8 @@ bool Takobo::isMoving() const {
 }
 
 bool Takobo::isTakoboPlayerInAttackRange() const {
-    TVec3f offset = mGravity * 75.0f;
-    TVec3f pos(mPosition);
-    pos -= offset;
-    TVec3f diff(*MR::getPlayerCenterPos());
-    diff -= pos;
-    return PSVECMag(&diff) < 700.0f;
+    TVec3f pos = mPosition - mGravity * 75.0f;
+    return (*MR::getPlayerCenterPos() - pos).length() < 700.0f;
 }
 
 void Takobo::updateFallVelocity() {

@@ -95,6 +95,14 @@ BalloonFruit::~BalloonFruit() {
 }
 
 // NONMATCHING: vector temporary stack slots differ.
+namespace {
+    inline TVec3f makeBalloonLockOnOffset() {
+        TVec3f offset;
+        offset.setAll<f32>(0.0f);
+        return offset;
+    }
+}
+
 void BalloonFruit::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "BalloonFruit", false);
@@ -115,9 +123,7 @@ void BalloonFruit::init(const JMapInfoIter& rIter) {
     mHomeRot = mRotation;
     mBaseScale = mScale.x;
     mMtxAC.identity();
-    TVec3f sp8;
-    sp8.setAll<f32>(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, mMtxAC, sp8);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, mMtxAC, makeBalloonLockOnOffset());
     initNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvWait), 0);
     MR::useStageSwitchAwake(this, rIter);
     MR::initUseStageSwitchReadA(this, rIter);

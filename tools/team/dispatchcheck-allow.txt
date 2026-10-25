@@ -1,10 +1,6 @@
 # Reviewed non-bugs only (unit container-or-function offset-hex). A fixed row must be removed; never add a row to bless a new bug.
 # ShadowColorSetter calcShadowColor+48 / conflict __as__8_GXColor: the original has a local 24-byte copy of the GXColor assignment (0x80268A70) byte-equal to the named one (0x8014CB40).
-# CollectTicoHolder / SpinCloudBlock __dt__ +28 / conflict __dt__14LiveActorGroup: original local LiveActorGroup destructor copies (0x80290CE0, 0x8030ADB0, 0x5C bytes) differ from our 0x58-byte weak copy by one redundant null check; both call the same two functions.
 # conflict swap__10J2DPicture: two byte-equal 14-byte copies (0x8003DA70, 0x80517150).
 - __as__8_GXColorFRC8_GXColor 0  # conflict CONFLICT 
-- __dt__14LiveActorGroupFv 0  # conflict CONFLICT 
 - swap__10J2DPictureFRfRf 0  # conflict CONFLICT 
 Game/Map/ShadowColorSetter calcShadowColor__2MRFUc 48  # code CROSSED __as__8_GXColorFRC8_GXColor
-Game/MapObj/CollectTicoHolder __dt__17CollectTicoHolderFv 28  # code CROSSED __dt__14LiveActorGroupFv
-Game/MapObj/SpinCloudBlock __dt__19SpinCloudBlockGroupFv 28  # code CROSSED __dt__14LiveActorGroupFv

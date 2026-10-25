@@ -50,6 +50,10 @@ extern XanimeBckTable2 yoshiAnimationBckTable[];
 extern XanimeBckTable3 yoshiAnimationBckTable2[];
 extern XanimeBckTable4 yoshiAnimationBckTable3[];
 
+#ifndef GALAXY_NATIVE
+#include "../src/Game/Player/YoshiAnimationTables.inc"
+#endif
+
 namespace NrvYoshi {
     class YoshiNrv80413840 : public Nerve {
     public:

@@ -72,7 +72,8 @@ namespace {
 
     struct CometGalaxyEntryLess {
         bool operator()(const CometGalaxyEntry& rA, const CometGalaxyEntry& rB) const {
-            return rA.mMedalNum < rB.mMedalNum;
+            const bool& less = rA.mMedalNum < rB.mMedalNum;
+            return less;
         }
     };
 }  // namespace

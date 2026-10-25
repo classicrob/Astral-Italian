@@ -39,7 +39,7 @@ public:
     /* 0xD0 */ s32 mHitTimer;
 };
 
-class SpinCloudBlockGroup : public LiveActorGroup {
+class SpinCloudBlockGroup : public DeriveActorGroup<SpinCloudBlock> {
 public:
     SpinCloudBlockGroup();
 

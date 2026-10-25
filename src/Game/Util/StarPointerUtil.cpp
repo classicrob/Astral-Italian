@@ -392,6 +392,9 @@ namespace MR {
 
 
 
+    // Original pool string at 80669944 has no surviving reference, likely from code stripped from the shipped build.
+    char sTicoSeedGuidanceArea[] = "TicoSeedGuidanceCube";
+
     bool requestTicoFatGuidance() {
         if (MR::isDemoActive()) {
             return false;
@@ -399,6 +402,9 @@ namespace MR {
 
         return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_TicoFat", true);
     }
+
+    // Original pool string at 80669978 has no surviving reference, likely from code stripped from the shipped build.
+    char sBigBubbleGuidance[] = "PointerGuidance_BigBubble";
 
     bool requestMarioLauncherGuidance() {
         return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_MarioLauncher", true);
@@ -410,6 +416,10 @@ namespace MR {
 
 
 
+
+    // Original pool strings at 806699CC/806699E4 have no surviving references, likely from code stripped from the shipped build.
+    char sFileSelectCopyGuidance[] = "System_FileSelect002";
+    char sStarPieceLectureGuidance[] = "PointerGuidance_StarPieceLecture";
 
     bool requestYoshiEatGuidance(bool isShot) {
         if (!MR::isPlayerElementModeYoshi()) {

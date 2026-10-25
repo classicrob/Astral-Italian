@@ -141,6 +141,10 @@ namespace MR {
         return isEqualStageName("StaffRollGalaxy");
     }
 
+    // Original pool string at 80669290 has no surviving reference,
+    // likely from code stripped from the shipped build.
+    char sOceanRingGalaxy[] = "OceanRingGalaxy";
+
     bool isStageStarPieceFollowGroupLimit() {
         return isEqualStageName("EggStarGalaxy") && getCurrentScenarioNo() == 2;
     }
@@ -211,7 +215,6 @@ namespace MR {
         return isEqualStageName("MarioFaceShipGalaxy");
     }
 
-    // NONMATCHING: string pool offsets differ (target pool has an unused OceanRingGalaxy literal at +0x50)
     bool isStageWorldMap() {
         if (isEqualStageName("WorldMap01Galaxy") ||
                isEqualStageName("WorldMap02Galaxy") ||

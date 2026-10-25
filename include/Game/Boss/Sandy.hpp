@@ -209,6 +209,13 @@ public:
     void exeBlur();
 };
 
+// Reconstructed descriptive name; the original name is unknown. The ctor/dtor and vtable 0x8067A760 prove this base layer.
+class SandyStateBase : public ActorStateBase<Sandy> {
+public:
+    SandyStateBase(const char*, Sandy*);
+    virtual ~SandyStateBase() {}
+};
+
 // Helpers shared by the three battle phases (taking the state as first argument).
 bool sandyStateOpenStart(ActorStateBase< Sandy >*, s32);
 bool sandyStateOpenWait(ActorStateBase< Sandy >*, s32);
@@ -279,7 +286,7 @@ public:
     void exeDemo();
 };
 
-class SandyStatePhase1 : public ActorStateBase< Sandy > {
+class SandyStatePhase1 : public SandyStateBase {
 public:
     SandyStatePhase1(Sandy*);
     virtual ~SandyStatePhase1();
@@ -294,7 +301,7 @@ public:
     /* 0x10 */ SandyStateDamage* mDamage;
 };
 
-class SandyStatePhase2 : public ActorStateBase< Sandy > {
+class SandyStatePhase2 : public SandyStateBase {
 public:
     SandyStatePhase2(Sandy*);
     virtual ~SandyStatePhase2();
@@ -309,7 +316,7 @@ public:
     /* 0x10 */ SandyStateDamage* mDamage;
 };
 
-class SandyStatePhase3 : public ActorStateBase< Sandy > {
+class SandyStatePhase3 : public SandyStateBase {
 public:
     SandyStatePhase3(Sandy*);
     virtual ~SandyStatePhase3();

@@ -19,6 +19,8 @@ struct ActorItemTableEntry {
     /* 0xC */ s32 mValue;
 };
 
+const char* sGeneratorPrefix = "ItemGenerator";
+
 const ActorItemTableEntry sItemTable[6] = {
     {"なし", "", 0, 0},
     {"コインx１", "Coinx1", 1, 1},
@@ -28,9 +30,16 @@ const ActorItemTableEntry sItemTable[6] = {
     {"スターピースx１０", "StarPiecex10", 2, 10},
 };
 
-const char* sGeneratorPrefix = "ItemGenerator";
 const char* sNameA = "ヒット";
 const char* sNameB = "踏み";
+}  // namespace
+
+// Original pool strings at 80694B80/80694B8C have no surviving reference,
+// likely from code stripped from the shipped build.
+char sActorItemEnemyHit[] = "敵ヒット";
+char sActorItemEnemyStomp[] = "敵踏み";
+
+namespace {
 const char* sNameC = "ヨッシー食べる";
 const char* sNameD = "ボスダメージ";
 
@@ -92,7 +101,6 @@ inline s32 findActorItemTableIndex(const char* kind) {
     return 0;
 }
 
-// NONMATCHING: regalloc, string-pool order and equivalent loop branches (FP order/grouping checked: no FP instructions).
 // fn_8022B200
 bool ActorItemGenerator::loadEntries(const char* pName) {
     ResourceHolder* pHolder = MR::getResourceHolder(mActor);

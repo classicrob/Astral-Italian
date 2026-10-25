@@ -337,9 +337,9 @@ bool WorldMapOwner::isAllNeededForGrandGalaxy() {
     return completed;
 }
 
-// NONMATCHING: saved-register allocation and normalization scheduling.
 bool WorldMapOwner::updateParts() {
-    bool opened = getInfoHolder()->startOpenSoundAll() != 0;
+    bool opened = false;
+    opened |= getInfoHolder()->startOpenSoundAll();
     opened |= getPointParts()->updateAll();
     return opened;
 }

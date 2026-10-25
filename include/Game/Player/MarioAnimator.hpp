@@ -14,7 +14,7 @@ class XjointTransform;
 class MarioAnimator {
 public:
     MarioAnimator(MarioActor*);
-    inline Mario* getPlayer() const;
+    Mario* getPlayer() const;
 
     void setAnimationFlag(u32);
     void resetAnimationFlag(u32);

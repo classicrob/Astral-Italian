@@ -200,9 +200,11 @@ namespace MR {
         return isFileExist(dst, false);
     }
 
+    char sArchiveFileFormat[] = "%s.arc";
+
     inline bool makeObjectArchiveFileNameFromPrefix(char* pDst, u32 size, const char* pFilePrefix, bool) {
         char fileName[256];
-        snprintf(fileName, sizeof(fileName), "%s.arc", pFilePrefix);
+        snprintf(fileName, sizeof(fileName), sArchiveFileFormat, pFilePrefix);
 
         return makeObjectArchiveFileName(pDst, size, fileName);
     }
@@ -227,7 +229,7 @@ namespace MR {
 
     bool makeLayoutArchiveFileNameFromPrefix(char* pDst, u32 size, const char* pFilePrefix, bool fallback) {
         char fileName[64];
-        snprintf(fileName, sizeof(fileName), "%s.arc", pFilePrefix);
+        snprintf(fileName, sizeof(fileName), sArchiveFileFormat, pFilePrefix);
         bool isExistArc = makeLayoutArchiveFileName(pDst, size, fileName);
 
         const char* pAspectSuffix = isScreen16Per9() ? "16x9" : "4x3";
@@ -245,7 +247,7 @@ namespace MR {
             snprintf(fileName, sizeof(fileName), "%s%s.arc", pFilePrefix, pAspectSuffix);
 
         } else {
-            snprintf(fileName, sizeof(fileName), "%s.arc", pFilePrefix);
+            snprintf(fileName, sizeof(fileName), sArchiveFileFormat, pFilePrefix);
         }
 
         makeLayoutArchiveFileName(pDst, size, fileName);
@@ -253,9 +255,19 @@ namespace MR {
         return true;
     }
 
+    // Original pool strings at 8065DA04/8065DA0C have no surviving reference,
+    // likely from code stripped from the shipped build.
+    char sDesignArchiveName[] = "Design";
+    char sSoundArchiveName[] = "Sound";
+
     void makeDemoArchiveFileName(char* dst, u32 size, const char* stage) {
         StageFileLoader::makeStageArchivePath(dst, size, stage, "Demo");
     }
+
+    // Original pool strings at 8065DA1C/8065DA24 have no surviving reference,
+    // likely from code stripped from the shipped build.
+    char sLightArchiveName[] = "Light";
+    char sZoneInfoArchiveName[] = "ZoneInfo";
 
     void makeScenarioArchiveFileName(char* pDst, u32 size, const char* pStageName) {
         snprintf(pDst, size, "/StageData/%s/%sScenario.arc", pStageName, pStageName);

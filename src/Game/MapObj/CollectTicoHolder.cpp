@@ -3,7 +3,7 @@
 #include "Game/NPC/CollectTico.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
-CollectTicoHolder::CollectTicoHolder() : LiveActorGroup("チコ集め管理", 16) {}
+CollectTicoHolder::CollectTicoHolder() : DeriveActorGroup<CollectTico>("チコ集め管理", 16) {}
 namespace MR {
 void registerCollectTico(CollectTico* actor) {
     MR::createSceneObj(SceneObj_CollectTicoHolder);

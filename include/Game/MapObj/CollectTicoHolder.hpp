@@ -2,7 +2,7 @@
 #include "Game/LiveActor/LiveActorGroup.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 class CollectTico;
-class CollectTicoHolder : public LiveActorGroup {
+class CollectTicoHolder : public DeriveActorGroup<CollectTico> {
 public:
     CollectTicoHolder();
     virtual ~CollectTicoHolder();

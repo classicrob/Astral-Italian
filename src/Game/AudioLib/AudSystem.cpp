@@ -1206,9 +1206,6 @@ void AudSystem::setVolumeZeroForce(s32 menuType) {
     }
 }
 
-#ifndef GALAXY_NATIVE
-JAIStreamAramMgr::~JAIStreamAramMgr() {}
-#endif
 
 namespace AudParams {
     const JAISeCategoryArrangementItem arrangeSE_SY = {8, 16};

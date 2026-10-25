@@ -14,6 +14,10 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "revolution/os.h"
 
+// Original pool string at 806DD6B0 has no surviving reference to its contents,
+// likely from code stripped from the shipped build.
+char sMarioModulePlanetMap[] = "P_PlanetMap";
+
 bool MarioModule::checkSquat(bool a1) {
     if (MR::getKarikariClingNum() < 1 == false) {
         return false;

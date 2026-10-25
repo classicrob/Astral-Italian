@@ -274,6 +274,15 @@ bool MarioFaceShipEventDataHolder::isNpcTalkAllowed() const {
     return false;
 }
 
+namespace MarioFaceShipEventKinds {
+    char sScenarioKind[] = "シナリオ";
+    char sStarCountKind[] = "スター数";
+    char sScenarioAndOpenEventKind[] = "シナリオ + オープン済みイベント";
+    char sCometOpenKind[] = "コメットオープン";
+    char sDualScenarioKind[] = "シナリオA or シナリオB";
+    char sAllStarsKind[] = "イエロースター120個";
+}
+
 bool MarioFaceShipEventDataHolder::hasEventAtResult() const {
     if (!GameSequenceFunction::hasStageResultSequence()) {
         return false;
@@ -287,19 +296,19 @@ bool MarioFaceShipEventDataHolder::hasEventAtResult() const {
 
     for (s32 i = 0; i < mEventInfoNum; i++) {
         MarioFaceShipEventInfo* pInfo = mEventInfos[i];
-        if (MR::isEqualString(pInfo->mKind, "シナリオ")) {
+        if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sScenarioKind)) {
             if (pInfo->mStarId1 == starId && MR::isEqualString(pStageName, pInfo->mName1) && MR::isEqualString(pInfo->mReturnType, "下")) {
                 return true;
             }
-        } else if (MR::isEqualString(pInfo->mKind, "スター数")) {
+        } else if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sStarCountKind)) {
             if (pInfo->mThreshold == starNum && MR::isEqualString(pInfo->mReturnType, "下")) {
                 return true;
             }
-        } else if (MR::isEqualString(pInfo->mKind, "コメットオープン")) {
+        } else if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sCometOpenKind)) {
             if (MR::isAnyGalaxyAvailableWithStars() && MR::isEqualString(pInfo->mReturnType, "下")) {
                 return true;
             }
-        } else if (MR::isEqualString(pInfo->mKind, "シナリオA or シナリオB")) {
+        } else if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sDualScenarioKind)) {
             if (isPairedStarNotOwned(pStageName, starId, pInfo->mName1, pInfo->mStarId1, pInfo->mName2, pInfo->mStarId2) &&
                 MR::isEqualString(pInfo->mReturnType, "下")) {
                 return true;
@@ -308,7 +317,7 @@ bool MarioFaceShipEventDataHolder::hasEventAtResult() const {
             if (isSpecialEventSatisfied(pInfo->mObjId, pStageName, starId) && MR::isEqualString(pInfo->mReturnType, "下")) {
                 return true;
             }
-        } else if (MR::isEqualString(pInfo->mKind, "イエロースター120個")) {
+        } else if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sAllStarsKind)) {
             if (GameSequenceFunction::isClearedAll120PowerStarAtResult() && MR::isEqualString(pInfo->mReturnType, "下")) {
                 return true;
             }
@@ -331,19 +340,19 @@ bool MarioFaceShipEventDataHolder::hasItemEventAtResult() const {
 
     for (s32 i = 0; i < mEventInfoNum; i++) {
         MarioFaceShipEventInfo* pInfo = mEventInfos[i];
-        if (MR::isEqualString(pInfo->mKind, "シナリオ")) {
+        if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sScenarioKind)) {
             if (pInfo->mStarId1 == starId && MR::isEqualString(pStageName, pInfo->mName1) && MR::isEqualString(pInfo->mReturnType, "アイテム惑星")) {
                 return true;
             }
-        } else if (MR::isEqualString(pInfo->mKind, "スター数")) {
+        } else if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sStarCountKind)) {
             if (pInfo->mThreshold == starNum && MR::isEqualString(pInfo->mReturnType, "アイテム惑星")) {
                 return true;
             }
-        } else if (MR::isEqualString(pInfo->mKind, "コメットオープン")) {
+        } else if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sCometOpenKind)) {
             if (MR::isAnyGalaxyAvailableWithStars() && MR::isEqualString(pInfo->mReturnType, "アイテム惑星")) {
                 return true;
             }
-        } else if (MR::isEqualString(pInfo->mKind, "シナリオA or シナリオB")) {
+        } else if (MR::isEqualString(pInfo->mKind, MarioFaceShipEventKinds::sDualScenarioKind)) {
             if (isPairedStarNotOwned(pStageName, starId, pInfo->mName1, pInfo->mStarId1, pInfo->mName2, pInfo->mStarId2) &&
                 MR::isEqualString(pInfo->mReturnType, "アイテム惑星")) {
                 return true;
@@ -382,27 +391,27 @@ bool MarioFaceShipEventInfo::isAttentionPriorTalk() const {
 
 bool MarioFaceShipEventDataHolder::isKindStarOwned(const char* pKind) {
     MR::getSceneObj< MarioFaceShipEventDataHolder >(SceneObj_MarioFaceShipEventDataHolder);
-    return MR::isEqualString(pKind, "シナリオ");
+    return MR::isEqualString(pKind, MarioFaceShipEventKinds::sScenarioKind);
 }
 
 bool MarioFaceShipEventDataHolder::isKindThresholdReached(const char* pKind) {
     MR::getSceneObj< MarioFaceShipEventDataHolder >(SceneObj_MarioFaceShipEventDataHolder);
-    return MR::isEqualString(pKind, "スター数");
+    return MR::isEqualString(pKind, MarioFaceShipEventKinds::sStarCountKind);
 }
 
 bool MarioFaceShipEventDataHolder::isKindCometOpen(const char* pKind) {
     MR::getSceneObj< MarioFaceShipEventDataHolder >(SceneObj_MarioFaceShipEventDataHolder);
-    return MR::isEqualString(pKind, "コメットオープン");
+    return MR::isEqualString(pKind, MarioFaceShipEventKinds::sCometOpenKind);
 }
 
 bool MarioFaceShipEventDataHolder::isKindDualStarOwned(const char* pKind) {
     MR::getSceneObj< MarioFaceShipEventDataHolder >(SceneObj_MarioFaceShipEventDataHolder);
-    return MR::isEqualString(pKind, "シナリオA or シナリオB");
+    return MR::isEqualString(pKind, MarioFaceShipEventKinds::sDualScenarioKind);
 }
 
 bool MarioFaceShipEventDataHolder::isKindStarAmountReached(const char* pKind) {
     MR::getSceneObj< MarioFaceShipEventDataHolder >(SceneObj_MarioFaceShipEventDataHolder);
-    return MR::isEqualString(pKind, "イエロースター120個");
+    return MR::isEqualString(pKind, MarioFaceShipEventKinds::sAllStarsKind);
 }
 
 bool MarioFaceShipEventDataHolder::isKindObjectSet(const char* pKind) {

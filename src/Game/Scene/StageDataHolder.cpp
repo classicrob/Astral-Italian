@@ -27,66 +27,7 @@ namespace {
         archive->initLayerJmpInfo(list, directory, commonLayers | scenarioLayers);
     }
 
-    static const char* cLayerDirName[0x11] = {"Common", "LayerA", "LayerB", "LayerC", "LayerD", "LayerE", "LayerF", "LayerG", "LayerH",
-                                              "LayerI", "LayerJ", "LayerK", "LayerL", "LayerM", "LayerN", "LayerO", "LayerP"};
 };  // namespace
-
-void StageDataArchiveHolder::initLayerJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir, u32 layerMask) {
-    char path[64];
-
-    for (u32 i = 0; i < 0x11; i++) {
-        if (layerMask & (1 << i)) {
-            snprintf(path, sizeof(path), "%s/%s", pDir, ::cLayerDirName[i]);
-            initJmpInfo(pList, path);
-        }
-    }
-}
-
-void StageDataArchiveHolder::initCommonLayerJmpInfo(const char* pDir, u32 layerMask) {
-    char path[64];
-
-    for (u32 i = 0; i < 0x11; i++) {
-        if (layerMask & (1 << i)) {
-            snprintf(path, sizeof(path), "%s/%s", pDir, ::cLayerDirName[i]);
-            mMapArchive->initJmpInfo(&mMapArchive->mCommonInfos, path);
-            if (mSoundArchive != nullptr) {
-                mSoundArchive->initJmpInfo(&mSoundArchive->mCommonInfos, path);
-            }
-            if (mDesignArchive != nullptr) {
-                mDesignArchive->initJmpInfo(&mDesignArchive->mCommonInfos, path);
-            }
-        }
-    }
-}
-
-void StageDataArchiveHolder::initScenarioLayerJmpInfo(const char* pDir, u32 layerMask) {
-    char path[64];
-
-    for (u32 i = 0; i < 0x11; i++) {
-        if (layerMask & (1 << i)) {
-            snprintf(path, sizeof(path), "%s/%s", pDir, ::cLayerDirName[i]);
-            mMapArchive->initJmpInfo(&mMapArchive->mScenarioInfos, path);
-            if (mSoundArchive != nullptr) {
-                mSoundArchive->initJmpInfo(&mSoundArchive->mScenarioInfos, path);
-            }
-            if (mDesignArchive != nullptr) {
-                mDesignArchive->initJmpInfo(&mDesignArchive->mScenarioInfos, path);
-            }
-        }
-    }
-}
-
-StageDataArchive* StageDataArchiveHolder::mountArchive(const char* pStageName, const char* pDir) {
-    char path[256];
-    snprintf(path, sizeof(path), "/StageData/%s/%s%s.arc", pStageName, pStageName, pDir);
-    JKRArchive* pArchive = MR::receiveArchive(path);
-
-    if (pArchive == nullptr) {
-        return nullptr;
-    }
-
-    return new StageDataArchive(pArchive, pStageName, pDir);
-}
 
 StageDataHolder::StageDataHolder(const char* pStageName, int zoneID, bool loadCommon)
     : NameObj("StageDataHolder"), mObjNameTbl(nullptr), mStageDataHolderCount(0), mStageName(pStageName), mZoneID(zoneID), mLoadCommon(loadCommon),
@@ -616,4 +557,3 @@ namespace MR {
 
 StageDataHolder::~StageDataHolder() {
 }
-template void MR::Vector< MR::FixedArray< const char*, 16 > >::push_back(const char* const&);

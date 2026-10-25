@@ -107,7 +107,7 @@ namespace NrvSandyStatePhase1 {
 };  // namespace NrvSandyStatePhase1
 
 // 80101750
-SandyStatePhase1::SandyStatePhase1(Sandy* pSandy) : ActorStateBase< Sandy >("\203t\203F\201[\203Y\202P", pSandy), mDamage(nullptr) {
+SandyStatePhase1::SandyStatePhase1(Sandy* pSandy) : SandyStateBase("\203t\203F\201[\203Y\202P", pSandy), mDamage(nullptr) {
     initNerve(&NrvSandyStatePhase1::SandyStatePhase1NrvThrow::sInstance, 1);
     mDamage = new SandyStateDamage(mHost, 240, 240, -1);
     MR::initActorState(this, mDamage, &NrvSandyStatePhase1::SandyStatePhase1NrvDamage::sInstance, nullptr);

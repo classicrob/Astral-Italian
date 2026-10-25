@@ -560,27 +560,6 @@ void MarioTeresa::doTeresaReflection(const TVec3f& rNormal, bool effect) {
     _42++;
 }
 
-XanimeGroupInfo teresaAnimeTable[] = {
-    {{"基本"}, 1.0f, 16},
-    {{""}},
-};
-
-XanimeBckTable2 teresaAnime2[] = {
-    {{"基本"}, {{"wait", 1.0f}, {"run", 0.0f}}},
-    {{""}, {{"", 0.0f}, {nullptr, 0.0f}}},
-};
-
-// NONMATCHING: only shared string-pool offsets differ.
-void MarioTeresaModel::initAnimation() {
-    _C = 0.0f;
-    mResource = new XanimeResourceTable(MR::getResourceHolder(mActor), teresaAnimeTable, nullptr, nullptr, teresaAnime2, nullptr, nullptr, nullptr);
-    mPlayer = new XanimePlayer(MR::getJ3DModel(mActor), mResource);
-    mPlayer->setDefaultAnimation("基本");
-    mPlayer->changeAnimationBck("基本");
-    mActor->mModelManager->mXanimePlayer = mPlayer;
-}
-
-
 void MarioTeresa::fn_80405B10(const TVec3f& position) {
     _78 = 1;
     if (_60.x > position.x) _60.x = position.x;
@@ -589,23 +568,4 @@ void MarioTeresa::fn_80405B10(const TVec3f& position) {
     if (_6C.x < position.x) _6C.x = position.x;
     if (_6C.y < position.y) _6C.y = position.y;
     if (_6C.z < position.z) _6C.z = position.z;
-}
-
-
-MarioTeresaModel* MarioTeresaModel::create(MarioActor* actor, bool luigi) {
-    const char* modelName = "TeresaMario";
-    if (luigi) modelName = "TeresaLuigi";
-    if (!MR::isCreatePlayerResourceTeresa()) return nullptr;
-    return new MarioTeresaModel(modelName, actor);
-}
-
-MarioTeresaModel::MarioTeresaModel(const char* modelName, MarioActor* actor)
-    : mActor(nullptr), _4(0.0f), _8(0.0f), _C(0.0f), _10(0), mPlayer(nullptr), mResource(nullptr) {
-    mActor = new MarioParts(actor, "テレサの皮", modelName, nullptr);
-    mActor->_9C = "TeresaMario";
-    mActor->initWithoutIter();
-    mActor->kill();
-    mActor->initFixedPosition(TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f), nullptr);
-    MR::initShadowVolumeSphere(mActor, 90.0f);
-    initAnimation();
 }

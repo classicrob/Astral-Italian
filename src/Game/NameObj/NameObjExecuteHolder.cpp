@@ -101,13 +101,12 @@ void NameObjExecuteInfo::requestDisconnect(u8* pData, bool a2) {
 
         *pData = val;
         break;
-    case 5:
-    case 6:
-    case 7:
-        return;
     case 4:
         *pData = 5;
         break;
+    case 5:
+    case 6:
+    case 7:
     case 2:
         return;
     }

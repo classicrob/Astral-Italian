@@ -27,6 +27,10 @@ static u8 sPendingFrameMode;
 
 DSPTaskInfo* DSP_prior_task;
 
+// Original diagnostic string at 80659C00 has no surviving reference,
+// likely from code stripped from the shipped build.
+extern const char sDspGeneralRequestHalt[] = "GEN-REQ HALT (Task %x)\n";
+
 extern "C" void __DSPHandler(__OSInterrupt interrupt, OSContext* pContext) {
 #ifdef GALAXY_NATIVE
     // The native DSP device acknowledges its own interrupt and calls this on
@@ -216,7 +220,3 @@ int Dsp_Running_Check() {
 void Dsp_Running_Start() {
     DspRunningStatus = 1;
 }
-
-// NONMATCHING: remaining differences are register allocation, scheduling and SDK
-// inline/tail-call lowering. Target calls, fields, diagnostic strings and constants
-// were checked independently; original DSP hardware operations are preserved.

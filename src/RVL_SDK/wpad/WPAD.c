@@ -22,15 +22,12 @@ u8 _sensorBarPos;
 BOOL _rumble;
 u8 _speakerVolume;
 u8 _gametype;
-u16 _gameTitle[17];
 const char* _gamecode;
 
 // Receive accepts handle 16 as well; InitSub initializes only entries 0..15.
 s8 _dev_handle_index[17];
 u8 _chan_active_state[WPAD_MAX_CONTROLLERS];
 OSAlarm _managerAlarm;
-
-DVDDiskID _diskId;
 
 static u8 _scSetting;
 static vu8 _shutdown;

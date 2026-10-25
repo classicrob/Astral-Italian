@@ -130,7 +130,12 @@ def build_and_diff(u, report=False):
     os.close(fd)
     cmd = [f"{ROOT}/build/tools/objdiff-cli", "-L", "error", "diff", "-p", ROOT, "-u", "main/" + u, "-o", out]
     if report or os.environ.get("SG_REPORT") == "1":
-        cmd.extend(["-c", "functionRelocDiffs=none"])
+        cmd.extend([
+            "-c", "functionRelocDiffs=none",
+            "-c", "combineDataSections=true",
+            "-c", "combineTextSections=true",
+            "-c", "ppc.calculatePoolRelocations=false",
+        ])
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(r.stderr)

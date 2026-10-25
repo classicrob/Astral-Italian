@@ -2,6 +2,7 @@
 #include "tape_play.hpp"
 #include <petari/platform/power.hpp>
 #include <revolution/os.h>
+#include <revolution/kpad.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

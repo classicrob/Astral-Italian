@@ -1,0 +1,10 @@
+# Native equivalent of v2: no OS pointer or keyboard injection.
+# First target after150 map-valid rows, then retained v2 spacing108/107 rows.
+@valid 150 Pointer:400,300
+@valid 258 Pointer:900,450
+@valid 365 Pointer:700,600
+120
+10 W
+1200
+# Allow SDK pointer/release filters to settle before actual neutral-tail marker.
+120 Pointer:off

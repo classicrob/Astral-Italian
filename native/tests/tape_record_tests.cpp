@@ -20,6 +20,7 @@ std::uint64_t be64(std::istream& in) { std::uint64_t v=0; for(int i=0;i<8;++i) v
 int main(int argc,char** argv) {
     if (argc==3) {
         setenv("PETARI_TAPE_RECORD",argv[2],1);
+        if(std::string(argv[1])=="--native-policy")TR::setNeutralTailPolicy(PetariNative::App::TapeNeutral::Policy::NativeControls);
         PetariNative::App::RouteRecordWriter writer;
         require(writer.open(TR::routePath(),false),"open CSV");
         TR::Seam seam; seam.scene="Game"; seam.stage="TestGalaxy"; seam.scenario=1; seam.initEnd=true; seam.seedValid=true;
@@ -37,6 +38,7 @@ int main(int argc,char** argv) {
             TR::beginControlSeam();
             const std::string mode=argv[1];
             if (i==104) TR::neutralTailBegin();
+            if (i==105 && mode=="--policy-late") TR::setNeutralTailPolicy(PetariNative::App::TapeNeutral::Policy::NativeControls);
             if (i==204 && mode!="--power-missing") {
                 if (mode=="--power-ambiguous") {
                     TR::endControlSeam();TR::powerRequest();TR::beginControlSeam();
@@ -54,7 +56,7 @@ int main(int argc,char** argv) {
         std::_Exit(0); // the app's normal power exit uses this, without running destructors or atexit
     }
     const auto base=fs::temp_directory_path()/("tape_record_tests_"+std::to_string(::getpid()));
-    for(const char* mode:{"--normal","--atexit","--killed","--power-missing","--power-ambiguous","--power-duplicate","--power-unacknowledged"}) {
+    for(const char* mode:{"--normal","--native-policy","--policy-late","--atexit","--killed","--power-missing","--power-ambiguous","--power-duplicate","--power-unacknowledged"}) {
         const auto dir=base/mode;fs::create_directories(dir);
         const pid_t child=::fork();require(child>=0,"fork");
         if(child==0) { ::execl(argv[0],argv[0],mode,dir.c_str(),nullptr); std::_Exit(127); }
@@ -62,11 +64,13 @@ int main(int argc,char** argv) {
         const bool killed=std::string(mode)=="--killed";
         require(killed ? WIFSIGNALED(status)&&WTERMSIG(status)==SIGKILL : WIFEXITED(status)&&WEXITSTATUS(status)==0,"child exit");
         const auto text=contents(dir/"route.tape.json");
+        require(text.find(std::string("\"neutral_tail_policy\":\"")+(std::string(mode)=="--native-policy"?"native-neutral-controls-v1":"single-bootstrap-v1")+'"')!=std::string::npos,
+            "recorder persists selected policy, defaults to unchanged legacy");
         require(text.find(killed ? "\"complete\": false" : "\"complete\": true")!=std::string::npos,"complete reflects normal exit only");
         require(text.find(killed ? "\"seams\": 300," : "\"seams\": 307,")!=std::string::npos,"sidecar covers final seams or last checkpoint");
         require(text.find("\"schema\": 2")!=std::string::npos && text.find("\"marker_error\": \"\"")!=std::string::npos,"new recordings have validated schema2 markers");
         require(text.find("\"first_input_frame\": 1")!=std::string::npos && text.find("\"end_input_frame_exclusive\": 205")!=std::string::npos,"phase entry and exit are explicit read loops");
-        const bool invalidPower=std::string(mode).find("--power-")==0;
+        const bool invalidPower=std::string(mode).find("--power-")==0 || std::string(mode)=="--policy-late";
         const auto control=text.find("\"session_control_error\":\"\"");
         require(invalidPower ? control==std::string::npos : control!=std::string::npos,"missing/ambiguous power ordering fails closed");
         if(!invalidPower)require(text.find("\"after_route_row\":204")!=std::string::npos &&

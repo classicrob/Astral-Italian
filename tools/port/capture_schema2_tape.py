@@ -67,7 +67,7 @@ def main(argv=None):
     ap.add_argument('--app', type=Path, required=True)
     ap.add_argument('--disc', type=Path, required=True)
     ap.add_argument('--prep', type=Path, required=True)
-    ap.add_argument('--tape', type=Path, required=True)
+    ap.add_argument('--tape', type=Path)
     ap.add_argument('--out', type=Path, required=True)
     ap.add_argument('--user-seed', type=Path)
     ap.add_argument('--fixture-receipt', type=Path, help='require every source/copied fixture byte and xattr to match this receipt')
@@ -83,7 +83,20 @@ def main(argv=None):
     ap.add_argument('--allow-incomplete', action='store_true', help='explicitly use only the legacy tape declared checkpoint prefix')
     ap.add_argument('--warm-from', type=Path, help='copy a successful same-exe arm private cache; retain its Metal bundle namespace')
     ap.add_argument('--allowed-root', type=Path, default=Path.home()/'MacioGalaxy2-gamedata/port53/m1g')
+    ap.add_argument('--native-script',type=Path,help='native recorder producer; no source replay')
+    ap.add_argument('--neutral-tail-policy',choices=['single-bootstrap-v1','native-neutral-controls-v1'],default='single-bootstrap-v1')
+    ap.add_argument('--native-origin',type=Path,help='qualified literal native recording that owns the policy lineage')
     a = ap.parse_args(argv)
+    if a.native_script:
+        from native_tape_record543 import record
+        return record(a)
+    need(a.tape is not None,'replay capture requires a source tape')
+    origin_binding=None
+    if a.neutral_tail_policy=='native-neutral-controls-v1':
+        need(a.native_origin is not None,'native-tail policy requires explicit native-origin lineage')
+        from native_tape_record543 import qualify_origin
+        origin_binding=qualify_origin(a.native_origin.resolve())
+    else:need(a.native_origin is None,'legacy conversion cannot inherit native neutral policy')
     a.app, a.tape, a.disc = a.app.resolve(), a.tape.resolve(), a.disc.resolve()
     a.out = a.out.resolve(); allowed = a.allowed_root.resolve()
     need(allowed in a.out.parents and a.out != allowed, 'output must be inside owned port53/m1g root')
@@ -93,6 +106,8 @@ def main(argv=None):
     need(0 < a.observe_seconds < a.bound <= 1800, 'invalid finite observation/bound')
     need(0<=a.post_roll_seconds<a.bound and a.minimum_recorded_neutral_seconds>=150,'invalid neutral-tail bound')
     meta = load_meta(a.tape/'route.tape.json')
+    from tape_phase_audit import bound_neutral_policy
+    need(bound_neutral_policy(meta)==a.neutral_tail_policy,'source tape policy differs from requested proof lineage')
     need(meta.get('schema', 1) in (1, 2), 'unknown tape schema')
     need(meta.get('complete') is True or a.allow_incomplete, 'incomplete source needs explicit --allow-incomplete')
     if meta.get('schema') == 2:
@@ -143,7 +158,7 @@ def main(argv=None):
     launch = dict(command=command, environment={k: v for k, v in env.items() if k.startswith(('PETARI_', 'ASTRAL_', 'SDL_AUDIO'))},
                   prep=str(a.prep.resolve()), prep_sha256=sha(a.prep), prep_contents=prep, exe_sha256=perf_sha,
                   native_schema_source=meta.get('schema', 1), kind='conversion' if meta.get('schema', 1) == 1 else 'schema2-reference-replay',
-                  nice=0, bound_seconds=a.bound, host_input_used=False, locks='caller holds heavy then native',
+                  native_origin=origin_binding,neutral_tail_policy=a.neutral_tail_policy,neutral_tail_policy_sha256=sha(Path(__file__).with_name('native-neutral-controls-v1.json')),nice=0, bound_seconds=a.bound, host_input_used=False, locks='caller holds heavy then native',
                   allow_incomplete=a.allow_incomplete, warm_from=warm_binding,
                   require_power_event=a.require_power_event, post_roll_seconds=a.post_roll_seconds,
                   minimum_recorded_neutral_seconds=a.minimum_recorded_neutral_seconds,
@@ -179,7 +194,7 @@ def main(argv=None):
                       fixture_xattrs_unchanged=not fixture_binding or inventory(a.user_seed) == fixture_binding,
                       warm_source_unchanged=not a.warm_from or warm_binding['cache_hashes'] == tree(a.warm_from/'cache'))
         need(all(checks.values()), 'process or immutable binding failed')
-        proof = qualify(a.tape, a.out, a.out/'replay/divergence.json', a.out/'read-map.jsonl')
+        proof = qualify(a.tape, a.out, a.out/'replay/divergence.json', a.out/'read-map.jsonl',a.neutral_tail_policy)
         result['input_proof'] = proof; checks['actual_input_bytes_and_phase_format'] = proof['passed']
         native = json.loads((a.out/'replay/divergence.json').read_text())
         observation = native.get('observation', {})

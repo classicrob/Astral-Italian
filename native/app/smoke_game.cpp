@@ -274,6 +274,7 @@ void recordRouteFrame(bool background) {
         }
     }
     row.input = PetariNative::Input::boundState();
+    TapeRecord::beginControlSeam(); // exact post-row snapshot, before the next update
     if (play) {
         TapePlay::SeamState state;
         state.stage = row.stage ? row.stage : "";
@@ -299,6 +300,9 @@ void recordRouteFrame(bool background) {
             system->mObjHolder->mRandom.mSeed = step.seed;
             if (!TapePlay::acknowledgeSeed(system->mObjHolder->mRandom.mSeed)) step.kind = TapePlay::Step::Kind::GaveUp;
         }
+        if (step.neutralTailBegin || (step.kind==TapePlay::Step::Kind::Finished &&
+            (!TapePlay::meta() || !TapePlay::meta()->powerProtocol))) TapeRecord::neutralTailBegin();
+        if (step.powerRequest) Host::requestQuit();
         if (step.kind == TapePlay::Step::Kind::Warp) {
             // A jump cut to the next segment's galaxy: the game's own stage change (what the Level Select warp calls), taken from
             // wherever the game is (the world map included). The name must outlive the move: PlayerLaunch::warpStage.
@@ -315,7 +319,8 @@ void recordRouteFrame(bool background) {
         // PETARI_TAPE_PLAY_QUIT=<loops>: close the app that many loops after the replay finished or was given up (scripted runs);
         // otherwise the window stays open for the viewer, with neutral input.
         static long quitIn = -1;
-        if (step.kind == TapePlay::Step::Kind::Finished || step.kind == TapePlay::Step::Kind::GaveUp) {
+        if ((step.kind == TapePlay::Step::Kind::Finished && !TapePlay::meta()->powerProtocol) ||
+            (step.kind == TapePlay::Step::Kind::GaveUp && !step.powerRequest)) {
             const char* after = std::getenv("PETARI_TAPE_PLAY_QUIT");
             if (after && *after) quitIn = std::atol(after);
         }
@@ -358,6 +363,7 @@ void recordRouteFrame(bool background) {
         seam.playReady = Host::playerInPlay();
         TapeRecord::seam(seam);
     }
+    TapeRecord::endControlSeam();
     if (capture) PlaytestCapture::frame(row);
     TapeScene::nextFrame();
 }

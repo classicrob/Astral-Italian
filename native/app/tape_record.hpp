@@ -30,6 +30,14 @@ void seam(const Seam& s);
 void finish();
 // Game-defined state, before channel 0's input; never guesses from coordinates.
 void beforeRead(const TapePhase::State& state);
+// Only a power request inside this post-route snapshot scope has unambiguous
+// ordering before the next GameSystem::update. Out-of-scope/cross-thread requests
+// are recorded as errors, never guessed from a row or a host timestamp.
+void beginControlSeam();
+void endControlSeam();
+void neutralTailBegin();
+bool powerRequest();
+void acknowledgePower(bool actualPowerFlag);
 void setLaunch(const std::string& stage, int scenario);  // actual parsed launch, before game boot
 
 // For tests: the sidecar text for a state.

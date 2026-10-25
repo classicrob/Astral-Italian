@@ -4,6 +4,7 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "smoke_observe_safety.hpp"
 #include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSystemResetAndPowerProcess.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -95,4 +96,8 @@ void install() {
     Input::TapeObserver::install({before,after,nullptr});
 }
 void nextFrame() { if (gInstalled) ++gFrame; }
+bool powerRequestObserved() {
+    const auto* process=SingletonHolder<GameSystemResetAndPowerProcess>::get();
+    return process && process->mIsValidPowerOff;
+}
 }  // namespace PetariNative::App::TapeScene

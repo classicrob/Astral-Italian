@@ -23,6 +23,7 @@
 
 #include "headless/replay.hpp"
 #include "tape_phase.hpp"
+#include "tape_power.hpp"
 
 namespace PetariNative::App::TapePlay {
 
@@ -46,6 +47,8 @@ struct Meta {
     std::vector<TapePhase::Phase> inputPhases;
     std::string launchStage;
     int launchScenario = 1;
+    bool powerProtocol = false;
+    std::vector<TapePower::Event> sessionEvents;
 };
 // The sidecar (<dir>/route.tape.json) text -> Meta. Throws Headless::ReplayError.
 Meta parseSidecar(const std::string& text);
@@ -71,6 +74,7 @@ struct Step {
     bool restoreSeed = true; // the schema-1 tape has no RNG checkpoint for the initial title row
     std::string stage;       // Warp: take the game to this stage and scenario (a new visit)
     int scenario = 0;
+    bool neutralTailBegin = false, powerRequest = false;
 };
 
 struct SegmentReport {
@@ -112,7 +116,8 @@ constexpr std::int64_t kIdentityOffsetLimit = 30;
 struct Observation {
     double requestedSeconds = 0, elapsedSeconds = 0, postStartSeconds = 0, stopSeconds = 0;
     std::uint64_t postStartRow = 0, endRow = 0, neutralReads = 0;
-    bool postStarted = false, completed = false;
+    bool postStarted = false, completed = false, recordedTail = false;
+    double minimumPostSeconds = 0;
     void update(double elapsed, std::uint64_t row, bool replaySucceeded);
     bool pending() const { return requestedSeconds > 0 && postStarted && !completed; }
     std::string reportJson(double startMonotonicSeconds) const;
@@ -147,6 +152,12 @@ public:
     bool active() const { return mActive; }
     bool wholeSession() const { return mMode == Mode::WholeSession; }
     bool acknowledgeSeed(std::uint32_t seed); // glue reads back the just-restored play-ready RNG checkpoint
+    bool beforePowerRequest();
+    bool acknowledgePower(bool actualPowerFlag);
+    void normalExit();
+    bool neutralTailActive() const { return mNeutralTailActive; }
+    void rejectEarlyPower();
+    void rejectUnexpectedPower();
     void flushReadMap() { if (mReadMap.is_open()) mReadMap.flush(); }
 private:
     struct PhaseEvidence {
@@ -178,6 +189,10 @@ private:
     Step phaseSeam(const SeamState& state);
     void phaseFailure(const std::string& why);
     void recordReadMap(const Headless::Read& read, bool recorded);
+    Step controlSeam(const SeamState& state);
+    void validateNeutralTail(const Headless::Read& read);
+    void compareShutdown(const SeamState& state, std::uint64_t canonicalRow);
+    std::int64_t controlOffset(std::size_t phase) const;
     Mode mMode;
     SeamState mLastObserved;
     bool mExpectedPointer = false;
@@ -204,6 +219,11 @@ private:
     std::size_t mExitPhase = 0;
     std::uint64_t mNeutralLoops = 0;
     Step::Kind mPhaseSignal = Step::Kind::None;
+    std::size_t mNextControl = 0;
+    bool mPowerPending = false, mPowerCalling = false, mPowerDelivered = false, mNeutralTailActive = false;
+    bool mShutdownTail = false, mNormalExitVerified = false, mEarlyPower = false;
+    std::uint64_t mPowerActualRow = 0, mShutdownRows = 0, mShutdownReads = 0, mShutdownReplayOffset = 0;
+    std::vector<std::uint64_t> mControlActualRows;
 };
 
 // --- process-wide glue (app_main, frame seam) ---
@@ -217,6 +237,9 @@ Step seam(const SeamState& state);
 Step beforeRead(const TapePhase::State& state);
 bool acknowledgeSeed(std::uint32_t seed);
 void flushReadMap();                  // normal shutdown, before _Exit; not a crash handler
+bool beforePowerRequest();
+void acknowledgePower(bool actualPowerFlag);
+void normalExit();                    // validates full strict teardown before report/normal _Exit
 bool shouldQuit();                   // the replay finished or gave up: the app may close itself
 bool observationPending();         // delay successful replay's quit until its optional wall-clock observation ends
 }  // namespace PetariNative::App::TapePlay

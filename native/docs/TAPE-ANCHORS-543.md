@@ -183,3 +183,33 @@ strict prefix followed by a positive neutral post-roll. This is explicit in the
 plan and receipt; >=90s, pointer30/3 and warm audio50reports/0underruns remain
 unchanged. Converted tapes are never trimmed. Only the initial qualified captures
 serve as canonical tapes for the matrix and reciprocal/candidate replay.
+
+
+## Production-setting matrix and retained legacy controls
+
+Every schema-2 conversion/replay launch explicitly records
+`PETARI_PIPELINE_DIAG=0` and `PETARI_TRACE_BOOT=0`. Neither is inherited.
+`TRACE_BOOT=1` enables pipeline diagnostics even when `DIAG=0`; comparing these
+settings as if they were identical would be incorrect. A warm arm requires a
+successful fresh arm on the exact same prepared executable and bundle path,
+normal exit, a finished strict native replay, and these same production settings.
+The prior launch, RESULT, process, native report and cache hashes are bound into
+the warm launch. Every schema-2 warm arm retains the real-audio gate.
+
+The completed frozen controls are retained at
+`port53/m1g/solb/solb-543-legacy-controls-r2/`. They are legacy-v1 observations,
+not schema-2 acceptance. Three stop at route row544 with map init End383:
+frozen072 fresh and frozen002 fresh/warm. Frozen072 warm finishes strict replay
+at init End382, but fails overall on 900 audio underrun frames (86 reports,
+the nonzero report at process52.827s). Its prime was the failed short fresh arm;
+that cache pairing is not eligible for the schema-2 matrix. No control is rerun
+or relabelled. The command/env/source/report comparison is retained in
+`HARNESS-COMPARISON.json` there. These production-diagnostics-off observations
+show the legacy fixed-load-frame assumption is timing-sensitive on frozen5.4.1
+as well as5.4.2; A's earlier diagnostics-on controls are a different setting.
+
+After the metadata-corrected builds and their tests are approved, plan with
+`--schema2-only` and explicit `--candidate-dir`, `--reference072-dir` and
+`--reference002-dir`. This creates only the twelve conversion/matrix/reciprocal/
+candidate arms; the four completed legacy controls are not repeated. A failed
+conversion or fresh replay stops the driver before any dependent warm arm.

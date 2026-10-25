@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent
 if not (HERE/'common.py').exists():
     sys.path.insert(0, str(HERE.parents[1]/'gate53/m1gates'))
 import common
-from capture_schema2_tape import inventory
+from capture_schema2_tape import inventory, PRODUCTION_PIPELINE_ENV
 from tape_phase_audit import audit_native
 
 ROOT = Path.home()/'MacioGalaxy2-gamedata/port53/m1g'
@@ -78,7 +78,7 @@ def prepare(source, target, kind, expected):
         reference_is_test_instrument=kind=='server-instrumented-reference',owner='SOL B thr_65jasku4ah'))
 
 
-def plan(out, controls_only=False, candidate=None, reference072=None, reference002=None):
+def plan(out, controls_only=False, candidate=None, reference072=None, reference002=None, schema2_only=False):
     need(ROOT.resolve() in out.parents and not out.exists(), 'fresh owned output required')
     builds={
         'legacy072':(ROOT/'candidates/07223918','frozen-control','07223918'),
@@ -98,9 +98,11 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
         arms.append(dict(name=name,build=build,kind=kind,tape=str(tape),warm_from=str(warm) if warm else None,
                          out=str(out/'runs'/name),observe_seconds=90 if kind in ('legacy','conversion') else 120))
         return out/'runs'/name
-    for build in ('legacy072','legacy002'):
+    for build in (() if schema2_only else ('legacy072','legacy002')):
         fresh=add(build+'-fresh',build,'legacy',SOURCE)
         add(build+'-warm',build,'legacy',SOURCE,fresh)
+    if schema2_only:
+        builds={k:v for k,v in builds.items() if not k.startswith('legacy')}
     if not controls_only:
         canonical072=add('convert-ref072','ref072','conversion',SOURCE)
         canonical002=add('convert-ref002','ref002','conversion',SOURCE)
@@ -114,7 +116,8 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
             add('candidate-from'+label+'-warm','candidate','schema2',tape,fresh)
     write(out/'PLAN.json',dict(status='planned-not-launched',builds={k:dict(source=str(v[0]),kind=v[1],expected=v[2]) for k,v in builds.items()},
         arms=arms,nice=0,bundle=OWN,heavy_then_native=[str(HEAVY),str(NATIVE)],no_outer_lock=True,
-        no_retries=True,legacy_controls_only=controls_only,canonical_selection='one strict conversion per reference, fail closed; no failure substituted',
+        no_retries=True,legacy_controls_only=controls_only,schema2_only=schema2_only,
+        production_pipeline_env=PRODUCTION_PIPELINE_ENV,canonical_selection='one strict conversion per reference, fail closed; no failure substituted',
         schema2_observation='120s minimum to retain full 90s converted prefix AND a positive neutral tail; original >=90s/50audio/0underrun predicates unchanged',
         source_hashes={p.name:sha(p) for p in harness.iterdir()},acceptance_claimed=False))
 
@@ -127,7 +130,7 @@ def legacy(arm, app, prep, control):
     metadata=json.loads((tape/'route.tape.json').read_text())
     need(metadata['schema']==1,'legacy control must use original schema1')
     extra=dict(PETARI_TAPE_PLAY=str(tape),PETARI_TAPE_PLAY_SESSION='1',PETARI_TAPE_PLAY_QUIT='1',
-               PETARI_TAPE_PLAY_OBSERVE_SECONDS='90',PETARI_TAPE_PLAY_OUT=str(out/'replay'),PETARI_MODS='OdysseyJumpDive')
+               PETARI_TAPE_PLAY_OBSERVE_SECONDS='90',PETARI_TAPE_PLAY_OUT=str(out/'replay'),PETARI_MODS='OdysseyJumpDive',**PRODUCTION_PIPELINE_ENV)
     if arm['warm_from']: extra.update(PETARI_SMOKE_REAL_AUDIO='1',PETARI_AUDIO_DIAG='1',SDL_AUDIO_DRIVER='coreaudio')
     before=common.tree(app);source_before=common.tree(tape)
     process=common.run(app,out,stage='WorldMap01Galaxy',scenario=1,extra=extra,cold=not arm['warm_from'],warm=arm['warm_from'],
@@ -148,7 +151,7 @@ def legacy(arm, app, prep, control):
     if arm['warm_from']:checks['real_audio']=len(audio)>=50 and sum(audio)==0
     write(out/'RESULT.json',dict(passed=all(checks.values()),checks=checks,process=process,error=error,
         tape_format_label='legacy-v1',kind='owned perf copy of immutable game/player legacy control; schema2 capture unavailable',
-        original_build=prep,strict_native_report=str(out/'replay/divergence.json'),audio_reports=len(audio),audio_underrun=sum(audio),
+        original_build=prep,strict_native_report=str(out/'replay/divergence.json'),native_finished=native.get('finished'),native_stopped=native.get('stopped'),audio_reports=len(audio),audio_underrun=sum(audio),
         source_bindings={name:sha(tape/name) for name in ('route.csv','route.kpd','route.tape.json','route.actions')},acceptance_claimed=False))
 
 
@@ -220,12 +223,13 @@ def run(out, release):
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--out',required=True,type=Path)
     modes=p.add_mutually_exclusive_group(required=True);modes.add_argument('--plan-only',action='store_true');modes.add_argument('--run',action='store_true');modes.add_argument('--arm');modes.add_argument('--detach',action='store_true')
-    p.add_argument('--release-receipt',type=Path);p.add_argument('--legacy-controls-only',action='store_true')
+    p.add_argument('--release-receipt',type=Path)
+    scope=p.add_mutually_exclusive_group();scope.add_argument('--legacy-controls-only',action='store_true');scope.add_argument('--schema2-only',action='store_true')
     p.add_argument('--candidate-dir',type=Path);p.add_argument('--reference072-dir',type=Path);p.add_argument('--reference002-dir',type=Path)
     p.add_argument('--notify-thread',help='authorised milestone recipient; one message at final completion/stop only')
     a=p.parse_args();out=a.out.resolve()
     try:
-        if a.plan_only:plan(out,a.legacy_controls_only,a.candidate_dir,a.reference072_dir,a.reference002_dir);return 0
+        if a.plan_only:plan(out,a.legacy_controls_only,a.candidate_dir,a.reference072_dir,a.reference002_dir,a.schema2_only);return 0
         if a.arm:return arm(out,a.arm)
         need(a.release_receipt is not None,'release receipt required')
         if a.detach:

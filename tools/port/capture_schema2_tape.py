@@ -37,6 +37,31 @@ def inventory(p):
     return dict(files=tree(p), xattrs=attrs)
 
 
+PRODUCTION_PIPELINE_ENV = dict(PETARI_PIPELINE_DIAG='0', PETARI_TRACE_BOOT='0')
+
+
+def warm_source(source, exe, perf_sha):
+    """Only a full successful production-setting fresh arm may prime warm proof."""
+    prior = json.loads((source/'launch.json').read_text())
+    result = json.loads((source/'RESULT.json').read_text())
+    process = json.loads((source/'process.json').read_text())
+    native = json.loads((source/'replay/divergence.json').read_text())
+    need(prior['exe_sha256'] == perf_sha and prior['command'][0] == str(exe),
+         'warm source must use the same exe and bundle')
+    need(prior.get('warm_from') is None and result.get('passed') is True,
+         'warm source must be a successful fresh arm')
+    need(process.get('exit') == 0 and process.get('timed_out') is False and
+         native.get('finished') is True and not native.get('stopped'),
+         'warm source must finish strict replay normally')
+    need(all(prior['environment'].get(k) == v for k,v in PRODUCTION_PIPELINE_ENV.items()),
+         'warm source production diagnostics settings differ')
+    need((source/'cache').is_dir(), 'warm source private cache missing')
+    return dict(arm=str(source), launch_sha256=sha(source/'launch.json'),
+                result_sha256=sha(source/'RESULT.json'), process_sha256=sha(source/'process.json'),
+                native_report_sha256=sha(source/'replay/divergence.json'),
+                production_pipeline_env=PRODUCTION_PIPELINE_ENV, cache_hashes=tree(source/'cache'))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--app', type=Path, required=True)
@@ -85,13 +110,7 @@ def main(argv=None):
     warm_binding = None
     if a.warm_from:
         a.warm_from = a.warm_from.resolve()
-        prior = json.loads((a.warm_from/'launch.json').read_text())
-        prior_result = json.loads((a.warm_from/'RESULT.json').read_text())
-        need(prior['exe_sha256'] == perf_sha and prior['command'][0] == str(exe) and prior_result.get('passed') is True,
-             'warm source must be successful same-exe/same-bundle arm')
-        need((a.warm_from/'cache').is_dir(), 'warm source private cache missing')
-        warm_binding = dict(arm=str(a.warm_from), launch_sha256=sha(a.warm_from/'launch.json'),
-                            result_sha256=sha(a.warm_from/'RESULT.json'), cache_hashes=tree(a.warm_from/'cache'))
+        warm_binding = warm_source(a.warm_from, exe, perf_sha)
     a.out.mkdir(parents=True, mode=0o700)
     user = a.out/'user'
     if a.user_seed:
@@ -109,7 +128,7 @@ def main(argv=None):
                PETARI_TAPE_RECORD=str(a.out), PETARI_TAPE_CAPTURE_REPLAY='1',
                PETARI_TAPE_PLAY=str(a.tape), PETARI_TAPE_PLAY_SESSION='1',
                PETARI_TAPE_PLAY_READ_MAP=str(a.out/'read-map.jsonl'), PETARI_TAPE_PLAY_OUT=str(a.out/'replay'),
-               PETARI_TAPE_PLAY_QUIT='1', PETARI_TAPE_PLAY_OBSERVE_SECONDS=str(a.observe_seconds), PETARI_PIPELINE_DIAG='0')
+               PETARI_TAPE_PLAY_QUIT='1', PETARI_TAPE_PLAY_OBSERVE_SECONDS=str(a.observe_seconds), **PRODUCTION_PIPELINE_ENV)
     for k, v in (meta.get('replay_env') or {}).items():
         need(k == 'PETARI_TEST_RETURN_TO_SHIP', 'unsupported recorded scene hook')
         env[k] = str(v)

@@ -737,3 +737,57 @@ and monotonic times are recorded. New baseline/candidate arms alternate; the
 startup gate uses candidate upper minus baseline lower <=2000 ms, with no
 uncertainty allowance. Missing evidence is unproven/fail. Historical CSV-only
 startup sums cannot establish this end-to-end gate.
+
+### 5.4.2 frontend boot display and bootstrap membership
+
+The bounded frontend Generic phase now shows the existing SDL window and adds a
+native AppKit black overlay, “Preparing graphics… N%” and a determinate
+published/total bar. This needs no GX shader, does not record extra GX packets,
+and keeps main-thread SDL/AppKit pumping. Hidden background smoke windows remain
+hidden. The overlay is removed on the main thread after the first successful
+normal surface presentation. `[gx boot splash]` logs show/handoff clocks;
+`[gx boot splash window]` identifies the exact owned screenshot window.
+The 5000 ms preparation cap and gameplay scheduling are unchanged. A cap/error is
+still reported as such, never as successful complete preparation.
+
+For acceptance, use `--require-boot-responsiveness` on `title542m.py` and
+`cold542m.py`. The harness sends read-only, kernel-PID-addressed `Ptra/ping`
+AppleEvents with never-interact and a 0.5 s reply timeout. Each reply must contain
+the native cookie. Missing/denied/timed-out replies or a missing actual OS-window
+screenshot fail the evidence. `boot-response.json` retains every reply and image
+command. Pump counts alone do not prove OS responsiveness. These probes and the
+native GUI unit tests require actual server/M1 runs; source tests are not a
+responsiveness certification.
+
+`native/tools/build_frontend_membership.py` generates
+`native/gx/frontend_membership.hpp` from the retained da252d88 no-input title
+warm pair and exact existing v14 `__global__.db` rows. Both warm recordings have
+identical pre-quit membership: Unknown 13, FileSelect 75, union 84. The source
+extract retains raw log/provenance hashes and pre/post native quit event order.
+The generated 78 globally available rows join the existing Unknown/FileSelect
+DB union. This adds the previously global-only full config `3fc41d69ec1e1681`
+(Generic alias `f70c0f3a7b3b15fd`) without choosing a global-rank prefix or
+rewriting the pack. The six recorded hashes absent from `__global__` remain
+uncovered: `4562580ba2df567a`, `8db8e4b30c1350c0`, `8e4579239ed88676`,
+`93d0175121192f3a`, `be4af1fe8a906da2`, `f70e3120d70014f8`. No rows are invented.
+The v14 pack bytes stay SHA256 `3079e867e85983182e5d19eac14fd62b418e677cacd52746a842fb1f6bce04a9`;
+the native membership/overlay code changes the renderer/cache identity, including
+future `.mm` changes. Regeneration test:
+`python3 -B native/tests/frontend_membership_tests.py` (expands the committed pack,
+then requires byte-identical generated header). To additionally verify retained
+raw logs, use `build_frontend_membership.py --recording-dir <da252d88-title>
+--seed-dir <expanded-v14> --check`.
+
+The startup observer keeps the previous read-start lower bound (438b6265), uses
+the same external clocks/endpoints on both builds, and validates candidate
+native wall timestamps without assuming equal C++/Python monotonic epochs.
+Native first-valid logs now occur once per scene/stage/scenario visit, allowing
+the target galaxy to be validated independently of the earlier FileSelect row.
+The shared title event is also checked against its external appearance interval.
+
+Warm observations must preserve their prime's private cache and Metal namespace.
+`title542m.py --keep-cache` is explicit; default cold cleanup is unchanged.
+`--warm-from <completed-matching-prime>` reuses its exact private cache path,
+never clears Metal, verifies app identity/normal prime exit, and records before /
+after cache inventories. Replacement prime/second-launch measurements are
+labelled separately if earlier cold caches were already trimmed.

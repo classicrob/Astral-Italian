@@ -56,7 +56,7 @@ def arm(args, stage, repeat, spot):
     assert common.tree(original / 'Contents/Resources') == before_resources
     out = common.ROOT / 'runs' / f'{args.label}-{stage}-r{repeat}'
     process = common.run(app, out, stage=stage, script=common.REPO / 'native/tools/perf_sweep_move.script',
-                         extra={'PETARI_PIPELINE_DIAG': '0', 'PETARI_TRACE_BOOT': '0'}, cold=True, seconds=240, startup_observe=True)
+                         extra={'PETARI_PIPELINE_DIAG': '0', 'PETARI_TRACE_BOOT': '0'}, cold=True, seconds=240, startup_observe=True, boot_probe=args.require_boot_responsiveness)
     startup = json.loads((out/'startup-observer.json').read_text())
     measured = tier_cold54m.analyze(out)
     deadline_counts = {'YosshiHomeGalaxy':183, 'MokumokuValleyGalaxy':168, 'MarioFaceShipGalaxy':74, 'VsKoopaLv1Galaxy':207}
@@ -75,6 +75,8 @@ def arm(args, stage, repeat, spot):
               legacy['gameplay_frames'] > 0 and legacy['menu_frames'] > 0,
               'gate533_unchanged': legacy['result'] == 'PASS', 'gate542m': scored['passed'],
               'raw_gameplay_over100': measured['gameplay_over100'] == 0}
+    if args.require_boot_responsiveness:
+        checks['boot_responsive_visible'] = json.loads((out/'boot-response.json').read_text())['passed']
     result = {'passed': all(checks.values()), 'checks': checks, 'stage': stage, 'repeat': repeat, 'case': str(out),
               'evidence_spot_check': spot, 'spot_check_source': 'two non-gate stages from the frozen perf table worst three',
               'build_kind': 'server-candidate', 'source_commit': prep['source_commit'],
@@ -99,6 +101,7 @@ def main():
     parser.add_argument('--app', type=Path, required=True)
     parser.add_argument('--prep', type=Path, required=True)
     parser.add_argument('--label', required=True)
+    parser.add_argument('--require-boot-responsiveness', action='store_true')
     parser.add_argument('--arm', type=int, help=argparse.SUPPRESS)
     args = parser.parse_args()
     assert re.fullmatch(r'[A-Za-z0-9_-]+', args.label) and os.getpriority(os.PRIO_PROCESS, 0) == 0
@@ -112,6 +115,7 @@ def main():
     for index, (stage, repeat, spot) in enumerate(plan):
         command = ['/usr/bin/lockf', '-k', str(common.HEAVY), sys.executable, '-B', __file__,
                    '--app', str(args.app), '--prep', str(args.prep), '--label', args.label, '--arm', str(index)]
+        if args.require_boot_responsiveness: command += ['--require-boot-responsiveness']
         with (base / f'arm-{index}.log').open('wb') as log:
             status = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
         path = common.ROOT / 'runs' / f'{args.label}-{stage}-r{repeat}' / 'RESULT.json'

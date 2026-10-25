@@ -20,7 +20,7 @@ petari_record_graphics_dependencies("${CMAKE_CURRENT_BINARY_DIR}/dependency-path
 
 # Cache identity is content-based: no checkout path, timestamp or dirty-git state.
 file(GLOB_RECURSE _petari_cache_identity_inputs CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.mm" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.inc" "${CMAKE_CURRENT_SOURCE_DIR}/*.cmake"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.wgsl")
@@ -33,6 +33,12 @@ add_library(petari_pipeline_cache_identity INTERFACE)
 target_link_libraries(petari_pipeline_cache_identity INTERFACE SQLite::SQLite3)
 target_include_directories(petari_pipeline_cache_identity INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(aurora_core PRIVATE petari_pipeline_cache_identity)
+if(APPLE)
+    target_sources(aurora_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/boot_splash.mm")
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/boot_splash.mm" TARGET_DIRECTORY aurora_core
+        PROPERTIES COMPILE_OPTIONS "-fobjc-arc;-iquote${aurora_SOURCE_DIR}/lib")
+    target_link_libraries(aurora_core PRIVATE "-framework AppKit")
+endif()
 target_link_libraries(aurora_gx PRIVATE petari_pipeline_cache_identity)
 function(petari_stamp_pipeline_seed source destination)
     execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/gx/pipeline_cache_identity.py"
@@ -776,3 +782,14 @@ foreach(_kind gpu gpu_prof)
     set_property(TARGET aurora_core PROPERTY SOURCES "${_sources}")
     set_source_files_properties("${_output}" TARGET_DIRECTORY aurora_core PROPERTIES COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/webgpu;-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR}/present")
 endforeach()
+
+if(APPLE AND BUILD_TESTING)
+    add_executable(petari_boot_splash_tests EXCLUDE_FROM_ALL
+        "${CMAKE_SOURCE_DIR}/native/tests/boot_splash_tests.mm" "${CMAKE_CURRENT_SOURCE_DIR}/boot_splash.mm")
+    target_compile_options(petari_boot_splash_tests PRIVATE -fobjc-arc)
+    target_include_directories(petari_boot_splash_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${aurora_SOURCE_DIR}/lib" "${aurora_SOURCE_DIR}/include")
+    target_link_libraries(petari_boot_splash_tests PRIVATE SDL3::SDL3 "-framework AppKit")
+    add_test(NAME native_boot_splash COMMAND petari_boot_splash_tests)
+    add_test(NAME native_boot_splash_hidden COMMAND petari_boot_splash_tests hidden)
+endif()

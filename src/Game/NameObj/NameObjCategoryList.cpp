@@ -29,7 +29,7 @@ NameObjCategoryList::~NameObjCategoryList() {
 void NameObjCategoryList::execute(int idx) {
     NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[idx];
 
-    if (inf->_8 == 0) {
+    if (inf->mList.mCount == 0) {
         return;
     }
 
@@ -37,9 +37,9 @@ void NameObjCategoryList::execute(int idx) {
         (*inf->mFunc)();
     }
 
-    NameObj** arr = inf->mList.mArr;
+    NameObj** arr = inf->mList.mArray.mArr;
 
-    while (arr != &inf->mList.mArr[inf->_8]) {
+    while (arr != &inf->mList.mArray.mArr[inf->mList.mCount]) {
         (*mDelegator)(*arr);
         arr++;
     }
@@ -55,7 +55,7 @@ void NameObjCategoryList::allocateBuffer() {
             NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[i];
             u32 size = inf->mCheck;
             NameObj** nameObjArr = new NameObj*[size];
-            MR::AssignableArray< NameObj* >* arr = &mInfoTable.mArr[i].mList;
+            MR::AssignableArray< NameObj* >* arr = &mInfoTable.mArr[i].mList.mArray;
             arr->mArr = nameObjArr;
             arr->mMaxSize = size;
         }
@@ -66,14 +66,14 @@ void NameObjCategoryList::allocateBuffer() {
 
 void NameObjCategoryList::add(NameObj* pObj, int idx) {
     NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[idx];
-    s32 cnt = inf->_8++;
-    inf->mList.mArr[cnt] = pObj;
+    s32 cnt = inf->mList.mCount++;
+    inf->mList.mArray.mArr[cnt] = pObj;
 }
 void NameObjCategoryList::remove(NameObj* pObj, int idx) {
     NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[idx];
-    NameObj** pFound = std::find(inf->mList.begin(), &inf->mList[inf->_8], pObj);
-    inf->mList[pFound - inf->mList.begin()] = inf->mList[inf->_8 - 1];
-    inf->_8--;
+    NameObj** pFound = std::find(inf->mList.begin(), &inf->mList[inf->mList.mCount], pObj);
+    inf->mList[pFound - inf->mList.begin()] = inf->mList[inf->mList.mCount - 1];
+    inf->mList.mCount--;
 }
 
 void NameObjCategoryList::registerExecuteBeforeFunction(const MR::FunctorBase& rFunc, int idx) {
@@ -103,8 +103,8 @@ void NameObjCategoryList::initTable(u32 count, const CategoryListInitialTable* p
             u32 size = ent->mCount;
             NameObj** arr = new NameObj*[size];
             NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[ent->mIndex];
-            inf->mList.mArr = arr;
-            inf->mList.mMaxSize = size;
+            inf->mList.mArray.mArr = arr;
+            inf->mList.mArray.mMaxSize = size;
             _C = 1;
         }
 
@@ -115,7 +115,6 @@ void NameObjCategoryList::initTable(u32 count, const CategoryListInitialTable* p
 }
 
 NameObjCategoryList::CategoryInfo::CategoryInfo() {
-    _8 = 0;
 }
 
 NameObjCategoryList::CategoryInfo::~CategoryInfo() {

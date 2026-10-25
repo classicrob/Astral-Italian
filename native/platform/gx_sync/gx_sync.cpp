@@ -141,7 +141,7 @@ void deliver(State& s, const Event& e) {
         OSRestoreInterrupts(enabled);
         return;
     }
-    PETARI_GPU_TRACE(GpuTrace::emit("gx_delivery_begin", GpuTrace::deliveryContext,
+    PETARI_GPU_TRACE(GpuTrace::emitScheduling("gx_delivery_begin", GpuTrace::deliveryContext, {},
         (e.virtualTicket ? 1 : 0) | (e.lostDrawDones ? 2 : 0));
         if (e.virtualTicket) GpuTrace::emit("gx_delivery_virtual_ticket", GpuTrace::deliveryContext, e.virtualTicket);
         if (e.lostDrawDones) GpuTrace::emit("gx_delivery_lost_draw_dones", GpuTrace::deliveryContext, e.lostDrawDones));
@@ -230,7 +230,9 @@ void* interruptMain(void*) {
             return s.progressWake && (!OS::virtualAsyncActive() || s.queue.empty() ||
                 s.progressVirtualTicket < s.queue.front().virtualTicket);
         };
+        PETARI_GPU_TRACE(GpuTrace::waitBegin("gx-delivery-cond-untimed"));
         s.changed.wait(lock, [&] { return s.stop || progressReady() || nextDeliverableLocked(s) != s.queue.end(); });
+        PETARI_GPU_TRACE(GpuTrace::waitEnd());
         if (progressReady()) {
             // Not a GP interrupt: wakes waitProcessed sleepers, never held
             // back by an incomplete snapshot.
@@ -581,7 +583,9 @@ void waitDrawDone(std::uint64_t count) {
             OSPanic(__FILE__, __LINE__, "GXDrawDone from interrupt context would never complete");
         }
         std::unique_lock<std::mutex> lock(s.hostWaitLock);
+        PETARI_GPU_TRACE(GpuTrace::waitBegin("gx-progress-cond-untimed"));
         s.hostWait.wait(lock, done);
+        PETARI_GPU_TRACE(GpuTrace::waitEnd());
     }
     std::lock_guard<std::mutex> guard(s.lock);
     --s.drawDoneWaiters;
@@ -613,7 +617,9 @@ void waitTokensDelivered() {
     }
     {
         std::unique_lock<std::mutex> lock(s.hostWaitLock);
+        PETARI_GPU_TRACE(GpuTrace::waitBegin("gx-token-cond-for", GpuTrace::deadlineAfter(1000000000), GpuTrace::waitContext));
         for (int seconds = 1; !s.hostWait.wait_for(lock, std::chrono::seconds(1), delivered); ++seconds) {
+            PETARI_GPU_TRACE(GpuTrace::waitEnd(0));
             lock.unlock();
             if (seconds == 1 || seconds == kTokenWaitGiveUpSeconds) {
                 std::fprintf(stderr, "GX token wait: draw-sync token %llu of %llu not delivered after %d s%s\n",
@@ -626,7 +632,9 @@ void waitTokensDelivered() {
             if (seconds == kTokenWaitGiveUpSeconds) {
                 break;
             }
+            PETARI_GPU_TRACE(GpuTrace::waitBegin("gx-token-cond-for", GpuTrace::deadlineAfter(1000000000), GpuTrace::waitContext));
         }
+        PETARI_GPU_TRACE(GpuTrace::waitEndIf("gx-token-cond-for", delivered() ? 1 : 0));
     }
     if (osThread) {
         petari_os_end_host_blocking();
@@ -657,10 +665,12 @@ void waitProcessed(std::uint64_t position) {
         OSPanic(__FILE__, __LINE__, "waiting for the GX processor from interrupt context would never complete");
     }
     std::unique_lock<std::mutex> lock(s.hostWaitLock);
+    PETARI_GPU_TRACE(GpuTrace::waitBegin("gx-processed-cond-untimed"));
     s.hostWait.wait(lock, [&] {
         std::lock_guard<std::mutex> guard(s.lock);
         return s.processed >= position;
     });
+    PETARI_GPU_TRACE(GpuTrace::waitEnd());
 }
 
 void abortFrame() {
@@ -746,7 +756,9 @@ void dumpState(std::FILE* out) {
     bool locked = false;
     const auto end = std::chrono::steady_clock::now() + std::chrono::seconds(2);
     while (!(locked = s.lock.try_lock()) && std::chrono::steady_clock::now() < end) {
+        PETARI_GPU_TRACE(GpuTrace::waitBegin("gx-drain-std-sleep-for", GpuTrace::deadlineAfter(1000000)));
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        PETARI_GPU_TRACE(GpuTrace::waitEnd());
     }
     const std::uint64_t bp = s.breakpoint.load(std::memory_order_acquire);
     std::fprintf(out,

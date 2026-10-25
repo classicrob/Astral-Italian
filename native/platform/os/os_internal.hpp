@@ -9,6 +9,7 @@
 // interrupts hand the CPU to a newly ready thread if the CPU is idle, or ask
 // the running thread to reschedule.
 
+#include <petari/gpu_trace.hpp>
 #include <condition_variable>
 #include <cstdint>
 #include <cstdio>
@@ -55,7 +56,10 @@ template <class Predicate>
 void hostWait(std::condition_variable& cv, Predicate predicate) {
     std::unique_lock<std::mutex> lock(interruptMutex(), std::adopt_lock);
     setInterruptOwner(false);  // released while waiting
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("cond-untimed-predicate", 0,
+        PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, boundThread(), reinterpret_cast<std::uintptr_t>(&cv))));
     cv.wait(lock, predicate);
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
     setInterruptOwner(true);
     lock.release();
 }

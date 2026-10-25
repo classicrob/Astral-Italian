@@ -204,7 +204,10 @@ void sleepUntil(Clock::time_point deadline) {
         return;
     }
     const std::uint64_t ticks = static_cast<std::uint64_t>(remaining) * timebase.denom / timebase.numer;
+    PETARI_GPU_TRACE(GpuTrace::waitBegin("mach-wait-until",
+        std::chrono::duration_cast<std::chrono::nanoseconds>(deadline.time_since_epoch()).count()));
     mach_wait_until(mach_absolute_time() + ticks);
+    PETARI_GPU_TRACE(GpuTrace::waitEnd());
 }
 
 Clock::duration fieldPeriodLocked() {
@@ -241,7 +244,10 @@ void* viThreadMain(void*) {
             std::mutex sleepLock;
             std::condition_variable sleeper;
             std::unique_lock<std::mutex> lock(sleepLock);
+            PETARI_GPU_TRACE(GpuTrace::waitBegin("vi-cond-until",
+                std::chrono::duration_cast<std::chrono::nanoseconds>(next.time_since_epoch()).count()));
             sleeper.wait_until(lock, next, [] { return false; });
+            PETARI_GPU_TRACE(GpuTrace::waitEnd());
         } else {
             sleepUntil(next);
         }

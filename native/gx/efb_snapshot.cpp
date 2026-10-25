@@ -281,9 +281,10 @@ aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& enco
         readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,
             [readback, bytes, generation, ticket, ready, width, height, requested](wgpu::MapAsyncStatus status,
                                                                                    wgpu::StringView) {
-                PETARI_GPU_TRACE(GpuTrace::emit("map_callback_enter", GpuTrace::captureContext(0, ticket),
+                PETARI_GPU_TRACE(GpuTrace::emitScheduling("map_callback_enter", GpuTrace::captureContext(0, ticket), {},
                     status == wgpu::MapAsyncStatus::Success ? 0 : 1));
                 HostAllocationScope host;
+                PETARI_GPU_TRACE(GpuTrace::emit("map_callback_body_begin", GpuTrace::captureContext(0, ticket)));
                 if (status != wgpu::MapAsyncStatus::Success) fail("GPU readback mapping failed");
                 const auto* data = static_cast<const Pixel*>(readback.GetConstMappedRange(0, bytes));
                 if (!data) fail("GPU readback returned no data");
@@ -308,7 +309,8 @@ aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& enco
                 }
                 PETARI_GPU_TRACE(GpuTrace::emit("readback_cpu_complete", GpuTrace::captureContext(0, ticket)));
                 ready(ticket);
-                PETARI_GPU_TRACE(GpuTrace::emit("snapshot_ready_return", GpuTrace::captureContext(0, ticket)));
+                PETARI_GPU_TRACE(GpuTrace::emit("snapshot_ready_return", GpuTrace::captureContext(0, ticket));
+                    GpuTrace::emit("map_callback_body_end", GpuTrace::captureContext(0, ticket)));
             });
     };
 }

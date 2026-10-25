@@ -474,6 +474,15 @@ void updatePriority(OSThread* thread) {
 // ---- Baton ----
 
 void giveCpu(OSThread* next) {
+    PETARI_GPU_TRACE(const auto ns = PetariNative::GpuTrace::nowNs();
+        auto a = PetariNative::GpuTrace::baton.grant(ns, reinterpret_cast<std::uintptr_t>(next), PetariNative::GpuTrace::nextGrantReason);
+        PetariNative::GpuTrace::nextGrantReason = "unspecified";
+        auto c = PetariNative::GpuTrace::withSubject({}, next);
+        c.detail = gCurrentRunning ? 1 : 0;
+        const auto h = hosts().find(next);
+        if (h != hosts().end() && h->second->pthread)
+            PetariNative::GpuTrace::emitSchedulingAt(ns, "baton_grant", c, a, next->priority, h->second->pthread);
+        else PetariNative::GpuTrace::emitAt("baton_grant", c, ns, next->priority, a));
     detachHolderOverride();
     if (gBatonDiag) {
         closeEpisode();
@@ -492,6 +501,8 @@ void giveCpu(OSThread* next) {
     if (forceParked) {
         found->second->forceParked = false;
         thread_resume(found->second->machThread);
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_holder_resume_requested",
+            PetariNative::GpuTrace::withSubject({}, next)));
     } else if (found != hosts().end()) {
         found->second->cv.notify_all();
     }
@@ -532,7 +543,7 @@ void waitForCpu(OSThread* self) {
         terminateHostThread();
     }
     gCurrentRunning = true;  // interrupt lock held (hostWait returns with it)
-    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_cpu_resumed",
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emitScheduling("thread_cpu_resumed",
         PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, self)));
     publishHolder();
 }
@@ -545,6 +556,7 @@ void interruptReschedule() {
     if (current == nullptr) {
         if (RunQueueBits != 0) {
             RunQueueHint = FALSE;
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::nextGrantReason = "interrupt-idle-grant");
             giveCpu(popHighestReady());
         }
         return;
@@ -555,6 +567,7 @@ void interruptReschedule() {
         // and return the holder to the run queue, as the Wii's scheduler would
         // have if both had been ready together. Waiting for the holder to wake
         // just to be preempted cost 5-35 ms (PETARI_BATON_DIAG, boot logs).
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::nextGrantReason = "reassign-unresumed");
         current->state = kStateReady;
         setRun(current);
         RunQueueHint = FALSE;
@@ -588,6 +601,9 @@ void selectThread(BOOL yield) {
         return;
     }
 
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::nextGrantReason = self->state == kStateWaiting ? "os-wait" :
+        self->state == kStateMoribund || self->state == 0 ? "thread-exit" :
+        self->suspend ? "suspended" : yield ? "yield" : "priority-preemption");
     if (self->state == kStateRunning) {
         if (!yield && self->priority <= highestReadyPriority()) {
             setPreemptPending(false);
@@ -605,6 +621,9 @@ void selectThread(BOOL yield) {
         if (gBatonDiag) {
             closeEpisode();
         }
+        PETARI_GPU_TRACE(const auto ns = PetariNative::GpuTrace::nowNs();
+            const auto a = PetariNative::GpuTrace::baton.grant(ns, 0, PetariNative::GpuTrace::nextGrantReason);
+            PetariNative::GpuTrace::emitAt("baton_release", {}, ns, 0, a));
         gCurrent.store(nullptr, std::memory_order_release);
         publishHolder();
     } else {
@@ -1049,16 +1068,29 @@ ForceResult tryForcePreempt(PreemptAttempt& attempt, std::int64_t expectedSince)
         return ForceResult::NotNeeded;
     }
     HostThread& host = *found->second;
+    PETARI_GPU_TRACE(const auto waiter = RunQueue[highestReadyPriority()].head;
+        const auto waitingHost = hosts().find(waiter);
+        auto c = PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::monitorContext, waiter);
+        auto a = PetariNative::GpuTrace::baton.attributes(PetariNative::GpuTrace::nowNs(), "forced-preemption-attempt", reinterpret_cast<std::uintptr_t>(waiter));
+        if (waitingHost != hosts().end() && waitingHost->second->pthread)
+            PetariNative::GpuTrace::emitScheduling("forced_preemption_waiter", c, a, waiter->priority, waitingHost->second->pthread);
+        else PetariNative::GpuTrace::emit("forced_preemption_waiter", c, waiter->priority));
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_suspend_begin", PetariNative::GpuTrace::withSubject({}, holder)));
     if (thread_suspend(host.machThread) != KERN_SUCCESS) {
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_suspend_failed", PetariNative::GpuTrace::withSubject({}, holder)));
         return ForceResult::Busy;
     }
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_suspend_end", PetariNative::GpuTrace::withSubject({}, holder)));
     std::uint64_t frames[32] = {};
     arm_thread_state64_t state;
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_state_query_begin", PetariNative::GpuTrace::withSubject({}, holder)));
     if (thread_get_state(host.machThread, ARM_THREAD_STATE64, reinterpret_cast<thread_state_t>(&state), &count) != KERN_SUCCESS) {
         thread_resume(host.machThread);
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_state_query_failed", PetariNative::GpuTrace::withSubject({}, holder)));
         return ForceResult::Busy;
     }
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_state_query_end", PetariNative::GpuTrace::withSubject({}, holder)));
     frames[0] = (arm_thread_state64_get_pc(state) & 0x0000FFFFFFFFFFFFull) + 1;  // looked up like a return address
     frames[1] = arm_thread_state64_get_lr(state) & 0x0000FFFFFFFFFFFFull;
     walkSuspendedStack(arm_thread_state64_get_fp(state), host.stackLow, host.stackHigh, frames, 32);
@@ -1090,11 +1122,17 @@ ForceResult tryForcePreempt(PreemptAttempt& attempt, std::int64_t expectedSince)
     }
     if (!safe) {
         thread_resume(host.machThread);
+        PETARI_GPU_TRACE(const auto ns = PetariNative::GpuTrace::nowNs();
+            auto a = PetariNative::GpuTrace::baton.attributes(ns, attempt.outside ? "refusal-system-code" :
+                attempt.blocker ? "refusal-unsafe-code" : "refusal-unresolved-code",
+                reinterpret_cast<std::uintptr_t>(RunQueue[highestReadyPriority()].head));
+            PetariNative::GpuTrace::emitAt("baton_refusal", PetariNative::GpuTrace::withSubject({}, holder), ns, 0, a));
         if (attempt.outside || attempt.blocker != nullptr) {
             return ForceResult::Unsafe;
         }
         return attempt.unknownCount != 0 ? ForceResult::NeedNames : ForceResult::Unsafe;
     }
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::nextGrantReason = "forced-preemption");
     // Preempt it, as an interrupt would have: ready at its priority, the CPU
     // to the highest ready thread. Its host thread stays suspended.
     holder->state = kStateReady;
@@ -1182,16 +1220,27 @@ void* batonMonitor(void*) {
     double waitMs = kMonitorPollMs, retryMs = kFirstRetryMs;
     std::int64_t retrySince = 0;  // the pending preemption the backoff belongs to
     std::int64_t lastStatePoll = 0;
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.detail = static_cast<std::uint64_t>(kMonitorPollMs * 1e6);
+        PetariNative::GpuTrace::emit("monitor_initial_config", c, static_cast<std::int64_t>(gPreemptAfterMs.load() * 1e6)));
     while (true) {
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::monitorContext = {};
+            PetariNative::GpuTrace::monitorContext.span = PetariNative::GpuTrace::nextId();
+            PetariNative::GpuTrace::emit("monitor_wait_plan", PetariNative::GpuTrace::monitorContext, static_cast<std::int64_t>(waitMs * 1e6)));
         if (const semaphore_t wake = gMonitorWake.load(std::memory_order_relaxed); wake != MACH_PORT_NULL) {
             const auto ns = static_cast<long long>(waitMs * 1e6);
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("mach-semaphore-timedwait", PetariNative::GpuTrace::deadlineAfter(ns), PetariNative::GpuTrace::monitorContext));
             if (semaphore_timedwait(wake, mach_timespec_t{static_cast<unsigned>(ns / 1000000000),
                                                         static_cast<clock_res_t>(ns % 1000000000)}) == KERN_SUCCESS) {
+                PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("monitor_semaphore_signaled", PetariNative::GpuTrace::monitorContext));
                 gMonitorWakePending.store(false);
             }
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
         } else {
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("std-sleep-for", PetariNative::GpuTrace::deadlineAfter(static_cast<std::uint64_t>(waitMs * 1e6)), PetariNative::GpuTrace::monitorContext));
             std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(waitMs));
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
         }
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::emitAt("monitor_woke", PetariNative::GpuTrace::monitorContext, PetariNative::GpuTrace::lastWaitReturnNs));
         waitMs = kMonitorPollMs;
         std::lock_guard<std::mutex> quiesce(monitorQuiesce());
         const std::uint64_t poll = gMonitorPolls.fetch_add(1, std::memory_order_relaxed) + 1;
@@ -1208,9 +1257,17 @@ void* batonMonitor(void*) {
         const double deadlineMs = pendingSince != 0
             ? gPreemptAfterMs.load(std::memory_order_relaxed) - ticksToMs(woke - pendingSince) : kMonitorPollMs;
         const bool forcing = pendingSince != 0 && gForcePreemption.load(std::memory_order_relaxed);
+        PETARI_GPU_TRACE(if (pendingSince) {
+            PetariNative::GpuTrace::Attributes a; a.primitive = "monitor-target-deadline";
+            a.deadlineNs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::duration(pendingSince)).count() +
+                static_cast<std::uint64_t>(gPreemptAfterMs.load(std::memory_order_relaxed) * 1e6);
+            auto c = PetariNative::GpuTrace::monitorContext; c.subject = reinterpret_cast<std::uintptr_t>(gHolderThread.load(std::memory_order_relaxed));
+            PetariNative::GpuTrace::emitAt("monitor_preemption_target", c, PetariNative::GpuTrace::nowNs(), forcing ? 1 : 0, a);
+        });
         const double untilStatePoll = kMonitorPollMs - ticksToMs(woke - lastStatePoll);
         if (untilStatePoll > 0 && !(forcing && deadlineMs <= 0)) {
             waitMs = forcing ? std::min(untilStatePoll, deadlineMs) : untilStatePoll;
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("monitor_poll_throttle", PetariNative::GpuTrace::monitorContext, static_cast<std::int64_t>(waitMs * 1e6)));
             continue;
         }
         lastStatePoll = woke;
@@ -1239,10 +1296,13 @@ void* batonMonitor(void*) {
             if (running && since != 0 && gForcePreemption.load(std::memory_order_relaxed)) {
                 if (pendingMs < afterMs) {
                     waitMs = std::min(waitMs, afterMs - pendingMs);  // wake no later than the deadline
+                    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("monitor_target_not_due", PetariNative::GpuTrace::monitorContext, static_cast<std::int64_t>(waitMs * 1e6)));
                     continue;
                 }
                 PreemptAttempt attempt;
                 const ForceResult result = tryForcePreempt(attempt, since);
+                PETARI_GPU_TRACE(auto c = PetariNative::GpuTrace::monitorContext; c.detail = static_cast<unsigned>(result);
+                    PetariNative::GpuTrace::emit("forced_preemption_attempt_result", c));
                 const double attemptUs = ticksToMs(nowTicks() - now) * 1000.0;
                 // Consume cached site pointers before learnCode can evict them.
                 noteForcedPreemption(result, attempt, pendingMs, attemptUs);
@@ -1255,6 +1315,8 @@ void* batonMonitor(void*) {
                     waitMs = retryMs;
                     retryMs = std::min(retryMs * 2, kMonitorPollMs);
                 }
+                PETARI_GPU_TRACE(auto c = PetariNative::GpuTrace::monitorContext; c.detail = static_cast<unsigned>(result);
+                    PetariNative::GpuTrace::emit("monitor_retry_backoff", c, static_cast<std::int64_t>(waitMs * 1e6)));
             }
             continue;
         }
@@ -1457,6 +1519,8 @@ void startHolderOverride(OSThread* holder) {
     if (gHolderOverride != nullptr) {
         gOverrideTarget = holder;
         ++gOverridesStarted;
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("holder_qos_override_start",
+            PetariNative::GpuTrace::withSubject({}, holder, reinterpret_cast<std::uintptr_t>(gHolderOverride)), QOS_CLASS_USER_INTERACTIVE));
     }
 }
 
@@ -1469,6 +1533,8 @@ void detachHolderOverride() {
         PetariNative::HostAllocationScope hostAllocations;
         deferredOverrides().push_back(gHolderOverride);
     }
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("holder_qos_override_detach",
+        PetariNative::GpuTrace::withSubject({}, gOverrideTarget, reinterpret_cast<std::uintptr_t>(gHolderOverride))));
     gHolderOverride = nullptr;
     gOverrideTarget = nullptr;
     ++gOverridesDetached;
@@ -1486,6 +1552,8 @@ void takeDeferredOverrides(std::vector<pthread_override_t>& out) {
 void endOverrides(std::vector<pthread_override_t>& overrides) {
     for (pthread_override_t o : overrides) {
         pthread_override_qos_class_end_np(o);
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.detail = reinterpret_cast<std::uintptr_t>(o);
+            PetariNative::GpuTrace::emit("holder_qos_override_end", c));
     }
     gOverridesEnded.fetch_add(overrides.size(), std::memory_order_relaxed);
     overrides.clear();
@@ -1840,6 +1908,11 @@ void noteInterruptDisable(bool nested) {
 }
 
 void onInterruptsDisabled() {
+    PETARI_GPU_TRACE(if (tBound && PetariNative::GpuTrace::baton.holder == reinterpret_cast<std::uintptr_t>(tBound) &&
+        PetariNative::GpuTrace::lastLocalGrant != PetariNative::GpuTrace::baton.generation) {
+        PetariNative::GpuTrace::lastLocalGrant = PetariNative::GpuTrace::baton.generation;
+        PetariNative::GpuTrace::emitScheduling("holder_first_os_observation", PetariNative::GpuTrace::withSubject({}, tBound));
+    });
     if (tBound != nullptr && gPreemptPending && gCurrent.load(std::memory_order_relaxed) == tBound) {
         selectThread(FALSE);
     }
@@ -1915,7 +1988,7 @@ void __OSThreadInit(void) {
     }
     tBound = thread;
     PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.span = PetariNative::GpuTrace::nextId();
-        PetariNative::GpuTrace::emit("thread_birth", PetariNative::GpuTrace::withSubject(c, thread)));
+        PetariNative::GpuTrace::emit("thread_birth", PetariNative::GpuTrace::withSubject(c, thread), thread->base));
     PetariNative::setGameAllocationThread(true);  // the default thread runs game code
     if (envEnabled("PETARI_BATON_DIAG") && !gBatonDiag) {
         const char* sample = std::getenv("PETARI_BATON_SAMPLE");
@@ -1929,6 +2002,9 @@ void __OSThreadInit(void) {
     }
     gCurrentRunning = true;
     gCurrent.store(thread, std::memory_order_release);
+    PETARI_GPU_TRACE(const auto ns = PetariNative::GpuTrace::nowNs();
+        auto a = PetariNative::GpuTrace::baton.grant(ns, reinterpret_cast<std::uintptr_t>(thread), "initial");
+        PetariNative::GpuTrace::emitSchedulingAt(ns, "baton_grant", PetariNative::GpuTrace::withSubject({}, thread), a));
     publishHolder();
     startBatonMonitor();
     OSRestoreInterrupts(enabled);
@@ -2061,7 +2137,8 @@ BOOL OSCreateThread(OSThread* thread, void* (*func)(void*), void* param, void* s
     }
     activeEnqueue(thread);
     PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.span = PetariNative::GpuTrace::nextId();
-        PetariNative::GpuTrace::emit("thread_birth", PetariNative::GpuTrace::withSubject(c, thread)));
+        c.detail = reinterpret_cast<std::uintptr_t>(func);
+        PetariNative::GpuTrace::emit("thread_birth", PetariNative::GpuTrace::withSubject(c, thread), thread->base));
     OSRestoreInterrupts(enabled);
     return TRUE;
 }
@@ -2192,6 +2269,11 @@ s32 OSResumeThread(OSThread* thread) {
         case kStateReady:
             thread->priority = __OSGetEffectivePriority(thread);
             setRun(thread);
+            PETARI_GPU_TRACE(const auto h = hosts().find(thread);
+                const auto c = PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::deliveryContext, thread);
+                if (h != hosts().end() && h->second->pthread)
+                    PetariNative::GpuTrace::emitScheduling("thread_resume_ready", c, {}, 0, h->second->pthread);
+                else PetariNative::GpuTrace::emit("thread_resume_ready", c));
             break;
         case kStateWaiting:
             dequeueItem(thread->queue, thread);
@@ -2248,11 +2330,14 @@ void OSSleepThread(OSThreadQueue* queue) {
 
     PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_sleep",
         PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, currentThread, reinterpret_cast<std::uintptr_t>(queue))));
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("wii-OS-queue-semantic-untimed", 0,
+        PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, currentThread, reinterpret_cast<std::uintptr_t>(queue))));
     currentThread->state = kStateWaiting;
     currentThread->queue = queue;
     enqueuePrio(queue, currentThread);
     RunQueueHint = TRUE;
     __OSReschedule();
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
     OSRestoreInterrupts(enabled);
 }
 
@@ -2261,8 +2346,10 @@ void OSWakeupThread(OSThreadQueue* queue) {
     while (queue->head) {
         OSThread* thread = dequeueHead(queue);
         thread->state = kStateReady;
-        PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_wake_ready",
-            PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::deliveryContext, thread, reinterpret_cast<std::uintptr_t>(queue)), thread->suspend));
+        PETARI_GPU_TRACE(const auto h = hosts().find(thread);
+            const auto c = PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::deliveryContext, thread, reinterpret_cast<std::uintptr_t>(queue));
+            if (h != hosts().end() && h->second->pthread) PetariNative::GpuTrace::emitScheduling("thread_wake_ready", c, {}, thread->suspend, h->second->pthread);
+            else PetariNative::GpuTrace::emit("thread_wake_ready", c, thread->suspend));
         if (!isSuspended(thread->suspend)) {
             setRun(thread);
         }
@@ -2294,6 +2381,8 @@ OSPriority OSGetThreadPriority(OSThread* thread) {
 // work only) instead of parking.
 static void beginHostBlockingLocked() {
     OSThread* self = tBound;
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::nextGrantReason = "host-blocking";
+        PetariNative::GpuTrace::emitScheduling("host_blocking_begin", PetariNative::GpuTrace::withSubject({}, self)));
     self->state = kStateWaiting;
     self->queue = &tHostBlockingQueue;
     enqueuePrio(&tHostBlockingQueue, self);
@@ -2308,6 +2397,9 @@ static void beginHostBlockingLocked() {
         if (gBatonDiag) {
             closeEpisode();
         }
+        PETARI_GPU_TRACE(const auto ns = PetariNative::GpuTrace::nowNs();
+            const auto a = PetariNative::GpuTrace::baton.grant(ns, 0, PetariNative::GpuTrace::nextGrantReason);
+            PetariNative::GpuTrace::emitAt("baton_release", {}, ns, 0, a));
         gCurrent.store(nullptr, std::memory_order_release);
         publishHolder();
     } else {
@@ -2370,6 +2462,7 @@ void petari_os_end_host_blocking(void) {
     // (unless another thread suspended it meanwhile); an idle CPU is taken at
     // once, otherwise the running thread is preempted at its next
     // interrupt-state change if this one has higher priority.
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::emitScheduling("host_blocking_end", PetariNative::GpuTrace::withSubject({}, self)));
     dequeueItem(&tHostBlockingQueue, self);
     self->state = kStateReady;
     if (!isSuspended(self->suspend)) {

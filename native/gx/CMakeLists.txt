@@ -824,7 +824,8 @@ endif()
 foreach(_trace_pair
     "aurora_gx|${CMAKE_CURRENT_BINARY_DIR}/ubershader/frame.cpp|frame|gfx"
     "aurora_gx|${CMAKE_CURRENT_BINARY_DIR}/allocation-safe/lib/gfx/render_worker.cpp|worker|gfx"
-    "aurora_core|${CMAKE_CURRENT_BINARY_DIR}/present/lib/aurora.cpp|aurora|.")
+    "aurora_core|${CMAKE_CURRENT_BINARY_DIR}/present/lib/aurora.cpp|aurora|."
+    "aurora_gx|${CMAKE_CURRENT_BINARY_DIR}/sync/lib/gx/fifo.cpp|fifo|gx")
     string(REPLACE "|" ";" _trace_parts "${_trace_pair}")
     list(GET _trace_parts 0 _trace_target)
     list(GET _trace_parts 1 _trace_input)

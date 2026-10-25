@@ -143,14 +143,19 @@ void* timerMain(void*) {
     while (true) {
         if (AlarmQueue.head == nullptr) {
             setInterruptOwner(false);
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("alarm-cond-untimed"));
             cv.wait(lock);
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
             setInterruptOwner(true);
             continue;
         }
         const auto deadline = systemTimeToHost(AlarmQueue.head->fire);
         if (std::chrono::steady_clock::now() < deadline) {
             setInterruptOwner(false);
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("alarm-cond-until",
+                std::chrono::duration_cast<std::chrono::nanoseconds>(deadline.time_since_epoch()).count()));
             cv.wait_until(lock, deadline);
+            PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
             setInterruptOwner(true);
             continue;
         }

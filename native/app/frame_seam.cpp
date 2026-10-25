@@ -728,11 +728,15 @@ void testFullscreen() {
 }
 
 void openFrame() {
+    PETARI_GPU_TRACE(GpuTrace::emitScheduling("open_frame_phase_enter"));
     while (!aurora_begin_frame()) {
         ++gTrace.unpresentableWaits;
         gTiming.unfocusedInFrame = true;
+        PETARI_GPU_TRACE(GpuTrace::emit("window_event_pump_begin"));
         handleEvents(aurora_update());
+        PETARI_GPU_TRACE(GpuTrace::emit("window_event_pump_end"));
     }
+    PETARI_GPU_TRACE(GpuTrace::emit("open_frame_phase_exit"));
 }
 
 // The game image in window points, told to the input layer when it changes.
@@ -789,6 +793,7 @@ void recordStartupPresent(std::uint64_t presentedNs) {
 std::uint64_t startupFrameCount() { return gTiming.frames; }
 
 void openFirstFrame() {
+    PETARI_GPU_TRACE(GpuTrace::emitScheduling("startup_open_first_enter"));
     HostAllocationScope host;
     const char* trace = std::getenv("PETARI_TRACE_BOOT");
     gTrace.enabled = trace != nullptr && trace[0] != '\0' && trace[0] != '0';
@@ -798,7 +803,9 @@ void openFirstFrame() {
         std::fprintf(stderr, "[gx startup frame mapping] prep_csv_first=1 prep_csv_last=%llu game_csv_offset=%llu route_offset=0 policy=continuous-intervals\n",
             (unsigned long long)gTiming.frames, (unsigned long long)(gTiming.frames + 1));
     }
+    PETARI_GPU_TRACE(GpuTrace::emit("startup_smoke_begin"));
     startSmoke();
+    PETARI_GPU_TRACE(GpuTrace::emit("startup_smoke_end"));
     if (gPresent.composeFrame == nullptr) {
         std::fprintf(stderr,
                      "Petari: no presentation hook; the window shows Aurora's frame as is (not the GXCopyDisp "
@@ -815,7 +822,9 @@ void openFirstFrame() {
     if (release) {
         gRelease.begin();
     }
+    PETARI_GPU_TRACE(GpuTrace::emit("startup_event_pump_begin"));
     handleEvents(aurora_update());
+    PETARI_GPU_TRACE(GpuTrace::emit("startup_event_pump_end"));
     openFrame();
     updateImage();
     if (release) {

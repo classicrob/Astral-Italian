@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 #ifdef __APPLE__
 extern "C" void* objc_autoreleasePoolPush(void);
 extern "C" void objc_autoreleasePoolPop(void* pool);
@@ -22,10 +23,13 @@ static void pipeline_worker(unsigned workerIndex = 0) {
     {
       std::unique_lock lock{g_pipelineMutex};
       if (g_hasPipelineThread) {
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.detail = workerIndex;
+            PetariNative::GpuTrace::waitBegin("pipeline-queue-cond-untimed", 0, c));
         g_pipelineQueueCv.wait(lock, [workerIndex] {
           return workerIndex >= petariActiveWorkers || petari_runnable_queue(workerIndex) ||
               petari_uber_worker_ready(workerIndex) || g_pipelineThreadEnd;
         });
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
       } else if (g_pipelineQueue.empty() && g_backgroundPipelineQueue.empty()) {
         return;
       }
@@ -36,6 +40,8 @@ static void pipeline_worker(unsigned workerIndex = 0) {
         PetariPipeline::compilationQoS(false);
         PetariPipelineAutoreleasePool pool;
         const auto started = PetariPipeline::diagnostics() ? PetariPipeline::Clock::now() : PetariPipeline::Clock::time_point{};
+        PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.detail = workerIndex;
+            PetariNative::GpuTrace::emitScheduling("pipeline_fallback_dispatch", c));
         uberJob();
         if (PetariPipeline::diagnostics()) {
           const auto finished = PetariPipeline::Clock::now();
@@ -69,6 +75,8 @@ static void pipeline_worker(unsigned workerIndex = 0) {
                      PetariPipeline::milliseconds(PetariPipeline::Clock::now().time_since_epoch()));
     }
     if (g_hasPipelineThread) PetariPipeline::compilationQoS(background);
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::Context c{}; c.detail = workerIndex; c.subject = pending.hash;
+        PetariNative::GpuTrace::emitScheduling("pipeline_specialized_dispatch", c, {}, background ? 1 : 0));
     PetariPipeline::stages = {.runtimeKey = pending.hash};
     auto result = [&] {
       PetariPipelineAutoreleasePool pool;

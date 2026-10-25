@@ -132,3 +132,11 @@ bounded/full/MPSC ring accounting and writer shutdown/JSON output. Inspect the
 Release petari_gpu_trace_off_probe symbol for the cached flag load/branch before
 any pointer access. Complete runtime callback/CSV mapping and the overhead
 comparison before any M1 causal claim. Server C++/app build results are pending.
+
+## Holder / QoS / timer attribution extension
+
+See [GPU-TRACE-HOLDER-543.md](GPU-TRACE-HOLDER-543.md) for schema 2, per-grant
+holder durations/reasons, receiving-thread host samples, IODeviceTree topology,
+monitor attempt/deadline/backoff spans and startup/callback phase boundaries.
+It documents what remains unknown and the deferred native/runtime test plan.
+The original ccd0a360 overhead verdict does not qualify this extension.

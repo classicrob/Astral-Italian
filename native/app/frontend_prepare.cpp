@@ -1,3 +1,4 @@
+#include <petari/gpu_trace.hpp>
 #include <petari/pipeline_startup.hpp>
 #include <petari/home_menu.hpp>
 #include <petari/latency_probe.hpp>
@@ -11,6 +12,7 @@
 #include <cstdio>
 
 namespace PetariNative::App {
+namespace GpuTrace = PetariNative::GpuTrace;
 bool prepareFrontend(SDL_Window* window) {
     // Background smoke remains hidden. It does not claim visible preparation.
     if (SmokeBackground::enabled) {
@@ -44,8 +46,12 @@ bool prepareFrontend(SDL_Window* window) {
     bool mainThread = true, started = false, quit = false;
     std::uint64_t submitted = 0, collected = 0;
     petari_boot_splash_progress(0, 0);
-    const auto delay = [](Uint64 ns) { PetariBootSplash::SlowCall span{"splash_delay"}; SDL_DelayNS(ns); };
+    const auto delay = [](Uint64 ns) { PetariBootSplash::SlowCall span{"splash_delay"};
+        PETARI_GPU_TRACE(GpuTrace::waitBegin("SDL-DelayNS", GpuTrace::deadlineAfter(ns)));
+        SDL_DelayNS(ns);
+        PETARI_GPU_TRACE(GpuTrace::waitEnd()); };
     const auto collect = [&] {
+        PETARI_GPU_TRACE(GpuTrace::emit("startup_collect_begin"));
         const auto count = PetariBootSplash::presented.load(std::memory_order_acquire);
         if (count > collected) {
             // At most one submission is outstanding. The acquire pairs with
@@ -53,13 +59,18 @@ bool prepareFrontend(SDL_Window* window) {
             Seam::recordStartupPresent(PetariBootSplash::lastPresentNs.load());
             collected = count;
         }
+        PETARI_GPU_TRACE(GpuTrace::emit("startup_collect_end"));
     };
     while (!quit) {
         const auto pumpAt = SDL_GetTicksNS();
         maxGapMs = std::max(maxGapMs, (pumpAt - lastPump) / 1e6);
         lastPump = pumpAt; ++pumps;
+        PETARI_GPU_TRACE(GpuTrace::emitScheduling("startup_pump_begin"));
         mainThread &= petari_boot_splash_pump();
+        PETARI_GPU_TRACE(GpuTrace::emit("startup_pump_end"));
+        PETARI_GPU_TRACE(GpuTrace::emit("startup_aurora_update_begin"));
         const auto* events = [] { PetariBootSplash::SlowCall span{"splash_aurora_update"}; return aurora_update(); }();
+        PETARI_GPU_TRACE(GpuTrace::emit("startup_aurora_update_end"));
         for (const AuroraEvent* event = events; event && event->type != AURORA_NONE; ++event)
             if (event->type == AURORA_EXIT) quit = true;
         collect();
@@ -70,7 +81,9 @@ bool prepareFrontend(SDL_Window* window) {
             { PetariBootSplash::SlowCall span{"frontend_admission"}; petari_gx_frontend_begin(); }
             started = true;
         }
+        PETARI_GPU_TRACE(GpuTrace::emit("startup_frontend_status_begin"));
         { PetariBootSplash::SlowCall span{"frontend_status"}; petari_gx_frontend_status(&total, &pending, &failed, &elapsedMs); }
+        PETARI_GPU_TRACE(GpuTrace::emit("startup_frontend_status_end"));
         if (started && collected == submitted && (elapsedMs >= PetariBootSplash::prepCapMs || failed || (!pending && collected >= 3))) break;
         // Failure to create a visible, presented frame is bounded too. No
         // fabricated readiness and no compile work starts in that case.

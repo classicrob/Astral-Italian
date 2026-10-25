@@ -9,8 +9,12 @@ inline void observeSubmission(const wgpu::Queue& queue, Context c) {
     emit("completion_observer_register_begin", c);
     queue.OnSubmittedWorkDone(wgpu::CallbackMode::AllowSpontaneous,
         [c](wgpu::QueueWorkDoneStatus status, wgpu::StringView) {
-            PETARI_GPU_TRACE(emit("gpu_queue_done_observed", c,
-                status == wgpu::QueueWorkDoneStatus::Success ? 0 : 1));
+            PETARI_GPU_TRACE(const auto entry = nowNs();
+                emitAt("gpu_queue_done_observed", c, entry, status == wgpu::QueueWorkDoneStatus::Success ? 0 : 1);
+                emitAt("queue_callback_enter", c, entry);
+                emitScheduling("queue_callback_host", c);
+                emit("queue_callback_body_begin", c));
+            PETARI_GPU_TRACE(emit("queue_callback_body_end", c));
             run->pending.fetch_sub(1, std::memory_order_relaxed);
         });
     emit("completion_observer_register_end", c);

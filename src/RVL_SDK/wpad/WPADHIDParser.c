@@ -1030,7 +1030,7 @@ void __parse_dpdex_data(s32 chan, WPADStatus** p_status, u8 index, u8* data, u8 
 #define EX_STATUS ((WPADStatusEx*)*p_status)
     EX_STATUS->obj[index].x = (s16)((data[2] & 0x30) << 4) | (s16)data[0];
     EX_STATUS->obj[index].y = 767 - (s16)((s16)((data[2] & 0xC0) << 2) | (s16)data[1]);
-    EX_STATUS->exp[index].pixel = ((s16)((u8)data[7] << 8) | data[8]) * 64;
+    EX_STATUS->exp[index].pixel = ((s16)((data[7] << 8) & 0xFF00) | data[8]) * 64;
     EX_STATUS->exp[index].radius = data[2] & 0xF;
     EX_STATUS->exp[index].range_x1 = (s8)data[3] == -1 ? 0 : data[3];
     EX_STATUS->exp[index].range_y1 = (s8)data[4] == -1 ? 0 : data[4];
@@ -1201,9 +1201,9 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
                 } else if (p_cb->devType == WPAD_DEV_MPLS_CLASSIC) {
                     CL_REPORT->clLStickX = (data[0] << 4) & 0x3E0;
                     CL_REPORT->clLStickY = (data[1] << 4) & 0x3E0;
-                    CL_REPORT->clRStickX = (s16)((s16)(data[2] >> 7) | (((data[1] >> 5) & 6) | ((data[0] >> 3) & 0x18))) << 5;
+                    CL_REPORT->clRStickX = (s16)((s16)(data[2] >> 7) | (((s16)(data[1] >> 5) & 6) | ((s16)(data[0] >> 3) & 0x18))) << 5;
                     CL_REPORT->clRStickY = (data[2] & 0x1F) << 5;
-                    CL_REPORT->clTriggerL = (s16)(((data[3] >> 5) & 7) | ((data[2] >> 2) & 0x18)) << 3;
+                    CL_REPORT->clTriggerL = (s16)(((s16)(data[2] >> 2) & 0x18) | ((s16)(data[3] >> 5) & 7)) << 3;
                     CL_REPORT->clTriggerR = (data[3] & 0x1F) << 3;
                     CL_REPORT->clButton = ((data[0] & 1) | ((data[1] & 1) << 1) | (data[5] & 0xFC) | ((data[4] & 0xFE) << 8)) ^ 0xFEFF;
                     CL_REPORT->clLStickX -= 512;

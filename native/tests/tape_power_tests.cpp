@@ -49,11 +49,11 @@ void tape(const fs::path& p,unsigned powerRow=5) {
         number(k,f,8);number(k,0,4);number(k,0,4);number(k,120,4);
         const bool detached=f>=9;
         number(k,detached?0:1,4);number(k,detached?0xfffffffe:0,4);
-        number(k,detached?0xffffffff:0,4);number(k,detached?253:1,4);number(k,detached?0:1,4);
-        if (detached) continue; // teardown connection/return values are NOT neutral substitutes
+        number(k,detached?0xffffffff:0,4);number(k,detached?253:1,4);number(k,1,4); // slot zero retained even on return 0
         H::Sample sample{};auto word=[&](unsigned at,unsigned value){for(unsigned i=0;i<4;++i)sample[at+i]=value>>(24-8*i);};
         word(16,0xbf800000);for(unsigned at:{24u,52u,84u})word(at,0x3f800000);
-        sample[92]=1;sample[95]=5;word(108,0xbf800000);word(116,0x3f800000);
+        sample[92]=detached?253:1;sample[93]=detached?255:0;sample[95]=detached?0:5;
+        if (!detached) { word(108,0xbf800000);word(116,0x3f800000); }
         k.write(reinterpret_cast<const char*>(sample.data()),sample.size());
     }
 }

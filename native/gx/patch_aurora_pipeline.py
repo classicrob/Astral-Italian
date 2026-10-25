@@ -13,7 +13,7 @@ def patch(text):
             raise ValueError(f'Aurora pipeline patch anchor mismatch: {old}')
         text = text.replace(old, new)
 
-    text = f'#include "{here / "pipeline_profile.hpp"}"\n#include <vector>\n' + text
+    text = f'#include <petari/gpu_trace.hpp>\n#include "{here / "pipeline_profile.hpp"}"\n#include <vector>\n' + text
     replace('\n  bool schemaMatch = false;', '''
   // This immutable SDL VFS cannot create SQLite sort spill files. Larger stage
   // manifests may need a temporary sort when supplied without a load-order index.

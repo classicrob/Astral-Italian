@@ -100,7 +100,7 @@ inline thread_local Context workerContext{}, recorderContext{}, waitContext{}, d
 inline thread_local std::uint64_t waitingThread = 0, lastWaitReturnNs = 0;
 inline thread_local Context monitorContext{};
 inline std::uint64_t nextId() noexcept { return run->ids.fetch_add(1, std::memory_order_relaxed); }
-inline std::uint64_t nowNs() noexcept { return FrameTelemetry::nowNs(); }
+inline std::uint64_t nowNs() noexcept { return ::PetariNative::FrameTelemetry::nowNs(); }
 inline void emitAt(const char* event, Context context, std::uint64_t ns, std::int64_t value = 0, Attributes attributes = {}) noexcept {
     auto& r = *run;
     r.producers.fetch_add(1, std::memory_order_acq_rel);

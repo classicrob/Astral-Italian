@@ -62,6 +62,26 @@ class TracePatchTests(unittest.TestCase):
             with self.assertRaises(ValueError): patcher.patch(source + source, kind)
             with self.assertRaises(ValueError): patcher.patch(result, kind)
 
+    def test_trace_headers_do_not_leak_framework_types_or_enter_nested_namespace(self):
+        host = (ROOT / 'native/include/petari/gpu_trace_host.hpp').read_text()
+        self.assertNotIn('#include <CoreFoundation/', host)
+        self.assertNotIn('#include <IOKit/', host)
+        self.assertNotIn('CFTypeRef', host)
+        worker = (ROOT / 'native/gx/pipeline_worker.inc').read_text()
+        self.assertNotIn('#include <petari/gpu_trace', worker)
+        pipeline = load('trace_pipeline', ROOT / 'native/gx/patch_aurora_pipeline.py')
+        source = (Path(sys.argv[1]) / 'lib/gfx/pipeline_cache.cpp').read_text()
+        sys.path.insert(0, str(ROOT / 'native/gx'))
+        try:
+            generated = pipeline.patch(source)
+        finally:
+            sys.path.pop(0)
+        self.assertEqual(generated.count('#include <petari/gpu_trace.hpp>'), 1)
+        before = generated[:generated.index('#include <petari/gpu_trace.hpp>')]
+        self.assertEqual(before.count('{'), before.count('}'), 'trace include must be at file scope')
+        header = (ROOT / 'native/include/petari/gpu_trace.hpp').read_text()
+        self.assertIn('return ::PetariNative::FrameTelemetry::nowNs();', header)
+
     def test_off_hooks_preserve_native_operation_tokens(self):
         # Strip only our gated statements/includes. Every pre-existing token in
         # these actual native paths must remain exactly the baseline token stream.

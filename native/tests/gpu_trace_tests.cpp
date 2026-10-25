@@ -62,12 +62,15 @@ int main() {
     topology.add(8, 'P'); assert(topology.conflict[8] && !topology.cluster[8]);
     topology.add(8, 'E'); assert(!topology.cluster[8]); // conflict is sticky
     topology.add(1000, 'P'); // bounded, never indexes outside the table
-#if defined(__APPLE__)
-    assert(propertyCluster(CFSTR("P")) == 'P');
-    assert(propertyCluster(CFSTR("Efficiency")) == 0); // no guessed encoding
-    unsigned cpu = 99;
-    assert(!propertyCpu(CFSTR("2"), cpu));
-#endif
+    assert(decodeTopologyCluster("P", 1) == 'P');
+    assert(decodeTopologyCluster("E", 2) == 'E');
+    assert(decodeTopologyCluster("Efficiency", 10) == 0);
+    assert(decodeTopologyCluster(nullptr, 1) == 0);
+    unsigned cpu = 99; const std::uint32_t cpuCell = 2, invalidCell = 256;
+    assert(decodeTopologyCpu(&cpuCell, sizeof(cpuCell), cpu) && cpu == 2);
+    assert(!decodeTopologyCpu(&invalidCell, sizeof(invalidCell), cpu));
+    assert(!decodeTopologyCpu(&cpuCell, 1, cpu));
+
     Ring<4> ring;
     Record event{"a", 10, 1, 1, {}};
     for (int i = 0; i < 4; ++i) { event.context.packet = i + 1; assert(ring.push(event)); }

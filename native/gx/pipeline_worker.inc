@@ -1,4 +1,3 @@
-#include <petari/gpu_trace.hpp>
 #ifdef __APPLE__
 extern "C" void* objc_autoreleasePoolPush(void);
 extern "C" void objc_autoreleasePoolPop(void* pool);

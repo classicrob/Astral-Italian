@@ -66,6 +66,9 @@ recorded; nodes outside the reported/capacity range are not guessed. Mapping
 uses explicit CFNumber or four-byte Darwin native-endian CFData IDs, and exact
 single-letter CFString/CFData types. No reg/node-name-derived IDs or M1 ordering.
 These IOKit/sysctl reads happen once, only after DIAG/path/binding validation.
+The framework includes and query live in native/src/gpu_trace_host.cpp; the
+shared petari_gpu_trace_host static target is linked by the platform and trace
+tests. Producer headers expose no CoreFoundation/IOKit types.
 
 ## Waits and deadlines
 
@@ -178,3 +181,22 @@ ms predicates and M4 controls; no favorable re-run selection or predicate edits.
 Read scheduling_attribution in the existing report for whole-stream validation,
 then per-worst-row holder, primitive-wait, host/phase and monitor details; never
 sum overlapping lanes. No measurement or acceptance is claimed by this branch.
+
+## Build integration correction
+
+The server d70ca297 build failed before tests: including CoreFoundation/IOKit in
+all producers exposed MacTypes ::Rect in frame_seam.cpp, and including the
+trace header from pipeline_worker.inc inserted its namespace inside Aurora's.
+The correction isolates framework includes in gpu_trace_host.cpp, moves the
+trace include to the pipeline generator's file-scope prelude and uses
+::PetariNative::FrameTelemetry explicitly. New source checks reject either
+header leakage or a nested trace include. No App::Rect qualification workaround
+or scheduler behavior change is needed.
+
+Local authorized clang -fsyntax-only checks passed for 11 production/test TUs,
+including the regenerated cache, app frame seam/main, private query and trace
+unit test, under heavy -> native. The local SDK is 15.1; SDK26 app build/link
+and native test execution remain pending PORT's server rerun. The retained
+syntax plan, exact commands/input hashes and logs are in
+m1g/campaigns/sola-543-gpu-trace-buildfix-r1/. These are syntax results, not an
+app build or executable test pass.

@@ -93,7 +93,8 @@ set_source_files_properties(${PETARI_SDK_OS_SOURCES} PROPERTIES
 target_include_directories(petari_platform_os PUBLIC include PRIVATE os)
 target_link_libraries(petari_platform_os PUBLIC petari_native_config petari_host_runtime Threads::Threads)
 target_compile_features(petari_platform_os PUBLIC cxx_std_17)
-target_link_libraries(petari_platform_os PUBLIC "-framework CoreFoundation" "-framework IOKit")
+include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/GpuTrace.cmake")
+target_link_libraries(petari_platform_os PUBLIC "-framework CoreFoundation" petari_gpu_trace_host)
 
 # NAND save storage (host IOS file system + port of the synchronous SDK NAND
 # library) and ES title identity. Replaces src/RVL_SDK/nand/*.c and the ES

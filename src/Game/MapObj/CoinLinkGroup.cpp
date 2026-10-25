@@ -4,6 +4,10 @@
 #include "Game/Util/Functor.hpp"
 
 
+namespace {
+    extern char sCoinAppearDemoName[];
+}
+
 namespace NrvCoinLinkGroup {
     class CoinLinkGroupNrvDemoWait : public Nerve {
     public:
@@ -38,7 +42,7 @@ namespace NrvCoinLinkGroup {
 inline void NrvCoinLinkGroup::CoinLinkGroupNrvDemoWait::execute(Spine* pSpine) const {
     CoinLinkGroup* pActor = reinterpret_cast< CoinLinkGroup* >(pSpine->mExecutor);
 
-    if (MR::tryStartDemo(pActor, "出現")) {
+    if (MR::tryStartDemo(pActor, sCoinAppearDemoName)) {
         pActor->setNerve(&NrvCoinLinkGroup::CoinLinkGroupNrvDemo::sInstance);
     }
 }
@@ -160,13 +164,17 @@ void CoinLinkGroup::appearCoinsFixTimer() {
     }
 }
 
+namespace {
+    char sCoinAppearDemoName[] = "出現";
+}
+
 void CoinLinkGroup::exeDemo() {
     if (MR::isFirstStep(this)) {
         MR::startActorCameraTargetSelf(this, mCameraInfo, 30);
         appearCoinsOnSwitch();
     }
     if (MR::isGreaterStep(this, 90)) {
-        MR::endDemo(this, "出現");
+        MR::endDemo(this, sCoinAppearDemoName);
         MR::endActorCamera(this, mCameraInfo, false, -1);
         setNerve(&NrvCoinLinkGroup::CoinLinkGroupNrvMain::sInstance);
     }

@@ -3,6 +3,7 @@
 
 static VIVideo Vdac_Flag_Region;
 volatile u32 Vdac_Flag_Changed = 0;
+static u32 __gammaReset = 0;
 static VIACPType __type;
 static u32 __tvType = 0xFF;
 
@@ -878,7 +879,7 @@ void __VISetRevolutionModeSimple(void) {
     __VISetRGBOverDrive();
     __VISetTrapFilterImm(VI_DISABLE);
     __VISetGammaImm(&gammaSet[VI_GM_1_0]);
-    __gamma = 0;
+    __gammaReset = 0;
 }
 // Likely diagnostics from stripped VISetCGMS; retained for the original data layout.
 char sCGMSAssertFile[] = "vi3in1.c";

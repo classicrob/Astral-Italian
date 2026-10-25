@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/MapObj/PunchBox.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"

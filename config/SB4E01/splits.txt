@@ -750,6 +750,7 @@ Game/AreaObj/WaterArea.cpp:
 
 Game/AreaObj/YoshiEatGuidanceArea.cpp:
 	.text       start:0x80077390 end:0x80077500
+	.data       start:0x8066B258 end:0x8066B290
 
 Game/AudioLib/AudSystem.cpp:
 	.text       start:0x80077500 end:0x8007BEA0
@@ -2230,6 +2231,10 @@ auto_10_807D1AB4_sbss:
 Game/Boss/PoltaFunction.cpp:
 	.text       start:0x800F6F00 end:0x800F7970
 	.rodata     start:0x806474E0 end:0x806474E8
+	.data       start:0x806796C8 end:0x806796F1
+
+gap_07_806796F1_data:
+	.data       start:0x806796F1 end:0x806796F8 align:1
 
 Game/Boss/PoltaGroundRock.cpp:
 	.text       start:0x800F7970 end:0x800F8270
@@ -2354,6 +2359,7 @@ Game/Boss/SandyBlur.cpp:
 
 Game/Boss/SandyState.cpp:
 	.text       start:0x800FFF70 end:0x80100320
+	.rodata     start:0x806478C0 end:0x806478C8
 
 Game/Boss/SandyStateDamage.cpp:
 	.text       start:0x80100320 end:0x80100B90
@@ -6322,6 +6328,7 @@ Game/MapObj/CoinHolder.cpp:
 Game/MapObj/CoinLinkGroup.cpp:
 	.text       start:0x8028F370 end:0x8028FE10
 	.ctors      start:0x80644374 end:0x80644378
+	.data       start:0x8069E738 end:0x8069E8C8
 	.sbss       start:0x807D39B0 end:0x807D39C4
 
 auto_10_807D39C4_sbss:
@@ -7382,6 +7389,7 @@ auto_10_807D414C_sbss:
 Game/MapObj/PunchBox.cpp:
 	.text       start:0x802E4D80 end:0x802E5750
 	.ctors      start:0x80644528 end:0x8064452C
+	.data       start:0x806A8E40 end:0x806A8F50
 	.sdata      start:0x807CFD80 end:0x807CFD84
 	.sbss       start:0x807D4150 end:0x807D415C
 
@@ -7391,6 +7399,7 @@ auto_10_807D415C_sbss:
 Game/MapObj/PunchingKinoko.cpp:
 	.text       start:0x802E5750 end:0x802E7740
 	.ctors      start:0x8064452C end:0x80644530
+	.data       start:0x806A8F50 end:0x806A91B0
 	.sdata      start:0x807CFD88 end:0x807CFD90
 	.sbss       start:0x807D4160 end:0x807D418C
 
@@ -8195,10 +8204,12 @@ Game/MapObj/YoshiCapture.cpp:
 Game/MapObj/YoshiFruit.cpp:
 	.text       start:0x8032F720 end:0x8032F830
 	.ctors      start:0x80644668 end:0x8064466C
+	.sdata2     start:0x807DEE08 end:0x807DEE10
 
 Game/MapObj/YoshiFruitBig.cpp:
 	.text       start:0x8032F830 end:0x8032F940
 	.ctors      start:0x8064466C end:0x80644670
+	.sdata2     start:0x807DEE10 end:0x807DEE18
 
 Game/MapObj/MapParts.cpp:
 	.text       start:0x8032F940 end:0x8032F960
@@ -8600,6 +8611,7 @@ auto_10_807D49D4_sbss:
 Game/NPC/MeisterDemoGrandStarReturn.cpp:
 	.text       start:0x80352F40 end:0x80353250
 	.ctors      start:0x806446EC end:0x806446F0
+	.data       start:0x806BA460 end:0x806BA628
 	.sbss       start:0x807D49D8 end:0x807D49DC
 
 auto_10_807D49DC_sbss:
@@ -9446,6 +9458,14 @@ Game/Player/MarioStun.cpp:
 
 Game/Player/MarioAllModel.cpp:
 	.text       start:0x803E7720 end:0x803E7C80
+	.data       start:0x806DCD08 end:0x806DCD66
+	.sdata      start:0x807D0040 end:0x807D004C
+
+gap_09_807D004C_sdata:
+	.sdata      start:0x807D004C end:0x807D0050 align:4
+
+gap_07_806DCD66_data:
+	.data       start:0x806DCD66 end:0x806DCD68 align:1
 
 Game/Player/MarioEffect.cpp:
 	.text       start:0x803E7C80 end:0x803E8320
@@ -9814,6 +9834,7 @@ Game/Player/YoshiSilhouette.cpp:
 
 Game/Player/YoshiHolder.cpp:
 	.text       start:0x8041B570 end:0x8041C550
+	.rodata     start:0x8064BF00 end:0x8064BF08
 	.data       start:0x806EB128 end:0x806EB178
 	.sdata      start:0x807D00F8 end:0x807D00FC
 	.sdata      start:0x807D00FC end:0x807D0100 skip
@@ -10155,6 +10176,10 @@ auto_10_807D52FC_sbss:
 Game/Ride/TubeSliderFunction.cpp:
 	.text       start:0x8044FF90 end:0x80450D60
 	.rodata     start:0x8064C070 end:0x8064C078
+	.data       start:0x806EF730 end:0x806EF797
+
+gap_07_806EF797_data:
+	.data       start:0x806EF797 end:0x806EF798 align:1
 
 Game/Ride/TubeSliderJumpStep.cpp:
 	.text       start:0x80450D60 end:0x80451040
@@ -11672,10 +11697,14 @@ Game/System/HeapMemoryWatcher.cpp:
 
 Game/System/RSO.cpp:
 	.text       start:0x804BD040 end:0x804BD1E0
+	.data       start:0x806FB578 end:0x806FB669
 	.sbss       start:0x807D5D08 end:0x807D5D24
 
 auto_10_807D5D24_sbss:
 	.sbss       start:0x807D5D24 end:0x807D5D28 align:4
+
+gap_07_806FB669_data:
+	.data       start:0x806FB669 end:0x806FB670 align:1
 
 Game/System/Language.cpp:
 	.text       start:0x804BD1E0 end:0x804BD3C0
@@ -12008,7 +12037,8 @@ Game/System/GameEventFlagStorage.cpp:
 
 Game/System/GameEventValueChecker.cpp:
 	.text       start:0x804DC690 end:0x804DCE30
-	.data       start:0x80700620 end:0x80700660
+	.rodata     start:0x8064E078 end:0x8064E198
+	.data       start:0x807001A0 end:0x80700660
 
 Game/System/GameDataSomeGalaxyStorage.cpp:
 	.text       start:0x804DCE30 end:0x804DD3B0
@@ -12276,6 +12306,7 @@ Game/System/GalaxyWorldMapInfoTU01.cpp:
 
 Game/System/WorldMapCameraHolder.cpp:
 	.text       start:0x804EB2F0 end:0x804EB450
+	.data       start:0x80702320 end:0x80702350
 
 Game/System/MiniRouteLine.cpp:
 	.text       start:0x804EB450 end:0x804EC230
@@ -12625,7 +12656,11 @@ auto_07_8070475C_data:
 JSystem/JKernel/JKRAramPiece.cpp:
 	.text       start:0x80506630 end:0x80506B90 align:16
 	.ctors      start:0x80644B04 end:0x80644B08
+	.data       start:0x80704760 end:0x807047D1
 	.bss        start:0x8072BC80 end:0x8072BCB0
+
+gap_07_807047D1_data:
+	.data       start:0x807047D1 end:0x807047D8 align:1
 
 JSystem/JKernel/JKRAramStream.cpp:
 	.text       start:0x80506B90 end:0x805070E0 align:16
@@ -12679,11 +12714,15 @@ JSystem/JKernel/JKRDvdFile.cpp:
 JSystem/JKernel/JKRDvdRipper.cpp:
 	.text       start:0x8050B730 end:0x8050C380 align:16
 	.ctors      start:0x80644B10 end:0x80644B14
+	.data       start:0x80704B80 end:0x80704BD9
 	.bss        start:0x8072BD28 end:0x8072BD58
 	.sbss       start:0x807D61B8 end:0x807D61F4
 
 auto_10_807D61F4_sbss:
 	.sbss       start:0x807D61F4 end:0x807D61F8 align:4
+
+gap_07_80704BD9_data:
+	.data       start:0x80704BD9 end:0x80704BE0 align:1
 
 JSystem/JKernel/JKRDvdAramRipper.cpp:
 	.text       start:0x8050C380 end:0x8050D140 align:16

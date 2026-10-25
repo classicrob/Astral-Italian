@@ -50,7 +50,7 @@ void SoundEmitter::init(const JMapInfoIter& rIter) {
     char soundName[256];
     snprintf(soundName, sizeof(soundName), "SoundEmitterPoint%d", mSoundIndex);
     initSound(2, soundName, nullptr, TVec3f(0.0f));
-    MR::setClippingTypeSphere(this, 20000.0f);
+    MR::setClippingTypeSphere(this, 14000.0f);
     MR::initUseStageSwitchReadAppear(this, rIter);
     MR::initUseStageSwitchReadA(this, rIter);
 

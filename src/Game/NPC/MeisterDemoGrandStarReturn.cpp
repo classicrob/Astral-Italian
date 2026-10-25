@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/NPC/MeisterDemoGrandStarReturn.hpp"
 #include "Game/NPC/Meister.hpp"
 #include "Game/Demo/DemoFunction.hpp"

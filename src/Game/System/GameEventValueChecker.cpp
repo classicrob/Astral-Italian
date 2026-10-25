@@ -7,43 +7,80 @@
 #include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
 
 namespace {
+    char sGliderJungleHiKey[] = "グライダー[ジャングル]/hi";
+    char sGliderJungleLoKey[] = "グライダー[ジャングル]/lo";
+    char sGliderChallengeHiKey[] = "グライダー[チャレンジ]/hi";
+    char sGliderChallengeLoKey[] = "グライダー[チャレンジ]/lo";
+    char sBestScoreMokumokuValleyLoKey[] = "ベストスコア[MokumokuValleyGalaxy]/lo";
+    char sBestScoreMokumokuValleyHiKey[] = "ベストスコア[MokumokuValleyGalaxy]/hi";
+    char sBestScoreHoneyBeeVillageLoKey[] = "ベストスコア[HoneyBeeVillageGalaxy]/lo";
+    char sBestScoreHoneyBeeVillageHiKey[] = "ベストスコア[HoneyBeeVillageGalaxy]/hi";
+    char sBestScoreUnderGroundDangeonLoKey[] = "ベストスコア[UnderGroundDangeonGalaxy]/lo";
+    char sBestScoreUnderGroundDangeonHiKey[] = "ベストスコア[UnderGroundDangeonGalaxy]/hi";
+    char sBestScoreTwisterTowerLoKey[] = "ベストスコア[TwisterTowerGalaxy]/lo";
+    char sBestScoreTwisterTowerHiKey[] = "ベストスコア[TwisterTowerGalaxy]/hi";
+    char sBestScoreKachikochiLavaLoKey[] = "ベストスコア[KachikochiLavaGalaxy]/lo";
+    char sBestScoreKachikochiLavaHiKey[] = "ベストスコア[KachikochiLavaGalaxy]/hi";
+    char sBestScoreWhiteSnowLoKey[] = "ベストスコア[WhiteSnowGalaxy]/lo";
+    char sBestScoreWhiteSnowHiKey[] = "ベストスコア[WhiteSnowGalaxy]/hi";
+    char sPostmanTaskRead0Key[] = "郵便屋[タスク手紙既読フラグ]/0";
+    char sPostmanTaskRead1Key[] = "郵便屋[タスク手紙既読フラグ]/1";
+    char sPostmanImportantRead0Key[] = "郵便屋[重要手紙既読フラグ]/0";
+    char sPostmanImportantRead1Key[] = "郵便屋[重要手紙既読フラグ]/1";
+    char sPostmanLastTaskIndexKey[] = "郵便屋[最後に読んだタスク手紙インデックス]";
+    char sPostmanPeachLetterDeathCountKey[] = "郵便屋[ピーチ手紙を読んだ時の累積死亡回数]";
+    char sMessageRead0Key[] = "メッセージ既読フラグ/0";
+    char sMessageRead1Key[] = "メッセージ既読フラグ/1";
+    char sDeathCountKey[] = "累積死亡回数";
+    char sGameOverCountKey[] = "累積ゲームオーバー回数";
+    char sPlayTimeLoKey[] = "累積プレイ時間/lo";
+    char sPlayTimeHiKey[] = "累積プレイ時間/hi";
+    char sLuigiAppearCountKey[] = "でしゃばりルイージ出現カウンタ";
+    char sKinopioBankInterestKey[] = "銀行屋キノピオ[利子]";
+    char sFaceShipEvent0Key[] = "顔惑星イベント番号/0";
+    char sFaceShipEvent1Key[] = "顔惑星イベント番号/1";
+    char sFaceShipEvent2Key[] = "顔惑星イベント番号/2";
+    char sFaceShipEvent3Key[] = "顔惑星イベント番号/3";
+    char sFaceShipGrandStarEventKey[] = "顔惑星イベントグランドスター番号";
+    char sStageClearAfterDeathsCountKey[] = "一定数死亡後のステージクリア回数";
+
     const GameEventValue cGameEventValueTable[] = {
-        {"グライダー[ジャングル]/hi", 0},
-        {"グライダー[ジャングル]/lo", 90 * 60},
-        {"グライダー[チャレンジ]/hi", 0},
-        {"グライダー[チャレンジ]/lo", 90 * 60},
-        {"ベストスコア[MokumokuValleyGalaxy]/lo", 0},
-        {"ベストスコア[MokumokuValleyGalaxy]/hi", 0},
-        {"ベストスコア[HoneyBeeVillageGalaxy]/lo", 0},
-        {"ベストスコア[HoneyBeeVillageGalaxy]/hi", 0},
-        {"ベストスコア[UnderGroundDangeonGalaxy]/lo", 0},
-        {"ベストスコア[UnderGroundDangeonGalaxy]/hi", 0},
-        {"ベストスコア[TwisterTowerGalaxy]/lo", 0},
-        {"ベストスコア[TwisterTowerGalaxy]/hi", 0},
-        {"ベストスコア[KachikochiLavaGalaxy]/lo", 0},
-        {"ベストスコア[KachikochiLavaGalaxy]/hi", 0},
-        {"ベストスコア[WhiteSnowGalaxy]/lo", 0},
-        {"ベストスコア[WhiteSnowGalaxy]/hi", 0},
-        {"郵便屋[タスク手紙既読フラグ]/0", 0},
-        {"郵便屋[タスク手紙既読フラグ]/1", 0},
-        {"郵便屋[重要手紙既読フラグ]/0", 0},
-        {"郵便屋[重要手紙既読フラグ]/1", 0},
-        {"郵便屋[最後に読んだタスク手紙インデックス]", 0},
-        {"郵便屋[ピーチ手紙を読んだ時の累積死亡回数]", 0},
-        {"メッセージ既読フラグ/0", 0},
-        {"メッセージ既読フラグ/1", 0},
-        {"累積死亡回数", 0},
-        {"累積ゲームオーバー回数", 0},
-        {"累積プレイ時間/lo", 0},
-        {"累積プレイ時間/hi", 0},
-        {"でしゃばりルイージ出現カウンタ", 0},
-        {"銀行屋キノピオ[利子]", 0},
-        {"顔惑星イベント番号/0", 0},
-        {"顔惑星イベント番号/1", 0},
-        {"顔惑星イベント番号/2", 0},
-        {"顔惑星イベント番号/3", 0},
-        {"顔惑星イベントグランドスター番号", 0},
-        {"一定数死亡後のステージクリア回数", 0},
+        {sGliderJungleHiKey, 0},
+        {sGliderJungleLoKey, 90 * 60},
+        {sGliderChallengeHiKey, 0},
+        {sGliderChallengeLoKey, 90 * 60},
+        {sBestScoreMokumokuValleyLoKey, 0},
+        {sBestScoreMokumokuValleyHiKey, 0},
+        {sBestScoreHoneyBeeVillageLoKey, 0},
+        {sBestScoreHoneyBeeVillageHiKey, 0},
+        {sBestScoreUnderGroundDangeonLoKey, 0},
+        {sBestScoreUnderGroundDangeonHiKey, 0},
+        {sBestScoreTwisterTowerLoKey, 0},
+        {sBestScoreTwisterTowerHiKey, 0},
+        {sBestScoreKachikochiLavaLoKey, 0},
+        {sBestScoreKachikochiLavaHiKey, 0},
+        {sBestScoreWhiteSnowLoKey, 0},
+        {sBestScoreWhiteSnowHiKey, 0},
+        {sPostmanTaskRead0Key, 0},
+        {sPostmanTaskRead1Key, 0},
+        {sPostmanImportantRead0Key, 0},
+        {sPostmanImportantRead1Key, 0},
+        {sPostmanLastTaskIndexKey, 0},
+        {sPostmanPeachLetterDeathCountKey, 0},
+        {sMessageRead0Key, 0},
+        {sMessageRead1Key, 0},
+        {sDeathCountKey, 0},
+        {sGameOverCountKey, 0},
+        {sPlayTimeLoKey, 0},
+        {sPlayTimeHiKey, 0},
+        {sLuigiAppearCountKey, 0},
+        {sKinopioBankInterestKey, 0},
+        {sFaceShipEvent0Key, 0},
+        {sFaceShipEvent1Key, 0},
+        {sFaceShipEvent2Key, 0},
+        {sFaceShipEvent3Key, 0},
+        {sFaceShipGrandStarEventKey, 0},
+        {sStageClearAfterDeathsCountKey, 0},
     };
 };  // namespace
 

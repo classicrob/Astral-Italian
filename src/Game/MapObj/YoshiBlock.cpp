@@ -241,9 +241,9 @@ void YoshiBlock::exeDashed() {
     mMtx.getTrans(mPosition);
 
     mMtx.getEuler(mRotation);
-    mRotation.x *= 57.29578f;
-    mRotation.y *= 57.29578f;
-    mRotation.z *= 57.29578f;
+    mRotation.x *= 57.295776f;
+    mRotation.y *= 57.295776f;
+    mRotation.z *= 57.295776f;
     if (MR::isGreaterStep(this, 180)) {
         kill();
     }

@@ -196,6 +196,57 @@ def disagreements(a, b):
     return {key: [a.get(key), b.get(key)] for key in sorted(a.keys() | b.keys()) if a.get(key) != b.get(key)}
 
 
+COLD_POLICY = 'native-init-end-and-play-ready-v1'
+
+
+def anchored_observations(capture, sidecar, stage):
+    """Explicit native clocks; never infer a shift or groups from first-use gaps.
+
+    Seam::attach opens packet1; route rows start0 and each seam opens one
+    successor packet. Thus a recorded native route seam maps to packet=row+1.
+    Pre-init configs keep their stage-packet offsets; arrival/play configs use
+    signed offsets from the first native play-ready seam of this single visit.
+    """
+    observations(capture, stage)  # strict complete protocol3 validation first
+    rows = [json.loads(line) for line in Path(capture).read_text().splitlines()]
+    meta = json.loads(Path(sidecar).read_text())
+    if meta.get('complete') is not True or type(meta.get('seams')) is not int:
+        raise ValueError('cold qualification needs a complete native seam sidecar')
+    starts = [r for r in rows if r['event'] == 'stage_begin' and r['stage'] == stage]
+    ready = [r for r in meta.get('ready_seams',[]) if r.get('stage') == stage and r.get('scenario') == 1]
+    play = [r for r in meta.get('play_ready_seams',[]) if r.get('stage') == stage and r.get('scenario') == 1]
+    if len(starts) != 1 or len(ready) != 1 or not play:
+        raise ValueError('missing or ambiguous native scene anchors')
+    all_seams = ready + play
+    if any(type(r.get('row')) is not int or not 0 <= r['row'] < meta['seams'] for r in all_seams):
+        raise ValueError('native anchor row outside recorded seams')
+    play_rows = [r['row'] for r in play]
+    if play_rows != sorted(set(play_rows)) or play_rows[0] < ready[0]['row']:
+        raise ValueError('ambiguous/backward native play-ready anchor')
+    origin = starts[0]['origin_frame']
+    init_packet, play_packet = ready[0]['row'] + 1, play_rows[0] + 1
+    if not origin <= init_packet <= play_packet <= rows[-1]['clock_last_frame']:
+        raise ValueError('native anchors do not fit the captured stage visit')
+    values = {r['config']: ('loading', r['frame'] - origin) if r['frame'] < init_packet else
+              ('scene', r['frame'] - play_packet) for r in rows if r['event'] == 'first_use' and r['stage'] == stage}
+    return values, {'stage_origin_packet': origin, 'init_end_route_row': ready[0]['row'],
+                    'init_end_packet': init_packet, 'first_play_ready_route_row': play_rows[0],
+                    'first_play_ready_packet': play_packet, 'packet_coordinate': 'native route row + 1',
+                    'loading_configs': sum(v[0] == 'loading' for v in values.values()),
+                    'scene_configs': sum(v[0] == 'scene' for v in values.values()),
+                    'capture_sha256': sha(Path(capture)), 'native_seam_sidecar_sha256': sha(Path(sidecar))}
+
+
+def qualify_cold(warm_capture, warm_sidecar, cold_capture, cold_sidecar, stage):
+    raw = disagreements(observations(warm_capture, stage), observations(cold_capture, stage))
+    warm, wa = anchored_observations(warm_capture, warm_sidecar, stage)
+    cold, ca = anchored_observations(cold_capture, cold_sidecar, stage)
+    diff = disagreements(warm, cold)
+    return {'policy': COLD_POLICY, 'passed': not diff, 'raw_absolute_disagreements': raw,
+            'exact_phase_offset_disagreements': diff, 'warm_anchors': wa, 'cold_anchors': ca,
+            'sidecar_values': 'unchanged agreed warm packet frames; runtime consumes order only'}
+
+
 def select(disc, explicit=(), batch=None):
     if explicit:
         stages = list(explicit)
@@ -454,11 +505,23 @@ def main():
             if args.cold_confirm_stage == stage:
                 arms.append(launch(args, stage, 'cold-confirm', args.cold_confirm_app.resolve(), True))
                 cold_diff = disagreements(warm[0]['groups'], arms[-1]['groups'])
+                try:
+                    base = args.out / stage
+                    cold_qualification = qualify_cold(base / 'warm-1/first-use.jsonl', base / 'warm-1/route.tape.json',
+                                                      base / 'cold-confirm/first-use.jsonl', base / 'cold-confirm/route.tape.json', stage)
+                    second = qualify_cold(base / 'warm-2/first-use.jsonl', base / 'warm-2/route.tape.json',
+                                          base / 'cold-confirm/first-use.jsonl', base / 'cold-confirm/route.tape.json', stage)
+                    cold_qualification['warm_2_qualification'] = second
+                    cold_qualification['passed'] &= second['passed']
+                except (OSError, ValueError, KeyError) as exc:
+                    cold_qualification = {'policy': COLD_POLICY, 'passed': False, 'error': str(exc)}
             else:
-                cold_diff = None
+                cold_diff, cold_qualification = None, None
         result = {'stage': stage, 'arms': arms, 'warm_disagreements': differences,
-                  'cold_disagreements': cold_diff, 'passed': all(x['passed'] for x in arms) and not differences
-                  and (cold_diff is None or not cold_diff)}
+                  'cold_disagreements': cold_diff, 'cold_qualification': cold_qualification,
+                  'raw_absolute_passed': all(x['passed'] for x in arms) and not differences and not cold_diff,
+                  'passed': all(x['passed'] for x in arms) and not differences and
+                  (cold_qualification is None or cold_qualification['passed'])}
         results.append(result)
         write(args.out / 'PROVENANCE.json', {'version': 1, 'recording_only': True, 'stages_planned': stages,
               'stage_results': results, 'script': None if args.title or args.map or args.tape else str(SCRIPT), 'script_sha256': None if args.title or args.map or args.tape else sha(SCRIPT),
@@ -475,7 +538,9 @@ def main():
               'all_completed': len(results) == len(stages), 'passed': len(results) == len(stages)
               and all(x['passed'] for x in results), 'failed_stages': [x['stage'] for x in results if not x['passed']]})
         print(json.dumps({'stage': stage, 'passed': result['passed'], 'warm_disagreements': len(differences),
-                          'cold_disagreements': None if cold_diff is None else len(cold_diff)}), flush=True)
+                          'cold_disagreements': None if cold_diff is None else len(cold_diff),
+                          'cold_qualification_policy': COLD_POLICY if cold_qualification else None,
+                          'cold_qualification_passed': cold_qualification['passed'] if cold_qualification else None}), flush=True)
     return 0 if all(x['passed'] for x in results) else 1
 
 

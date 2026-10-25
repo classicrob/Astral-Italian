@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
-from record_pipeline_deadlines import observations, disagreements, seed_identity, replay_checks, map_observation
+from record_pipeline_deadlines import observations, disagreements, seed_identity, replay_checks, map_observation, qualify_cold
 
 
 class Captures(unittest.TestCase):
@@ -88,6 +88,50 @@ class Captures(unittest.TestCase):
         self.assertEqual(result['renderer_key'], 'a' * 64)
         self.assertEqual(result['identity_seed'], '__global__.db')
         self.assertFalse((seeds / 'StaffRollGalaxy.db').exists())
+
+
+class ColdAnchors(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name)
+        for name,shift in [('warm',0),('cold',27)]:
+            rows=[{'event':'header','version':3,'gx_config_version':13,'clock':'active-frame-packet-id','source':'find_pipeline-before-memo','origin_policy':'next-whole-packet'},
+                  {'event':'stage_begin','stage':'A','visit':1,'request_packet':479,'origin_frame':480},
+                  {'event':'first_use','stage':'A','visit':1,'origin_frame':480,'frame':480,'relative_frame':0,'config':'0000000000000001'},
+                  {'event':'first_use','stage':'A','visit':1,'origin_frame':480,'frame':481+shift,'relative_frame':1+shift,'config':'0000000000000002'},
+                  {'event':'end','complete':True,'records':2,'clock_first_frame':480,'clock_last_frame':490+shift,'clock_transitions':2,'lookup_calls':3,'stage_requests':1,'stage_begins':1,'pending_stage_requests':0}]
+            (self.root/(name+'.jsonl')).write_text(''.join(json.dumps(r)+'\n' for r in rows))
+            (self.root/(name+'.tape.json')).write_text(json.dumps({'complete':True,'seams':491+shift,
+                'ready_seams':[{'stage':'A','scenario':1,'row':480+shift}],
+                'play_ready_seams':[{'stage':'A','scenario':1,'row':484+shift}]}))
+
+    def tearDown(self):self.tmp.cleanup()
+
+    def qualify(self):
+        return qualify_cold(self.root/'warm.jsonl',self.root/'warm.tape.json',self.root/'cold.jsonl',self.root/'cold.tape.json','A')
+
+    def test_load_extension_uses_exact_native_anchors(self):
+        result=self.qualify();self.assertTrue(result['passed'])
+        self.assertEqual(len(result['raw_absolute_disagreements']),1)
+        self.assertEqual(result['exact_phase_offset_disagreements'],{})
+        self.assertEqual(result['cold_anchors']['init_end_packet'],508)
+
+    def test_post_init_one_packet_error_is_not_relaxed(self):
+        p=self.root/'cold.jsonl';rows=[json.loads(l) for l in p.read_text().splitlines()]
+        rows[3]['frame']+=1;rows[3]['relative_frame']+=1
+        p.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+        self.assertFalse(self.qualify()['passed'])
+
+    def test_phase_change_fails(self):
+        p=self.root/'cold.tape.json';d=json.loads(p.read_text());d['ready_seams'][0]['row']+=1;p.write_text(json.dumps(d))
+        self.assertFalse(self.qualify()['passed'])
+
+    def test_missing_anchor_fails(self):
+        p=self.root/'cold.tape.json';d=json.loads(p.read_text());d['play_ready_seams']=[];p.write_text(json.dumps(d))
+        with self.assertRaises(ValueError):self.qualify()
+
+    def test_ambiguous_init_end_fails(self):
+        p=self.root/'cold.tape.json';d=json.loads(p.read_text());d['ready_seams']*=2;p.write_text(json.dumps(d))
+        with self.assertRaises(ValueError):self.qualify()
 
 
 class MapWindow(unittest.TestCase):

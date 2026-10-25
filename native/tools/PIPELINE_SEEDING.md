@@ -1065,3 +1065,60 @@ whole-stage fallback.
 `WorldMap08Galaxy` keeps first-use fallback: all three direct-boot recording arms
 crashed (SIGSEGV in WorldMapOwner::setupWorldName / setTextBoxMessage). This is a
 separate game-source bug, not a recorder workaround; raw failed arms are retained.
+
+
+### Qualified v14 pack (2026-10-24)
+
+`native/data/pipeline-seeds.v14.xz` is the combined-candidate input, not a release
+acceptance receipt. Its SHA-256 is
+`3079e867e85983182e5d19eac14fd62b418e677cacd52746a842fb1f6bce04a9`:
+100,212 bytes, 2,525 unchanged global configs, 63 stage DBs plus global, GX ABI13.
+All 61 scenario-1 sweep stages were actually attempted. Exactly56 qualify for
+deadline metadata, plus the separately qualified FileSelect title (57 sidecars).
+Five sweep stages retain whole-stage first-use ordering: IslandFleetGalaxy,
+PeachCastleGalaxy, StaffRollGalaxy, TimerSwitchingPlatformGalaxy, WorldMap08Galaxy.
+Unknown/bootstrap also has no sidecar, as above. These are explicit fallbacks,
+not successful deadline qualifications.
+
+IslandFleet's final quiet/server-heavy tape pair had 218 configs and no pipeline
+waits or pop-in, but failed exact native-clock qualification. Both origins are
+6378; init-End packets15955/15954 and play-ready16917/16916 explain168 of the177
+raw shifts. Nine loading configs still differ by one packet and are not relaxed:
+`1af6bf7d078a2618`, `49b9b10d06c84793`, `9608d0edfd43c017`,
+`a7026c33f4ca21ab`, `bb0a68aa3d94ce63`, `cbe226cda6163efa`,
+`ce68a145c7df434c`, `dfa42928569de8b2`, `ed51bd6571abab23`.
+The first boot-wait failure, interrupted heavy attempt, and final equality failure
+remain evidence. No further retry or Island sidecar is admitted.
+
+The pack adds127 exact pre-existing global rows across11 stage DBs; all original
+rows/ranks and the entire global DB remain byte-identical at row level:
+
+- `FileSelect`: 39 additions.
+- `GhostConveyorGalaxy`: 13 additions.
+- `KachikochiLavaGalaxy`: 2 additions.
+- `MemoryRoadGalaxy`: 10 additions.
+- `MysteryCandyGalaxy`: 14 additions.
+- `RedBlueExGalaxy`: 10 additions.
+- `TamakoroPlanetGalaxy`: 3 additions.
+- `TwisterTowerGalaxy`: 18 additions.
+- `VsKoopaLv1Galaxy`: 1 additions.
+- `VsKoopaLv3Galaxy`: 10 additions.
+- `WanwanFactoryGalaxy`: 7 additions.
+
+Both MokumokuValley and Yoshi cold confirmations pass the explicit native-clock
+qualification against both warm captures. The builder retains every raw failure,
+absolute mismatch, normalized comparison and source/executable/renderer binding.
+The external receipts live under `port53/m1g/solb/item3-workers/v14-final-intake/`:
+`QUALIFICATION.json`, `COMMAND.json` and `PACK-VALIDATION.json`, with raw recordings
+in their original `record-deadlines-da252d88-*` directories. They are deliberately
+outside the seed pack. The stopped Island heavy directory is never an input.
+
+Integrity checks passed: source-v13 pack/row/rank binding, all source rows retained,
+additions byte-identical to global, every sidecar fingerprint, `seedpack.py check`,
+expansion plus `verify` (64 DBs / zero problems), and byte-identical independent
+repacking. The renderer identity hashes the selected v14 filename and bytes, so
+this pack changes the renderer/private cache key; it does not change GX ABI13 or
+the PFD1 codec. The final server candidate must still pass the M1 alternating
+true-cold gameplay/menu cohort, title arms, same-window 5.4.1 comparisons, two
+non-gate cold spot checks and the M4 no-regression set. No acceptance is inferred
+from successful recording or pack integrity.

@@ -695,3 +695,44 @@ It does not qualify first-use deadlines for the preceding unnamed bootstrap
 packet. The v14 builder therefore omits Unknown metadata and records the reason,
 while retaining exact FileSelect/galaxy qualification. Runtime logs that missing
 sidecar as a whole-scene first-use-order fallback.
+
+
+## 5.4.2 bounded frontend Generic preparation (candidate, not acceptance)
+
+Pipeline-cache initialization derives the frontend set from the v14 Unknown and
+FileSelect databases (12 + 90 rows, 97 distinct full configs; all 97 match exact
+existing __global__ rows). The FileSelect sidecar supplies its recorded order;
+rows without frame metadata retain first-use order. No global rank prefix or
+hand-picked runtime key defines membership. Covered Generic aliases are deduped
+for both render layouts (53 in the preceding candidate); Fast/global/stage jobs
+are held during the finite pre-present phase. All existing workers may compile
+the set then, including worker 0. The previous scheduling policy resumes unchanged
+on completion, failure, or the 5000 ms wall cap. A cap is an explicit failed
+preparation result, not a permission to skip a menu draw. Complete scenes remain
+strict; gameplay scheduling, GX ABI 13, PFD1 and the v14 pack bytes are unchanged.
+The native renderer source changes, so the renderer/cache identity changes.
+
+The initializing main thread pumps SDL/AppKit events during enumeration and at
+most every 8 ms of the publication wait. It does not begin/end/present a frame.
+`[gx frontend pre-present]` records the exact keys, completed/pending/failed counts,
+phase time, cap, workers, main-thread check, pump count and maximum pump gap. Real
+app responsiveness and the unchanged seam accounting require runtime evidence;
+the pump calls alone are not an acceptance claim.
+
+`gate542m.py` requires explicit `--tier m1|m4`. Post-global100 menu p99 is <=33 ms
+on M1 only with complete zero-wait/zero-resolve evidence on every post100 menu
+row; M4 remains <=22 ms. The 33 ms while-showing, 250 ms non-gameplay and 100 ms
+gameplay limits are unchanged. Original scores remain immutable when re-scoring.
+
+`startup542.py` uses the same external, read-only observer on each build. Direct
+first-valid time is conservatively bounded by native 60-row route flushes, from
+the last poll before the previous flush to the poll observing the first valid
+row. It does not subtract rendered frame intervals or silently use play-ready
+as first-valid. Candidate native `[native first valid]` clocks validate that
+bound; the shared `[play ready]` line is retained separately. Title startup uses
+the shared `event=title_first_draw` event (first native FileSelect GX draw), with
+external appearance bounds and candidate native clocks. Popen before/after wall
+and monotonic times are recorded. New baseline/candidate arms alternate; the
+startup gate uses candidate upper minus baseline lower <=2000 ms, with no
+uncertainty allowance. Missing evidence is unproven/fail. Historical CSV-only
+startup sums cannot establish this end-to-end gate.

@@ -16,19 +16,19 @@ python3 -B "$SCRIPT_DIR/prepare_title542.py" --candidate-dir "$1" --out "$OBS/ap
 python3 -B "$SCRIPT_DIR/prepare_title542.py" --candidate-dir "$2" --out "$OBS/apps/542" --bundle-id "$NEW_ID" || exit 2
 status=0
 for repeat in 1 2 3; do
-  python3 -B "$SCRIPT_DIR/title542m.py" --app "$OBS/apps/541/Petari.app" --prep "$OBS/apps/541/PREP.json" \
+  python3 -B "$SCRIPT_DIR/title542m.py" --tier m4 --app "$OBS/apps/541/Petari.app" --prep "$OBS/apps/541/PREP.json" \
     --out "$OBS/541-r$repeat" --label "server-072-title-r$repeat" --baseline --bundle-id "$BASE_ID" \
     --disc "$4" --heavy-lock "$HEAVY" --native-lock "$NATIVE" > "$OBS/541-r$repeat-driver.log" 2>&1 || status=1
-  python3 -B "$SCRIPT_DIR/title542m.py" --app "$OBS/apps/542/Petari.app" --prep "$OBS/apps/542/PREP.json" \
-    --out "$OBS/542-r$repeat" --label "server-542-title-r$repeat" --bundle-id "$NEW_ID" \
+  python3 -B "$SCRIPT_DIR/title542m.py" --tier m4 --app "$OBS/apps/542/Petari.app" --prep "$OBS/apps/542/PREP.json" \
+    --out "$OBS/542-r$repeat" --label "server-542-title-r$repeat" --require-frontend-prepresent --bundle-id "$NEW_ID" \
     --require-deadline-stage FileSelect:69 --disc "$4" --heavy-lock "$HEAVY" --native-lock "$NATIVE" \
     > "$OBS/542-r$repeat-driver.log" 2>&1 || status=1
 done
 # Baseline split is intentionally unscorable. Its threshold exit is retained, not an acceptance claim.
-python3 -B "$SCRIPT_DIR/gate542m.py" --window-seconds 300 --out "$OBS/541-SCORES.json" \
+python3 -B "$SCRIPT_DIR/gate542m.py" --tier m4 --window-seconds 300 --out "$OBS/541-SCORES.json" \
   "$OBS/541-r1" "$OBS/541-r2" "$OBS/541-r3" > "$OBS/541-scorer.log" 2>&1
 baseline_score_exit=$?
 echo "$baseline_score_exit" > "$OBS/541-scorer.exit"
-python3 -B "$SCRIPT_DIR/gate542m.py" --title --window-seconds 300 --require-deadline-stage FileSelect:69 \
+python3 -B "$SCRIPT_DIR/gate542m.py" --tier m4 --title --require-frontend-prepresent --window-seconds 300 --require-deadline-stage FileSelect:69 \
   --out "$OBS/542-SCORES.json" "$OBS/542-r1" "$OBS/542-r2" "$OBS/542-r3" > "$OBS/542-scorer.log" 2>&1 || status=1
 exit "$status"

@@ -81,6 +81,17 @@ void stop(std::vector<std::thread>& workers) {
     petariPipelineSamples.clear();
     petariFailedPipelines = 0;
 }
+void frontendOnlyTest() {
+    std::lock_guard lock{g_pipelineMutex};
+    g_pipelineQueue.push_back({901, [] { return CompiledPipeline{true}; }});
+    petariPipelineSamples[901].drawBlocking = true;
+    petariUberPrePresent = true;
+    for (unsigned worker = 0; worker < 4; ++worker)
+        require(petari_runnable_queue(worker) == nullptr, "pre-present allowed a specialised job");
+    petariUberPrePresent = false;
+    require(petari_runnable_queue(0) == &g_pipelineQueue, "pre-present failed to restore draw scheduling");
+    g_pipelineQueue.clear(); petariPipelineSamples.clear();
+}
 void priorityTest() {
     std::vector<int> order;
     std::promise<void> running, release;
@@ -413,6 +424,7 @@ int main(int argc, char** argv) {
     setenv("PETARI_PIPELINE_BURST_THREADS", "12", 1);
     aurora::gfx::require(PetariPipeline::burstWorkerCount() == 12, "burst override ignored");
     unsetenv("PETARI_PIPELINE_BURST_THREADS");
+    aurora::gfx::frontendOnlyTest();
     aurora::gfx::priorityTest();
     aurora::gfx::parallelTest();
     aurora::gfx::progressTest();

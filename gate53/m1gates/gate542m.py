@@ -3,7 +3,7 @@
 
 Every non-gameplay frame after the first explicitly presented frame: <=250ms.
 Title arms additionally require real UI-global100 and >=30s post100 samples;
-menu p99 <=33ms while the pill is visible, <=22ms after actual completion.
+menu p99 <=33ms while showing. Post100: M1 <=33ms with zero compile work; M4 <=22ms.
 Historical runs without explicit state events are split-unscorable, never guessed.
 --window-seconds reports the same fixed interval for unsplit build comparison.
 """
@@ -79,7 +79,29 @@ def deadline_admissions(text, required):
     return result
 
 
-def score(folder, title=False, window_seconds=300.0, require_deadlines=None):
+def frontend_pre_present(text):
+    lines = [line for line in text.splitlines() if line.startswith('[gx frontend pre-present] ')]
+    evidence = {'lines': lines, 'passed': False}
+    if len(lines) != 1: return evidence
+    f = dict(re.findall(r'(\w+)=([^ ]+)', lines[0]))
+    try:
+        for key in ('version', 'keys', 'completed', 'pending', 'failed', 'manifest_errors', 'cap_ms', 'workers', 'pumps', 'main_thread', 'presented_frames'): f[key] = int(f[key])
+        for key in ('elapsed_ms', 'pump_max_gap_ms'):
+            f[key] = float(f[key])
+            if not math.isfinite(f[key]) or f[key] < 0: raise ValueError('invalid timing')
+        keys = f['key_list'].rstrip(',').split(',')
+        evidence['passed'] = (f['version'] == 1 and f['result'] == 'ready' and 0 < f['keys'] <= 2048 and
+            f['keys'] == f['completed'] == len(keys) == len(set(keys)) and all(re.fullmatch('[0-9a-f]{16}', k) for k in keys) and
+            f['pending'] == f['failed'] == f['manifest_errors'] == f['presented_frames'] == 0 and
+            f['cap_ms'] == 5000 and f['elapsed_ms'] <= f['cap_ms'] and f['workers'] > 0 and f['pumps'] > 0 and f['main_thread'] == 1)
+        evidence['fields'] = f
+    except (KeyError, ValueError) as exc: evidence['error'] = str(exc)
+    return evidence
+
+
+def score(folder, title=False, window_seconds=300.0, require_deadlines=None, *, tier, require_frontend=False):
+    if tier not in ('m1', 'm4'): raise ValueError('explicit tier m1 or m4 required')
+    post_limit = 33 if tier == 'm1' else 22
     folder = Path(folder)
     text = (folder / 'app.log').read_text(errors='replace')
     with (folder / 'frames.csv').open() as file:
@@ -119,6 +141,14 @@ def score(folder, title=False, window_seconds=300.0, require_deadlines=None):
     elif errors or len(initial) != 1 or len(complete) > 1: split_status = 'split unscorable (invalid signal)'
     elif not complete: split_status = 'no completion observed'
     elif not post: split_status = 'no post-100 samples'
+    compile_errors, compile_rows = [], []
+    for row in post:
+        try:
+            wait, resolves = float(row['pipeline_wait_ms']), int(row['pipeline_resolves'])
+            if not math.isfinite(wait) or wait < 0 or resolves < 0: raise ValueError('invalid compile counters')
+            if wait or resolves: compile_rows.append(row)
+        except (KeyError, ValueError) as exc: compile_errors.append({'frame': row['frame'], 'error': str(exc)})
+    post_compile_free = bool(post) and not compile_errors and not compile_rows
     post_seconds = sum(float(r['interval_ms']) / 1000 for r in post)
     checks = {'first_presented_frame_observed': first is not None, 'timing_rows': bool(timed),
               'no_non_gameplay_over250': not over250, 'no_gameplay_over100': not over100, 'state_events_valid': not errors}
@@ -130,12 +160,15 @@ def score(folder, title=False, window_seconds=300.0, require_deadlines=None):
                       finish[0]['elapsed_s'] - complete[0]['elapsed_s'] >= 30,
                       post100_samples=post_seconds >= 30,
                       showing_p99_le33=not showing or stats(showing)['p99_ms'] <= 33,
-                      post100_p99_le22=bool(post) and stats(post)['p99_ms'] <= 22)
+                      post100_p99_within_tier=bool(post) and stats(post)['p99_ms'] <= post_limit)
+        if tier == 'm1': checks['post100_compile_free'] = post_compile_free
+    frontend = frontend_pre_present(text)
+    if require_frontend: checks['frontend_generic_pre_present'] = frontend['passed']
     admissions = deadline_admissions(text, require_deadlines or {})
     if admissions: checks['required_deadline_sidecars_admitted'] = all(r['passed'] for r in admissions.values())
     window = [r for r in menu if r['elapsed_s'] <= window_seconds]
-    result = {'passed': all(checks.values()), 'case': str(folder), 'arm': 'title' if title else 'direct',
-              'checks': checks, 'thresholds_ms': {'non_gameplay_max': 250, 'showing_p99': 33, 'post100_p99': 22,
+    result = {'frontend_pre_present': frontend, 'tier': tier, 'post100_compile_evidence': {'proven_compile_free': post_compile_free, 'rows': len(post), 'rows_with_compile_work': compile_rows, 'errors': compile_errors, 'required_for_tier': tier == 'm1'}, 'passed': all(checks.values()), 'case': str(folder), 'arm': 'title' if title else 'direct',
+              'checks': checks, 'thresholds_ms': {'non_gameplay_max': 250, 'showing_p99': 33, 'post100_p99': post_limit,
                                                'gameplay_max': 100}, 'split_status': split_status, 'deadline_admission': admissions,
               'first_presented_frame': first, 'first_presented_source': 'explicit frames.csv presented_frame IDs',
               'unsplit': stats(menu), 'all_non_gameplay': stats(nonplay),
@@ -156,6 +189,8 @@ def score(folder, title=False, window_seconds=300.0, require_deadlines=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cases', nargs='+', type=Path)
+    parser.add_argument('--require-frontend-prepresent', action='store_true')
+    parser.add_argument('--tier', choices=('m1', 'm4'), required=True)
     parser.add_argument('--title', action='store_true')
     parser.add_argument('--window-seconds', type=float, default=300)
     parser.add_argument('--out', type=Path)
@@ -166,7 +201,7 @@ def main():
         parser.error('window-seconds must be positive and finite')
     try: required = deadline_requirements(args.require_deadline_stage)
     except ValueError as exc: parser.error(str(exc))
-    results = [score(p, args.title, args.window_seconds, required) for p in args.cases]
+    results = [score(p, args.title, args.window_seconds, required, tier=args.tier, require_frontend=args.require_frontend_prepresent) for p in args.cases]
     if args.out:
         args.out.write_text(json.dumps({'passed': all(r['passed'] for r in results), 'runs': results}, indent=2) + '\n')
     for result in results: print(json.dumps(result))

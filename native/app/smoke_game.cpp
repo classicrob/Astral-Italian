@@ -1,6 +1,8 @@
 // Observation for the smoke run (smoke.hpp): read-only queries of game and VI
 // state. SDK side: no Aurora or SDL headers here.
 
+#include <chrono>
+
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSequenceDirector.hpp"
@@ -324,6 +326,16 @@ void recordRouteFrame(bool background) {
             std::fprintf(stderr, "PETARI TAPE PLAY: segment starts at %s scenario %d (seed %u)\n", row.stage, row.scenario, step.seed);
     }
     if (write) {
+        static unsigned long routeRow = 0;
+        static bool firstValid = false;
+        if (row.valid && !firstValid) {
+            firstValid = true;
+            const auto mono = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+            const auto wall = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            std::fprintf(stderr, "[native first valid] stage=%s route_row=%lu monotonic_ns=%lld wall_ns=%lld\n",
+                row.stage, routeRow, static_cast<long long>(mono), static_cast<long long>(wall));
+        }
+        ++routeRow;
         writer.write(row);
         TapeRecord::Seam seam;
         if (controller) {

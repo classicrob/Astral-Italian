@@ -56,16 +56,18 @@ def arm(args, stage, repeat, spot):
     assert common.tree(original / 'Contents/Resources') == before_resources
     out = common.ROOT / 'runs' / f'{args.label}-{stage}-r{repeat}'
     process = common.run(app, out, stage=stage, script=common.REPO / 'native/tools/perf_sweep_move.script',
-                         extra={'PETARI_PIPELINE_DIAG': '0', 'PETARI_TRACE_BOOT': '0'}, cold=True, seconds=240)
+                         extra={'PETARI_PIPELINE_DIAG': '0', 'PETARI_TRACE_BOOT': '0'}, cold=True, seconds=240, startup_observe=True)
+    startup = json.loads((out/'startup-observer.json').read_text())
     measured = tier_cold54m.analyze(out)
     deadline_counts = {'YosshiHomeGalaxy':183, 'MokumokuValleyGalaxy':168, 'MarioFaceShipGalaxy':74, 'VsKoopaLv1Galaxy':207}
     # Island is an explicitly unqualified recording fallback; preserve its spot evidence.
-    scored = gate542m.score(out, require_deadlines={stage:deadline_counts[stage]} if stage in deadline_counts else None)
+    scored = gate542m.score(out, require_deadlines={stage:deadline_counts[stage]} if stage in deadline_counts else None, tier='m1', require_frontend=True)
     old = subprocess.run([sys.executable, '-B', str(common.HERE / 'gate533.py'), str(out)], capture_output=True, text=True)
     legacy = json.loads(old.stdout)
     text = (out / 'app.log').read_text(errors='replace')
     valid = sum(r['stage'] == stage and r['valid'] == '1' for r in common.rows(out / 'route.csv'))
-    checks = {'normal_exit': process['completed'] and not process['timed_out'], 'no_faults': process['no_faults'],
+    checks = {'startup_observer_complete': startup.get('observer_joined') and not startup.get('observer_error') and 'first_valid' in startup,
+              'native_first_valid_bound_verified': startup.get('native_first_valid_inside_external_bounds') is True, 'normal_exit': process['completed'] and not process['timed_out'], 'no_faults': process['no_faults'],
               'binary_unchanged': process['binary_unchanged'], 'seed_unchanged': process['seed_unchanged'],
               'resources_unchanged': common.tree(app / 'Contents/Resources') == before_resources,
               'valid_stage_rows': valid >= 300, 'script_completed': '[input-script] done after 970 frames' in text,
@@ -78,7 +80,7 @@ def arm(args, stage, repeat, spot):
               'build_kind': 'server-candidate', 'source_commit': prep['source_commit'],
               'original_exe_sha256': prep['original_exe_sha256'], 'perf_exe_sha256': prep['perf_sha256'],
               'renderer_key': build['renderer_key'], 'prep': str(prep_path), 'prep_sha256': common.sha(prep_path),
-              'process': process, 'valid_stage_rows': valid, 'measurements': measured, 'gate542m': scored,
+              'process': process, 'startup': startup, 'valid_stage_rows': valid, 'measurements': measured, 'gate542m': scored,
               'legacy_gate_observation': legacy, 'legacy_gate_exit': old.returncode,
               'pipeline_diag': 0, 'trace_boot': 0, 'nice': 0, 'bundle_id': OWN_ID,
               'gate_sources': {n: common.sha(common.HERE / n) for n in

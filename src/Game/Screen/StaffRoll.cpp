@@ -21,10 +21,14 @@
 #endif
 
 namespace {
-    const char* cStaffRollMsgId = "StaffList000";
-    const char* cPaneNameTitleLogo = "TitleLogo";
-    const char* cPaneNameTheEnd = "TheEnd";
-    const char* cPaneNameAllRights = "AllRights";
+    static char cStaffRollMsgIdText[] = "StaffList000";
+    extern const char* const cStaffRollMsgId;
+    static char cPaneNameTitleLogoText[] = "TitleLogo";
+    extern const char* const cPaneNameTitleLogo;
+    static char cPaneNameTheEndText[] = "TheEnd";
+    extern const char* const cPaneNameTheEnd;
+    static char cPaneNameAllRightsText[] = "AllRights";
+    extern const char* const cPaneNameAllRights;
 }
 
 namespace NrvStaffRoll {
@@ -334,4 +338,11 @@ bool StaffRoll::isDemoCameraStartFinished() const {
 
 bool StaffRoll::isDemoCameraEndFinished() const {
     return GameSequenceFunction::getElapsedStageFrame() - mStartFrame >= 13254;
+}
+
+namespace {
+    const char* const cStaffRollMsgId = cStaffRollMsgIdText;
+    const char* const cPaneNameTitleLogo = cPaneNameTitleLogoText;
+    const char* const cPaneNameTheEnd = cPaneNameTheEndText;
+    const char* const cPaneNameAllRights = cPaneNameAllRightsText;
 }

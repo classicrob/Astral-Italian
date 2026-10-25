@@ -1969,6 +1969,8 @@ config.libs = [
             Object(NonMatching, "Game/System/RumbleData.cpp"),
             Object(NonMatching, "Game/System/WorldMapModel.cpp"),
             Object(NonMatching, "Game/System/WorldMapResultCommand.cpp"),
+            Object(NonMatching, "Game/System/WorldMapResultDraw.cpp"),
+            Object(NonMatching, "Game/System/WorldMapResultController.cpp"),
             Object(NonMatching, "Game/System/WorldMapResultStateCometAppear.cpp"),
             Object(NonMatching, "Game/System/WorldMapResultTU02.cpp"),
             Object(NonMatching, "Game/System/WorldMapResultStateEnd.cpp"),

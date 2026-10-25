@@ -1631,7 +1631,7 @@ void KPADSetObjInterval(f32 interval) {
 
 // NONMATCHING: GPR/stack allocation, integer ring-offset strength reduction, and data order; canonical board globals and target ordering documented separately.
 void KPADInitEx(KPADUnifiedWpadStatus* uniBuf, u32 length) {
-    s32 chan;
+    u32 chan;
     KPADInsideStatus* kp;
     u32 idx;
     BOOL enabled;
@@ -1949,13 +1949,15 @@ static void KPADiSamplingCallback(s32 chan) {
             if (!kp->mplsPreCallbackDone) {
                 kp->mplsPreCallbackDone = TRUE;
                 if (kp->mpls_ctrl_callback) {
-                    if (currentMpls || !kp->mplsTargetMode ||
-                        ((u32)(kp->deviceType - WPAD_DEV_MPLS) > 2 && kp->deviceType != WPAD_DEV_MPLS_FUTURE)) {
+                    u8 targetMode;
+                    u32 deviceType;
+                    if (currentMpls || !(targetMode = kp->mplsTargetMode) ||
+                        ((u32)((deviceType = kp->deviceType) - WPAD_DEV_MPLS) > 2 && deviceType != WPAD_DEV_MPLS_FUTURE)) {
                         reason = 0;
-                    } else if (kp->mplsTargetMode == 5) {
+                    } else if (targetMode == 5) {
                         reason = -2;
                     } else {
-                        reason = kp->mplsTargetMode == 7 ? -3 : -1;
+                        reason = targetMode == 7 ? -3 : -1;
                     }
                     kp->mpls_ctrl_callback(chan, reason);
                     if (reason < 0 && !kp->mplsRequestedMode) {

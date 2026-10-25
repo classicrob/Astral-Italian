@@ -23,10 +23,10 @@
 namespace {
     const char* cFollowJointName = "Move";
 
-    static PlanetMapClippingInfo sClippingInfo[] = {{"PhantomShipA", 3000.0f, {800.0f, 1300.0f, 0.0f}, 0}};
-    PlanetMapClippingInfo* findClippingInfo(const char* pName) {
+    static const PlanetMapClippingInfo sClippingInfo[] = {{"PhantomShipA", 3000.0f, {800.0f, 1300.0f, 0.0f}, 0}};
+    const PlanetMapClippingInfo* findClippingInfo(const char* pName) {
         for (u32 i = 0; i < ARRAY_SIZE(::sClippingInfo); i++) {
-            PlanetMapClippingInfo* pInfo = &::sClippingInfo[i];
+            const PlanetMapClippingInfo* pInfo = &::sClippingInfo[i];
             if (MR::isEqualStringCase(pName, pInfo->mName)) {
                 return pInfo;
             }
@@ -132,7 +132,7 @@ void PlanetMap::initClipping(const JMapInfoIter& rIter) {
         MR::getJMapInfoArg1NoInit(rIter, &radius);
     }
 
-    PlanetMapClippingInfo* pInfo = ::findClippingInfo(mModelName);
+    const PlanetMapClippingInfo* pInfo = ::findClippingInfo(mModelName);
 
     if (pInfo != nullptr) {
         radius = pInfo->mRadius;

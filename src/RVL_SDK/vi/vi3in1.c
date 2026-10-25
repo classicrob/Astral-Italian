@@ -880,3 +880,6 @@ void __VISetRevolutionModeSimple(void) {
     __VISetGammaImm(&gammaSet[VI_GM_1_0]);
     __gamma = 0;
 }
+// Likely diagnostics from stripped VISetCGMS; retained for the original data layout.
+char sCGMSAssertFile[] = "vi3in1.c";
+char sCGMSProgressiveWarning[] = "VISetCGMS(): Tried to set APS Trigger bit(WORD2[3:2]) \nwhen the scan is progressive in DTV mode, which is forbidden\n";

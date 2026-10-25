@@ -522,6 +522,10 @@ IOSError IUSB_WriteBlkMsgAsync(IOSFd fd, u32 ep, u32 buflen, char* buf, USBCallb
     return rv;
 }
 
+// Likely debug logs from the stripped bulk-transfer path; retained for the original data layout.
+char sShortBulkTransferLog[] = "calling short blk transfer fn: buflen = %u limit = %u\n";
+char sLongBulkTransferLog[] = "calling long blk transfer fn: buflen = %u limit = %u\n";
+
 IOSError __CtrlMsgInt(IOSFd fd, u8 reqType, u8 request, u16 value, u16 index, u16 length, char* data, USBCallbackFunc cb, void* cbArg, u8 async) {
     IOSError rv = IOS_ERROR_OK;
     IOSIoVector* vector;
@@ -1139,3 +1143,8 @@ IOSError IUSB_DeviceClassInsertionNotifyAsync(const char* path, u8 devClass, USB
 done:
     return rv;
 }
+
+// Likely strings from stripped IUSB_RegisterInsertionNotifyWithIdAsync; retained for the original data layout.
+char sInsertionNotifyFunction[] = "IUSB_RegisterInsertionNotifyWithIdAsync";
+char sInsertionNotifyAllocationError[] = "%s: Not enough memory\n";
+char sInsertionNotifyOpenError[] = "Failed to open %s: %d\n";

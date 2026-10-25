@@ -8927,7 +8927,13 @@ Game/System/WorldMapPointMarks.cpp:
 	.text       start:0x804EE100 end:0x804EE9C0
 
 Game/System/WorldMapResultCommand.cpp:
-	.text       start:0x804EE9C0 end:0x804EF9C0
+	.text       start:0x804EE9C0 end:0x804EEBF0
+
+Game/System/WorldMapResultDraw.cpp:
+	.text       start:0x804EEBF0 end:0x804EF5C0
+
+Game/System/WorldMapResultController.cpp:
+	.text       start:0x804EF5C0 end:0x804EF9C0
 	.ctors      start:0x80644A8C end:0x80644A90
 
 Game/System/WorldMapResultStateCometAppear.cpp:

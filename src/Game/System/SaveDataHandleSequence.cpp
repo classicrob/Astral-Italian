@@ -581,6 +581,11 @@ void SaveDataHandleSequence::prepareSaveAll(bool isWithBeforeSave) {
     mSaveDataHandler->storeSysConfigFile(mSysConfigFile);
 }
 
+// Original pool strings at 806FFF70/806FFF80 have no surviving reference,
+// likely from code stripped from the shipped build.
+char sSavingMessageId[] = "System_Save01";
+char sSavingSoundName[] = "SE_SY_LV_SAVING";
+
 bool SaveDataHandleSequence::trySave(bool* pIsErr, const Nerve* pNerve) {
     if (MR::isFirstStep(this)) {
         mSaveDataHandler->requestSaveSaveData();

@@ -131,7 +131,7 @@ void YoshiTongue::exeState7() {
         JMathInlineVEC::PSVECSubtract(&mTipPosition, &mouth, &mRetractOffset);
     }
     mTipPosition.set<f32>(mMouthMtx[0][3], mMouthMtx[1][3], mMouthMtx[2][3]);
-    mTipPosition += mRetractOffset;
+    mTipPosition.add(mRetractOffset);
     if (MR::isLessStep(this, 12)) {
         f32 progress = calcTongueRetractRatio(getNerveStep());
         progress *= mRetractProgress;

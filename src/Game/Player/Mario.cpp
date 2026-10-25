@@ -3478,7 +3478,6 @@ void Mario::fn_8038A560(f32 (*arg1)[4], s32 arg2) {
     }
 }
 
-// NONMATCHING: comparison-result register allocation.
 void Mario::fn_8038A600() {
     HitSensor* sensor = mActor->_470;
     if (isAnimationRun("投げ")) {
@@ -3512,9 +3511,10 @@ void Mario::fn_8038A600() {
                     angle = -angle;
                 }
                 f32 pitchAngle = JMAAcosRadian(projected.dot(direction));
+                bool narrow;
                 bool positive = direction.dot(up) >= 0.0f;
-                bool narrow = MR::abs(angle) < 1.5707964f;
-                if (!(narrow ^ positive)) {
+                narrow = MR::abs(angle) < 1.5707964f;
+                if (!(positive ^ narrow)) {
                     pitchAngle = -pitchAngle;
                 }
                 zero = 0.0f;
@@ -4741,13 +4741,17 @@ void Mario::checkBaseTransPoint() {
 }
 
 namespace {
+inline f32 calcWallMovementAlignment(const TVec3f& velocity, const TVec3f& normal) {
+    TVec3f movement(velocity);
+    MR::normalizeOrZero(&movement);
+    TVec3f inward = -normal;
+    return movement.dot(inward);
+}
+
 inline void resolveMarioWallContact(Mario& mario, const HitInfo* hit, const TVec3f& normal, s32 inside) {
     f32 alignment = normal.dot(mario._368);
     if (!MR::isNearZero(alignment, 0.3f) || inside != 0) {
-        TVec3f movement(mario._16C);
-        MR::normalizeOrZero(&movement);
-        TVec3f inward = -normal;
-        if (!(movement.dot(inward) < 0.707f)) {
+        if (!(calcWallMovementAlignment(mario._16C, normal) < 0.707f)) {
             f32 approach = mario._16C.dot(normal);
             if (!(MR::abs(approach) < hit->mDistance) && !MR::isNearZero(hit->mDistance, 1.01f)) {
                 const TVec3f& position = mario.mPosHolder->mPos;

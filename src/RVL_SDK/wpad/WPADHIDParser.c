@@ -316,33 +316,27 @@ NO_INLINE void __wpadGetClConfig(s32 chan, u8* data) {
     }
 }
 
-static inline void __wpadGetMplsConfig(s32 chan, u8* data, u8 slot) {
+static inline void __wpadGetMplsConfig(u32 chan, u8* data, u8 slot) {
     WPADControlBlock* p_cal = _wpdcb[chan];
     p_cal->extConf.mplsCalibration[slot].axis[0].zero = 5000.0f + (f32)((data[4] << 8) | data[5]) / 10.0f;
     p_cal->extConf.mplsCalibration[slot].axis[1].zero = 5000.0f + (f32)((data[0] << 8) | data[1]) / 10.0f;
     p_cal->extConf.mplsCalibration[slot].axis[2].zero = 5000.0f + (f32)((data[2] << 8) | data[3]) / 10.0f;
     p_cal->extConf.mplsCalibration[slot].referenceRate = data[12] * 6;
     if (!p_cal->extConf.mplsCalibration[slot].referenceRate) p_cal->extConf.mplsCalibration[slot].referenceRate = 91;
-    p_cal->extConf.mplsCalibration[slot].axis[0].scale = (f32)(s16)((s16)(data[10] << 8) | (s16)data[11]) / 10.0f;
-    p_cal->extConf.mplsCalibration[slot].axis[1].scale = (f32)(s16)((s16)(data[6] << 8) | (s16)data[7]) / 10.0f;
-    p_cal->extConf.mplsCalibration[slot].axis[2].scale = (f32)(s16)((s16)(data[8] << 8) | (s16)data[9]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].axis[0].scale = (f32)((s16)((data[10] << 8) & 0xFF00) | (s16)data[11]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].axis[1].scale = (f32)((s16)((data[6] << 8) & 0xFF00) | (s16)data[7]) / 10.0f;
+    p_cal->extConf.mplsCalibration[slot].axis[2].scale = (f32)((s16)((data[8] << 8) & 0xFF00) | (s16)data[9]) / 10.0f;
     {
         f32 scale = p_cal->extConf.mplsCalibration[slot].axis[0].scale;
-        if (scale < 0.0f) scale -= 4000.0f;
-        else scale = 4000.0f + scale;
-        p_cal->extConf.mplsCalibration[slot].axis[0].scale = scale;
+        p_cal->extConf.mplsCalibration[slot].axis[0].scale = scale < 0.0f ? scale - 4000.0f : 4000.0f + scale;
     }
     {
         f32 scale = p_cal->extConf.mplsCalibration[slot].axis[1].scale;
-        if (scale < 0.0f) scale -= 4000.0f;
-        else scale = 4000.0f + scale;
-        p_cal->extConf.mplsCalibration[slot].axis[1].scale = scale;
+        p_cal->extConf.mplsCalibration[slot].axis[1].scale = scale < 0.0f ? scale - 4000.0f : 4000.0f + scale;
     }
     {
         f32 scale = p_cal->extConf.mplsCalibration[slot].axis[2].scale;
-        if (scale < 0.0f) scale -= 4000.0f;
-        else scale = 4000.0f + scale;
-        p_cal->extConf.mplsCalibration[slot].axis[2].scale = scale;
+        p_cal->extConf.mplsCalibration[slot].axis[2].scale = scale < 0.0f ? scale - 4000.0f : 4000.0f + scale;
     }
 }
 
@@ -392,7 +386,8 @@ void __wpadGetExtConfig(s32 chan, s32 result) {
         break;
     }
     p_cb->devMode = _devMode[chan];
-    switch ((u8)p_cb->devType) {
+    if ((u8)(p_cb->devType + 251) <= 2) goto mplsCalibration;
+    switch ((u32)p_cb->devType) {
     case 1:
         p_cb->extConf.fs.acc_0g.x = p_cb->extConf.fs.acc_0g.y = p_cb->extConf.fs.acc_0g.z = 512;
         p_cb->extConf.fs.acc_1g.x = p_cb->extConf.fs.acc_1g.y = p_cb->extConf.fs.acc_1g.z = 716;
@@ -403,7 +398,8 @@ void __wpadGetExtConfig(s32 chan, s32 result) {
         if (__wpadCheckCalibration(data, 14, 0)) __wpadGetClConfig(chan, data);
         else __wpadGetClConfig(chan, data + 16);
         break;
-    case 5: case 6: case 7: case 250:
+    case 250:
+    mplsCalibration:
         p_cb->mplsDiscardReports = 5;
         p_cb->extConf.mplsCalibration[0].axis[0].zero = p_cb->extConf.mplsCalibration[0].axis[1].zero = p_cb->extConf.mplsCalibration[0].axis[2].zero = 8192.0f;
         p_cb->extConf.mplsCalibration[0].axis[0].scale = p_cb->extConf.mplsCalibration[0].axis[1].scale = p_cb->extConf.mplsCalibration[0].axis[2].scale = 5333.0f;
@@ -431,7 +427,7 @@ void __wpadGetExtConfig(s32 chan, s32 result) {
                 p_cb->certState = 12;
             }
         } else p_cb->certCachedValidity = 0;
-        if (p_cb->certCachedValidity != 1 && p_cb->extensionIdByte7 >= 14) _devType[chan] = p_cb->devType = 252;
+        if (p_cb->certCachedValidity != 1 && p_cb->extensionIdByte7 >= 14) p_cb->devType = _devType[chan] = 252;
         p_cb->certCachedCalibrationTag = p_cb->extConf.mplsCalibrationTag;
         p_cb->certCachedCalibrationCRC32 = p_cb->extConf.mplsCalibrationCRC32;
         break;
@@ -560,7 +556,7 @@ void __wpadGetExtType(s32 chan, s32 result) {
                 break;
             case 5: {
                 s32 mode = data[14];
-                if ((4 <= mode && mode <= 5) || mode == 7) {
+                if ((u32)(mode - 4) <= 1 || mode == 7) {
                     _devType[chan] = 5;
                 } else {
                     _devType[chan] = 251;
@@ -582,21 +578,20 @@ void __wpadGetExtType(s32 chan, s32 result) {
         } else p_cb->isSetStickOrigin = 0;
         p_cb->extensionPreviousType = _devType[chan];
         p_cb->extensionReconnectPending = 0;
-        switch ((u32)_devType[chan]) {
-        case 251:
-        case 252:
+        if ((u8)(_devType[chan] + 251) <= 2) goto motionPlus;
+        if ((u8)(_devType[chan] + 5) <= 1) goto unsupportedExtension;
+        if (_devType[chan] == 250) goto motionPlus;
+        goto standardExtension;
+    unsupportedExtension:
             p_cb->devType = _devType[chan];
             p_cb->devMode = _devMode[chan];
             if (p_cb->extensionCallback) p_cb->extensionCallback(chan, p_cb->devType);
             return;
-        case 5:
-        case 6:
-        case 7:
-        case 250:
+    motionPlus:
             resetExtensionCertificate(chan);
             p_cb->extensionIdByte7 = data[7];
-            break;
-        default:
+        goto readCalibration;
+    standardExtension:
             if (__wpadIsExtEncryptMain(_devType[chan])) {
                 p_cb->extEnc = 2;
                 WPADiCreateKey(chan);
@@ -613,8 +608,7 @@ void __wpadGetExtType(s32 chan, s32 result) {
                 WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
                 WPADiSendWriteDataCmd(cmdq, 0xAA, 0x04A400F1, __wpadAbortInitExtension);
             }
-            break;
-        }
+    readCalibration:
         WPADiSendReadData(cmdq, p_cb->readBuf, 32, 0x04A40020, p_cb->extensionCallback);
     } else {
         p_cb->devType = 252;
@@ -765,17 +759,34 @@ void __a1_20_status_report(u8 chan, u8* data, WPADStatus* p_status) {
     OSRestoreInterrupts(enabled);
 }
 
-// NONMATCHING: compiler register allocation and comparison lowering differ.
+static inline void parseMplsExtensionType(s32 chan, s32 result) {
+    WPADControlBlock* p_mpls;
+    u8* p_buf;
+    p_mpls = _wpdcb[chan];
+    p_buf = p_mpls->readBufPtr;
+    if (p_mpls->mplsPassthroughConfigBusy && p_mpls->mplsPassthroughConfigState == 1) {
+        if (result != WPAD_ERR_NONE) p_mpls->mplsPassthroughConfigState = 0;
+        else {
+            p_mpls->mplsPassthroughConfigState = 2;
+            p_mpls->isSetStickOrigin = 0;
+            _mplsExtensionType[chan] = p_buf[3];
+            _mplsExtensionSubtype[chan] = p_buf[2];
+        }
+    }
+}
+
 void __a1_21_user_data(u8 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cb = _wpdcb[chan];
     WPADControlBlock* p_copy;
-    WPADControlBlock* p_mpls;
-    u8* p_buf;
-    u8 err, len;
-    u16 base, i2c, addr;
+    BOOL enabled;
+    u16 addr;
+    u16 base;
+    u16 i2c;
+    u8 err;
+    u8 len;
     s16 offset;
     s32 result;
-    BOOL enabled = OSDisableInterrupts();
+    enabled = OSDisableInterrupts();
     err = data[3] & 0xF;
     if (err) {
         p_cb->readError = -1;
@@ -788,7 +799,7 @@ void __a1_21_user_data(u8 chan, u8* data, WPADStatus* p_status) {
     base = p_cb->readBaseAddr;
     i2c = p_cb->readBaseAddr >> 16;
     len = (data[3] >> 4) + 1;
-    addr = (data[4] << 8) | data[5];
+    addr = (u16)((u16)(data[4] << 8) & 0xFF00) | data[5];
     offset = addr - base;
     if (addr >= base && addr <= base + p_cb->readLength) {
         if (!err) memcpy((u8*)p_cb->readBufPtr + offset, data + 6, len);
@@ -799,17 +810,7 @@ void __a1_21_user_data(u8 chan, u8* data, WPADStatus* p_status) {
             if (p_cb->readBaseAddr == 0x04A40020) __wpadGetExtConfig(chan, result);
             if (p_cb->readBaseAddr == 0x04A400F0 || p_cb->readBaseAddr == 0x04A400FA) __wpadGetExtType(chan, result);
             if (p_cb->readBaseAddr == 0x04A400F6) {
-                p_mpls = _wpdcb[chan];
-                p_buf = p_mpls->readBufPtr;
-                if (p_mpls->mplsPassthroughConfigBusy && p_mpls->mplsPassthroughConfigState == 1) {
-                    if (result != WPAD_ERR_NONE) p_mpls->mplsPassthroughConfigState = 0;
-                    else {
-                        p_mpls->mplsPassthroughConfigState = 2;
-                        p_mpls->isSetStickOrigin = 0;
-                        _mplsExtensionType[chan] = p_buf[3];
-                        _mplsExtensionSubtype[chan] = p_buf[2];
-                    }
-                }
+                parseMplsExtensionType(chan, result);
             }
             if (p_cb->readBaseAddr == 0x04A40040) __wpadGetExtConfig2(chan, result);
             if (p_cb->readBaseAddr == 0x04A400F3) {
@@ -1029,7 +1030,7 @@ void __parse_dpdex_data(s32 chan, WPADStatus** p_status, u8 index, u8* data, u8 
 #define EX_STATUS ((WPADStatusEx*)*p_status)
     EX_STATUS->obj[index].x = (s16)((data[2] & 0x30) << 4) | (s16)data[0];
     EX_STATUS->obj[index].y = 767 - (s16)((s16)((data[2] & 0xC0) << 2) | (s16)data[1]);
-    EX_STATUS->exp[index].pixel = ((s16)((u8)data[7] << 8) | data[8]) * 64;
+    EX_STATUS->exp[index].pixel = ((s16)((data[7] << 8) & 0xFF00) | data[8]) * 64;
     EX_STATUS->exp[index].radius = data[2] & 0xF;
     EX_STATUS->exp[index].range_x1 = (s8)data[3] == -1 ? 0 : data[3];
     EX_STATUS->exp[index].range_y1 = (s8)data[4] == -1 ? 0 : data[4];
@@ -1051,48 +1052,54 @@ void __parse_dpdex_data(s32 chan, WPADStatus** p_status, u8 index, u8* data, u8 
 #undef EX_STATUS
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
-void __a1_3e_data_type(u8 chan, u8* data, WPADStatus* p_status) {
-    WPADControlBlock* p_cb = _wpdcb[chan];
-    WPADStatus* dpdStatus = p_status;
+static inline void parseExtendedAccX(s32 chan, u8* data, WPADStatus* p_status) {
     WPADControlBlock* p_cal;
-    BOOL enabled;
-    if (!p_cb->dpdExtendedReportMask) memset(p_status, 0, WPAD_RX_DATASIZE);
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
-    p_cb->infos.nearempty = 0;
     p_cal = _wpdcb[chan];
     p_status->accX = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)((data[1] >> 6) & 2)) - p_cal->conf.acc_0g.x;
     p_status->accZ |= (s16)((s16)((s16)(data[2] << 3) & (s16)0xFF00) | ((data[1] << 1) & 0xC0));
-    __parse_dpdex_data(chan, &dpdStatus, 0, data + 4, 0);
-    __parse_dpdex_data(chan, &dpdStatus, 1, data + 13, 0);
+}
+
+static inline void parseExtendedAccY(s32 chan, u8* data, WPADStatus* p_status) {
+    WPADControlBlock* p_cal;
+    p_cal = _wpdcb[chan];
+    p_status->accY = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)((data[1] >> 6) & 2)) - p_cal->conf.acc_0g.y;
+    p_status->accZ |= (s16)(((data[2] >> 1) & 0x30) | ((data[1] >> 3) & 0xC));
+}
+
+void __a1_3e_data_type(u8 chan, u8* data, WPADStatus* p_status) {
+    WPADStatus* status = p_status;
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    BOOL enabled;
+    if (!p_cb->dpdExtendedReportMask) memset(status, 0, WPAD_RX_DATASIZE);
+    status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    p_cb->infos.nearempty = 0;
+    parseExtendedAccX(chan, data, status);
+    __parse_dpdex_data(chan, &p_status, 0, data + 4, 0);
+    __parse_dpdex_data(chan, &p_status, 1, data + 13, 0);
     enabled = OSDisableInterrupts();
     p_cb->dpdExtendedReportMask |= 1;
     if (p_cb->dpdExtendedReportMask == 3) {
-        p_status->accZ -= p_cb->conf.acc_0g.z;
+        status->accZ -= p_cb->conf.acc_0g.z;
         p_cb->rxBufIndex = !p_cb->rxBufIndex;
         p_cb->dpdExtendedReportMask = 0;
     }
     OSRestoreInterrupts(enabled);
 }
 
-// NONMATCHING: compiler register allocation, short casts and scheduling differ.
 void __a1_3f_data_type(u8 chan, u8* data, WPADStatus* p_status) {
+    WPADStatus* status = p_status;
     WPADControlBlock* p_cb = _wpdcb[chan];
-    WPADStatus* dpdStatus = p_status;
-    WPADControlBlock* p_cal;
     BOOL enabled;
-    if (!p_cb->dpdExtendedReportMask) memset(p_status, 0, WPAD_RX_DATASIZE);
-    p_status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
+    if (!p_cb->dpdExtendedReportMask) memset(status, 0, WPAD_RX_DATASIZE);
+    status->button = (data[1] | (data[2] << 8)) & HID_WPAD_BUTTON_MASK;
     p_cb->infos.nearempty = 0;
-    p_cal = _wpdcb[chan];
-    p_status->accY = (s16)((s16)((s16)(data[3] << 2) & (s16)0xFFFC) | (s16)((data[1] >> 6) & 2)) - p_cal->conf.acc_0g.y;
-    p_status->accZ |= (s16)(((data[2] >> 1) & 0x30) | ((data[1] >> 3) & 0xC));
-    __parse_dpdex_data(chan, &dpdStatus, 2, data + 4, 0);
-    __parse_dpdex_data(chan, &dpdStatus, 3, data + 13, 0);
+    parseExtendedAccY(chan, data, status);
+    __parse_dpdex_data(chan, &p_status, 2, data + 4, 0);
+    __parse_dpdex_data(chan, &p_status, 3, data + 13, 0);
     enabled = OSDisableInterrupts();
     p_cb->dpdExtendedReportMask |= 2;
     if (p_cb->dpdExtendedReportMask == 3) {
-        p_status->accZ -= p_cb->conf.acc_0g.z;
+        status->accZ -= p_cb->conf.acc_0g.z;
         p_cb->rxBufIndex = !p_cb->rxBufIndex;
         p_cb->dpdExtendedReportMask = 0;
     }
@@ -1194,9 +1201,9 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
                 } else if (p_cb->devType == WPAD_DEV_MPLS_CLASSIC) {
                     CL_REPORT->clLStickX = (data[0] << 4) & 0x3E0;
                     CL_REPORT->clLStickY = (data[1] << 4) & 0x3E0;
-                    CL_REPORT->clRStickX = (s16)((s16)(data[2] >> 7) | (((data[1] >> 5) & 6) | ((data[0] >> 3) & 0x18))) << 5;
+                    CL_REPORT->clRStickX = (s16)((s16)(data[2] >> 7) | (((s16)(data[1] >> 5) & 6) | ((s16)(data[0] >> 3) & 0x18))) << 5;
                     CL_REPORT->clRStickY = (data[2] & 0x1F) << 5;
-                    CL_REPORT->clTriggerL = (s16)(((data[3] >> 5) & 7) | ((data[2] >> 2) & 0x18)) << 3;
+                    CL_REPORT->clTriggerL = (s16)(((s16)(data[2] >> 2) & 0x18) | ((s16)(data[3] >> 5) & 7)) << 3;
                     CL_REPORT->clTriggerR = (data[3] & 0x1F) << 3;
                     CL_REPORT->clButton = ((data[0] & 1) | ((data[1] & 1) << 1) | (data[5] & 0xFC) | ((data[4] & 0xFE) << 8)) ^ 0xFEFF;
                     CL_REPORT->clLStickX -= 512;

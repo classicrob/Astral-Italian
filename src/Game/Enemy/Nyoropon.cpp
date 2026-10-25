@@ -524,7 +524,8 @@ void Nyoropon::updateWanderTarget() {
     } else {
         wave = cOne - (2.0f * phase);
     }
-    goal.x += half * wave;
+    half *= wave;
+    goal.x += half;
     MR::vecBlend(&mTarget, mTarget, goal, 0.3f);
 }
 

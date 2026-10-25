@@ -7,15 +7,14 @@ static const u32 s_crc32Table[16] = {
     0x9B64C2B0, 0x86D3D2D4, 0xA00AE278, 0xBDBDF21C,
 };
 
-// NONMATCHING: only the volatile r8/r9 allocation is exchanged; all
-// instructions, branches and the complete 16-entry table agree after renaming.
 u32 __OSCalcCRC32(const void* data, u32 length) {
-    const u8* bytes = data;
+    const u8* bytes = (const u8*)data;
     u32 crc = 0xFFFFFFFF;
     while (length) {
-        u32 value = *bytes++;
+        u32 value = *bytes;
         crc = (crc >> 4) ^ s_crc32Table[(crc ^ value) & 0xF];
         crc = (crc >> 4) ^ s_crc32Table[(crc ^ (value >> 4)) & 0xF];
+        ++bytes;
         length--;
     }
     return ~crc;

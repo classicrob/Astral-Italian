@@ -40,6 +40,7 @@ class Observer:
         handles = {}
         try:
             while not self.stop_event.is_set():
+                probe_started = clocks()
                 before = previous
                 for name in ('app.log', 'route.csv'):
                     if name not in handles:
@@ -83,7 +84,7 @@ class Observer:
                             'appearance_upper': after, 'elapsed_ms_bounds': [(before['monotonic_ns']-self.start['monotonic_ns'])/1e6,
                                                                           (after['monotonic_ns']-self.start['monotonic_ns'])/1e6]}
                         break
-                previous = after
+                previous = probe_started  # absence lower bound precedes the previous read, even if descheduled after it
                 self.stop_event.wait(.002)
         except Exception as exc:
             self.result['observer_error'] = repr(exc)

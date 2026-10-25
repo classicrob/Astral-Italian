@@ -2,6 +2,8 @@
 import importlib.util
 from pathlib import Path
 import tempfile
+import threading
+from unittest.mock import patch
 import time
 import unittest
 
@@ -31,6 +33,29 @@ class Startup(unittest.TestCase):
             self.assertEqual(result['first_valid']['prior_flush_row_count'], 60)
             self.assertEqual(result['first_valid']['route_row'], 60)
             self.assertGreaterEqual(result['first_valid']['elapsed_ms_bounds'][1], result['first_valid']['elapsed_ms_bounds'][0])
+
+    def test_deschedule_after_empty_read_does_not_make_lower_bound_late(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); (root/'app.log').write_text(''); (root/'route.csv').write_text('frame,stage,valid\n')
+            paused, release = threading.Event(), threading.Event()
+            real_clocks = m.clocks
+            calls = 0
+            def sampled():
+                nonlocal calls
+                if threading.current_thread() is not threading.main_thread():
+                    calls += 1
+                    if calls == 2:
+                        paused.set(); release.wait(timeout=1)
+                return real_clocks()
+            with patch.object(m, 'clocks', sampled):
+                observer = m.Observer(root, 'Yoshi'); self.assertTrue(paused.wait(timeout=1))
+                with (root/'route.csv').open('a') as out: out.writelines(f'{i},Yoshi,0\n' for i in range(60))
+                native = real_clocks()
+                with (root/'app.log').open('a') as out:
+                    out.write(f"[native first valid] stage=Yoshi route_row=60 monotonic_ns={native['monotonic_ns']} wall_ns={native['wall_ns']}\n[play ready] frame 121 wall_ms=1000\n")
+                with (root/'route.csv').open('a') as out: out.writelines(f'{i},Yoshi,1\n' for i in range(60,120))
+                release.set(); observer.thread.join(timeout=1); result = observer.finish()
+            self.assertTrue(result['native_first_valid_inside_external_bounds'])
 
     def test_title_shared_native_event(self):
         with tempfile.TemporaryDirectory() as tmp:

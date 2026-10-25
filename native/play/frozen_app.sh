@@ -1,7 +1,7 @@
 #!/bin/sh
 # Shared frozen-build discovery and validation for the player launchers.
-# The default frozen build (head promoted 5.4.1 on 2026-10-24); 5.4 and 5.3.2 stay as fallbacks in the menu (5.2.1 too).
-frozen_default=build5.4.1
+# The default frozen build (head promoted 5.4.2 on 2026-10-25); 5.4.1 and 5.3.2 stay as fallbacks in the menu (5.4 and 5.2.1 too).
+frozen_default=build5.4.2
 frozen_app_validate() {
     frozen_root=$(cd "$HOME/MacioGalaxy2-play" 2>/dev/null && pwd -P) || {
         echo "play: no frozen builds under ~/MacioGalaxy2-play" >&2; return 1;
@@ -29,6 +29,7 @@ frozen_app_validate() {
 frozen_app_named() {
     case "$1" in
     default) frozen_app_validate "$HOME/MacioGalaxy2-play/$frozen_default/Petari.app" ;;
+    "5.4.2"|build5.4.2) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.4.2/Petari.app" ;;
     "5.4.1"|build5.4.1) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.4.1/Petari.app" ;;
     "5.4"|build5.4) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.4/Petari.app" ;;
     "5.3.2"|build5.3.2) frozen_app_validate "$HOME/MacioGalaxy2-play/build5.3.2/Petari.app" ;;
@@ -43,7 +44,8 @@ frozen_app_named() {
 
 frozen_app_list() {
     frozen_seen=" "
-    for frozen_candidate in "$HOME/MacioGalaxy2-play/$frozen_default/Petari.app" "$HOME/MacioGalaxy2-play/build5.4/Petari.app" \
+    for frozen_candidate in "$HOME/MacioGalaxy2-play/$frozen_default/Petari.app" "$HOME/MacioGalaxy2-play/build5.4.1/Petari.app" \
+        "$HOME/MacioGalaxy2-play/build5.4/Petari.app" \
         "$HOME/MacioGalaxy2-play/build5.3.2/Petari.app" \
         "$HOME/MacioGalaxy2-play/build5.2.1/Petari.app" "$HOME/MacioGalaxy2-play/build5.1/Petari.app" \
         "$HOME/MacioGalaxy2-play/Petari.app" "$HOME/MacioGalaxy2-play/"*/Petari.app; do
@@ -56,6 +58,8 @@ frozen_app_list() {
                 frozen_name=${frozen_candidate%/Petari.app}
                 if [ "${frozen_name##*/}" = "$frozen_default" ]; then
                     printf '  %s (default; %s)  %s\n' "${frozen_default#build}" "$frozen_default" "$frozen_verified"
+                elif [ "${frozen_name##*/}" = build5.4.1 ]; then
+                    printf '  5.4.1 (fallback; build5.4.1)  %s\n' "$frozen_verified"
                 elif [ "${frozen_name##*/}" = build5.4 ]; then
                     printf '  5.4 (fallback; build5.4)  %s\n' "$frozen_verified"
                 elif [ "${frozen_name##*/}" = build5.3.2 ]; then

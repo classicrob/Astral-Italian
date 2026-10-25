@@ -33,10 +33,31 @@ extern "C" bool petari_boot_splash_pump() {
     @autoreleasepool {
         // A real run-loop turn services AppleEvents and main-queue work, in
         // addition to SDL's NSEvent drain. Never asks for Automation consent.
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.0, true);
-        SDL_PumpEvents();
+        static bool first = true;
+        const bool trace = first; first = false;
+        if (trace) PetariBootSplash::startupEvent("first_run_loop_enter");
+        { PetariBootSplash::SlowCall span{"run_loop"}; CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.0, true); }
+        if (trace) PetariBootSplash::startupEvent("first_run_loop_exit");
+        if (trace) PetariBootSplash::startupEvent("first_sdl_pump_enter");
+        { PetariBootSplash::SlowCall span{"sdl_pump"}; SDL_PumpEvents(); }
+        if (trace) PetariBootSplash::startupEvent("first_sdl_pump_exit");
     }
     return true;
+}
+extern "C" bool petari_boot_splash_hidden() {
+    auto* window = aurora::window::get_sdl_window();
+    return window && (SDL_GetWindowFlags(window) & SDL_WINDOW_HIDDEN);
+}
+extern "C" bool petari_boot_splash_show_window() {
+    PetariBootSplash::SlowCall span{"window_show"};
+    if (![NSThread isMainThread] || SDL_GetHintBoolean("PETARI_SMOKE_BACKGROUND", false)) return false;
+    auto* window = aurora::window::get_sdl_window();
+    if (!window || !ownedWindow()) return false;
+    PetariBootSplash::startupEvent("window_show_enter");
+    const bool success = SDL_ShowWindow(window);
+    PetariBootSplash::startupEvent(success ? "window_shown" : "window_show_failed");
+    PetariBootSplash::deferWindowShow = false;
+    return success;
 }
 extern "C" void petari_boot_splash_progress(std::size_t published, std::size_t total) {
     if (![NSThread isMainThread] || SDL_GetHintBoolean("PETARI_SMOKE_BACKGROUND", false)) return;
@@ -44,7 +65,7 @@ extern "C" void petari_boot_splash_progress(std::size_t published, std::size_t t
     @autoreleasepool {
         auto* window = aurora::window::get_sdl_window();
         NSWindow* cocoa = ownedWindow();
-        if (!window || !cocoa || !SDL_ShowWindow(window)) { logEvent("failed", published, total); return; }
+        if (!window || !cocoa || !petari_boot_splash_show_window()) { logEvent("failed", published, total); return; }
         static PetariBootHeartbeat* heartbeat = [PetariBootHeartbeat new];
         [[NSAppleEventManager sharedAppleEventManager] setEventHandler:heartbeat andSelector:@selector(ping:reply:)
             forEventClass:'Ptra' andEventID:'ping'];
@@ -55,6 +76,7 @@ extern "C" void petari_boot_splash_progress(std::size_t published, std::size_t t
     }
 }
 extern "C" bool petari_boot_splash_window_ready() {
+    PetariBootSplash::SlowCall span{"window_ready"};
     if (![NSThread isMainThread] || !shown) return false;
     @autoreleasepool {
         NSWindow* window = ownedWindow();
@@ -74,6 +96,7 @@ extern "C" bool petari_boot_splash_window_ready() {
 }
 extern "C" void petari_boot_splash_presented(std::uint64_t frame) {
     if (!PetariBootSplash::active.load()) return;
+    if (frame == 0) PetariBootSplash::startupEvent("first_successful_present");
     const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     PetariBootSplash::lastPresentNs.store(ns, std::memory_order_relaxed);
     std::fprintf(stderr, "[gx boot splash present] frame=%llu uptime_ns=%llu success=1\n",

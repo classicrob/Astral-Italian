@@ -42,6 +42,30 @@ class Frames(unittest.TestCase):
             out=csv.DictWriter(f,fieldnames=self.rows[0].keys());out.writeheader();out.writerows(self.rows)
     def check(self):self.write();return boot.validate_frames(self.root)
     def test_complete(self):self.assertTrue(self.check()['passed'])
+    def v3(self):
+        self.text=self.text.replace('version=2 result=ready','version=3 result=ready').replace('cap_ms=5000','cap_ms=7000')
+        names=('app_menu_setup_enter','app_menu_setup_exit','hidden_bootstrap_enter',
+            'first_run_loop_enter','first_run_loop_exit','first_sdl_pump_enter','first_sdl_pump_exit',
+            'first_aurora_update_enter','input_initialize_enter','sdl_input_init_enter','sdl_input_init_exit',
+            'input_initialize_exit','first_aurora_update_exit','hidden_bootstrap_exit','window_show_enter','window_shown')
+        self.text+=''.join(f'[gx startup call] event={name} monotonic_ns={i}\n' for i,name in enumerate(names,1))
+        self.text+='[gx startup call] event=first_successful_present monotonic_ns=999999999\n'
+    def test_version3_keeps_same_coverage_and_responsiveness(self):
+        self.v3()
+        self.assertTrue(self.check()['passed'])
+        self.text=self.text.replace('pump_max_gap_ms=20','pump_max_gap_ms=100.001')
+        self.assertFalse(self.check()['passed'])
+    def test_bootstrap_missing_or_ambiguous_is_not_proof(self):
+        self.v3()
+        line='[gx startup call] event=sdl_input_init_exit monotonic_ns=11\n'
+        self.assertIn(line,self.text)
+        original=self.text
+        self.text=original.replace(line,'');self.assertFalse(self.check()['passed'])
+        self.text=original+line;self.assertFalse(self.check()['passed'])
+    def test_visible_input_init_is_not_hidden_bootstrap(self):
+        self.v3()
+        self.text=self.text.replace('event=sdl_input_init_exit monotonic_ns=11','event=sdl_input_init_exit monotonic_ns=101')
+        self.assertFalse(self.check()['passed'])
     def test_black(self):
         png(self.root/'boot-splash.png',True);self.assertFalse(self.check()['passed'])
     def test_truncated_png(self):

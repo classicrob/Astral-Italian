@@ -69,6 +69,7 @@ extern "C" int petari_present_take_readback(const void* copy, unsigned char* rgb
 #include "pipeline_cache_dir.hpp"
 #include "display_link.hpp"
 #include "latency_report.hpp"
+#include "../gx/boot_splash.h"
 #include <petari/launch_stage.hpp>
 #include "launch_stage.hpp"
 #include "tape_play.hpp"
@@ -1011,6 +1012,7 @@ int main(int argc, char** argv) {
     config.windowHeight = PetariNative::HomeMenu::kDisplaySizes[display.size].height;
     config.logCallback = logMessage;
     config.logLevel = LOG_INFO;
+    PetariBootSplash::deferWindowShow = !App::SmokeBackground::enabled;
     const AuroraInfo info = aurora_initialize(1, argv, &config);
     if (info.window == nullptr || aurora_get_backend() != BACKEND_METAL) {
         std::fputs("petari: Metal initialization failed\n", stderr);
@@ -1019,7 +1021,9 @@ int main(int argc, char** argv) {
     }
     // Aurora has just given this thread (the main game thread) an explicit SDL policy; see petari/thread_priority.hpp.
     PetariNative::ThreadPriority::raiseToSchedOtherMax("main thread");
+    PetariBootSplash::startupEvent("app_menu_setup_enter");
     App::FirstRun::installMenu(locations);
+    PetariBootSplash::startupEvent("app_menu_setup_exit");
     PetariNative::HomeMenu::setPreparationProgressSource(&petari_gx_pipeline_prewarm_progress);
     if (App::SmokeBackground::enabled) {
         auto* window = static_cast<SDL_Window*>(info.window);

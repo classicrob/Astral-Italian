@@ -70,6 +70,22 @@ void log(const char* event) {
 }
 
 void testInterrupts() {
+    namespace HostOS = PetariNative::Platform::OS;
+    const auto ns = [] { return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()); };
+    const auto before = ns();
+    OSDisableInterrupts();
+    const auto ownerThread = reinterpret_cast<std::uintptr_t>(OSGetCurrentThread());
+    const auto nestedAt = ns();
+    OSDisableInterrupts(); // nesting must not reset the interval's origin
+    OSEnableInterrupts();
+    const auto after = ns();
+    OSDisableInterrupts();
+    const auto timing = HostOS::lastInterruptReleaseTiming();
+    check(timing.hostThread == reinterpret_cast<std::uintptr_t>(pthread_self()) && timing.osThread == ownerThread,
+          "interrupt-release timing names the actual owner");
+    check(timing.acquiredNs >= before && timing.acquiredNs <= nestedAt && timing.releasedNs >= nestedAt && timing.releasedNs <= after,
+          "interrupt-release timing covers the outer ownership interval");
+    OSEnableInterrupts();
     check(OSDisableInterrupts() == TRUE, "disable from enabled returns TRUE");
     check(OSDisableInterrupts() == FALSE, "disable while disabled returns FALSE");
     check(OSRestoreInterrupts(FALSE) == FALSE, "restore FALSE keeps interrupts disabled");

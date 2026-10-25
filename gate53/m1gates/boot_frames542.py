@@ -138,7 +138,7 @@ def validate_frames(folder):
             found=re.findall(pattern,text,re.M)
             if len(found)!=1:raise ValueError('missing/ambiguous '+pattern)
             return found[0]
-        receipt=unique(r'^\[gx frontend pre-present\] version=2 (.+)$')
+        receipt=unique(r'^\[gx frontend pre-present\] (version=[23] .+)$')
         fields=dict(re.findall(r'(\w+)=([^ ]+)',receipt))
         gap=float(fields['pump_max_gap_ms'])
         result['checks']['main_loop_turns_le100ms']=(fields['main_thread']=='1' and int(fields['pumps'])>0 and math.isfinite(gap) and 0<=gap<=100)
@@ -147,6 +147,18 @@ def validate_frames(folder):
         count,intervals,last=map(int,unique(r'^\[gx boot splash frames\] presented=(\d+) csv_intervals=(\d+) first_serial=0 last_serial=(\d+) .*game_advanced=0 route_advanced=0$'))
         first,end,offset=map(int,unique(r'^\[gx startup frame mapping\] prep_csv_first=(\d+) prep_csv_last=(\d+) game_csv_offset=(\d+) route_offset=0 policy=continuous-intervals$'))
         presents=[(int(f),int(ns)) for f,ns in re.findall(r'^\[gx boot splash present\] frame=(\d+) uptime_ns=(\d+) success=1$',text,re.M)]
+        if fields['version']=='3':
+            expected=('app_menu_setup_enter','app_menu_setup_exit','hidden_bootstrap_enter',
+                'first_run_loop_enter','first_run_loop_exit','first_sdl_pump_enter','first_sdl_pump_exit',
+                'first_aurora_update_enter','input_initialize_enter','sdl_input_init_enter','sdl_input_init_exit',
+                'input_initialize_exit','first_aurora_update_exit','hidden_bootstrap_exit',
+                'window_show_enter','window_shown','first_successful_present')
+            calls={name:int(unique(r'^\[gx startup call\] event='+name+r' monotonic_ns=(\d+)$')) for name in expected}
+            ordered=list(calls.values())
+            shown_ns=int(unique(r'^\[gx boot splash\] event=shown .*monotonic_ns=(\d+) wall_ns=\d+ mode=normal-frames$'))
+            result['startup_calls']=calls
+            result['checks']['hidden_bootstrap_before_window_show']=(ordered==sorted(ordered) and ordered[0]>0 and
+                calls['window_shown']<=shown_ns<=calls['first_successful_present']<=presents[0][1])
         with (folder/'frames.csv').open() as file: rows=list(csv.DictReader(file))
         prefix=rows[:intervals]
         result['checks']['complete_present_sequence']=(count>=3 and [f for f,_ in presents]==list(range(count)) and all(b[1]>a[1] for a,b in zip(presents,presents[1:])) and last==count-1 and 1<=int(release)<=count and text.index('[gx frontend release]')>text.index('[gx boot splash present]'))

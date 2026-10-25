@@ -53,6 +53,10 @@ def main():
         out = tmp / 'core/aurora.cpp'
         check(run(present, core, out).returncode == 0, 'aurora.cpp patches')
         text = out.read_text()
+        check('if (!PetariBootSplash::deferWindowShow) window::show_window();' in text,
+              'window show can be genuinely deferred by the app before init')
+        check(text.index('first_aurora_update_enter') < text.index('    input::initialize();') < text.index('first_aurora_update_exit'),
+              'first update has monotonic entry/exit around its real input/event work')
         check('petari_present::take()' in text and 'petari_present::bind_image' in text
               and 'petari_present::draw_dim' in text, 'present hooks in aurora_end_frame')
         check(text.count('pass.Draw(3);') == core.read_text().count('pass.Draw(3);'),

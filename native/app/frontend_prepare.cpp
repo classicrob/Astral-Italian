@@ -12,12 +12,30 @@
 
 namespace PetariNative::App {
 bool prepareFrontend(SDL_Window* window) {
-    if (!petari_gx_frontend_armed()) return true;
     // Background smoke remains hidden. It does not claim visible preparation.
     if (SmokeBackground::enabled) {
-        petari_gx_frontend_finish(0, 0, 0, true);
+        if (petari_gx_frontend_armed()) petari_gx_frontend_finish(0, 0, 0, true);
         return true;
     }
+    if (PetariBootSplash::deferWindowShow) {
+        // Bootstrap the platform once while the actual SDL window is hidden.
+        // Menus/fonts are already installed. The first update initializes SDL
+        // input and handles its device-add events; no game/route loop exists.
+        if (!petari_boot_splash_hidden()) {
+            std::fputs("[gx boot bootstrap] result=failed reason=window-already-visible\n", stderr);
+            return false;
+        }
+        PetariBootSplash::startupEvent("hidden_bootstrap_enter");
+        if (!petari_boot_splash_pump()) return false;
+        for (const AuroraEvent* event = aurora_update(); event && event->type != AURORA_NONE; ++event)
+            if (event->type == AURORA_EXIT) return false;
+        if (!petari_boot_splash_hidden()) {
+            std::fputs("[gx boot bootstrap] result=failed reason=window-became-visible\n", stderr);
+            return false;
+        }
+        PetariBootSplash::startupEvent("hidden_bootstrap_exit");
+    }
+    if (!petari_gx_frontend_armed()) return petari_boot_splash_show_window();
     constexpr Uint64 period = 1000000000 / 60;
     const auto shownAt = SDL_GetTicksNS();
     auto deadline = shownAt, lastPump = shownAt;
@@ -26,6 +44,7 @@ bool prepareFrontend(SDL_Window* window) {
     bool mainThread = true, started = false, quit = false;
     std::uint64_t submitted = 0, collected = 0;
     petari_boot_splash_progress(0, 0);
+    const auto delay = [](Uint64 ns) { PetariBootSplash::SlowCall span{"splash_delay"}; SDL_DelayNS(ns); };
     const auto collect = [&] {
         const auto count = PetariBootSplash::presented.load(std::memory_order_acquire);
         if (count > collected) {
@@ -40,39 +59,40 @@ bool prepareFrontend(SDL_Window* window) {
         maxGapMs = std::max(maxGapMs, (pumpAt - lastPump) / 1e6);
         lastPump = pumpAt; ++pumps;
         mainThread &= petari_boot_splash_pump();
-        for (const AuroraEvent* event = aurora_update(); event && event->type != AURORA_NONE; ++event)
+        const auto* events = [] { PetariBootSplash::SlowCall span{"splash_aurora_update"}; return aurora_update(); }();
+        for (const AuroraEvent* event = events; event && event->type != AURORA_NONE; ++event)
             if (event->type == AURORA_EXIT) quit = true;
         collect();
         if (quit || !mainThread) break;
         if (!started && collected && petari_boot_splash_window_ready()) {
             std::fprintf(stderr, "[gx frontend release] finished_launching=1 window_onscreen=1 alpha=1 bounds_nonzero=1 first_present=1 presented_frames=%llu\n",
                 (unsigned long long)collected);
-            petari_gx_frontend_begin();
+            { PetariBootSplash::SlowCall span{"frontend_admission"}; petari_gx_frontend_begin(); }
             started = true;
         }
-        petari_gx_frontend_status(&total, &pending, &failed, &elapsedMs);
-        if (started && collected == submitted && (elapsedMs >= 5000 || failed || (!pending && collected >= 3))) break;
+        { PetariBootSplash::SlowCall span{"frontend_status"}; petari_gx_frontend_status(&total, &pending, &failed, &elapsedMs); }
+        if (started && collected == submitted && (elapsedMs >= PetariBootSplash::prepCapMs || failed || (!pending && collected >= 3))) break;
         // Failure to create a visible, presented frame is bounded too. No
         // fabricated readiness and no compile work starts in that case.
         if (!started && SDL_GetTicksNS() - shownAt >= 5000000000ull) break;
         if (collected < submitted) {
-            SDL_DelayNS(1000000); // keep servicing the main loop while GPU works
+            delay(1000000); // keep servicing the main loop while GPU works
             continue;
         }
         const auto now = SDL_GetTicksNS();
-        if (now < deadline) { SDL_DelayNS(std::min<Uint64>(deadline - now, 2000000)); continue; }
-        if (aurora_begin_frame()) {
+        if (now < deadline) { delay(std::min<Uint64>(deadline - now, 2000000)); continue; }
+        if ([] { PetariBootSplash::SlowCall span{"splash_begin_frame"}; return aurora_begin_frame(); }()) {
             int width = 0, height = 0;
             SDL_GetWindowSize(window, &width, &height);
             const float progress = total ? float(total - pending) / total : 0;
-            HomeMenu::drawPreparingGraphics(progress, 0, 0, float(width), float(height));
+            { PetariBootSplash::SlowCall span{"splash_draw"}; HomeMenu::drawPreparingGraphics(progress, 0, 0, float(width), float(height)); }
             // Prep serials 0..N-1 correspond to CSV intervals 1..N-1:
             // row N-1 ends at present N-1, the first present is the anchor.
             PetariNative::LatencyProbe::frame.store(static_cast<unsigned>(submitted + 1));
-            aurora_end_frame();
+            { PetariBootSplash::SlowCall span{"splash_end_frame"}; aurora_end_frame(); }
             ++submitted;
             deadline = now + period;
-        } else SDL_DelayNS(1000000);
+        } else delay(1000000);
     }
     collect();
     petari_gx_frontend_finish(static_cast<unsigned>(collected), pumps, maxGapMs, mainThread);

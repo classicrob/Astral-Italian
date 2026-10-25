@@ -270,9 +270,12 @@ struct PetariPipelineWait {
       PetariNative::FrameTelemetry::add(PetariNative::FrameTelemetry::PipelineWait, waitedNs);
     }
     const auto ms = PetariPipeline::milliseconds(waited);
-    if (PetariPipeline::diagnostics() && ms >= 10.0) {
-      std::fprintf(stderr, "[gx pipeline] blocking resolve %.2f ms key=%016llx\n", ms,
-                   static_cast<unsigned long long>(key));
+    if (ms >= 50.0 || (PetariPipeline::diagnostics() && ms >= 10.0)) {
+      // Rare stalls must name their actual runtime key even at DIAG=0. This
+      // interval includes lock acquisition as well as any condition wait.
+      const auto ns = [](const auto& time) { return (long long)std::chrono::duration_cast<std::chrono::nanoseconds>(time.time_since_epoch()).count(); };
+      std::fprintf(stderr, "[gx pipeline] blocking resolve %.2f ms key=%016llx start_ns=%lld stop_ns=%lld source=actual-runtime-key\n", ms,
+                   static_cast<unsigned long long>(key), ns(start), ns(start + waited));
     }
   }
 };
@@ -336,12 +339,17 @@ static void petari_wait_scene_pipelines() {
   if (petariScenePending.empty()) return;
   std::vector<PipelineRef> keys;
   keys.swap(petariScenePending);
+  const auto petariSceneKeyReady = [](auto key) { return g_pipelines.contains(key); };
   const auto ready = [&] {
     return g_pipelineThreadEnd ||
-        std::all_of(keys.begin(), keys.end(), [](auto key) { return g_pipelines.contains(key); });
+        std::all_of(keys.begin(), keys.end(), petariSceneKeyReady);
   };
   if (ready()) return;
   petariPipelineWaiters.fetch_add(1, std::memory_order_relaxed);
+  std::vector<PipelineRef> unready;
+  for (const auto key : keys) if (!petariSceneKeyReady(key)) unready.push_back(key);
+  std::sort(unready.begin(), unready.end());
+  unready.erase(std::unique(unready.begin(), unready.end()), unready.end());
   const auto start = PetariPipeline::Clock::now();
   const bool done = g_pipelineReadyCv.wait_until(lock, start + PetariPipeline::completeSceneWaitBudget(), ready);
   const auto waited = PetariPipeline::Clock::now() - start;
@@ -353,6 +361,22 @@ static void petari_wait_scene_pipelines() {
     for (const auto key : keys) pending += !g_pipelines.contains(key);
     std::fprintf(stderr, "[gx pipeline] complete-scene wait hit its %.0f ms bound: %zu of %zu draws' pipelines pending (skipped)\n",
                  PetariPipeline::milliseconds(PetariPipeline::completeSceneWaitBudget()), pending, keys.size());
+  }
+  if (PetariPipeline::milliseconds(waited) >= 50 ||
+      (PetariPipeline::diagnostics() && PetariPipeline::milliseconds(waited) >= 10)) {
+    std::vector<std::pair<PipelineRef, PetariPipelineSample>> samples;
+    for (const auto key : unready) {
+      const auto at = petariPipelineSamples.find(key);
+      samples.emplace_back(key, at == petariPipelineSamples.end() ? PetariPipelineSample{} : at->second);
+    }
+    lock.unlock(); // never format/write diagnostics while holding the queue lock
+    const auto ns = [](const auto& t) { return (long long)std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch()).count(); };
+    std::fprintf(stderr, "[gx scene wait] start_ns=%lld stop_ns=%lld wait_ms=%.3f unready_keys=%zu completed=%u source=actual-ready-predicate-at-wait-entry\n",
+        ns(start), ns(start + waited), PetariPipeline::milliseconds(waited), samples.size(), done);
+    for (const auto& [key, sample] : samples)
+      std::fprintf(stderr, "[gx scene wait key] start_ns=%lld runtime=%016llx config=%016llx type=%u queued_ns=%lld dispatched_ns=%lld specialized_finished_ns=%lld\n",
+          ns(start), (unsigned long long)key, (unsigned long long)sample.configKey, (unsigned)sample.type,
+          ns(sample.queued), ns(sample.started), ns(sample.finished));
   }
 }
 

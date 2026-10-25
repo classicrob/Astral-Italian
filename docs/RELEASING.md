@@ -68,3 +68,9 @@ After notarization, drop the first-launch instructions from `READ ME FIRST.txt` 
 ## Tests
 
 `python3 -I tools/release/test_scan_bundle.py`
+
+## Measurement caveats for the 5.4.x freezes (maintainer notes, not tester-facing)
+
+- Server (M4 Max) measurement rows in the 5.4.1 freeze (m4-cold-stall 9/9) and the 5.4.2 M4 no-regression sets ran at `nice 5`,
+  not `nice 0` (zsh `BG_NICE` renices background jobs). Both arms of each comparison had the same nice, so the comparisons stand.
+  Later runs launch at `nice 0`, asserted by the harness. (Head-approved wording from the PORT lead; the frozen build is untouched.)

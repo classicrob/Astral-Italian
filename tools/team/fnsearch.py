@@ -173,7 +173,7 @@ class Edit:
 
 def known_types(fragment):
     result = {}
-    pat = r'(?<![\w:])(?P<type>(?:const\s+)?' + SCALAR + r'|(?:const\s+)?TVec3f)\s*(?:&\s*)?(?P<name>' + IDENT + r')\b'
+    pat = r'(?<![\w:])(?P<type>(?:const\s+)?' + SCALAR + r'|(?:const\s+)?TVec3f)(?:\s+&?\s*|\s*&\s*)(?P<name>' + IDENT + r')\b'
     for match in re.finditer(pat, fragment):
         result[match['name']] = match['type'].removeprefix('const ').strip()
     return result
@@ -238,7 +238,7 @@ def generate_edits(source, span, vector_ok=False, macro_names=None, reserved_nam
             declarations[m['name']] += 1
     for m in re.finditer(r',\s*[*&]*\s*(?P<name>'+IDENT+r')\s*(?=[;=,\[])', type_fragment):
         declarations[m['name']] += 1
-    all_types = {n: t for n, t in all_types.items() if declarations[n] <= 1}
+    all_types = {n: t for n, t in all_types.items() if declarations[n] == 1}
     edits, decls, hoistable = [], [], {}
     for m in DECL.finditer(body):
         token_start = m.start() + len(m['indent'])

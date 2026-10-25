@@ -72,6 +72,10 @@ class VariantSafety(unittest.TestCase):
         source = 'int subject(Fake::s32 a, Fake::s32 b) { return a + b; }\n'
         self.assertFalse(any('commutative_integer' in label for label, _ in self.candidates(source)))
 
+    def test_identifier_prefix_is_not_a_type_declaration(self):
+        source = 'float eger; void integer();\nfloat subject() { integer(); return eger + 1; }\n'
+        self.assertFalse(any('commutative_integer' in label for label, _ in self.candidates(source)))
+
     def test_string_literals_cannot_supply_fake_integer_types(self):
         source = 'float global;\nfloat subject() {\n const char* text = "int global";\n consume(text);\n return global + 1;\n}\n'
         self.assertFalse(any('commutative_integer' in label for label, _ in self.candidates(source)))

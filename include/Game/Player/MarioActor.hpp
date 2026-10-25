@@ -558,7 +558,6 @@ public:
     void updateTakingPosition();
     const HitSensor* getCarrySensor() const;
     void changeSpecialModeAnimation(const char*);
-    void updateSpecialModeAnimation();
     void initFireBall();
     void initFireMario();
     void initYoshi();
@@ -641,24 +640,20 @@ public:
     bool selectSpinCatchInRush(const char*) const;
     void decreaseLifeByOne();
     bool selectNotHomingSensor(const HitSensor*) const;
-    bool selectInvalidMovingCollision(const char*) const;
     bool selectQuickResetBeeWallGravity(const char*) const;
     bool selectJumpRushSensor(const char*) const;
     bool selectDamageFireColor(const char*) const;
     bool selectWaterInOutEffect(const char*) const;
     bool selectOnDamageRush(const char*) const;
-    bool selectTiltPress(const HitSensor*) const;
     bool selectHandyRush(const HitSensor*) const;
     bool selectRecoverFlyMeter(const HitSensor*) const;
     bool selectHideFlyMeter(const HitSensor*) const;
     bool selectTeresaThru(const HitSensor*) const;
     bool selectRebindTimer(const HitSensor*) const;
     bool selectHipDropRush(const HitSensor*) const;
-    bool selectPushOff(const HitSensor*) const;
     bool selectWaterInOutRush(const HitSensor*) const;
     bool selectLandEffect(const HitSensor*) const;
     bool selectNoShadow(const HitSensor*) const;
-    bool selectDamagePop(const HitSensor*) const;
     f32 getFaceLookHeight(const char*) const;
 
     // Defined in MarioActorMorph
@@ -666,7 +661,6 @@ public:
     void applyAutoBindPlayerMode(u32);
     void updatePlayerMode();
     void touchSensor(HitSensor*);
-    void initMorphStringTable();
     const char* changeMorphString(const char*) const;
 
     // Defined in MarioActorOffensiveMsg

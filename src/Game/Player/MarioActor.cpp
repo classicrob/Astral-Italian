@@ -1,10 +1,12 @@
 #define XJOINT_TRANSFORM_SCALE_NOINLINE
 #define COLOR8_GX_CTOR_INLINE
 #define JGEOMETRY_OUTLINE_MATRIX_SET_DIRECTION  // SMG2: TRotation3 setX/Y/ZDir(const TVec3f&) out of line in this TU
+#define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
+#include "Game/Util/Functor.hpp"
+#include "Game/Player/MarioActor.hpp"
+#include "Game/Util/TriangleFilter.hpp"
 #include "Game/NPC/EventDirector.hpp"
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
-#define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
-#include "Game/Player/MarioActor.hpp"
 #ifdef GALAXY_NATIVE
 // OdysseyMovement mod (docs/dev/ODYSSEY_MOVEMENT.md): the Spin button's moves.
 #include <cstdio>
@@ -14071,10 +14073,6 @@ bool MarioActor::selectNotHomingSensor(const HitSensor* pSensor) const {
 }
 
 
-bool MarioActor::selectInvalidMovingCollision(const char* pName) const {
-    return mActionTable1080->testEffect(pName, "地形移動無視");
-}
-
 
 bool MarioActor::selectQuickResetBeeWallGravity(const char* pName) const {
     return mActionTable1080->testEffect(pName, "ハチ出立");
@@ -14100,10 +14098,6 @@ bool MarioActor::selectOnDamageRush(const char* pName) const {
     return mActionTable1080->testEffect(pName, "ダメージ中RUSH");
 }
 
-
-bool MarioActor::selectTiltPress(const HitSensor* pSensor) const {
-    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "ナナメつぶし許可");
-}
 
 
 bool MarioActor::selectHandyRush(const HitSensor* pSensor) const {
@@ -14136,10 +14130,6 @@ bool MarioActor::selectHipDropRush(const HitSensor* pSensor) const {
 }
 
 
-bool MarioActor::selectPushOff(const HitSensor* pSensor) const {
-    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "食い込み除外");
-}
-
 
 bool MarioActor::selectWaterInOutRush(const HitSensor* pSensor) const {
     return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "水陸移動特殊処理");
@@ -14155,10 +14145,6 @@ bool MarioActor::selectNoShadow(const HitSensor* pSensor) const {
     return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "影を消す");
 }
 
-
-bool MarioActor::selectDamagePop(const HitSensor* pSensor) const {
-    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "ダメージ中跳ねる");
-}
 
 
 f32 MarioActor::getFaceLookHeight(const char* pName) const {
@@ -14182,25 +14168,6 @@ void MarioActor::updatePlayerMode() {
     setPlayerMode(0, true, true);
 }
 
-
-struct myStruct {
-    const char* _0[9];
-    u32 _24;
-};
-
-
-static myStruct cMorphStringTable[] = {{"DieBlackHole", 0, 0, 0, "DieBlackHoleBee", 0, 0, 0, "DieBlackHoleLuigi", 0}, {}};
-
-
-void MarioActor::initMorphStringTable() {
-    for (myStruct* item = cMorphStringTable;; item++) {
-        if (item->_0[0] == nullptr) {
-            break;
-        }
-
-        item->_24 = MR::getHashCode(item->_0[0]);
-    }
-}
 
 
 // ---- MarioActorOffensiveMsg.cpp ----
@@ -14305,41 +14272,6 @@ bool MarioActor::isRequestSpinJump2P() const {
 
 // ---- MarioActorParts.cpp ----
 
-
-void MarioActor::updateSpecialModeAnimation() {
-    if (!((mMario->mMovementStates.mLowWord >> 21) & 1U) && mMario->getCurrentStatus() == MarioStatus_None) {
-        if (((mMario->mMovementStates.mLowWord >> 30) & 1U) && mMario->_960 == 0x20 && mMarioAnim->isAnimationStop()) {
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(0, "泥低速歩行");
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(1, "泥高速歩行");
-            _B96 = 2;
-        }
-    } else {
-        _B96 = 0;
-    }
-    switch (mPlayerMode) {
-    case PlayerMode_Teresa:
-        updateTeresaAnimation();
-        break;
-    case PlayerMode_Bee:
-        if (mBeeWallWalk && !isJumping() && mMarioAnim->isAnimationStop()) {
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(0, "ハチ匍匐前進");
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(1, "ハチ匍匐前進");
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(2, "ハチ匍匐前進");
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(3, "ハチ匍匐ウエイト");
-        }
-        break;
-    default:
-        mMario->_418 = 0;
-        break;
-    }
-    if (_B96) {
-        _B96--;
-        if (!_B96 && ((mMario->mMovementStates.mLowWord >> 30) & 1U) && mMarioAnim->isAnimationStop()) {
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(0, "鈍行");
-            mMarioAnim->mXanimePlayer->changeTrackAnimation(1, "歩行");
-        }
-    }
-}
 
 
 bool MarioActor::finalizeFreezeModel() {
@@ -14532,10 +14464,6 @@ void MarioAnimator_FORCE_MATCH_SDATA2() {
 extern const char* jname_chest;
 
 
-// native: defined in MarioAnimator.cpp (DOL split owner); misplaced copy
-#ifndef GALAXY_NATIVE
-const char* jname_chest = "Spine1";
-#endif
 #pragma push
 #pragma opt_propagation off
 #pragma pop

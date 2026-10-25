@@ -1,5 +1,6 @@
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #include "Game/Player/Mario.hpp"
+#include "Game/Util/TriangleFilter.hpp"
 #include "Game/NPC/EventDirector.hpp"
 #include "Game/Player/MarioMoveInfoA84.hpp"
 #include "Game/Animation/XanimeCore.hpp"

@@ -213,3 +213,47 @@ After the metadata-corrected builds and their tests are approved, plan with
 `--reference002-dir`. This creates only the twelve conversion/matrix/reciprocal/
 candidate arms; the four completed legacy controls are not repeated. A failed
 conversion or fresh replay stops the driver before any dependent warm arm.
+
+
+## Synchronous replay connection boundary (r3 finding)
+
+The first production-setting conversion completed native state/pointer replay,
+but the actual-read audit found device CORE0 at read11/0 where the source said
+FREESTYLE1. All sample bytes/count/error/probe matched; exactly1 of17264 read
+payloads differed. The capture remains unqualified at
+`port53/m1g/solb/solb-543-tape-proof-r3/`; no subsequent arm ran.
+
+`KpadReplayHooks::connection` is an optional synchronous provider. Main-app tape
+replay installs it. After the pre-read marker has selected the input phase, the
+raw KPAD hook obtains that frame's connection and applies real WPAD state and
+callbacks under `Interrupts`, before sample consumption/copy. The actual-read
+observer continues querying live WPAD state; canonical metadata is never used
+as an observation. Neutral gaps/post-roll select the same neutral connection as
+the sample reader. The old null-provider headless API remains unchanged.
+
+The live GameRead path already invokes `tickChannel`'s connection/extension
+callbacks on the KPAD/game thread under `Interrupts`. Synchronous replay uses
+the same context. CORE connect produces the connect callback; later extension
+attach produces the extension callback, in the same order and with the same
+arguments as live GameRead. Re-registering a callback is observed once on the
+next read. The host command service can complete commands, but cannot apply a
+stale connection snapshot or move a recorded disconnect to a different read.
+
+Lock order: the pre-read observer/phase logic finishes, then the raw KPAD hook
+acquires the single native OS interrupt lock for WPAD changes/callbacks and
+releases it before samples return. There is no separate WPAD mutex. Raw replay
+returns before entering `KPADiRead` and its `readLocked` section. Nested SDK
+`OSDisableInterrupts` calls reuse the current disabled state. The command thread
+takes only the interrupt lock and never reads the tape/session. There is no
+feeder publish mutex, cross-thread wait, CV, join or sleep in a read. The only
+5ms sleep left is command service outside the game thread.
+
+`native_tape_connection` tests actual WPADProbe before sample return and actual
+post-read capture, a deliberately delayed/stale feeder, callback order and
+arguments against live GameRead, extension detach/remote detach, late callback
+registration, neutral state, nested interrupts and null-provider/live-off paths.
+The native tape parser also directly rejects same-channel attach+detach within
+one untimestamped frame before playback. `test_tape_anchors543.sh` builds/runs
+these five native targets on the server; no M1 compiler is used. The source test
+removes only the opt-in replay block and binds the remaining original input body
+to the preserved002 hash, keeping the live/default-null implementation exact.

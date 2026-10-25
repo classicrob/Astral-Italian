@@ -351,8 +351,12 @@ void completeCommand(s32 chan, Channel& ch) {
         if (command.callback != nullptr) {
             command.callback(chan, WPAD_ERR_NONE);
         }
-        ch.poweredOff = true;
-        disconnect(chan, ch);
+        // Synchronous replay gets connection transitions only from the tape
+        // read boundary. A host command wake may acknowledge, never move it.
+        if (!gReplayHooks.connection) {
+            ch.poweredOff = true;
+            disconnect(chan, ch);
+        }
         return;
     }
     if (command.callback != nullptr) {
@@ -1332,14 +1336,23 @@ void setKpadReplayHooks(const KpadReplayHooks& hooks) {
     gReplayActive.store(hooks.read != nullptr, std::memory_order_release);
 }
 
-void replayConnection(s32 chan, s32 error, u32 device) {
-    if (PetariNative::isGameAllocationThread()) misuse("replayConnection", "requires a host interrupt thread");
-    Interrupts guard;
+namespace {
+// Caller holds the one interrupt lock. GameRead already delivers live attach
+// callbacks here on the KPAD thread; raw replay uses the same serialization,
+// before KPADiRead/readLocked. No WPAD/KPAD mutex or cross-thread wait exists.
+void applyReplayConnection(s32 chan, s32 error, u32 device, bool synchronous) {
     Channel& ch = channel("replayConnection", chan);
     if (!gReplayHooks.read || device > 255) misuse("replayConnection", "invalid replay connection");
+    const bool wasConnected = ch.connected;
     const bool connected = error != WPAD_ERR_NO_CONTROLLER;
-    const bool changed = connected != ch.connected || (connected && ch.connectCallback != ch.replayConnectDelivered);
-    const bool extension = connected && (device != ch.devType || ch.extensionCallback != ch.replayExtensionDelivered);
+    const bool changed = connected != wasConnected || (connected && ch.connectCallback != ch.replayConnectDelivered);
+    // A live CORE connect reports connect only; the later extension attach
+    // reports extension. Preserve the old host-thread semantics when the new
+    // optional synchronous connection provider is absent.
+    const bool extension = connected && (synchronous
+        ? ((wasConnected && device != ch.devType) ||
+           (device != WPAD_DEV_CORE && (device != ch.devType || ch.extensionCallback != ch.replayExtensionDelivered)))
+        : (device != ch.devType || ch.extensionCallback != ch.replayExtensionDelivered));
     ch.connected = connected;
     ch.devType = static_cast<u8>(device);
     ch.extensionPresent = connected && device != WPAD_DEV_CORE;
@@ -1354,13 +1367,22 @@ void replayConnection(s32 chan, s32 error, u32 device) {
         ch.extensionCallback(chan, ch.devType);
     }
 }
+} // namespace
+
+void replayConnection(s32 chan, s32 error, u32 device) {
+    if (PetariNative::isGameAllocationThread()) misuse("replayConnection", "requires a host interrupt thread");
+    Interrupts guard;
+    // A delayed legacy feeder must never overwrite synchronous tape state.
+    if (gReplayHooks.connection) return;
+    applyReplayConnection(chan, error, device, false);
+}
 
 void serviceReplayCommands() {
     if (PetariNative::isGameAllocationThread()) misuse("serviceReplayCommands", "requires a host interrupt thread");
     Interrupts guard;
     if (!gInitialized || !gReplayHooks.read) return;
     for (s32 chan=0;chan<kChannels;++chan) {
-        replayConnection(chan,gReplayProbeErrors[chan],gChannels[chan].devType);
+        if (!gReplayHooks.connection) replayConnection(chan,gReplayProbeErrors[chan],gChannels[chan].devType);
         if (gChannels[chan].connected) completeCommand(chan,gChannels[chan]);
     }
 }
@@ -1386,6 +1408,16 @@ static BOOL tapeReadCore(s32 chan, KPADStatus* buffer, u32 capacity, s32* error,
     { Interrupts guard; hooks = gReplayHooks; }
     if (!hooks.read) return FALSE;
     if (!returned) misuse("petari_kpad_replay_read", "missing return-count destination");
+    // replay-only synchronous connection begin
+    if (hooks.connection) {
+        s32 probe;
+        u32 device;
+        if (!hooks.connection(chan, &probe, &device, hooks.user))
+            misuse("petari_kpad_replay_read", "recorded connection unavailable before read");
+        Interrupts guard;
+        applyReplayConnection(chan, probe, device, true);
+    }
+    // replay-only synchronous connection end
     *returned = hooks.read(chan, buffer, capacity, error, hooks.user);
     return TRUE;
 }
@@ -1497,6 +1529,7 @@ WPADConnectCallback WPADSetConnectCallback(s32 chan, WPADConnectCallback callbac
         OSReport("WPADSetConnectCallback: overwriting KPAD's callback; use KPADSetConnectCallback.\n");
     }
     const WPADConnectCallback previous = ch.connectCallback;
+    if (gReplayHooks.connection && callback != previous) ch.replayConnectDelivered = nullptr;
     ch.connectCallback = callback;
     return previous;
 }
@@ -1505,6 +1538,7 @@ WPADExtensionCallback WPADSetExtensionCallback(s32 chan, WPADExtensionCallback c
     Interrupts guard;
     Channel& ch = channel("WPADSetExtensionCallback", chan);
     const WPADExtensionCallback previous = ch.extensionCallback;
+    if (gReplayHooks.connection && callback != previous) ch.replayExtensionDelivered = nullptr;
     ch.extensionCallback = callback;
     return previous;
 }

@@ -74,6 +74,23 @@ unsigned hold(Session& s, int channel = 0, std::uint32_t capacity = 120) {
 }  // namespace
 
 int main() {
+    {   // Untimestamped same-channel attach+detach in one frame must remain
+        // fail-closed before playback: never flatten it to one connection.
+        std::stringstream data;
+        data << "SMG2KPD1";number(data,1,8);number(data,2,8);
+        for (unsigned ordinal=0;ordinal<2;++ordinal) {
+            number(data,0,8);number(data,ordinal,4);number(data,0,4);number(data,120,4);
+            number(data,ordinal==0?1:0,4);number(data,ordinal==0?0:static_cast<std::uint32_t>(-2),4);
+            number(data,ordinal==0?0:static_cast<std::uint32_t>(-1),4);number(data,ordinal==0?1:253,4);number(data,1,4);
+            H::Sample sample{};data.write(reinterpret_cast<const char*>(sample.data()),sample.size());
+        }
+        bool rejected=false;
+        try { H::Replay replay(data); }
+        catch (const H::ReplayError& error) {
+            rejected=std::strstr(error.what(),"within-frame connection transitions")!=nullptr;
+        }
+        check(rejected,"same-frame attach+detach rejected before callback/sample delivery");
+    }
     const fs::path base = fs::temp_directory_path() / ("tape_play_tests_" + std::to_string(::getpid()));
     fs::remove_all(base);
     writeTape(base / "tape");

@@ -155,6 +155,11 @@ if(BUILD_TESTING)
     target_link_libraries(petari_kpad_record_tests PRIVATE petari_input)
     add_test(NAME native_kpad_record COMMAND petari_kpad_record_tests)
 
+    add_executable(petari_tape_connection_tests ${PETARI_REPO_ROOT}/native/tests/tape_connection_tests.cpp)
+    target_link_libraries(petari_tape_connection_tests PRIVATE petari_input)
+    add_test(NAME native_tape_connection COMMAND petari_tape_connection_tests)
+    set_tests_properties(native_tape_connection PROPERTIES TIMEOUT 30)
+
     add_executable(petari_input_remap_tests ${PETARI_REPO_ROOT}/native/tests/input_remap_tests.cpp)
     target_link_libraries(petari_input_remap_tests PRIVATE petari_input)
     add_test(NAME native_input_remap COMMAND petari_input_remap_tests)

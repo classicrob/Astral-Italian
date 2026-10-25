@@ -91,6 +91,33 @@ bool Binder::compSensor(const HitInfo* pPlane1, const HitInfo* pPlane2) {
     return pPlane1->mParentTriangle.mSensor > pPlane2->mParentTriangle.mSensor;
 }
 
+static inline void addBinderOffset(const Binder* binder, TVec3f& position) {
+    if (binder->mOffsetVec) {
+        if (binder->_1EC._4 && binder->_C) {
+            position.x += binder->_C[0][0] * binder->mOffsetVec->x;
+            position.y += binder->_C[1][0] * binder->mOffsetVec->x;
+            position.z += binder->_C[2][0] * binder->mOffsetVec->x;
+            position.x += binder->_C[0][1] * binder->mOffsetVec->y;
+            position.y += binder->_C[1][1] * binder->mOffsetVec->y;
+            position.z += binder->_C[2][1] * binder->mOffsetVec->y;
+            position.x += binder->_C[0][2] * binder->mOffsetVec->z;
+            position.y += binder->_C[1][2] * binder->mOffsetVec->z;
+            position.z += binder->_C[2][2] * binder->mOffsetVec->z;
+        } else {
+            position.x += binder->mOffsetVec->x;
+            position.y += binder->mOffsetVec->y;
+            position.z += binder->mOffsetVec->z;
+        }
+    } else if (binder->_C) {
+        position.x += binder->_C[0][1] * binder->mOffsetY;
+        position.y += binder->_C[1][1] * binder->mOffsetY;
+        position.z += binder->_C[2][1] * binder->mOffsetY;
+    } else {
+        position.y += binder->mOffsetY;
+    }
+
+}
+
 // takes the desired movement and returns the collision-adjusted displacement
 // collision sphere starts from the host position + binder offset, transformed by the host matrix when applicable
 // checks our movement in small steps, pushes the sphere out of overlapping geometry, then slides the remaining movement along the contact surface
@@ -108,29 +135,7 @@ const TVec3f Binder::bind(const TVec3f& rVelocity) {
         Collision::addToGlobal(mExCollisionParts);
     }
 
-    if (mOffsetVec) {
-        if (_1EC._4 && _C) {
-            position.x += _C[0][0] * mOffsetVec->x;
-            position.y += _C[1][0] * mOffsetVec->x;
-            position.z += _C[2][0] * mOffsetVec->x;
-            position.x += _C[0][1] * mOffsetVec->y;
-            position.y += _C[1][1] * mOffsetVec->y;
-            position.z += _C[2][1] * mOffsetVec->y;
-            position.x += _C[0][2] * mOffsetVec->z;
-            position.y += _C[1][2] * mOffsetVec->z;
-            position.z += _C[2][2] * mOffsetVec->z;
-        } else {
-            position.x += mOffsetVec->x;
-            position.y += mOffsetVec->y;
-            position.z += mOffsetVec->z;
-        }
-    } else if (_C) {
-        position.x += _C[0][1] * mOffsetY;
-        position.y += _C[1][1] * mOffsetY;
-        position.z += _C[2][1] * mOffsetY;
-    } else {
-        position.y += mOffsetY;
-    }
+    addBinderOffset(this, position);
 
     TVec3f startPosition(position);
     HitInfo localPlanes[32];

@@ -387,12 +387,11 @@ namespace MR {
         return pSensor->isType(0x7F);
     }
 
-    // NONMATCHING: equivalent range-check lowering
     bool isSensorRide(const HitSensor* pSensor) {
-        bool result = false;
-        if (pSensor->mType > 0xB && pSensor->mType < 0x16)
-            result = true;
-        return result;
+        if (0xb < pSensor->mType && pSensor->mType < 0x16) {
+            return true;
+        }
+        return false;
     }
 
     /* ... */
@@ -551,55 +550,31 @@ namespace MR {
         return result;
     }
 
-    // NONMATCHING: equivalent range-check lowering
     bool isSensorEnemy(const HitSensor* pSensor) {
-        if (pSensor->mType <= 0x17 /* ATYPE_ENEMY_START */) {
-            return false;
-        }
-
-        if (pSensor->mType < 0x3e /* ATYPE_ENEMY_END */) {
+        if (0x17 < pSensor->mType && pSensor->mType < 0x3e) {
             return true;
         }
-
         return false;
     }
 
-    // NONMATCHING: equivalent range-check lowering
     bool isSensorMapObj(const HitSensor* pSensor) {
-        if (pSensor->mType <= 0x3f /* ATYPE_MAPOBJ_START */) {
-            return false;
-        }
-
-        if (pSensor->mType < 0x59 /* ATYPE_MAPOBJ_END */) {
+        if (0x3f < pSensor->mType && pSensor->mType < 0x59) {
             return true;
         }
-
         return false;
     }
 
-    // NONMATCHING: equivalent range-check lowering
     bool isSensorAutoRush(const HitSensor* pSensor) {
-        if (pSensor->mType <= 0x5a /* ATYPE_AUTO_RUSH_OBJ_START */) {
-            return false;
-        }
-
-        if (pSensor->mType < 0x69 /* ATYPE_AUTO_RUSH_OBJ_END */) {
+        if (0x5a < pSensor->mType && pSensor->mType < 0x69) {
             return true;
         }
-
         return false;
     }
 
-    // NONMATCHING: equivalent range-check lowering
     bool isSensorRush(const HitSensor* pSensor) {
-        if (pSensor->mType <= 0x6a /* ATYPE_RUSH_OBJ_START */) {
-            return false;
-        }
-
-        if (pSensor->mType < 0x6f /* ATYPE_RUSH_OBJ_END */) {
+        if (0x6a < pSensor->mType && pSensor->mType < 0x6f) {
             return true;
         }
-
         return false;
     }
 
@@ -1134,9 +1109,8 @@ namespace MR {
         return msg == 0x14 /* ACTMES_IS_STAR_PIECE_REFLECT */;
     }
 
-    // NONMATCHING: equivalent range-check lowering
     bool isMsgStarPieceGift(u32 msg) {
-        return msg >= 0x16 /* ACTMES_STAR_PIECE_GIFT */ && msg <= 0x25 /* ACTMES_STAR_PIECE_GIFT_MAX */;
+        return 0x16 <= msg && msg <= 0x25;
     }
 
     s32 getStarPieceGiftCount(u32 msg) {

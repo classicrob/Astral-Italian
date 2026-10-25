@@ -110,7 +110,7 @@ s32 SnowStep::getSensorType() {
 SnowStep::~SnowStep() {
 }
 
-SnowStepHolder::SnowStepHolder() : LiveActorGroup("\x90\xE1\x91\xAB\x8F\xEA\x8A\xC7\x97\x9D", 0x100) {
+SnowStepHolder::SnowStepHolder() : DeriveActorGroup< SnowStep >("\x90\xE1\x91\xAB\x8F\xEA\x8A\xC7\x97\x9D", 0x100) {
     for (s32 i = 0; i < 0x100; i++) {
         SnowStep* pActor = new SnowStep("\x90\xE1\x91\xAB\x8F\xEA");
         pActor->initWithoutIter();

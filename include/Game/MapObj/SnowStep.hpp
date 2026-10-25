@@ -28,7 +28,7 @@ public:
     /* 0xE0 */ f32 mBaseScale;
 };
 
-class SnowStepHolder : public LiveActorGroup {
+class SnowStepHolder : public DeriveActorGroup< SnowStep > {
 public:
     SnowStepHolder();
 

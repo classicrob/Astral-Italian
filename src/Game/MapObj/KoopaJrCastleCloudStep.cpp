@@ -184,8 +184,8 @@ void KoopaJrCastleCloudStep::updateBrkByCamera() {
 
     bool inc;
     bool dec;
-    dec = false;
     inc = false;
+    dec = false;
     f32 maxBrk = MR::getBrkFrameMax(mDemoObj);
     if (mBrkFrame < maxBrk) {
         if (dot < 800.0f) {

@@ -176,7 +176,44 @@ def verify_prior_reference(proof):
         for path,expected in proof['files'].items():need(sha(Path(path))==expected,'bound prior reference/admission evidence changed')
 
 
-def plan(out, controls_only=False, candidate=None, reference072=None, reference002=None, schema2_only=False, canonical=None, power_protocol=False,native_script=False,prior_proof=None):
+def candidate_control_proof(root,canonical,reciprocal,builds):
+    """Bind completed exact reference controls, preserving their audio verdicts."""
+    root=Path(root).resolve();old=json.loads((root/'PLAN.json').read_text())
+    manifest=json.loads((root/'TAPE-MANIFEST.json').read_text())
+    need(manifest['canonical']==canonical and manifest['reciprocal']==reciprocal,'control admissions differ from candidate tapes')
+    need(all(old['builds'][k]['expected']==v[2] for k,v in builds.items()),'candidate proof changed a build from its controls')
+    stopped=json.loads((root/'STOPPED.json').read_text())
+    need(stopped['arm']['name']=='reciprocal-ref002-to-ref072-warm','control stop differs from approved audio failure')
+    files={str(root/n):sha(root/n) for n in ('PLAN.json','TAPE-MANIFEST.json','RECIPROCAL-ADMISSION.json','STOPPED.json')}
+    controls=[]
+    for entry in stopped['completed']:
+        tape=Path(entry['arm']['out']);result=json.loads((tape/'RESULT.json').read_text())
+        failed={k for k,v in result['checks'].items() if v is not True}
+        need(not failed or failed=={'real_audio_reports'},'reference control failed outside audio')
+        proof=result['input_proof'];need(proof.get('passed') is True and proof.get('source_schema')==2 and
+            proof.get('captured_schema')==2 and proof.get('actual_payloads_independently_checked') is True,'control actual-read proof missing')
+        launch=json.loads((tape/'launch.json').read_text());native=json.loads((tape/'replay/divergence.json').read_text())
+        prep_path=Path(launch['prep']);need(sha(prep_path)==launch['prep_sha256'],'control PREP changed')
+        prep=json.loads(prep_path.read_text())
+        need(prep['source_commit']==old['builds'][entry['arm']['build']]['expected'] and
+            prep['perf_sha256']==launch['exe_sha256']==sha(Path(launch['command'][0])),'control executable/source differs')
+        files[str(prep_path)]=sha(prep_path)
+        need(all(launch['environment'].get(k)==v for k,v in PRODUCTION_PIPELINE_ENV.items()),'control production settings differ')
+        audit_native(native,load_meta(Path(launch['environment']['PETARI_TAPE_PLAY'])/'route.tape.json'))
+        for path,expected in proof['hashes'].items():need(sha(path)==expected,'control raw proof bytes changed')
+        files.update(proof['hashes'])
+        for n in ('RESULT.json','launch.json','process.json'):files[str(tape/n)]=sha(tape/n)
+        controls.append(dict(arm=entry['arm']['name'],result=str(tape/'RESULT.json'),passed=result['passed'],
+            failed_checks=sorted(failed),replay_exact=True,audio_reports=result.get('audio_reports'),
+            audio_underrun_frames=result.get('audio_underrun_frames')))
+    need([c['arm'] for c in controls]==['matrix-ref002-fresh','matrix-ref002-warm',
+        'reciprocal-ref002-to-ref072-fresh','reciprocal-ref002-to-ref072-warm'],'remaining reference controls incomplete')
+    need(controls[-1]['failed_checks']==['real_audio_reports'],'approved control audio failure missing')
+    return dict(root=str(root),files=files,controls=controls,
+        authority='PORT/head r11: exact references are tape-contract controls; their unchanged audio failures are item(e) evidence, not candidate queue dependencies')
+
+
+def plan(out, controls_only=False, candidate=None, reference072=None, reference002=None, schema2_only=False, canonical=None, power_protocol=False,native_script=False,prior_proof=None,candidate_only=False,reciprocal=None):
     need(ROOT.resolve() in out.parents and not out.exists(), 'fresh owned output required')
     need(canonical is None or (schema2_only and not controls_only), 'external canonical requires schema2-only plan')
     need(not power_protocol or (schema2_only and not controls_only),'power proof is schema2-only; legacy controls retained separately')
@@ -205,6 +242,12 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
          'remaining matrix requires the admitted native power canonical')
     inherited=prior_reference_proof(prior_proof,canonical,qualification,{k:v for k,v in builds.items() if not k.startswith('legacy')}) if prior_proof else None
     verify_prior_reference(inherited)
+    need(not candidate_only or (inherited and reciprocal and schema2_only and power_protocol),'candidate-only requires bound prior controls and two power tapes')
+    need(reciprocal is None or candidate_only,'external reciprocal is only for the approved candidate-only matrix')
+    reciprocal_qualification=qualified_tape(reciprocal,source_schema=2,require_power=True,neutral_policy=neutral_policy) if reciprocal else None
+    control_proof=candidate_control_proof(reciprocal.parents[1],qualification,reciprocal_qualification,
+        {k:v for k,v in builds.items() if not k.startswith('legacy')}) if candidate_only else None
+    verify_prior_reference(control_proof)
     out.mkdir(parents=True);harness=out/'harness';harness.mkdir()
     sources=[Path(__file__),HERE/'capture_schema2_tape.py',HERE/'tape_phase_audit.py',HERE/'replay_tape.py',HERE/'native_tape_record543.py',HERE/'native-neutral-controls-v1.json',HERE/'worldmap-native543.script',Path(common.__file__),Path(common.__file__).with_name('promotion54m.py')]
     for source in sources: shutil.copy2(source,harness/source.name)
@@ -220,26 +263,31 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
         builds={k:v for k,v in builds.items() if not k.startswith('legacy')}
     if not controls_only:
         canonical072=canonical if canonical else add('record-native-ref072','ref072','native-recording',harness/'worldmap-native543.script') if native_script else add('convert-ref072','ref072','conversion',SOURCE)
-        canonical002=out/'runs/matrix-ref002-fresh' if canonical or power_protocol else add('convert-ref002','ref002','conversion',SOURCE)
-        for build in (('ref002',) if inherited else ('ref072','ref002')):
+        canonical002=reciprocal if candidate_only else out/'runs/matrix-ref002-fresh' if canonical or power_protocol else add('convert-ref002','ref002','conversion',SOURCE)
+        for build in (() if candidate_only else ('ref002',) if inherited else ('ref072','ref002')):
             fresh=add('matrix-'+build+'-fresh',build,'schema2',canonical072)
             add('matrix-'+build+'-warm',build,'schema2',canonical072,fresh)
         reciprocal_seconds=150 if canonical else 120
-        fresh=add('reciprocal-ref002-to-ref072-fresh','ref072','schema2',canonical002,observe=reciprocal_seconds)
-        add('reciprocal-ref002-to-ref072-warm','ref072','schema2',canonical002,fresh,observe=reciprocal_seconds)
+        if not candidate_only:
+            fresh=add('reciprocal-ref002-to-ref072-fresh','ref072','schema2',canonical002,observe=reciprocal_seconds)
+            add('reciprocal-ref002-to-ref072-warm','ref072','schema2',canonical002,fresh,observe=reciprocal_seconds)
         for label,tape in (('072',canonical072),('002',canonical002)):
             duration=reciprocal_seconds if label=='002' else 120
             fresh=add('candidate-from'+label+'-fresh','candidate','schema2',tape,observe=duration)
             add('candidate-from'+label+'-warm','candidate','schema2',tape,fresh,observe=duration)
+    if candidate_only:
+        builds={'candidate':builds['candidate']}
+        for a in arms:a['real_audio']=True
     write(out/'PLAN.json',dict(status='planned-not-launched',builds={k:dict(source=str(v[0]),kind=v[1],expected=v[2]) for k,v in builds.items()},
         arms=arms,nice=0,bundle=OWN,heavy_then_native=[str(HEAVY),str(NATIVE)],no_outer_lock=True,
         no_retries=True,legacy_controls_only=controls_only,schema2_only=schema2_only,power_protocol=power_protocol,native_script=native_script,neutral_tail_policy=neutral_policy,
         production_pipeline_env=PRODUCTION_PIPELINE_ENV,qualified_canonical=qualification,
-        prior_reference_proof=inherited,
-        canonical_selection=('reuse exact admitted native canonical and bound passed ref072 pair; new ref002 fresh/warm, reciprocal pair and four candidate arms; original audio FAIL retained' if inherited else 'one literal native ref072 recording, no legacy input source; reciprocal only from strict successful ref002 schema2 fresh replay' if native_script else 'one pre-qualified external canonical; reciprocal only from successful ref002 schema2 fresh replay' if canonical else 'one new strict ref072 conversion; reciprocal only from successful ref002 schema2 fresh replay' if power_protocol else 'one strict conversion per reference, fail closed; no failure substituted'),
+        prior_reference_proof=inherited,reference_controls=control_proof,candidate_only=candidate_only,
+        canonical_selection=('four candidate arms only; exact r9 native and r10 reciprocal admissions; all arms real audio>=50/zero underruns; exact reference controls retain original audio verdicts as item(e) evidence' if candidate_only else 'reuse exact admitted native canonical and bound passed ref072 pair; new ref002 fresh/warm, reciprocal pair and four candidate arms; original audio FAIL retained' if inherited else 'one literal native ref072 recording, no legacy input source; reciprocal only from strict successful ref002 schema2 fresh replay' if native_script else 'one pre-qualified external canonical; reciprocal only from successful ref002 schema2 fresh replay' if canonical else 'one new strict ref072 conversion; reciprocal only from successful ref002 schema2 fresh replay' if power_protocol else 'one strict conversion per reference, fail closed; no failure substituted'),
         schema2_observation=('>=180s original native tail; >=150s recorded tail required; exact power boundary with >=90s/50audio/0underrun unchanged' if neutral_policy=='native-neutral-controls-v1' else '>=180s neutral conversion; >=150s recorded tail required; exact power boundary with >=90s/50audio/0underrun unchanged' if power_protocol else '120s for90s canonical;150s for120s reciprocal; complete prefix plus positive neutral tail; >=90s/50audio/0underrun unchanged'),
         source_hashes={p.name:sha(p) for p in harness.iterdir()},acceptance_claimed=False))
-    if qualification:write(out/'TAPE-MANIFEST.json',dict(canonical=qualification,reciprocal='not admitted until successful strict ref002 schema2 replay',acceptance_claimed=False))
+    if qualification:write(out/'TAPE-MANIFEST.json',dict(canonical=qualification,reciprocal=reciprocal_qualification or 'not admitted until successful strict ref002 schema2 replay',acceptance_claimed=False))
+    if reciprocal_qualification:write(out/'RECIPROCAL-ADMISSION.json',reciprocal_qualification)
 
 
 def legacy(arm, app, prep, control):
@@ -279,6 +327,7 @@ def arm(out, name):
     need(os.getpriority(os.PRIO_PROCESS,0)==0,'arm nice0 required')
     spec=json.loads((out/'PLAN.json').read_text());a=next(p for p in spec['arms'] if p['name']==name)
     verify_prior_reference(spec.get('prior_reference_proof'))
+    verify_prior_reference(spec.get('reference_controls'))
     control=out/'arms'/name;control.mkdir(parents=True)
     for filename,expected in spec['source_hashes'].items():need(sha(HERE/filename)==expected,'frozen harness/policy differs before arm')
     with NATIVE.open('a') as lock:
@@ -301,8 +350,9 @@ def arm(out, name):
             if a['tape']!=canonical['binding']['tape']:
                 reciprocal=qualified_tape(Path(a['tape']),source_schema=2,require_power=spec.get('power_protocol',False),neutral_policy=spec.get('neutral_tail_policy','single-bootstrap-v1'))
                 source_launch=json.loads((Path(a['tape'])/'launch.json').read_text())
+                reciprocal_prep=Path(source_launch['prep']) if spec.get('candidate_only') else out/'apps/ref002/PREP.json'
                 need(source_launch.get('warm_from') is None and source_launch.get('exe_sha256')==json.loads(
-                     (out/'apps/ref002/PREP.json').read_text())['perf_sha256'], 'reciprocal must come from exact ref002 fresh replay')
+                     reciprocal_prep.read_text())['perf_sha256'], 'reciprocal must come from exact ref002 fresh replay')
                 admission=json.loads((out/'RECIPROCAL-ADMISSION.json').read_text())
                 need(reciprocal==admission, 'admitted reciprocal changed before launch')
                 write(control/'reciprocal-check.json',dict(verified_before_launch=True,qualification=reciprocal))
@@ -327,7 +377,8 @@ def arm(out, name):
             if spec.get('power_protocol'):
                 command+=['--require-power-event','--minimum-recorded-neutral-seconds','150']
                 if a['kind']=='conversion':command+=['--post-roll-seconds','180']
-            if a['warm_from']:command+=['--warm-from',a['warm_from'],'--real-audio']
+            if a['warm_from']:command+=['--warm-from',a['warm_from']]
+            if a['warm_from'] or a.get('real_audio'):command+=['--real-audio']
             if canonical:
                 verify_tape_binding(canonical['binding'])
                 if a['tape']!=canonical['binding']['tape']:
@@ -357,6 +408,7 @@ def run(out, release):
     write(out/'RUNNING.json',dict(pid=os.getpid(),ppid=os.getppid(),sid=os.getsid(0),nice=0,release=str(release),release_sha256=sha(release),started=time.time()))
     spec=json.loads((out/'PLAN.json').read_text());results=[]
     verify_prior_reference(spec.get('prior_reference_proof'))
+    verify_prior_reference(spec.get('reference_controls'))
     need({p.name:sha(p) for p in HERE.iterdir() if p.is_file()}==spec['source_hashes'],'frozen harness differs from plan')
     # Preparation also serializes; no measurement/build overlap, no outer cohort lock.
     for key,entry in spec['builds'].items():
@@ -389,11 +441,13 @@ def main():
     p.add_argument('--power-protocol',action='store_true',help='new M1-built power-event proof; >=180s conversion, exact shutdown, >=150s tail')
     p.add_argument('--canonical-source',type=Path,help='qualified existing schema2 capture; skips legacy conversions')
     p.add_argument('--prior-proof-root',type=Path,help='PORT-approved audio-only stop; bind passed ref072 pair and run the remaining matrix')
+    p.add_argument('--candidate-only',action='store_true',help='head-approved r11: four real-audio candidate arms, exact reference controls separately bound')
+    p.add_argument('--reciprocal-source',type=Path,help='strict admitted reciprocal capture from completed reference controls')
     p.add_argument('--candidate-dir',type=Path);p.add_argument('--reference072-dir',type=Path);p.add_argument('--reference002-dir',type=Path)
     p.add_argument('--notify-thread',help='authorised milestone recipient; one message at final completion/stop only')
     a=p.parse_args();out=a.out.resolve()
     try:
-        if a.plan_only:plan(out,a.legacy_controls_only,a.candidate_dir,a.reference072_dir,a.reference002_dir,a.schema2_only,a.canonical_source.resolve() if a.canonical_source else None,a.power_protocol,a.native_script_canonical,a.prior_proof_root);return 0
+        if a.plan_only:plan(out,a.legacy_controls_only,a.candidate_dir,a.reference072_dir,a.reference002_dir,a.schema2_only,a.canonical_source.resolve() if a.canonical_source else None,a.power_protocol,a.native_script_canonical,a.prior_proof_root,a.candidate_only,a.reciprocal_source.resolve() if a.reciprocal_source else None);return 0
         if a.arm:return arm(out,a.arm)
         need(a.release_receipt is not None,'release receipt required')
         if a.detach:

@@ -6,11 +6,51 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-from run_tape_anchors543 import tape_binding, verify_tape_binding, qualified_tape, plan,verify_prior_reference,prior_reference_proof
+from run_tape_anchors543 import tape_binding, verify_tape_binding, qualified_tape, plan,verify_prior_reference,candidate_control_proof
 from test_tape_power_audit import fixture as power_fixture
 from capture_schema2_tape import sha
 
 class ProofBindings(unittest.TestCase):
+    def test_reference_audio_ruling_never_waives_another_failed_check(self):
+        with tempfile.TemporaryDirectory(prefix='candidate-control-') as temporary:
+            root=Path(temporary);arm=root/'runs/control';arm.mkdir(parents=True)
+            (root/'PLAN.json').write_text(json.dumps(dict(builds=dict(candidate=dict(expected='pinned')))))
+            (root/'TAPE-MANIFEST.json').write_text(json.dumps(dict(canonical={},reciprocal={})))
+            (root/'RECIPROCAL-ADMISSION.json').write_text('{}')
+            (root/'STOPPED.json').write_text(json.dumps(dict(arm=dict(name='reciprocal-ref002-to-ref072-warm'),completed=[dict(arm=dict(out=str(arm)))])))
+            (arm/'RESULT.json').write_text(json.dumps(dict(checks=dict(real_audio_reports=False,no_divergence=False))))
+            with self.assertRaisesRegex(RuntimeError,'outside audio'):
+                candidate_control_proof(root,{},{},{'candidate':(root,'server','pinned')})
+            with self.assertRaisesRegex(RuntimeError,'changed a build'):
+                candidate_control_proof(root,{},{},{'candidate':(root,'server','different')})
+            with self.assertRaisesRegex(RuntimeError,'admissions differ'):
+                candidate_control_proof(root,dict(changed=True),{}, {})
+
+    def test_candidate_only_binds_two_admissions_and_requires_real_audio_every_arm(self):
+        root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
+        with tempfile.TemporaryDirectory(prefix='candidate-plan-',dir=root) as temporary:
+            base=Path(temporary);canonical=base/'canonical';canonical.mkdir()
+            (canonical/'route.tape.json').write_text(json.dumps(dict(power_fixture(),neutral_tail_policy='native-neutral-controls-v1')))
+            reciprocal=base/'r10/runs/matrix-ref002-fresh';reciprocal.mkdir(parents=True)
+            builds=[]
+            for name in ('candidate','ref072','ref002'):
+                d=base/name;d.mkdir();builds.append(d)
+                (d/'BUILD.json').write_text(json.dumps(dict(source=name,build_host='SERVER',native_tests_passed=True,candidate_suite_passed=True)))
+            q=dict(native_recording=True,binding=dict(tape=str(canonical),files={}),result_sha256='native-admitted')
+            reciprocal_q=dict(binding=dict(tape=str(reciprocal),files={}),source_schema=2,result_sha256='reciprocal-admitted')
+            inherited=dict(files={},root=str(base/'r9'));controls=dict(files={},controls=['exact references, audio separately retained'])
+            with patch('run_tape_anchors543.qualified_tape',side_effect=[q,reciprocal_q]),patch('run_tape_anchors543.prior_reference_proof',return_value=inherited),patch('run_tape_anchors543.candidate_control_proof',return_value=controls):
+                plan(base/'out',candidate=builds[0],reference072=builds[1],reference002=builds[2],schema2_only=True,canonical=canonical,power_protocol=True,prior_proof=base/'r9',candidate_only=True,reciprocal=reciprocal)
+            spec=json.loads((base/'out/PLAN.json').read_text());manifest=json.loads((base/'out/TAPE-MANIFEST.json').read_text())
+            self.assertEqual(list(spec['builds']),['candidate'])
+            self.assertEqual([a['name'] for a in spec['arms']],['candidate-from072-fresh','candidate-from072-warm','candidate-from002-fresh','candidate-from002-warm'])
+            self.assertTrue(all(a['real_audio'] is True and a['observe_seconds']==90 for a in spec['arms']))
+            self.assertEqual([spec['arms'][i]['tape'] for i in (0,2)],[str(canonical),str(reciprocal)])
+            for i in (1,3):self.assertEqual(spec['arms'][i]['warm_from'],spec['arms'][i-1]['out'])
+            self.assertEqual(manifest['canonical'],q);self.assertEqual(manifest['reciprocal'],reciprocal_q)
+            self.assertEqual(json.loads((base/'out/RECIPROCAL-ADMISSION.json').read_text()),reciprocal_q)
+            self.assertEqual(spec['reference_controls'],controls)
+
     def test_remaining_plan_reuses_bound_native_canonical_without_recording(self):
         root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
         with tempfile.TemporaryDirectory(prefix='remaining-plan-',dir=root) as temporary:

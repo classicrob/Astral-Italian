@@ -96,8 +96,9 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
     //   (GameSystemSceneController::initializeScene). A seam can fall between
     //   createScene and Scene::init, when the scene exists but its nerve does
     //   not. SceneInitializeState_End is set on this thread only after that
-    //   initialisation ended, and is reset by requestChangeScene before the
-    //   scene is destroyed, so scene objects are queried only in End.
+    //   initialisation ended. Ordinary requestChangeScene clears End before
+    //   deletion; prepareReset instead raises mIsResetProcessing on the game
+    //   thread. Both must gate observations before touching the scene slot.
     // - The scene/stage names are values in the controller: always readable.
     // - The save-data sequence is created with its nerve in
     //   GameSequenceDirector's constructor (GameSystem::init, before the first
@@ -107,7 +108,7 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
     observation.stage = pController->mCurrSceneControlInfo.mStage;
     observation.scenario = pController->mCurrSceneControlInfo.mScenarioNo;
     observation.selectedScenario = pController->mCurrSceneControlInfo.mSelectedScenarioNo;
-    observation.sceneReady = pController->mScene != nullptr && pController->isSceneInitializeState(SceneInitializeState_End);
+    observation.sceneReady = canObserveScene(pController,SceneInitializeState_End);
     observation.strap = observation.sceneReady && GameSystemFunction::isDisplayStrapRemineder();
     if (pGameSystem->mSequenceDirector != nullptr) {
         observation.saveSequence = GameSequenceFunction::isActiveSaveDataHandleSequence();
@@ -222,7 +223,7 @@ void stallContext(char* stage, std::size_t size, int* scenario, int* zone) {
     if (controller == nullptr) return;
     std::snprintf(stage, size, "%s", controller->mCurrSceneControlInfo.mStage);
     *scenario = controller->mCurrSceneControlInfo.mScenarioNo;
-    if (controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End) &&
+    if (Smoke::canObserveScene(controller,SceneInitializeState_End) &&
         std::strcmp(controller->mCurrSceneControlInfo.mScene, "Game") == 0 && MR::isExistSceneObj(SceneObj_MarioHolder)) {
         const auto* holder = MR::getSceneObj<MarioHolder>(SceneObj_MarioHolder);
         const auto* actor = holder ? holder->getMarioActor() : nullptr;
@@ -250,7 +251,7 @@ void recordRouteFrame(bool background) {
     if (controller) {
         row.stage = controller->mCurrSceneControlInfo.mStage;
         row.scenario = controller->mCurrSceneControlInfo.mScenarioNo;
-        if (controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End) &&
+        if (Smoke::canObserveScene(controller,SceneInitializeState_End) &&
             std::strcmp(controller->mCurrSceneControlInfo.mScene, "Game") == 0 &&
             MR::isExistSceneObj(SceneObj_MarioHolder) && MR::isExistSceneObj(SceneObj_CameraContext)) {
             const auto* holder = MR::getSceneObj<MarioHolder>(SceneObj_MarioHolder);
@@ -284,7 +285,7 @@ void recordRouteFrame(bool background) {
         state.dead = row.dead;
         state.x = row.x; state.y = row.y; state.z = row.z;
         state.playReady = Host::playerInPlay();  // as of the previous seam's update, like the recorder and the headless driver
-        state.initEnd = controller && controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End);
+        state.initEnd = Smoke::canObserveScene(controller,SceneInitializeState_End);
         if (system && system->mObjHolder && system->mObjHolder->mWPadHolder) {
             const auto* pad = system->mObjHolder->mWPadHolder;
             const auto* sample = pad->mReadDataInfoArray ? pad->mReadDataInfoArray[0].getKPadStatus(0) : nullptr;
@@ -338,7 +339,7 @@ void recordRouteFrame(bool background) {
             seam.scene = controller->mCurrSceneControlInfo.mScene;
             seam.stage = controller->mCurrSceneControlInfo.mStage;
             seam.scenario = controller->mCurrSceneControlInfo.mScenarioNo;
-            seam.initEnd = controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End);
+            seam.initEnd = Smoke::canObserveScene(controller,SceneInitializeState_End);
         }
         if (system && system->mObjHolder) {
             seam.seedValid = true;

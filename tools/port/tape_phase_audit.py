@@ -281,6 +281,8 @@ def qualify(source, capture, report_path, map_path):
     _, actual = parse_kpd((capture/'route.kpd').read_bytes())
     rows = list(csv.DictReader((capture/'route.csv').open()))
     source_rows = list(csv.DictReader((source/'route.csv').open()))
+    need(meta.get('mods') == original_meta.get('mods') and meta.get('replay_env') == original_meta.get('replay_env'),
+         'capture changed recorded mods or scene hooks')
     need(meta.get('complete') is True and meta.get('lossy_samples') == meta.get('unencodable_samples') == 0, 'capture incomplete/lossy')
     actual_actions = parse_actions((capture/'route.actions').read_text())
     summary = validate(meta, rows, actual, actual_actions)

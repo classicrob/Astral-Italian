@@ -412,13 +412,14 @@ void EffectKeeper::updateFloorCode(const Triangle* pTriangle) {
     _28 = MR::getFloorCodeIndex(pTriangle->getAttributes());
 }
 
-// NONMATCHING: equivalent pointer-load scheduling (FP order/grouping checked: no FP instructions).
+inline bool hasAttributeEffectInfo(const MultiEmitter* emitter) { return emitter->mAutoEffectInfo != nullptr; }
+
 bool EffectKeeper::isTypeAttributeEffect(const char* pParam1) const {
     char buf[256];
     snprintf(buf, sizeof(buf), "%s%s", pParam1, ::cAttributeEffectTag);
 
     for (MultiEmitter* const* it = _C.begin(); it != _C.end(); it++) {
-        if ((*it)->mAutoEffectInfo == nullptr) {
+        if (!hasAttributeEffectInfo(*it)) {
             continue;
         }
 

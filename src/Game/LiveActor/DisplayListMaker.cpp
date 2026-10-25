@@ -33,13 +33,14 @@ void DisplayListMaker::update() {
 #endif
 }
 
-// NONMATCHING: regalloc and material-pointer reload scheduling (FP order/grouping checked: no FP instructions).
+inline J3DMaterial* getDisplayListMaterial(J3DModel* const& model, u16 index) { return model->getModelData()->getMaterialNodePointer(index); }
+
 void DisplayListMaker::diff() {
     for (u16 i = 0; i < mModel->getModelData()->getMaterialNum(); i++) {
         if (mCurFlag[i]) {
             OSLockMutex(&MR::MutexHolder<0>::sMutex);
             j3dSys.setMatPacket(mModel->getMatPacket(i));
-            mModel->getModelData()->getMaterialNodePointer(i)->diff(getDiffFlag(i));
+            getDisplayListMaterial(mModel, i)->diff(getDiffFlag(i));
             OSUnlockMutex(&MR::MutexHolder<0>::sMutex);
         }
     }

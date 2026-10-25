@@ -669,18 +669,22 @@ void PlantMember::appear() {
 }
 
 
-#define PLANT_APPEAR_SCALE(dst, t)                                                                                                         \
+#define PLANT_APPEAR_SCALE(dst, t, threshold)                                                                                                         \
     if ((t) <= 0.75f) {                                                                                                                       \
         dst = JMAHermiteInterpolation<f32>(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
-    } else if ((t) <= 0.92f) {                                                                                                                \
-        dst = JMAHermiteInterpolation<f32>(t, 0.75f, 1.0f, -0.9f, 0.92f, 1.0f, 0.55f);                                                             \
+    } else if ((t) <= threshold) {                                                                                                                \
+        dst = JMAHermiteInterpolation<f32>(t, 0.75f, 1.0f, -0.9f, threshold, 1.0f, 0.55f);                                                             \
     } else {                                                                                                                                  \
-        dst = JMAHermiteInterpolation<f32>(t, 0.92f, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
+        dst = JMAHermiteInterpolation<f32>(t, threshold, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
     }
 
 // NONMATCHING: target hoists the 0.92 Hermite threshold into f31 (5 saved FPRs); ours reloads it (3 saved FPRs)
 void PlantMember::control() {
     if (isAppearing()) {
+        f32 threshold;
+        f32 sx;
+        f32 x;
+        f32 y;
         f32 rate = 1.0f;
         f32 maxFrame = 20.0f;
 
@@ -699,13 +703,14 @@ void PlantMember::control() {
         if (rate >= 1.0f) {
             rScale.set<f32>(1.0f, 1.0f, 1.0f);
         } else {
-            f32 x = MR::clamp(MR::normalize(rate, 0.0f, 0.7f), 0.01f, 1.0f);
-            f32 y = MR::clamp(MR::normalize(rate, 0.1f, 0.9f), 0.01f, 1.0f);
+            x = MR::clamp(MR::normalize(rate, 0.0f, 0.7f), 0.01f, 1.0f);
+            y = MR::clamp(MR::normalize(rate, 0.1f, 0.9f), 0.01f, 1.0f);
             f32 z = MR::clamp(MR::normalize(rate, 0.3f, 1.0f), 0.01f, 1.0f);
-            f32 sx, sy, sz;
-            PLANT_APPEAR_SCALE(sx, x);
-            PLANT_APPEAR_SCALE(sy, y);
-            PLANT_APPEAR_SCALE(sz, z);
+            threshold = 0.92f;
+            f32 sy, sz;
+            PLANT_APPEAR_SCALE(sx, x, threshold);
+            PLANT_APPEAR_SCALE(sy, y, threshold);
+            PLANT_APPEAR_SCALE(sz, z, threshold);
             rScale.x = sx;
             rScale.y = sy;
             rScale.z = sz;

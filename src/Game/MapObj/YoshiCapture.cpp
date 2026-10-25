@@ -107,19 +107,16 @@ void YoshiCapture::facePlayer() {
     }
     inverse.invert(inverse);
     TVec3f front;
-    front.set<f32>(pose.mMtx[0][2], pose.mMtx[1][2], pose.mMtx[2][2]);
+    pose.getZDir(front);
     TVec3f up;
-    up.set<f32>(pose.mMtx[0][1], pose.mMtx[1][1], pose.mMtx[2][1]);
+    pose.getYDir(up);
     TVec3f position;
     pose.getTrans(position);
     TVec3f toPlayer(*MR::getPlayerPos());
-    toPlayer -= position;
+    toPlayer.sub(position);
     f32 angle = MR::diffAngleSignedHorizontal(front, toPlayer, up);
     TPos3f rotation;
-    rotation.mMtx[0][3] = 0.0f;
-    rotation.mMtx[1][3] = 0.0f;
-    rotation.mMtx[2][3] = 0.0f;
-    rotation.setRotate(TVec3f(0.0f, 1.0f, 0.0f), angle);
+    rotation.makeRotate(TVec3f(0.0f, 1.0f, 0.0f), angle);
     pose.concat(rotation);
     if (mGround) mGroundRelativePose.concat(inverse, pose);
     else setPose(pose);

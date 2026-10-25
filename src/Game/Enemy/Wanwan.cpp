@@ -366,6 +366,10 @@ bool Wanwan::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
 }
 
 // NONMATCHING: floating-point operand/load scheduling.
+inline void setWanwanGravity(TVec3f* gravity, f32 x, f32 y, f32 z) {
+    gravity->set<f32>(x, y, z);
+}
+
 void Wanwan::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     mInitPos.set(mPosition);
@@ -381,7 +385,7 @@ void Wanwan::initMapToolInfo(const JMapInfoIter& rIter) {
         mZeroGravity = true;
         Mtx mtx;
         MR::makeMtxTR(mtx, this);
-        mGravity.set<f32>(mtx[0][1], mtx[1][1], mtx[2][1]);
+        setWanwanGravity(&mGravity, mtx[0][1], mtx[1][1], mtx[2][1]);
         mGravity.negate();
     }
 }

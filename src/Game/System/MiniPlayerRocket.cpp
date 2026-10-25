@@ -298,6 +298,7 @@ bool MiniPlayerRocket::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* p
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 bool MiniPlayerRocket::updateStarPieceScatter(s32 count) {
+    LiveActor* pPiece;
     s32 num = count;
     if (count < 0) {
         num = 10;
@@ -308,10 +309,9 @@ bool MiniPlayerRocket::updateStarPieceScatter(s32 count) {
             break;
         }
 
-        LiveActor* pPiece = mStarPieces->getActor(i);
+        pPiece = mStarPieces->getActor(i);
         if (MR::isDead(pPiece)) {
-            TVec3f up(0.0f, 1.0f, 0.0f);
-            static_cast<StarPieceScatter*>(pPiece)->scatter(mPosition, up, 5.0f, 100.0f);
+            static_cast<StarPieceScatter*>(pPiece)->scatter(mPosition, TVec3f(0.0f, 1.0f, 0.0f), 5.0f, 100.0f);
             num--;
         }
 

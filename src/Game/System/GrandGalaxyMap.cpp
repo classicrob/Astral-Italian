@@ -56,13 +56,11 @@ s32 GrandGalaxyMap::findWorldNode(WorldMapResultWorld* pWorld, s32 worldId) {
     return -1;
 }
 
-// NONMATCHING: the summed screen position is stored with stfs; the target builds it in a temporary and copies it with lwz/stw
 void MR::setActorPositionFromLayoutPane(LiveActor* pActor, const LayoutActor* pLayout, const char* pPaneName, const TVec2f& rOffset, f32 depth) {
     TVec2f trans;
     MR::copyPaneTrans(&trans, pLayout, pPaneName);
-    TVec2f screen = trans + rOffset;
     TVec3f pos;
-    MR::calcWorldPositionFromScreen(&pos, screen, depth);
+    MR::calcWorldPositionFromScreen(&pos, trans + rOffset, depth);
     pActor->mPosition.set(pos);
 }
 

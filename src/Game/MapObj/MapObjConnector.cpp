@@ -30,7 +30,6 @@ bool MapObjConnector::attachToBack() {
     return attach(frontVec);
 }
 
-// NONMATCHING: vector temporary stack slots and register allocation differ.
 bool MapObjConnector::attach(const TVec3f& rVec) {
     Triangle triangle = Triangle();
 
@@ -40,10 +39,11 @@ bool MapObjConnector::attach(const TVec3f& rVec) {
         return false;
     }
 
-    MtxPtr groundMtx = triangle.mParts->mBaseMatrix;
-    MapObjConnectorAttachment* attachment = mAttachment;
+    MapObjConnectorAttachment* attachment;
+    CollisionParts* parts = triangle.mParts;
+    attachment = mAttachment;
     attachment->mAttached = true;
-    attachment->mBaseMtx = groundMtx;
+    attachment->mBaseMtx = parts->mBaseMatrix;
 
     TPos3f baseMtx;
     baseMtx.set(mHost->getBaseMtx());

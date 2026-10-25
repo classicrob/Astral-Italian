@@ -17,7 +17,8 @@ ActionSoundKeeper::ActionSoundKeeper(s32 pId, const char* pName, TVec3f* pPos)
         mSoundCount = mInfo->mCount;
         mSounds = new ActionSound*[mSoundCount];
         for (s32 i = 0; i < mSoundCount; i++) {
-            mSounds[i] = new ActionSound(mInfo->getInfo(i), mSoundObject);
+            const ActionSoundInfo* info = mInfo->getInfo(i);
+            mSounds[i] = new ActionSound(info, mSoundObject);
         }
         MR::requestActionSoundWaves(mInfo, false);
     }

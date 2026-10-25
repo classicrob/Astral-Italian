@@ -1,5 +1,6 @@
 #include "Game/NameObj/NameObjCategoryList.hpp"
 #include "Game/NameObj/NameObj.hpp"
+#include <algorithm>
 
 NameObjCategoryList::NameObjCategoryList(u32 count, const CategoryListInitialTable* pTable, NameObjMethod pMethod, bool allocateByCheck,
                                          const char*) {
@@ -70,16 +71,8 @@ void NameObjCategoryList::add(NameObj* pObj, int idx) {
 }
 void NameObjCategoryList::remove(NameObj* pObj, int idx) {
     NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[idx];
-    NameObj** pBegin = inf->mList.mArr;
-    s32 size = inf->_8;
-    NameObj** pEnd = pBegin + size;
-    NameObj** pFound = pBegin;
-
-    while (pFound != pEnd && *pFound != pObj) {
-        pFound++;
-    }
-
-    pBegin[pFound - pBegin] = pBegin[size - 1];
+    NameObj** pFound = std::find(inf->mList.begin(), &inf->mList[inf->_8], pObj);
+    inf->mList[pFound - inf->mList.begin()] = inf->mList[inf->_8 - 1];
     inf->_8--;
 }
 

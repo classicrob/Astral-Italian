@@ -182,6 +182,8 @@ void TitleSequenceProduct::exeDecide() {
 }
 
 // NONMATCHING: compiler retains the optional PAL window pointer instead of reloading it.
+inline bool hasPal60Window(const TitleSequenceProduct* sequence) { return sequence->mEncouragePal60Window != nullptr; }
+
 void TitleSequenceProduct::exeDead() {
     if (MR::isFirstStep(this)) {
         MR::closeWipeWhiteFade(-1);
@@ -193,7 +195,7 @@ void TitleSequenceProduct::exeDead() {
         mDemoTitleAnim->kill();
         mLogoLayout->kill();
         mPressStartLayout->kill();
-        if (mEncouragePal60Window != nullptr) {
+        if (hasPal60Window(this)) {
             mEncouragePal60Window->kill();
         }
         setNerve(GET_NERVE(TitleSequenceProduct, TitleSequenceProductNrvEnd));

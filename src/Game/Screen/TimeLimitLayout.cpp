@@ -94,9 +94,14 @@ void TimeLimitLayout::resetFrame() {
 void TimeLimitLayout::pause() { mIsSuspend = true; }
 void TimeLimitLayout::resume() { mIsSuspend = false; }
 
-// NONMATCHING: the compiler reuses the remaining-frame load instead of reloading it for the decrement.
+namespace {
+inline bool hasRemainingTime(const u32& frames) {
+    return frames != 0;
+}
+}
+
 void TimeLimitLayout::updateTextBox() {
-    if (mRemainingFrames == 0) return;
+    if (!hasRemainingTime(mRemainingFrames)) return;
     MR::updateMinuteAndSecondTextBox(this, "Number", --mRemainingFrames + 59);
 }
 

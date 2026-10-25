@@ -149,7 +149,7 @@ public:
 
     bool isRestrictedSound(JAISoundID);
     void stopAllSounds(u32 fadeTime);
-    void stopAllSe();
+    void stopAllSe(bool = false);
     void stopSeCategories(u32 fadeTime);
     bool isHomeButtonMenuEntering() const NO_INLINE;
     bool isHomeButtonMenuLeaving() const;

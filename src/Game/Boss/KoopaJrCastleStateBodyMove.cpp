@@ -141,9 +141,8 @@ void KoopaJrCastleStateBodyMove::exeTurnToPlayer() {
     }
     MR::startActionSound(mHost, sMoveRotate, -1, -1, -1);
     mTurnRate += 0.025f;
-    f32 rate = MR::clamp(mTurnRate, 0.0f, 0.5f);
-    mTurnRate = rate;
-    if (MR::turnDirectionToPlayerDegreeHorizon(pCastle, &pCastle->mFrontVec, rate)) {
+    mTurnRate = MR::clamp(mTurnRate, 0.0f, 0.5f);
+    if (MR::turnDirectionToPlayerDegreeHorizon(pCastle, &pCastle->mFrontVec, mTurnRate)) {
         KoopaJrCastleFunction::fireBarOn();
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvTurnB::sInstance);
         return;

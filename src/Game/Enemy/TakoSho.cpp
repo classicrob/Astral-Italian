@@ -210,11 +210,15 @@ void TakoSho::exeWait() {
 }
 
 // NONMATCHING: TVec3f stack slots and finite integer-derived multiply operand order differ.
+inline f32 calcTakoShotFrames(f32 frames, f32 factor) {
+    return frames * factor;
+}
+
 void TakoSho::exeMove() {
     if (MR::isFirstStep(this)) {
         f32 sign = mIsRight ? 1.0f : -1.0f;
         mTargetPos = mStartPos - (mSideVec * mSpeed) * sign;
-        mShotStep = static_cast<s32>(static_cast<s32>((mTargetPos - mPosition).length() / mMoveRange) * 1.3f);
+        mShotStep = static_cast<s32>(calcTakoShotFrames(static_cast<s32>((mTargetPos - mPosition).length() / mMoveRange), 1.3f));
     }
     f32 gravitySpeed = MR::calcGravitySpeedAbs(this);
     if (MR::isBindedGround(this)) {

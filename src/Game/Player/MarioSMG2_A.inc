@@ -1386,6 +1386,13 @@ void Mario::fn_8039A5B0() {
     }
 }
 
+namespace {
+inline f32 calcSlipUpSpeedRatio(const MarioActor& actor, f32 remaining) {
+    f32 ratio = actor.getConst().getTable()->mSlipUpSpdRatio;
+    return ratio + remaining * (1.0f - ratio);
+}
+}
+
 // NONMATCHING: temporary allocation and load scheduling; verified virtual addVelocity calls.
 void Mario::fn_8039A600() {
     u32 t = this->mMovementStates.mLowWord;
@@ -1399,8 +1406,7 @@ void Mario::fn_8039A600() {
             v1 = 1.0f;
         }
         f32 f2 = 1.0f - v1;
-        f32 f1 = getActor()->getConst().getTable()->mSlipUpSpdRatio;
-        f29 = f1 + f2 * (1.0f - f1);
+        f29 = calcSlipUpSpeedRatio(*getActor(), f2);
         this->addVelocity(this->mJumpVec, f29);
         f30 = this->fn_8039AA40();
         f31 = this->calcJumpGravity();

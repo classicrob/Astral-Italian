@@ -6887,8 +6887,8 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
     MR::getSensorRadius(pReceiver);
     if (MR::isNearZero(direction)) getFrontVec(&direction);
     direction.setLength(30.0f);
-    result = tryVectorAttackMsg(msg, direction);
-    if (!result) {
+    bool vectorResult = tryVectorAttackMsg(msg, direction);
+    if (!vectorResult) {
         MR::sendArbitraryMsg(0x28, pSender, getSensor("Body"));
     } else {
         u8 autoBind;
@@ -6896,7 +6896,7 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
         if (fn_803CAF80()) mMessenger568->addRequest(pSender, 7);
         if (msg == 0x60) printHitMark(pSender);
     }
-    return result;
+    return vectorResult;
 }
 
 // NONMATCHING: equivalent message switch lowering and string address scheduling.

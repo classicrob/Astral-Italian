@@ -1,5 +1,6 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrRobot.hpp"
+#include <algorithm>
 #include "Game/MapObj/StarPieceGroup.hpp"
 #include "Game/MapObj/StarPiece.hpp"
 #include "Game/Enemy/HomingKiller.hpp"
@@ -11,14 +12,6 @@
 #else
 #include <functional.hpp>
 #endif
-
-template < typename It, typename Pmf >
-static Pmf forEachCall(It it, It end, Pmf pmf) {
-    for (; it != end; ++it) {
-        ((*it)->*pmf)();
-    }
-    return pmf;
-}
 
 template < typename It, typename Fn >
 static inline void forEachCallInline(It it, It end, Fn fn) {
@@ -329,29 +322,23 @@ void KoopaJrRobotSeq::initLaunchers() {
     initNerve(&NrvKoopaJrRobotSeq::KoopaJrRobotSeqNrvB::sInstance, 0);
 }
 
-// NONMATCHING: ptmf by-value arg copy: target keeps a second 12-byte PTMF copy on the stack (frame +16)
 void KoopaJrRobotSeq::appearLaunchers() {
     mLaunchersDisabled = false;
     mMagnumLauncher->appear();
-    void (KoopaJrRobotKillerLauncher::*pmf)() = &KoopaJrRobotKillerLauncher::appear;
-    forEachCall(mLaunchers, mLaunchers + 8, pmf);
+    std::for_each(mLaunchers, mLaunchers + 8, std::mem_fun(&KoopaJrRobotKillerLauncher::appear));
 }
 
-// NONMATCHING: same ptmf arg-copy stack layout as appearLaunchers
 void KoopaJrRobotSeq::killLaunchers() {
     mLaunchersDisabled = true;
     mMagnumLauncher->kill();
     mPool->killUnused();
-    void (KoopaJrRobotKillerLauncher::*pmf)() = &KoopaJrRobotKillerLauncher::kill;
-    forEachCall(mLaunchers, mLaunchers + 8, pmf);
+    std::for_each(mLaunchers, mLaunchers + 8, std::mem_fun(&KoopaJrRobotKillerLauncher::kill));
 }
 
-// NONMATCHING: same ptmf arg-copy stack layout as appearLaunchers
 void KoopaJrRobotSeq::updateLauncherTransforms() {
     if (!mLaunchersDisabled) {
         mMagnumLauncher->updateTransform();
-        void (KoopaJrRobotKillerLauncher::*pmf)() = &KoopaJrRobotKillerLauncher::updateTransform;
-        forEachCall(mLaunchers, mLaunchers + 8, pmf);
+        std::for_each(mLaunchers, mLaunchers + 8, std::mem_fun(&KoopaJrRobotKillerLauncher::updateTransform));
     }
 }
 

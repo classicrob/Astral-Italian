@@ -58,7 +58,6 @@ void SystemWipeHolder::startGameScreenCapture() {
     MR::startToCaptureScreen("SystemWipe");
 }
 
-// NONMATCHING: same s32 height conversion and shared 2^52 constant as target; residual is scheduling of the two size conversions against the picture.draw argument setup.
 void SystemWipeHolder::drawGameScreenCapture() const {
     if (!mIsCapturingScreen) {
         return;
@@ -72,7 +71,7 @@ void SystemWipeHolder::drawGameScreenCapture() const {
     J2DPicture picture(&texture);
     f32 width = MR::getScreenWidth();
     // inlined MR::getscreenHeight
-    f32 height = (s32)JUTVideo::getManager()->getEfbHeight();
+    s32 height = (s32)JUTVideo::getManager()->getEfbHeight();
 
     picture.draw(0.0f, 0.0f, width, height, false, false, false);
 }

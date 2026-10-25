@@ -577,16 +577,18 @@ void GameSequenceMarioFaceShipEvent::exeSave() {
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
 void GameSequenceMarioFaceShipEvent::exeStartDemo() {
     if (MR::isFirstStep(this)) {
-        bool isStartFlow = false;
         MarioFaceShipEventList list;
         makeStartEventList(list);
+        bool isStartFlow;
         const char* pName = list.mEntries[0].mDemoName;
+        isStartFlow = false;
         if (MR::isEqualString(pName, "ファイルセレクトからの開始") || MR::isEqualString(pName, "ワールドマップからの開始") ||
             MR::isEqualString(pName, "チェンジルームからスタート")) {
             isStartFlow = true;
         }
         if (isStartFlow) {
-            if (MR::isEqualString(pName, "チェンジルームからスタート") == false) {
+            bool isOutsideChangeRoom = !MR::isEqualString(pName, "チェンジルームからスタート");
+            if (isOutsideChangeRoom) {
                 MR::tryStartDemoMarioPuppetableSystemFlags(mDemoStarter, pName);
             } else {
                 MR::tryStartDemoSystemFlags111(mDemoStarter, pName);

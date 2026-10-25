@@ -1,3 +1,9 @@
+#include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#else
+#include <functional.hpp>
+#endif
 #include "Game/Boss/Sandy.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -10,15 +16,6 @@
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/Util/FixedPosition.hpp"
 #include <cstdio>
-
-// Call a pointer-to-member on every element of a range (std::for_each like).
-template < typename It, typename F >
-F ForEachPtmf(It first, It last, F f) {
-    for (; first != last; ++first) {
-        ((*first)->*f)();
-    }
-    return f;
-}
 
 // Single-use inline copy of JGeometry::mulInternal (CW size mode only inlines functions with one call site; the target
 // had each of these in its own translation unit).
@@ -38,6 +35,12 @@ static inline void mulScaleHand(register const f32* a, register const f32* b, re
     }
 #endif
     d[2] = a[2] * b[2];
+}
+
+static inline TVec3f calcSandyHandScale(const TVec3f& actorScale, const TVec3f& animationScale) {
+    TVec3f scale;
+    mulScaleHand(&animationScale.x, &actorScale.x, &scale.x);
+    return scale;
 }
 
 // Single-use copy of TRotation3::getEulerXYZ followed by the radian->degree scale (see mulScaleSandy).
@@ -207,13 +210,12 @@ SandyBall* SandyBallHolder::getFreeBallType4(LiveActor* pOwner) {
 }
 
 // 800FD800
-// NONMATCHING: PTMF for_each calls (two stack copies of the member-function pointer in the target).
 void SandyBallHolder::killAll() {
-    ForEachPtmf(mBalls0.begin(), mBalls0.end(), &SandyBall::tryKill);
-    ForEachPtmf(mBalls1.begin(), mBalls1.end(), &SandyBall::tryKill);
-    ForEachPtmf(mBalls2.begin(), mBalls2.end(), &SandyBall::tryKill);
-    ForEachPtmf(mBalls3.begin(), mBalls3.end(), &SandyBall::tryKill);
-    ForEachPtmf(mBalls4.begin(), mBalls4.end(), &SandyBall::tryKill);
+    std::for_each(mBalls0.begin(), mBalls0.end(), std::mem_fun(&SandyBall::tryKill));
+    std::for_each(mBalls1.begin(), mBalls1.end(), std::mem_fun(&SandyBall::tryKill));
+    std::for_each(mBalls2.begin(), mBalls2.end(), std::mem_fun(&SandyBall::tryKill));
+    std::for_each(mBalls3.begin(), mBalls3.end(), std::mem_fun(&SandyBall::tryKill));
+    std::for_each(mBalls4.begin(), mBalls4.end(), std::mem_fun(&SandyBall::tryKill));
 }
 
 // 800FDA70
@@ -317,7 +319,8 @@ bool Sandy::isTotalCount(s32 count) const {
     s32 rightHand = getRightHand()->mThrowCount;
     s32 leftHand = getLeftHand()->mThrowCount;
     s32 leftMini = getLeftMini()->mBallCount;
-    return count == leftMini + leftHand + (rightHand + getRightMini()->mBallCount);
+    s32 rightMini = getRightMini()->mBallCount;
+    return count == leftMini + leftHand + (rightMini + rightHand);
 }
 
 // 800FE030
@@ -532,10 +535,8 @@ void SandyHand::setBallType3() {
 }
 
 // 800FE730
-// NONMATCHING: register numbers of the two ps_mul operands.
 void SandyHand::calcAndSetBaseMtx() {
-    TVec3f scale;
-    mulScaleHand(&mScaleController->mScale.x, &mScale.x, &scale.x);
+    TVec3f scale = calcSandyHandScale(mScale, mScaleController->mScale);
     MR::setBaseScale(this, scale);
     LiveActor::calcAndSetBaseMtx();
 }

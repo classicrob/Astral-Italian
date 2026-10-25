@@ -134,6 +134,10 @@ void MonteThrow::exePrepare() {
     JMAVECLerp(&mPosition, &position, &mPosition, 0.2f);
 }
 // NONMATCHING: vector subtraction register allocation and scheduling differ.
+inline void subtractMonteThrowPosition(TVec3f& velocity, const TVec3f& position) {
+    velocity -= position;
+}
+
 void MonteThrow::exeThrow() {
     if (MR::isFirstStep(this)) {
         MR::startActorCameraNoTarget(mHost, mCameraInfo, -1);
@@ -144,7 +148,7 @@ void MonteThrow::exeThrow() {
     TVec3f position;
     mPath->calcPosition(&position, MR::calcNerveRate(this, mThrowTime));
     TVec3f velocity(position);
-    velocity -= mPosition;
+    subtractMonteThrowPosition(velocity, mPosition);
     MR::setVelocity(this, velocity);
     if (MR::isGreaterStep(this, 60)) {
         bool end = false;

@@ -53,6 +53,14 @@ void GrandGalaxyMapStateMove::kill() {
 }
 
 // NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
+inline s32 getGrandGalaxyNextPath(s32 next, GrandGalaxyMap* const& map, const s32& step) {
+    return map->getPath(next, step);
+}
+
+inline s32 getGrandGalaxyPathLength(s32 next, GrandGalaxyMap* const& map) {
+    return map->getPathDistance(next);
+}
+
 void GrandGalaxyMapStateMove::exeMove() {
     WorldMapCameraHolder* pCamera = mHost->getCamera();
     MiniPlayerRocket* pRocket = pCamera->mRocket;
@@ -64,9 +72,9 @@ void GrandGalaxyMapStateMove::exeMove() {
         MR::startActionSound(pRocket, "MoveInGMap", -1, -1, -1);
         mFrom = mTo;
         GrandGalaxyMap::getNodePosition(&mCameraStartPos, mHost, mTo);
-        mTo = mHost->getPath(pCamera->mNext, mStep);
+        mTo = getGrandGalaxyNextPath(pCamera->mNext, mHost, mStep);
         mStep++;
-        if (mStep >= mHost->getPathDistance(pCamera->mNext)) {
+        if (mStep >= getGrandGalaxyPathLength(pCamera->mNext, mHost)) {
             isLast = true;
         }
         mHost->startAreaCamera(mTo, -1);
@@ -78,7 +86,7 @@ void GrandGalaxyMapStateMove::exeMove() {
         }
     }
 
-    if (mStep >= mHost->getPathDistance(pCamera->mNext)) {
+    if (mStep >= getGrandGalaxyPathLength(pCamera->mNext, mHost)) {
         isLast = true;
     }
 

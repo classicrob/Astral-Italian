@@ -9,6 +9,14 @@
 #include "Game/Util.hpp"
 #include "Game/Util/YoshiUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
+namespace {
+    inline f32 calcCylinderOffset(f32 height) {
+        return -0.5f * height;
+    }
+
+
+}
+
 namespace NrvLightFruitClipArea {
 NEW_NERVE(LightFruitClipAreaNrvAppear, LightFruitClipArea, Appear);
 NEW_NERVE(LightFruitClipAreaNrvTimer, LightFruitClipArea, Timer);
@@ -48,7 +56,7 @@ void LightFruitClipArea::control() {
     if (!MR::calcGravityVectorOrZero(this, mPosition, &gravity, 0, 0)) gravity.set(*MR::getPlayerGravity());
     TPos3f mtx;
     MR::makeMtxUpFrontPos(&mtx, gravity, mFront, mPosition);
-    MR::addTransMtxLocalY(mtx.toMtxPtr(), -0.5f * mCylinder->mHeight);
+    MR::addTransMtxLocalY(mtx.toMtxPtr(), calcCylinderOffset(mCylinder->mHeight));
     MR::addTransMtxLocalZ(mtx.toMtxPtr(), 0.4f * (mCylinder->mRadius - 30.0f));
     mBaseMtx.set(mtx.toMtxPtr());
     TVec3f scale;

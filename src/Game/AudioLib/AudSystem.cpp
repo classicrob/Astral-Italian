@@ -654,7 +654,7 @@ void AudSystem::stopAllSounds(u32 fadeTime) {
     JAUSoundMgr::stop(fadeTime);
 }
 
-void AudSystem::stopAllSe() {
+void AudSystem::stopAllSe(bool) {
     mSeMgr.stop();
 }
 

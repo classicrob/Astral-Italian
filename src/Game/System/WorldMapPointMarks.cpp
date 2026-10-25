@@ -40,18 +40,23 @@ WorldMapResultMapData::WorldMapResultMapData(WorldMapResultWorld* pWorld) {
     load();
 }
 
+namespace {
+    inline void extendLayerRange(const WorldMapResultNode* node, s32* min, s32* max) {
+        s32 layer = node->mLayer;
+        if (layer < *min) {
+            *min = layer;
+        }
+        if (node->mLayer > *max) {
+            *max = node->mLayer;
+        }
+    }
+}
+
 void WorldMapResultMapData::getLayerRange(s32* pMin, s32* pMax) const {
     *pMin = 0;
     *pMax = 0;
     for (s32 i = 0; i < mNum; i++) {
-        WorldMapResultNode* pNode = &mNodes[i];
-        s32 layer = pNode->mLayer;
-        if (layer < *pMin) {
-            *pMin = layer;
-        }
-        if (pNode->mLayer > *pMax) {
-            *pMax = pNode->mLayer;
-        }
+        extendLayerRange(&mNodes[i], pMin, pMax);
     }
 }
 

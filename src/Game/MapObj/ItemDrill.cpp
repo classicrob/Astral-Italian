@@ -1128,13 +1128,10 @@ bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3
     JMathInlineVEC::PSVECAdd(&rPos, pOut, &newPos);
     TVec3f negN;
     negN.negate(n0);
-    if (MR::checkHitSemilinePlane(&hit, newPos, negN, *pInfo0->mParentTriangle.getPos(0), n0)) {
-        if (!(PSVECDistance(&newPos, &hit) < 100.0f)) {
-            return true;
-        }
+    if (!MR::checkHitSemilinePlane(&hit, newPos, negN, *pInfo0->mParentTriangle.getPos(0), n0) || PSVECDistance(&newPos, &hit) < 100.0f) {
+        return false;
     }
-
-    return false;
+    return true;
 }
 
 ItemDrillMovementLimitPos::~ItemDrillMovementLimitPos() {

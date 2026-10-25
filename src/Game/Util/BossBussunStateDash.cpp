@@ -2,6 +2,26 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
+namespace {
+    inline const TVec3f& getDashPosition(const BossBussun* host) {
+        return host->mPosition;
+    }
+    inline const TVec3f& getDashTarget(const BossBussun* host) {
+        return host->mTargetPos;
+    }
+    inline TVec3f getDashHomeOffset(const BossBussun* host) {
+        TVec3f diff(host->mHomePos);
+        diff.sub(host->mPosition);
+        return diff;
+    }
+    inline const TVec3f& getDashUp(const BossBussun* host) {
+        return host->mUpVec;
+    }
+    inline const TVec3f& getDashHome(const BossBussun* host) {
+        return host->mHomePos;
+    }
+}
+
 namespace NrvBossBussunStateDash {
     NEW_NERVE(BossBussunStateDashNrvStart, BossBussunStateDash, Start);
     NEW_NERVE(BossBussunStateDashNrvDash, BossBussunStateDash, Dash);
@@ -47,15 +67,14 @@ void BossBussunStateDash::exeStart() {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void BossBussunStateDash::exeDash() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "Dash");
     }
     if (mHost->isPlayerAttackable()) {
         mHost->storePlayerPos();
-        if (PSVECDistance(&mHost->mTargetPos, &mHost->mPosition) > 1800.0f) {
-            MR::turnDirectionToTargetDegreeHorizon(mHost, &mHost->mFrontDir, mHost->mTargetPos, 0.5f);
+        if (PSVECDistance(&getDashTarget(mHost), &getDashPosition(mHost)) > 1800.0f) {
+            MR::turnDirectionToTargetDegreeHorizon(mHost, &mHost->mFrontDir, getDashTarget(mHost), 0.5f);
         }
     }
     if (mCoolTime <= 0) {
@@ -63,12 +82,11 @@ void BossBussunStateDash::exeDash() {
     }
     mHost->updateVelocityOnGround();
     BossBussun* pHost = mHost;
-    const TVec3f& rUp = pHost->mUpVec;
-    const TVec3f& rHome = pHost->mHomePos;
+    const TVec3f& rUp = getDashUp(pHost);
+    const TVec3f& rHome = getDashHome(pHost);
     f32 limit = pHost->getDashDistanceLimit();
     if (MR::calcDistanceHorizontal(pHost, rHome, rUp) > limit) {
-        TVec3f diff(mHost->mHomePos);
-        diff.sub(mHost->mPosition);
+        TVec3f diff = getDashHomeOffset(mHost);
         if (mHost->mFrontDir.dot(diff) < 0.0f) {
             setNerve(GET_NERVE(BossBussunStateDash, BossBussunStateDashNrvDashEnd));
         }

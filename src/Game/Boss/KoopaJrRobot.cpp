@@ -172,14 +172,15 @@ bool KoopaJrRobot::isStateNerve() const {
     return isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvDead::sInstance);
 }
 
-// NONMATCHING: bool-negation lowering and iterator/end pointer register allocation differ.
 void KoopaJrRobot::control() {
     mSeq->movementKillerPool();
-    if (!isStateNerve()) {
+    bool updateSequence = !isStateNerve();
+    if (updateSequence) {
         mSeq->updateNerve();
         mSeq->movementLaunchers();
     }
-    std::for_each(mParts, mParts + 4, std::mem_fun(&NerveExecutor::updateNerve));
+    KoopaJrRobotPart** partsEnd = mParts + 4;
+    std::for_each(mParts, partsEnd, std::mem_fun(&NerveExecutor::updateNerve));
 }
 
 void KoopaJrRobot::movement() {

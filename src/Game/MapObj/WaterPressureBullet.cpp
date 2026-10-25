@@ -268,7 +268,9 @@ bool WaterPressureBullet::inviteMario(HitSensor* pSensor) {
         }
         if (MR::isNearAngleDegree(mVelocity, mGravity, 60.0f)) {
             if (mCanSlideOnGround) {
-                mVelocity.killElement(mVelocity, mGravity);
+                const TVec3f& velocity = mVelocity;
+                const TVec3f& gravity = mGravity;
+                mVelocity.killElement(velocity, gravity);
             } else {
                 kill();
                 MR::sendMsgEnemyAttackFlipVeryWeak(pSensor, getSensor("Body"));

@@ -597,6 +597,17 @@ void StemFruitChild::exeHipDropCrash() {
 }
 
 // NONMATCHING: Rodrigues arithmetic scheduling and matrix/vector temporary slots differ.
+inline void scaleStemFruitRotation(TVec3f& rotation) {
+    rotation = rotation * 57.29578f;
+}
+
+inline TPos3f calcStemFruitRotation(const TVec3f& axis, f32 angle) {
+    TPos3f rotate;
+    rotate.zeroTrans();
+    rotate.setRotate(axis, angle);
+    return rotate;
+}
+
 void StemFruitChild::calcAndSetBaseMtx() {
     if (mFixedPos && (isNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvWait)) ||
                      isNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvNearPlayer)) ||
@@ -607,14 +618,13 @@ void StemFruitChild::calcAndSetBaseMtx() {
         mtx.set(mFixedPos->mMtx);
         f32 angle = (PI * mCycleTimer) / 180.0f;
         TVec3f axis(0.0f, 1.0f, 0.0f);
-        TPos3f rotate;
-        rotate.zeroTrans();
-        rotate.setRotate(axis, angle);
+        TPos3f rotate = calcStemFruitRotation(axis, angle);
         mtx.concat(rotate);
         MR::setBaseTRMtx(this, mtx);
         mFixedPos->mMtx.getTrans(mPosition);
-        mFixedPos->mMtx.getEuler(mRotation);
-        mRotation = mRotation * 57.29578f;
+        TVec3f& rotation = mRotation;
+        mFixedPos->mMtx.getEuler(rotation);
+        scaleStemFruitRotation(rotation);
     } else {
         LiveActor::calcAndSetBaseMtx();
     }

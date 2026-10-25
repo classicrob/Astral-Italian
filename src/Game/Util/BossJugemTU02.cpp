@@ -51,17 +51,19 @@ void BossJugemStateMove::exeMove() {
         MR::setRailCoord(pHost, MR::getEaseOutValue(static_cast<f32>(getNerveStep()) - delay, mRailStart, target, moveFrames));
         MR::moveTransToCurrentRailPos(mHost);
     }
+    s32 animFrames;
     bool reachedGoal = false;
     if (MR::isRailReachedGoal(mHost)) {
         reachedGoal = true;
     }
-    s32 animFrames = moveFrames;
+    animFrames = moveFrames;
     if (target < 0.0f) {
         animFrames = moveFrames * (s32)MR::normalizeAbs(0.0f, target, mRailStart) + 1;
     } else if (target > MR::getRailTotalLength(mHost)) {
         animFrames = moveFrames * (s32)MR::normalize(MR::getRailTotalLength(mHost), mRailStart, target) + 1;
     }
-    mHost->updateMoveAnim(getNerveStep(), animFrames + 10);
+    BossJugem* host = mHost;
+    host->updateMoveAnim(getNerveStep(), animFrames + 10);
     if (MR::isGreaterStep(this, moveFrames + 10) || reachedGoal) {
         if (reachedGoal) {
             MR::reverseRailDirection(mHost);

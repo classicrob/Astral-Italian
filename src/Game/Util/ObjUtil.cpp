@@ -997,25 +997,7 @@ void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
     TVec3f pos;
 
     TPos3f mtx(pMtx);
-    MtxPtr m = mtx.toMtxPtr();
-
-    if (m[2][0] - 1.0f >= -3.814697265625e-6f) {
-        angle.x = JMath::sAtanTable.atan2_(-m[0][1], m[1][1]);
-        angle.y = -1.5707964f;
-        angle.z = 0.0f;
-    } else {
-        f32 pole = m[2][0];
-        pole += 1.0f;
-        if (pole <= 3.814697265625e-6f) {
-            angle.x = JMath::sAtanTable.atan2_(m[0][1], m[1][1]);
-            angle.y = 1.5707964f;
-            angle.z = 0.0f;
-        } else {
-            angle.x = JMath::sAtanTable.atan2_(m[2][1], m[2][2]);
-            angle.z = JMath::sAtanTable.atan2_(m[1][0], m[0][0]);
-            angle.y = JGeometry::TUtil< f32 >::asin(-m[2][0]);
-        }
-    }
+    mtx.getEuler(angle);
 
     TVec3f rot(angle);
     rot.scale(57.29578f);

@@ -207,6 +207,12 @@ void BreakableCage::initMapToolInfo(const JMapInfoIter& rIter) {
 }
 
 // NONMATCHING: paired-single copy registers and load scheduling differ.
+inline TVec3f calcLargeCageScale(const TVec3f& scale, f32 factor) {
+    TVec3f largeScale(scale);
+    largeScale.scale(factor);
+    return largeScale;
+}
+
 void BreakableCage::initModel(const char* pName, const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, pName, false);
 
@@ -217,8 +223,7 @@ void BreakableCage::initModel(const char* pName, const JMapInfoIter& rIter) {
         MR::setScale(mBreakModel, mScale);
 
         if (mCageType == CAGE_LARGE) {
-            TVec3f largeScale(mScale);
-            largeScale.scale(1.4f);
+            TVec3f largeScale = calcLargeCageScale(mScale, 1.4f);
             MR::setScale(mBreakModel, largeScale);
         }
 

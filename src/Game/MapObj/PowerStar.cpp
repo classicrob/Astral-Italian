@@ -553,7 +553,8 @@ void PowerStar::startAppearDemoCommon() {
     MR::startActorCameraTargetOther(getAppearCameraActor(), getAppearCameraInfo(), CameraTargetArg(this), 0);
     mPosition.set(mInitPosition);
     char buf[0x40];
-    MR::emitEffect(this, ::makeBronzeName(buf, sizeof(buf), "Light", static_cast<const volatile s32&>(mColor), mIsGrandStar));
+    const char* effectName = "Light";
+    MR::emitEffect(this, ::makeBronzeName(buf, sizeof(buf), effectName, mColor, mIsGrandStar));
 }
 
 void PowerStar::endAppearDemo() {

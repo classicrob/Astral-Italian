@@ -29,7 +29,8 @@ void DrawBufferExecuter::add(LiveActor* pActor) {
 }
 
 void DrawBufferExecuter::remove(LiveActor* pActor) {
-    LiveActor** it = std::find(mActors, mActors + mNumActors, pActor);
+    LiveActor** end = mActors + mNumActors;
+    LiveActor** it = std::find(mActors, end, pActor);
     mActors[it - mActors] = getActor(mNumActors - 1);
     mNumActors--;
     mDrawBuffer->remove(pActor);

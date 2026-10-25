@@ -62,13 +62,14 @@ namespace ActorShadow {
         if (MR::getResourceHolder(actor))
             csv = MR::tryCreateCsvParser(MR::getResourceHolder(actor), "%s.bcsv", name);
         if (!csv) {
-            if (useSphere)
+            if (useSphere) {
                 MR::initShadowVolumeSphere(actor, 100.0f);
+                return;
+            }
             return;
         }
         MR::initShadowControllerList(actor, csv->getNumEntries());
-        JMapInfoIter begin(csv, 0);
-        JMapInfoIter iter(begin);
+        JMapInfoIter iter = csv->begin();
         while (iter.isValid()) {
             addShadowFromCSV(actor, iter);
             ++iter.mIndex;

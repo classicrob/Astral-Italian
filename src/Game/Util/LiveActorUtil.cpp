@@ -2297,13 +2297,15 @@ namespace MR {
         pActor->mActionKeeper->mFootPrintCtrl->mHandle->clearForce();
     }
 
+    inline const JMapLinkInfo& getActorLink(const LiveActor* actor) { return actor->mLinkInfo; }
+
     LiveActor* getLinkedActor(const JMapLinkInfo* pLink) {
         AllLiveActorGroup* pGroup = getAllLiveActorGroup();
 
         for (s32 i = 0; i < pGroup->getObjNum(); i++) {
             LiveActor* pLinked = pGroup->getActor(i);
 
-            if (pLinked->mLinkInfo == *pLink) {
+            if (getActorLink(pLinked) == *pLink) {
                 return pLinked;
             }
         }

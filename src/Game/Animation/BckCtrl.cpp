@@ -125,13 +125,17 @@ void BckCtrl::changeBckSetting(const char* pName, XanimePlayer* pPlayer) const {
     BckCtrlFunction::reflectBckCtrlData(mDefaultCtrlData, pPlayer);
 }
 
+static inline s32 countBckControls(const BckCtrlData* first, const BckCtrlData* last) {
+    return last - first;
+}
+
 BckCtrlData* BckCtrl::find(const char* pName) const {
     s32 half;
     BckCtrlData* pMiddle;
     s32 count;
     BckCtrlData* pFirst;
     pFirst = mControlData.mArray.mArr;
-    count = (mControlData.mArray.mArr + mControlData.size()) - pFirst;
+    count = countBckControls(pFirst, mControlData.mArray.mArr + mControlData.size());
 
     while (count > 0) {
         half = count / 2;

@@ -200,11 +200,16 @@ void SandyMini::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+inline TVec3f calcSandyMiniScale(const TVec3f& actorScale, const TVec3f& animationScale) {
+    TVec3f scale;
+    mulScaleMini(&animationScale.x, &actorScale.x, &scale.x);
+    return scale;
+}
+
 // 800FF470
 // NONMATCHING: register numbers of the two ps_mul operands.
 void SandyMini::calcAndSetBaseMtx() {
-    TVec3f scale;
-    mulScaleMini(&mScaleController->mScale.x, &mScale.x, &scale.x);
+    TVec3f scale = calcSandyMiniScale(mScale, mScaleController->mScale);
     MR::setBaseScale(this, scale);
     MR::setBaseTRMtx(this, mQuat);
 }

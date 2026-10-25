@@ -195,3 +195,7 @@ void PowerStarHalo::exeWaitScenarioOpeningEnd() {
 
 PowerStarHalo::~PowerStarHalo() {
 }
+
+#ifndef GALAXY_NATIVE
+void MapObjActor::makeSubModels(const JMapInfoIter&, const MapObjActorInitInfo&) {}
+#endif

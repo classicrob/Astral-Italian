@@ -172,13 +172,20 @@ bool KoopaJrCastleCloudStep::updateWind() {
 }
 
 // NONMATCHING: camera-vector temporary stack slots and result-flag register allocation differ.
+namespace {
+    inline TVec3f calcCameraRelativePosition(const TVec3f& position, TVec3f cameraPosition) {
+        return position - cameraPosition;
+    }
+}
+
 void KoopaJrCastleCloudStep::updateBrkByCamera() {
-    TVec3f camPos = MR::getCamPos();
-    TVec3f rel(mPosition - camPos);
+    TVec3f rel(calcCameraRelativePosition(mPosition, MR::getCamPos()));
     f32 dot = MR::getCamZdir().dot(rel);
 
-    bool inc = false;
-    bool dec = false;
+    bool inc;
+    bool dec;
+    dec = false;
+    inc = false;
     f32 maxBrk = MR::getBrkFrameMax(mDemoObj);
     if (mBrkFrame < maxBrk) {
         if (dot < 800.0f) {

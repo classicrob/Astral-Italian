@@ -80,6 +80,18 @@ ActorItemGenerator* ActorItemGenerator::tryCreate(LiveActor* pActor, const char*
     return NULL;
 }
 
+inline s32 findActorItemTableIndex(const char* kind) {
+    if (kind == NULL) {
+        return 0;
+    }
+    for (s32 i = 0; i < 6; i++) {
+        if (MR::isEqualString(sItemTable[i].mCsvName, kind)) {
+            return i;
+        }
+    }
+    return 0;
+}
+
 // NONMATCHING: regalloc, string-pool order and equivalent loop branches (FP order/grouping checked: no FP instructions).
 // fn_8022B200
 bool ActorItemGenerator::loadEntries(const char* pName) {
@@ -102,22 +114,7 @@ bool ActorItemGenerator::loadEntries(const char* pName) {
         const char* pKind = NULL;
         MR::getCsvDataStrOrNULL(&pKind, pCsv, "ItemInfoName", i);
 
-        s32 tableIndex = 0;
-        if (pKind != NULL) {
-            s32 idx = 0;
-            while (true) {
-                if (MR::isEqualString(sItemTable[idx].mCsvName, pKind)) {
-                    break;
-                }
-                idx++;
-                if (idx >= 6) {
-                    idx = 0;
-                    break;
-                }
-            }
-            tableIndex = idx;
-        }
-        pEntry->mTableIndex = tableIndex;
+        pEntry->mTableIndex = findActorItemTableIndex(pKind);
 
         MR::getCsvDataStrOrNULL(&pEntry->mJointName, pCsv, "JointName", i);
         if (MR::hasCsvItem(pCsv, "Count")) {

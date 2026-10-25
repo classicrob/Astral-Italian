@@ -74,10 +74,8 @@ bool RollingWaterCreator::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
 void RollingWaterCreator::exeWait() {
     if (mCounter % mInterval == 0) {
         LiveActorGroup* pGroup = mRollingWaterGroup;
-        RollingWater* pDead = nullptr;
-        if (pGroup->getDeadActor() != nullptr) {
-            pDead = static_cast< RollingWater* >(pGroup->getDeadActor());
-        }
+        RollingWater* pDead = pGroup->getDeadActor() != nullptr
+            ? static_cast< RollingWater* >(pGroup->getDeadActor()) : nullptr;
         if (pDead != nullptr) {
             pDead->appearFromCreator(this, mDelay);
         }

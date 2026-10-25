@@ -108,6 +108,12 @@ bool TubeSliderDamageObj::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, Hi
 }
 
 // NONMATCHING: integer conversion scheduling, vector register allocation and stack layout.
+inline f32 calcTubeSliderRelativeSpeed(const TVec3f& playerVelocity, const TVec3f& objectVelocity) {
+    TVec3f velocity(playerVelocity);
+    velocity -= objectVelocity;
+    return PSVECMag(&velocity);
+}
+
 void TubeSliderDamageObj::control() {
     f32 micDistance = MR::getMicDistance(this);
     f32 distance = MR::calcDistanceToPlayer(this);
@@ -117,9 +123,7 @@ void TubeSliderDamageObj::control() {
         s32 basePitch = -100;
         f32 volume = baseVolume + 1000.0f * (100.0f * (2.3f / micDistance));
         s32 pitch = MR::clamp((s32)(basePitch + 1000.0f * (50.0f / (50.0f + (micDistance - _A4)))), 50, 1000);
-        TVec3f velocity(*MR::getPlayerVelocity());
-        velocity -= mVelocity;
-        f32 soundVolume = MR::getLinerValueFromMinMax(PSVECMag(&velocity), 27.0f, 34.0f, 0.0f, volume);
+        f32 soundVolume = MR::getLinerValueFromMinMax(calcTubeSliderRelativeSpeed(*MR::getPlayerVelocity(), mVelocity), 27.0f, 34.0f, 0.0f, volume);
         MR::startActionSound(this, "MarioPassLv", soundVolume, pitch, -1);
     } else if (_A0) {
         _A0 = false;

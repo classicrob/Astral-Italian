@@ -622,8 +622,8 @@ namespace MR {
 
 
     // NONMATCHING: target preserves the unused boolean argument across getSystem().
-    void stopAllSe(bool) {
-        AudWrap::getSystem()->stopAllSe();
+    void stopAllSe(bool stop) {
+        AudWrap::getSystem()->stopAllSe(stop);
     }
 
     void stopSeCategories(u32 categories) {

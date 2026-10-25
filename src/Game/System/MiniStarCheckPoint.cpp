@@ -222,13 +222,13 @@ bool MiniStarCheckPoint::update(s32 distance) {
             MR::startActionSound(this, "Shine", -1, -1, -1);
             return true;
         }
-        return false;
-    }
-    if (distance == 0) {
-        return true;
-    }
-    if (distance == 1) {
-        return true;
+    } else {
+        if (distance == 0) {
+            return true;
+        }
+        if (distance == 1) {
+            return true;
+        }
     }
     return false;
 }

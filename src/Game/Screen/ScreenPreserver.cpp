@@ -28,8 +28,8 @@ void ScreenPreserver::draw() const {
     JUTTexture tex(MR::getScreenResTIMG(), static_cast<u8>(0));
     J2DPicture pic(&tex);
 
-    f32 width = MR::getScreenWidth();
-    f32 height = static_cast<s32>(JUTVideo::getManager()->getEfbHeight());
+    s32 width = MR::getScreenWidth();
+    s32 height = static_cast<s32>(JUTVideo::getManager()->getEfbHeight());
     pic.draw(0.0f, 0.0f, width, height, false, false, false);
 }
 

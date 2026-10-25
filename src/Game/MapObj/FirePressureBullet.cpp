@@ -99,8 +99,11 @@ void FirePressureBullet::attackSensor(HitSensor* pSender, HitSensor* pReceiver) 
     if (MR::isSensorEnemy(pReceiver) || MR::isSensorMapObj(pReceiver)) {
         if (MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
             kill();
+            return;
         }
-    } else if (MR::isSensorPlayerOrRide(pReceiver) && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
+        return;
+    }
+    if (MR::isSensorPlayerOrRide(pReceiver) && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
         kill();
     }
 }

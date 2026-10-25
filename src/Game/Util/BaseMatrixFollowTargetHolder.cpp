@@ -53,8 +53,8 @@ BaseMatrixFollowTarget::BaseMatrixFollowTarget(const JMapLinkInfo* pInfo) {
 }
 
 void BaseMatrixFollowTarget::set(LiveActor* pActor, const TPos3f& rMtx, const TPos3f* pBaseMtx, BaseMatrixFollowValidater* pValidator) {
-    mValidater = pValidator;
     mActor = pActor;
+    mValidater = pValidator;
     _0.set(rMtx.mMtx);
     _0.invert(_0);
 

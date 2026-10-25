@@ -163,15 +163,19 @@ void HanachanParts::init(const JMapInfoIter& rIter) {
 }
 
 // NONMATCHING: host/iterator register allocation.
+namespace {
+    inline void killHanachanParts(HanachanParts** end, HanachanParts** first) {
+        while (first < end) {
+            (*first)->kill();
+            ++first;
+        }
+    }
+}
+
 void Hanachan::killAllHanachanParts() {
     this->kill();
 
-    HanachanParts** pEnd = &this->mBodyParts[5];
-    HanachanParts** pIter = &this->mBodyParts[0];
-    while (pIter < pEnd) {
-        (*pIter)->kill();
-        pIter++;
-    }
+    killHanachanParts(&mBodyParts[5], &mBodyParts[0]);
 }
 
 void HanachanParts::control() {

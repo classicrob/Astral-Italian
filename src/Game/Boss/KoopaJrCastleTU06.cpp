@@ -200,6 +200,7 @@ void KoopaJrCastleFireBar::attackSensor(HitSensor* pSender, HitSensor* pReceiver
 void KoopaJrCastleFireBar::updateHitSensor(HitSensor* pSensor) {
     TVec3f closest(static_cast<const Vec&>(mPosition));
     f32 minDist = 3.4028235e38f;
+    s32 i;
     s32 perArm = mChildCount / mArmCount;
     TVec3f up = -mGravity;
     TVec3f start;
@@ -208,24 +209,28 @@ void KoopaJrCastleFireBar::updateHitSensor(HitSensor* pSensor) {
     TVec3f end;
     end.scale(mInnerRadius + sFireBarScale * ((f32)(perArm - 1) * sFireBarSpacing), mFront);
     JMAVECScaleAdd(&up, &end, &end, 0.5f * sFireBarSpacing * sFireBarScale);
-    for (s32 i = 0; i < mArmCount; i++) {
-        TVec3f a;
-        a.add(start, mPosition);
-        TVec3f b;
-        b.add(end, mPosition);
-        TVec3f foot;
-        MR::calcPerpendicFootToLineInside(&foot, *MR::getPlayerCenterPos(), a, b);
-        f32 dist = PSVECDistance(&foot, MR::getPlayerCenterPos());
-        if (minDist > dist) {
-            minDist = dist;
-            closest.x = foot.x;
-            closest.y = foot.y;
-            closest.z = foot.z;
-        }
-        if (i + 1 != mArmCount) {
-            TVec3f axis = -mGravity;
-            MR::rotateVecDegree(&start, axis, 360.0f / mArmCount);
-            MR::rotateVecDegree(&end, axis, 360.0f / mArmCount);
+    i = 0;
+    if (mArmCount > 0) {
+        TVec3f& position = mPosition;
+        for (; i < mArmCount; i++) {
+            TVec3f a;
+            a.add(start, position);
+            TVec3f b;
+            b.add(end, position);
+            TVec3f foot;
+            MR::calcPerpendicFootToLineInside(&foot, *MR::getPlayerCenterPos(), a, b);
+            f32 dist = PSVECDistance(&foot, MR::getPlayerCenterPos());
+            if (minDist > dist) {
+                minDist = dist;
+                closest.x = foot.x;
+                closest.y = foot.y;
+                closest.z = foot.z;
+            }
+            if (i + 1 != mArmCount) {
+                TVec3f axis = -mGravity;
+                MR::rotateVecDegree(&start, axis, 360.0f / mArmCount);
+                MR::rotateVecDegree(&end, axis, 360.0f / mArmCount);
+            }
         }
     }
     MR::setSensorPos(pSensor, closest);

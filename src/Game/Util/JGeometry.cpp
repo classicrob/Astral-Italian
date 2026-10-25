@@ -26,12 +26,15 @@ namespace JGeometry {
         set(val, val, val);
     }
 
-    // NONMATCHING: f0/f1 allocation is swapped; all stores and constants agree.
+    inline void setIdentityMatrix(TMtx34f* matrix, f32 zero, f32 one) {
+        matrix->mMtx[1][0] = matrix->mMtx[2][0] = matrix->mMtx[0][1] = matrix->mMtx[2][1] = matrix->mMtx[0][2] = matrix->mMtx[1][2] = matrix->mMtx[0][3] =
+            matrix->mMtx[1][3] = matrix->mMtx[2][3] = zero;
+        matrix->mMtx[0][0] = matrix->mMtx[1][1] = matrix->mMtx[2][2] = one;
+    }
     template <> void TMatrix34< SMatrix34C< f32 > >::identity() {
         f32 one = 1.0f;
-        this->mMtx[1][0] = this->mMtx[2][0] = this->mMtx[0][1] = this->mMtx[2][1] = this->mMtx[0][2] = this->mMtx[1][2] = this->mMtx[0][3] =
-            this->mMtx[1][3] = this->mMtx[2][3] = 0.0f;
-        this->mMtx[0][0] = this->mMtx[1][1] = this->mMtx[2][2] = one;
+        f32 zero = 0.0f;
+        setIdentityMatrix(this, zero, one);
     }
 
     template <> void TMatrix34< SMatrix34C< f32 > >::mult(const TVec3f& rSrc, TVec3f& rDest) const {

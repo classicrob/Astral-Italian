@@ -267,6 +267,10 @@ void MarinePlantMember::init(const JMapInfoIter&) {
 }
 
 // NONMATCHING: final radians-to-degrees multiply/store register scheduling differs.
+inline f32 calcMarinePlantDegrees(f32 angle) {
+    return 57.29578f * angle;
+}
+
 void MarinePlantMember::initAxisAndScale() {
     TVec3f ref;
     ref.set<int>(1, 0, 0);
@@ -281,9 +285,9 @@ void MarinePlantMember::initAxisAndScale() {
     mtx.concat(rotation, mtx);
     TVec3f angles;
     mtx.getEuler(angles);
-    mRotation.x = angles.x * 57.29578f;
-    mRotation.y = angles.y * 57.29578f;
-    mRotation.z = angles.z * 57.29578f;
+    mRotation.x = calcMarinePlantDegrees(angles.x);
+    mRotation.y = calcMarinePlantDegrees(angles.y);
+    mRotation.z = calcMarinePlantDegrees(angles.z);
     calcAnim();
 }
 

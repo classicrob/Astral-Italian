@@ -383,8 +383,8 @@ void SamboHead::updateBoundVelocity(LiveActor* pActor) {
 
     TVec3f* pVelocity = &pActor->mVelocity;
     TVec3f* pGravity = &pActor->mGravity;
-    TVec3f damp;
     TVec3f horizontal;
+    TVec3f damp;
     JMAVECScaleAdd(pGravity, pVelocity, &horizontal, -pGravity->dot(*pVelocity));
     damp.scale(pGravity->dot(*pVelocity), *pGravity);
     if (MR::isOnGround(pActor)) {

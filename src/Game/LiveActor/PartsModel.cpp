@@ -97,12 +97,14 @@ void PartsModel::movement() {
     }
 }
 
+inline bool hasFixedPosition(const PartsModel* model) { return model->mFixedPos != nullptr; }
+
 void PartsModel::calcAnim() {
     if (mIsDead || MR::isDead(this) || MR::isNoCalcAnim(this) || MR::isClipped(this)) {
         return;
     }
 
-    if (mFixedPos != nullptr) {
+    if (hasFixedPosition(this)) {
         mFixedPos->calc();
     }
 

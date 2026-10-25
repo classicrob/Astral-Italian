@@ -178,7 +178,7 @@ void HanachanRunaway::control() {
     s32 offset = -100;
     f32 pitch = offset + 1000.0f * (50.0f / (50.0f + (micDist - mPrevRailCoord)));
     if (playerDist <= sPassSoundDistance && mIsPointed) {
-        s32 level = (s32)pitch < 50 ? 50 : ((s32)pitch > 1000 ? 1000 : (s32)pitch);
+        s32 level = MR::clamp((s32)pitch, 50, 1000);
         MR::startActionSound(this, "MarioPassLvSlider", (s32)volume, level, -1);
     }
     mPrevRailCoord = micDist;

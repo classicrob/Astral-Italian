@@ -27,8 +27,8 @@ void WPadPointer::reset() {
         mHorizonArray[i].set(0.0f);
     }
 
-    mDpdValidFg = 0;
     mDistDisplay = 0.0f;
+    mDpdValidFg = 0;
     mValidInScreenTime = 0;
     mEnablePastCount = 0;
     mLostSensorTime = 0;

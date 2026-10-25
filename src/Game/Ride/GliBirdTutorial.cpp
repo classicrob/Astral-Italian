@@ -58,9 +58,15 @@ void GliBirdTutorial::init(const JMapInfoIter& rIter) {
 }
 
 // NONMATCHING: frame-to-angle multiplication operands are commuted.
+namespace {
+    inline f32 getTutorialFrameAngle(s32 frame, f32 step) {
+        return frame * step;
+    }
+}
+
 void GliBirdTutorial::movement() {
     MR::getCorePadAcceleration(&mPadAccel, WPAD_CHAN0);
-    f32 sinValue = JMASinDegree(mFrame * 3.0f);
+    f32 sinValue = JMASinDegree(getTutorialFrameAngle(mFrame, 3.0f));
     TVec3f pos = mTutorialPos + (TVec3f(0.0f, 1.0f, 0.0f) * sinValue) * 30.0f;
     mFrame++;
     MR::setPosition(mGliBird, pos);

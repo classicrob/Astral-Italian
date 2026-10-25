@@ -35,18 +35,17 @@ JumpHole::JumpHole(const char* pName)
 }
 
 namespace {
-    // Follow validater whose PMF takes no argument; the isValid thunk forwards the id untouched.
     class JumpHoleFollowValidater : public BaseMatrixFollowValidater {
     public:
-        JumpHoleFollowValidater(JumpHole* pHost, bool (JumpHole::*pFunc)()) : mHost(pHost), mFunc(pFunc) {
+        JumpHoleFollowValidater(JumpHole* pHost, bool (JumpHole::*pFunc)(s32)) : mHost(pHost), mFunc(pFunc) {
         }
 
-        virtual bool isValid(s32) const {
-            return (mHost->*mFunc)();
+        virtual bool isValid(s32 id) const {
+            return (mHost->*mFunc)(id);
         }
 
         /* 0x4 */ JumpHole* mHost;
-        /* 0x8 */ bool (JumpHole::*mFunc)();
+        /* 0x8 */ bool (JumpHole::*mFunc)(s32);
     };
 }  // namespace
 
@@ -55,13 +54,13 @@ void JumpHole::init(const JMapInfoIter& rIter) {
     mCone->setPosition(mPosition);
     MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89");
     MR::makeMtxTR(reinterpret_cast< MtxPtr >(&mBaseMtx), this);
-    bool (JumpHole::*pFunc)() = &JumpHole::isNerveTypeNotWait;
+    bool (JumpHole::*pFunc)(s32) = &JumpHole::isNerveTypeNotWait;
     MR::addBaseMatrixFollowTarget(this, rIter, &mBaseMtx, new JumpHoleFollowValidater(this, pFunc));
     initNerve(GET_NERVE(JumpHole, JumpHoleNrvWait), 0);
     MR::useStageSwitchSyncAppear(this, rIter);
 }
 
-bool JumpHole::isNerveTypeNotWait() {
+bool JumpHole::isNerveTypeNotWait(s32) {
     return !isNerve(GET_NERVE(JumpHole, JumpHoleNrvWait));
 }
 

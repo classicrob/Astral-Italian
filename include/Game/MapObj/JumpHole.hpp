@@ -24,7 +24,7 @@ public:
     void exeRailMove();
     void bindHole();
     void initParabola(const TVec3f& rPosition);
-    bool isNerveTypeNotWait();
+    bool isNerveTypeNotWait(s32);
 
     /* 0x90 */ BindCone* mCone;
     /* 0x94 */ HitSensor* mBoundSensor;

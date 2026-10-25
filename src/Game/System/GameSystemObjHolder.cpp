@@ -149,8 +149,12 @@ void GameSystemObjHolder::initNAND() {
     SingletonHolder< NANDManager >::init();
 }
 
+inline JKRSolidHeap* getAudioSystemHeap() {
+    return SingletonHolder< HeapMemoryWatcher >::get()->mAudSystemHeap;
+}
+
 void GameSystemObjHolder::initAudio() {
-    mAudioSystem = new AudSystemWrapper(SingletonHolder< HeapMemoryWatcher >::get()->mAudSystemHeap, MR::getStationedHeapNapa(), MR::getStationedHeapGDDR3());
+    mAudioSystem = new AudSystemWrapper(getAudioSystemHeap(), MR::getStationedHeapNapa(), MR::getStationedHeapGDDR3());
     mAudioSystem->requestResourceForInitialize();
     SpkSystem::setup();
 }

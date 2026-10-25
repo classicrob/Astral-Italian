@@ -57,12 +57,12 @@ namespace {
         CometGalaxyList() {
             CometGalaxyEntry* pEntry = mEntries;
             CometGalaxyEntry* pEnd = mEntries + 64;
-            while (pEntry < pEnd) {
+            do {
                 pEntry->mName = nullptr;
                 pEntry->mMedalNum = -1;
                 pEntry->mHasStar = false;
                 pEntry++;
-            }
+            } while (pEntry < pEnd);
             mCount = 0;
         }
 
@@ -1178,6 +1178,8 @@ namespace GameSequenceFunction {
             }
             CometGalaxyEntryLess less;
             std::sort< CometGalaxyEntry*, CometGalaxyEntryLess& >(list.mEntries, list.mEntries + list.mCount, less);
+            const char* cloudGalaxy = "CloudGardenGalaxy";
+            const char* homeGalaxy = "HomeCenterGalaxy";
             s32 ticoCoinNum = GameDataFunction::calcTicoCoinNum();
             bool isStageFound = false;
             for (s32 i = 0; i < list.mCount; i++) {
@@ -1202,7 +1204,7 @@ namespace GameSequenceFunction {
                         const char* pEntryGalaxyName = entryAccessor.getName();
                         const char* pNames[2] = {"HomeCenterGalaxy", "MarioOnMarioGalaxy"};
                         bool isFirstOk;
-                        if (MR::isEqualString(pEntryGalaxyName, "CloudGardenGalaxy")) {
+                        if (MR::isEqualString(pEntryGalaxyName, cloudGalaxy)) {
                             isFirstOk = true;
                         } else {
                             bool isMatch = MR::isEqualString(entryAccessor.getCometName(entryAccessor.getCometScenarioId()), "Mimic");
@@ -1214,7 +1216,7 @@ namespace GameSequenceFunction {
                                     }
                                 }
                             }
-                            GalaxyStatusAccessor cloudAccessor = MR::makeGalaxyStatusAccessor("CloudGardenGalaxy");
+                            GalaxyStatusAccessor cloudAccessor = MR::makeGalaxyStatusAccessor(cloudGalaxy);
                             isFirstOk = false;
                             if (!isMatch || cloudAccessor.hasPowerStar(cloudAccessor.getCometScenarioId())) {
                                 isFirstOk = true;
@@ -1222,11 +1224,11 @@ namespace GameSequenceFunction {
                         }
                         if (!isFirstOk) {
                             isEnable = false;
-                        } else if (MR::isEqualString(entryAccessor.getName(), "HomeCenterGalaxy")) {
+                        } else if (MR::isEqualString(entryAccessor.getName(), homeGalaxy)) {
                             isEnable = true;
                         } else {
                             bool isPurple = MR::isEqualString(entryAccessor.getCometName(entryAccessor.getCometScenarioId()), "Purple");
-                            GalaxyStatusAccessor homeAccessor = MR::makeGalaxyStatusAccessor("HomeCenterGalaxy");
+                            GalaxyStatusAccessor homeAccessor = MR::makeGalaxyStatusAccessor(homeGalaxy);
                             isEnable = false;
                             if (!isPurple || homeAccessor.hasPowerStar(homeAccessor.getCometScenarioId())) {
                                 isEnable = true;

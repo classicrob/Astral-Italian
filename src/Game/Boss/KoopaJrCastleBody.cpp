@@ -153,14 +153,14 @@ void KoopaJrCastleBody::makeActorAppeared() {
 // NONMATCHING: early-return branch layout
 void KoopaJrCastleBody::calcAnim() {
     PartsModel::calcAnim();
-    if (!MR::isDead(this) && !MR::isNoCalcAnim(this)) {
-        if (!MR::isClipped(this)) {
-            if (mCollision != nullptr) {
-                for (int i = 0; i < 2; i++) {
-                    mCollision[i]->setMtx();
-                }
-            }
-        }
+    if (MR::isDead(this) || MR::isNoCalcAnim(this) || MR::isClipped(this)) {
+        return;
+    }
+    if (mCollision == nullptr) {
+        return;
+    }
+    for (int i = 0; i < 2; i++) {
+        mCollision[i]->setMtx();
     }
 }
 

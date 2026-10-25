@@ -194,14 +194,14 @@ namespace SupportTicoStateFunction {
         MR::calcPlayerFollowPassPosition(&pHost->mPosition, getFollowScale());
     }
 
-    // NONMATCHING: register allocation and instruction ordering.
     bool trySpinAttack(SupportTico* pHost) {
         u32 i;
         bool result;
         HitSensor* pSensor = pHost->getSensor("Body");
         f32 radius = MR::getSensorRadius(pSensor);
+        const TVec3f& position = *MR::getSensorPos(pSensor);
         result = false;
-        u32 num = Collision::checkStrikeBallToMapWithThickness(*MR::getSensorPos(pSensor), radius, radius, nullptr, nullptr);
+        u32 num = Collision::checkStrikeBallToMapWithThickness(position, radius, radius, nullptr, nullptr);
         for (i = 0; i < num; i++) {
             if (MR::sendArbitraryMsg(0x13, Collision::getStrikeInfoMap(i)->mParentTriangle.mSensor, pSensor)) {
                 result = true;

@@ -24,7 +24,11 @@ namespace {
 
 // NONMATCHING: radius and offset initialization use different FPR allocation and store scheduling.
 StarPointerTarget::StarPointerTarget(f32 radius, const TVec3f* pPosition, MtxPtr pMtx, TVec3f offset)
-    : mRadius3d(radius), mOffset(offset), mLastPointedChannel(WPAD_CHAN0), mPosition(pPosition), mMtx(pMtx) {
+    : mOffset(offset) {
+    mRadius3d = radius;
+    mLastPointedChannel = WPAD_CHAN0;
+    mPosition = pPosition;
+    mMtx = pMtx;
 }
 
 bool StarPointerTarget::calcScreenPosition(TVec2f* pScreenPos) const {

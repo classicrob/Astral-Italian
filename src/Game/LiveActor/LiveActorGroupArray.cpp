@@ -103,16 +103,15 @@ MsgSharedGroup* LiveActorGroupArray::createGroup(const JMapInfoIter& rIter, cons
 }
 
 namespace {
-    struct IsGroupIdEqual {
-        IsGroupIdEqual(const JMapIdInfo& rInfo) : mInfo(rInfo) {
+    struct IsGroupIdEqual : std::binary_function<const MsgSharedGroup*, const JMapIdInfo&, bool> {
+        bool operator()(const MsgSharedGroup* pGroup, const JMapIdInfo& info) const {
+            return *pGroup->mIdInfo == info;
         }
-
-        bool operator()(const MsgSharedGroup* pGroup) const {
-            return *pGroup->mIdInfo == mInfo;
-        }
-
-        JMapIdInfo mInfo;
     };
+
+    inline std::binder2nd<IsGroupIdEqual, const JMapIdInfo&> bindGroupId(const JMapIdInfo& info) {
+        return std::binder2nd<IsGroupIdEqual, const JMapIdInfo&>(IsGroupIdEqual(), info);
+    }
 
     struct HasActor : std::binary_function< const MsgSharedGroup*, const LiveActor*, bool > {
         bool operator()(const MsgSharedGroup* pGroup, const LiveActor* pActor) const {
@@ -123,7 +122,7 @@ namespace {
 
 // NONMATCHING: stack copies of the find_if functor (target copies it twice by value) and loop registers (FP order/grouping checked: no FP instructions).
 MsgSharedGroup* LiveActorGroupArray::findGroup(const JMapInfoIter& rIter) const {
-    MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, IsGroupIdEqual(MR::createJMapIdInfoFromGroupId(rIter)));
+    MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, bindGroupId(MR::createJMapIdInfoFromGroupId(rIter)));
 
     if (it != mGroups + mNumUsedGroups) {
         return *it;

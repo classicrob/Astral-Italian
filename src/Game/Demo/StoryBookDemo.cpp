@@ -303,7 +303,8 @@ void StoryBookDemo::capture() {
 // NONMATCHING: regalloc
 bool MR::registerStoryBookDemoCast(LiveActor* pActor) {
     JMapInfoIter iter(0, -1);
-    bool registered = (0 | MR::tryRegisterDemoCast(pActor, "ピーチからの手紙", iter)) != 0;
+    bool registered = false;
+    registered |= MR::tryRegisterDemoCast(pActor, "ピーチからの手紙", iter);
     registered |= MR::tryRegisterDemoCast(pActor, "ベビチコ出会い", iter);
     registered |= MR::tryRegisterDemoCast(pActor, "ピーチ誘拐", iter);
     registered |= MR::tryRegisterDemoCast(pActor, "スピンドライバ初出", iter);

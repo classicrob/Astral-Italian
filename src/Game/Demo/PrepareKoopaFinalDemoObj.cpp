@@ -111,11 +111,11 @@ void PrepareKoopaFinalDemoObj::initAfterPlacement() {
     JGeometry::TMatrix34< JGeometry::SMatrix34C< f32 > > mtx;
     mtx.identity();
     MR::makeMtxRotate(mtx.mMtx, mRotation);
-    TVec3f offset;
-    offset.x = 0.0f;
-    offset.y = 0.0f;
-    offset.z = 1.0f;
-    offset.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
+    f32 z = mtx.mMtx[2][2];
+    f32 y = mtx.mMtx[1][2];
+    f32 x = mtx.mMtx[0][2];
+    TVec3f offset(0.0f, 0.0f, 1.0f);
+    offset.set<f32>(x, y, z);
     JMAVECScaleAdd(&offset, &mPosition, &mFinalKoopa->mPosition, 28000.0f);
     mFinalKoopa->mPosition.y += 5500.0f;
     mFinalKoopa->mRotation.set(5.0f, 210.0f, 0.0f);

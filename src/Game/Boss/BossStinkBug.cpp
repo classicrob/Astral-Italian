@@ -107,8 +107,7 @@ void BossStinkBug::init(const JMapInfoIter& rIter) {
     mBombLauncher = MR::createPartsModelMapObj(this, "ボム発射口", "BossStinkBugBombLauncher", nullptr);
     mBombLauncher->initFixedPosition("Body");
     MR::declarePowerStar(this);
-    TVec3f soundOffset(0.0f);
-    initSound(12, nullptr, nullptr, soundOffset);
+    initSound(12, nullptr, nullptr, TVec3f(0.0f));
     MR::startBrk(this, "Normal");
 
     if (MR::initUseStageSwitchReadA(this, rIter)) {

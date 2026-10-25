@@ -146,6 +146,12 @@ void Replay::keepSegments(const std::vector<SegmentRange>& ranges) {
     setSegments(std::move(lengths));
 }
 
+void Replay::requireReadsBefore(std::uint64_t firstUnpairedFrame) const {
+    for (const auto& read : mReads)
+        if (read.frame >= firstUnpairedFrame)
+            throw ReplayError("power tape has an unpaired open-loop KPAD read at frame " + std::to_string(read.frame));
+}
+
 void Replay::requireNeutralControlsOutside(const std::vector<SegmentRange>& ranges, std::uint64_t prefix) const {
     for (const auto& r:mReads) {
         if (r.frame>=prefix) continue; // incomplete open loop is outside the declared route prefix

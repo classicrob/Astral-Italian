@@ -287,6 +287,51 @@ Meta parseSidecar(const std::string& text) {
             }
             meta.inputPhases.push_back(std::move(p));
         }
+        if (root.find("session_control_protocol")) {
+            // Duplicate fields make event order ambiguous even if a first-key
+            // JSON accessor could otherwise choose one silently.
+            const auto unique = [&](const auto& self,const Json& value)->void {
+                std::set<std::string> names;
+                for (const auto& item:value.members) {
+                    require(names.insert(item.first).second,"duplicate session-control JSON field");
+                    self(self,item.second);
+                }
+                for (const auto& item:value.items) self(self,item);
+            };
+            unique(unique,root);
+            require(string(root,"session_control_protocol")==TapePower::kProtocol,"unsupported session-control protocol");
+            require(string(root,"session_control_error").empty(),"recorder rejected session-control ordering");
+            meta.powerProtocol=true;
+            const auto* events=root.find("session_events");
+            require(events && events->type==Json::Type::Array && events->items.size()<=2,"missing/ambiguous session events");
+            for (const auto& j:events->items) {
+                TapePower::Event event;
+                event.id=integer(j,"id");event.phase=integer(j,"phase_id");
+                event.afterRow=integer(j,"after_route_row");event.beforeInputFrame=integer(j,"before_input_frame");
+                event.kind=string(j,"kind");event.callbackObserved=boolean(j,"callback_observed");
+                require(event.id==meta.sessionEvents.size() && string(j,"boundary")==TapePower::kBoundary &&
+                    event.beforeInputFrame==event.afterRow+1 && event.phase<meta.inputPhases.size(),"ambiguous power-event boundary");
+                const auto& phase=meta.inputPhases[event.phase];
+                require(event.afterRow>=phase.marker.inputFrame && event.afterRow<phase.endInputFrame &&
+                    event.afterRow<meta.seams-1,"session event outside its phase/prefix");
+                const auto* elapsed=j.find("neutral_elapsed_seconds");
+                require(elapsed && elapsed->type==Json::Type::Number && std::isfinite(elapsed->number) && elapsed->number>=0,
+                    "invalid neutral-tail clock observation");
+                event.neutralElapsedSeconds=elapsed->number;
+                require((event.kind=="neutral-tail-begin" && event.id==0 && !event.callbackObserved) ||
+                    (event.kind=="power-request" && event.callbackObserved && event.phase==meta.inputPhases.size()-1),
+                    "unknown/unacknowledged session event");
+                if (!meta.sessionEvents.empty())
+                    require(meta.sessionEvents.back().kind=="neutral-tail-begin" && event.kind=="power-request" &&
+                        event.afterRow>meta.sessionEvents.back().afterRow && event.phase==meta.sessionEvents.back().phase,
+                        "duplicate or unordered session controls");
+                meta.sessionEvents.push_back(std::move(event));
+            }
+            if (meta.complete) require(!meta.sessionEvents.empty() && meta.sessionEvents.back().kind=="power-request",
+                "complete power session missing power-request event");
+        } else {
+            require(!root.find("session_events") && !root.find("session_control_error"),"session events lack versioned protocol");
+        }
     }
     return meta;
 }
@@ -327,6 +372,8 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
             mRoute.push_back(std::move(row));
         }
     }
+    if (mMeta.powerProtocol && (!wholeSession() || !mMeta.complete || mRoute.size()!=mMeta.seams))
+        throw H::ReplayError("power-session proof requires complete whole-session route, including shutdown");
     const std::uint64_t rows = std::min<std::uint64_t>(mMeta.seams, mRoute.size());
     if (rows < 2) throw H::ReplayError("the tape has no complete game loop");
     if (mMeta.schema == 2 && wholeSession()) { initializePhases(dir,rows); return; }
@@ -573,7 +620,18 @@ bool Session::acknowledgeSeed(std::uint32_t seed) {
 }
 
 Step Session::seam(const SeamState& s) {
-    if (mMeta.schema==2 && wholeSession()) return phaseSeam(s);
+    if (mMeta.schema==2 && wholeSession()) {
+        if (mMeta.powerProtocol && mDone && mError.empty()) {
+            phaseFailure("extra seam after declared shutdown end");++mSeams;return {Step::Kind::GaveUp};
+        }
+        auto step=phaseSeam(s);
+        if (mMeta.powerProtocol && mError.empty()) {
+            const auto control=controlSeam(s);
+            if (control.kind==Step::Kind::GaveUp) return control;
+            step.neutralTailBegin=control.neutralTailBegin;step.powerRequest=control.powerRequest;
+        }
+        return step;
+    }
     Step step;
     ++mSeams;
     mActualOrdinal=0;
@@ -707,7 +765,9 @@ std::int32_t Session::read(std::int32_t channel, std::uint32_t capacity, void* b
         if (mPendingMarkerSeed) phaseFailure("schema2 input before marker RNG acknowledgement");
         const bool recorded = !mDone && mError.empty() && !mReplay->waitingForSync();
         const H::Read& input = !mDone && mError.empty() ? mReplay->consume(channel, capacity) : mReplay->neutral(channel, capacity);
+        validateNeutralTail(input);
         recordReadMap(input,recorded);
+        if (mShutdownTail && recorded) ++mShutdownReads;
         ++mActualOrdinal;
         for (std::size_t i = 0; i < input.samples.size(); ++i) out[i] = H::decodeSample(input.samples[i]);
         if (mActive && mError.empty() && !mReplay->waitingForSync()) {
@@ -740,6 +800,7 @@ std::int32_t Session::read(std::int32_t channel, std::uint32_t capacity, void* b
 }
 
 #include "tape_phase_replay.inc"
+#include "tape_power_replay.inc"
 
 bool Session::press(int mod) {
     if (mDone || mReplay->waitingForSync() || !mError.empty()) return false;
@@ -776,7 +837,7 @@ void Observation::update(double elapsed, std::uint64_t row, bool replaySucceeded
         postStartRow = row;
     }
     endRow = row;
-    if (elapsed >= requestedSeconds) {
+    if (elapsed >= requestedSeconds && elapsed-postStartSeconds >= minimumPostSeconds) {
         completed = true;
         stopSeconds = elapsed;
     }
@@ -785,6 +846,7 @@ void Observation::update(double elapsed, std::uint64_t row, bool replaySucceeded
 std::string Observation::reportJson(double startMonotonicSeconds) const {
     std::ostringstream out;
     out << std::setprecision(17) << "{\"requested_seconds\":" << requestedSeconds
+        << ",\"minimum_post_roll_seconds\":" << minimumPostSeconds
         << ",\"clock\":\"steady_clock; quit scheduling only\",\"start_monotonic_seconds\":" << startMonotonicSeconds
         << ",\"stop_monotonic_seconds\":" << (completed ? std::to_string(startMonotonicSeconds + stopSeconds) : "null")
         << ",\"elapsed_seconds\":" << elapsedSeconds << ",\"completed\":" << (completed ? "true" : "false")
@@ -794,7 +856,8 @@ std::string Observation::reportJson(double startMonotonicSeconds) const {
         << ",\"start_elapsed_seconds\":" << (postStarted ? std::to_string(postStartSeconds) : "null")
         << ",\"elapsed_seconds\":" << (postStarted ? elapsedSeconds - postStartSeconds : 0)
         << ",\"loops\":" << (postStarted ? endRow - postStartRow : 0)
-        << ",\"input\":\"neutral\",\"input_source\":\"Headless::Replay::neutral\",\"neutral_read_calls\":" << neutralReads << "}}";
+        << ",\"input\":\"neutral\",\"input_source\":" << jsonString(recordedTail ? "recorded-session-neutral-tail; exact raw sample check" : "Headless::Replay::neutral")
+        << ",\"neutral_read_calls\":" << neutralReads << "}}";
     return out.str();
 }
 
@@ -824,7 +887,7 @@ std::string Session::reportJson() const {
     out << std::setprecision(9);
     out << "{\n  \"mode\": " << jsonString(wholeSession() ? "whole-session" : "segments")
         << ",\n  \"tape_schema\": " << mMeta.schema
-        << ",\n  \"tape_format_label\": " << jsonString(mMeta.schema==1 ? "legacy-v1" : "game-phase-v2")
+        << ",\n  \"tape_format_label\": " << jsonString(mMeta.schema==1 ? "legacy-v1" : mMeta.powerProtocol ? "game-phase-v2-power-v1" : "game-phase-v2-legacy-no-power")
         << ",\n  \"legacy_policy\": " << (mMeta.schema==1 ? "true" : "false")
         << ",\n  \"anchor_policy\": " << jsonString(wholeSession() ? (mMeta.schema==2 ? TapePhase::kPolicy : "interactive-and-play-ready-v1") : "legacy-play-ready")
             << ",\n  \"position_limit\": " << kPositionLimit
@@ -899,6 +962,25 @@ std::string Session::reportJson() const {
         out << "}";
     }
     out << "\n  ]";
+    if (mMeta.powerProtocol) {
+        const auto required=mMeta.seams-mMeta.sessionEvents.back().beforeInputFrame;
+        out << ",\n  \"session_control\":{\"protocol\":" << jsonString(TapePower::kProtocol)
+            << ",\"events_required\":" << mMeta.sessionEvents.size() << ",\"events_delivered\":" << mControlActualRows.size()
+            << ",\"power_callback_verified\":" << (mPowerDelivered ? "true":"false")
+            << ",\"power_reached_early\":" << (mEarlyPower ? "true":"false")
+            << ",\"power_actual_after_route_row\":" << (mPowerDelivered ? std::to_string(mPowerActualRow):"null")
+            << ",\"shutdown_reads_compared\":" << mShutdownReads
+            << ",\"shutdown_rows_required\":" << required << ",\"shutdown_rows_compared\":" << mShutdownRows
+            << ",\"shutdown_position_bit_exact\":" << (mError.empty() && mShutdownRows==required ? "true":"false")
+            << ",\"normal_exit_verified\":" << (mNormalExitVerified ? "true":"false") << ",\"events\":[";
+        for (std::size_t i=0;i<mMeta.sessionEvents.size();++i) {
+            const auto& event=mMeta.sessionEvents[i];
+            out << (i ? ",":"") << "{\"id\":" << i << ",\"kind\":" << jsonString(event.kind)
+                << ",\"phase_id\":" << event.phase << ",\"recorded_after_route_row\":" << event.afterRow
+                << ",\"actual_after_route_row\":" << (i<mControlActualRows.size() ? std::to_string(mControlActualRows[i]):"null") << '}';
+        }
+        out << "]}";
+    }
     if (mMeta.schema==2 && wholeSession()) {
         out << ",\n  \"marker_protocol\":" << jsonString(TapePhase::kProtocol)
             << ",\n  \"non_interactive_gap_loops\":" << mNeutralLoops << ",\n  \"input_phases\":[";

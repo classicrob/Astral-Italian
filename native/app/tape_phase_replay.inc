@@ -33,6 +33,13 @@ void Session::initializePhases(const std::filesystem::path& dir, std::uint64_t r
     if (mMeta.complete && mReplay->frames()!=mMeta.seams+1)
         throw H::ReplayError("schema2 complete KPD header does not cover exactly the recorded seams plus open loop");
     mReplay->requireNeutralControlsOutside(ranges,rows);
+    if (mMeta.powerProtocol) {
+        const auto first=mMeta.inputPhases.back().endInputFrame;
+        if (first>=mMeta.seams) throw H::ReplayError("power tape missing complete shutdown input/state rows");
+        mShutdownReplayOffset=offset;
+        // Same last-phase clock; this raw segment adds no scene anchor.
+        ranges.push_back({first-1,mMeta.seams-1});
+    }
     mReplay->keepSegments(ranges);
     if (std::ifstream actions(dir/"route.actions"); actions) {
         std::string line;
@@ -59,6 +66,7 @@ Step Session::beforeRead(const TapePhase::State& s) {
     Step step;
     if (mMeta.schema!=2 || !wholeSession() || mDone) return step;
     if (s.inputFrame!=mSeams) { phaseFailure("schema2 pre-read and route clocks disagree"); return {Step::Kind::GaveUp}; }
+    if (mPowerPending) { phaseFailure("power callback missing before next input");return {Step::Kind::GaveUp}; }
     if (mActualOrdinal!=0) { phaseFailure("schema2 marker is not before ordinal-zero KPAD read"); return {Step::Kind::GaveUp}; }
     if (mPendingMarkerSeed) { phaseFailure("schema2 marker RNG acknowledgement missing"); return {Step::Kind::GaveUp}; }
     if (mPhaseExitPending) {
@@ -70,6 +78,7 @@ Step Session::beforeRead(const TapePhase::State& s) {
         }
         proof.exitPassed=true; mPhaseExitPending=false;
         if (mSegIndex==mPlan.size()) {
+            if (mMeta.powerProtocol) { mShutdownTail=true;mReplay->startInputs();return {}; }
             mDone=true; mPhaseSignal=Step::Kind::Finished; return {Step::Kind::Finished};
         }
     }
@@ -143,6 +152,19 @@ Step Session::phaseSeam(const SeamState& s) {
         const auto signal=mPhaseSignal; mPhaseSignal=Step::Kind::None; return {signal};
     }
     if (mDone) return {};
+    if (mShutdownTail) {
+        const auto offset=controlOffset(mMeta.sessionEvents.back().phase);
+        const auto row=static_cast<std::int64_t>(mSeams)-1-offset;
+        if (!mPowerDelivered || row<0) { phaseFailure("shutdown before acknowledged power event");return {Step::Kind::GaveUp}; }
+        try { mReplay->endFrame(); } catch (const std::exception& e) { phaseFailure(e.what());return {Step::Kind::GaveUp}; }
+        compareShutdown(s,static_cast<std::uint64_t>(row));
+        if (!mError.empty()) return {Step::Kind::GaveUp};
+        if (static_cast<std::uint64_t>(row)+1==mMeta.seams) {
+            if (!mReplay->finished()) { phaseFailure("shutdown input stream outlived recorded state");return {Step::Kind::GaveUp}; }
+            mDone=true;return {Step::Kind::Finished};
+        }
+        return {};
+    }
     if (mPendingMarkerSeed || mPendingSeed) {
         phaseFailure("schema2 seam before RNG acknowledgement"); mPhaseSignal=Step::Kind::None; return {Step::Kind::GaveUp};
     }
@@ -165,6 +187,11 @@ Step Session::phaseSeam(const SeamState& s) {
         return {};
     }
     compare(s,mSegRow); ++mSegRow;
+    if (mMeta.powerProtocol && mPowerDelivered && mError.empty()) {
+        const auto row=static_cast<std::int64_t>(mSeams)-1-controlOffset(mMeta.sessionEvents.back().phase);
+        if (row<0) phaseFailure("negative shutdown comparison row");
+        else compareShutdown(s,static_cast<std::uint64_t>(row));
+    }
     if (!mError.empty()) { phaseFailure(mError); mPhaseSignal=Step::Kind::None; return {Step::Kind::GaveUp}; }
     if (mReplay->segmentEnded() || mReplay->finished()) {
         auto& e=mPhaseEvidence[mSegIndex];
@@ -184,12 +211,15 @@ Step Session::phaseSeam(const SeamState& s) {
 
 void Session::recordReadMap(const H::Read& input, bool recorded) {
     if (!mReadMap.is_open()) return;
-    const auto canonical=recorded ? mPlan[mSegIndex].start+1+mReplay->frame()-mPlan[mSegIndex].offset : 0;
+    const auto canonical=!recorded ? 0 : mShutdownTail
+        ? mMeta.inputPhases.back().endInputFrame+mReplay->frame()-mShutdownReplayOffset
+        : mPlan[mSegIndex].start+1+mReplay->frame()-mPlan[mSegIndex].offset;
+    const auto phase=mShutdownTail ? mPlan.size()-1 : mSegIndex;
     mReadMap << "{\"actual_frame\":" << mSeams << ",\"actual_ordinal\":" << mActualOrdinal
-             << ",\"source\":" << jsonString(recorded ? "recorded" : "neutral")
+             << ",\"source\":" << jsonString(recorded ? (mShutdownTail ? "recorded-shutdown" : "recorded") : "neutral")
              << ",\"canonical_frame\":" << (recorded ? std::to_string(canonical) : "null")
              << ",\"canonical_ordinal\":" << (recorded ? std::to_string(input.ordinal) : "null")
-             << ",\"phase\":" << (recorded ? std::to_string(mSegIndex) : "null")
+             << ",\"phase\":" << (recorded ? std::to_string(phase) : "null")
              << ",\"channel\":" << input.channel << ",\"capacity\":" << input.capacity
              << ",\"returned\":" << input.returned << ",\"error\":" << input.error
              << ",\"samples\":" << input.samples.size() << "}\n";

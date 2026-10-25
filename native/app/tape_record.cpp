@@ -1,4 +1,8 @@
 #include "tape_record.hpp"
+#include "tape_power.hpp"
+#include <atomic>
+#include <chrono>
+#include <thread>
 
 #include <petari/kpad_record.hpp>
 #include <petari/mods.hpp>
@@ -40,6 +44,24 @@ std::string gPhaseKey, gPhaseError;
 bool gMapWait = false, gGalaxyMap = false;
 std::string gLaunchStage;
 int gLaunchScenario = 1;
+std::vector<TapePower::Event> gControls;
+std::string gControlError;
+std::atomic<bool> gControlsActive{false}, gAmbiguousControl{false};
+std::thread::id gControlThread;
+bool gControlSeam = false, gNeutralStarted = false;
+std::chrono::steady_clock::time_point gNeutralStart;
+void appendControl(const char* kind) {
+    if (!gControlSeam || gInputPhases.empty() || !gInputPhases.back().open ||
+        gInputPhases.back().marker.inputFrame>gRow) {
+        gControlError="session event lacks an active post-seam phase anchor"; return;
+    }
+    TapePower::Event event;
+    event.id=gControls.size();event.phase=gInputPhases.back().id;
+    event.kind=kind;event.afterRow=gRow;event.beforeInputFrame=gRow+1;
+    if (gNeutralStarted) event.neutralElapsedSeconds=std::chrono::duration<double>(
+        std::chrono::steady_clock::now()-gNeutralStart).count();
+    gControls.push_back(event);
+}
 
 std::string exeSha256() {
 #ifdef __APPLE__
@@ -159,7 +181,18 @@ void writeSidecar(bool final) {
         gap(cursor,phase.marker.inputFrame); cursor=end;
     }
     gap(cursor,gRow);
-    std::fputs("]\n}\n", f);
+    std::fprintf(f,"],\n  \"session_control_protocol\":%s,\n  \"session_control_error\":%s,\n  \"session_events\":[",
+        json(TapePower::kProtocol).c_str(),json(gAmbiguousControl.load() ? "ambiguous cross-thread/out-of-seam power request" : gControlError).c_str());
+    bool firstControl=true;
+    for (const auto& event:gControls) {
+        if (event.afterRow>=gRow) continue; // never publish an incomplete seam
+        std::fprintf(f,"%s{\"id\":%llu,\"kind\":%s,\"boundary\":%s,\"phase_id\":%llu,\"after_route_row\":%llu,\"before_input_frame\":%llu,\"callback_observed\":%s,\"neutral_elapsed_seconds\":%.9f}",
+            firstControl ? "" : ",",static_cast<unsigned long long>(event.id),json(event.kind).c_str(),json(TapePower::kBoundary).c_str(),
+            static_cast<unsigned long long>(event.phase),static_cast<unsigned long long>(event.afterRow),
+            static_cast<unsigned long long>(event.beforeInputFrame),event.callbackObserved ? "true":"false",event.neutralElapsedSeconds);
+        firstControl=false;
+    }
+    std::fputs("]\n}\n",f);
     std::fclose(f);
     std::rename((path + ".tmp").c_str(), path.c_str());
 }
@@ -187,6 +220,9 @@ void finish() {
     if (gFinished) return;
     gFinished = true;
     if (!gOpen) return;
+    gControlsActive.store(false,std::memory_order_release);
+    if (gControls.empty() || gControls.back().kind!="power-request" || !gControls.back().callbackObserved)
+        gControlError="normal finish lacks an acknowledged power-request event";
     Input::KpadRecord::close();
     // RouteRecordWriter buffers its final partial 60-row block. _Exit does not flush it or run destructors.
     // Flush it before declaring that the sidecar covers all seams; normal shutdown already flushes stdio.
@@ -235,6 +271,31 @@ void beforeRead(const TapePhase::State& s) {
     }
 }
 
+void beginControlSeam() { if (gOpen && !gFinished) gControlSeam=true; }
+void endControlSeam() { gControlSeam=false; }
+void neutralTailBegin() {
+    if (!gControlsActive.load(std::memory_order_acquire)) return;
+    if (std::this_thread::get_id()!=gControlThread || !gControlSeam) { gAmbiguousControl.store(true); return; }
+    if (gNeutralStarted || (!gControls.empty() && gControls.back().kind=="power-request")) {
+        gControlError="duplicate or late neutral-tail event"; return;
+    }
+    appendControl("neutral-tail-begin");
+    gNeutralStarted=true;gNeutralStart=std::chrono::steady_clock::now();
+}
+bool powerRequest() {
+    if (!gControlsActive.load(std::memory_order_acquire)) return false;
+    if (std::this_thread::get_id()!=gControlThread || !gControlSeam) { gAmbiguousControl.store(true); return false; }
+    if (!gControls.empty() && gControls.back().kind=="power-request") { gControlError="duplicate power-request event"; return false; }
+    const auto before=gControls.size();appendControl("power-request");return gControls.size()==before+1;
+}
+void acknowledgePower(bool actualPowerFlag) {
+    if (gControls.empty() || gControls.back().kind!="power-request" || gControls.back().callbackObserved) {
+        gControlError="power callback acknowledgement is missing or ambiguous";return;
+    }
+    gControls.back().callbackObserved=actualPowerFlag;
+    if (!actualPowerFlag) gControlError="real game power callback did not set its request flag";
+}
+
 void setLaunch(const std::string& stage, int scenario) { gLaunchStage=stage; gLaunchScenario=scenario; }
 
 void seam(const Seam& s) {
@@ -249,6 +310,8 @@ void seam(const Seam& s) {
             return;
         }
         gOpen = true;
+        gControlThread=std::this_thread::get_id();
+        gControlsActive.store(true,std::memory_order_release);
         writeSidecar(false);  // hashes the executable now (a startup cost), not at the first checkpoint during play
         std::atexit(finish);
         std::fprintf(stderr, "PETARI TAPE RECORD: writing %s.kpd / .actions / .tape.json\n", gBase.c_str());

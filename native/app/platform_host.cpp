@@ -24,6 +24,7 @@
 #include "smoke.hpp"
 #include "tape_record.hpp"
 #include "tape_play.hpp"
+#include "tape_scene.hpp"
 
 extern "C" void petari_game_main(void);          // src/Game/System/GameSystem.cpp
 extern "C" void petari_attach_vi_renderer(void);  // native/gx/vi_bridge.cpp
@@ -42,6 +43,7 @@ namespace {
 // final recordings and stdio are flushed here; process exit releases the audio device and
 // the window, so no platform shutdowns (which join their threads) run here.
 void leave(const Platform::Power::Exit& exit, void*) {
+    TapePlay::normalExit();
     TapePlay::flushReadMap();
     TapeRecord::finish(); // the normal power/quit path reaches _Exit, which bypasses atexit
     Seam::reportFrameStats();
@@ -143,7 +145,14 @@ void runGame() {
 }
 
 void requestQuit() {
-    Platform::Power::pressPowerButton();
+    const bool recorded=TapeRecord::powerRequest();
+    const bool replayed=TapePlay::beforePowerRequest();
+    Platform::Power::pressPowerButton(); // REAL callback, synchronously under Interrupts
+    if (recorded || replayed) {
+        const bool observed=TapeScene::powerRequestObserved();
+        if (recorded) TapeRecord::acknowledgePower(observed);
+        if (replayed) TapePlay::acknowledgePower(observed);
+    }
 }
 
 void forceQuit() {

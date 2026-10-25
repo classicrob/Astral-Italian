@@ -4,4 +4,5 @@ namespace PetariNative::App::TapeScene {
 // replay are the only users; ordinary input has no game-state observer.
 void install();
 void nextFrame();
+bool powerRequestObserved();
 }

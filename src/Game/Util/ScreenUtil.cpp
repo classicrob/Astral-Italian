@@ -108,8 +108,8 @@ namespace MR {
         s32 screenWidth = getScreenWidth();
         f32 screenWidthF = static_cast< f32 >(screenWidth);
         f32 viWidthF = static_cast< f32 >(static_cast< s32 >(getViWidth()));
-        s32 viWidthMax = static_cast< u16 >(RenderModeObj::getViWidthMax());
-        f32 safetyFrameWidthRatio = viWidthMax * getSafetyVIScreenWidthRatio();
+        u16 viWidthMax = RenderModeObj::getViWidthMax();
+        f32 safetyFrameWidthRatio = static_cast<s32>(viWidthMax) * getSafetyVIScreenWidthRatio();
         f32 viWidthRatio = screenWidthF / viWidthF;
 
         return safetyFrameWidthRatio * viWidthRatio + 0.999f;

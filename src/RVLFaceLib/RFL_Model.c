@@ -959,9 +959,8 @@ void RFLiInitShapeRes(RFLiShapeRes* shape) {
     {
         u32 byteSize = SIZE_VTX_POS(shape->numVtxPos);
         s16* ptr16 = (s16*)ptr8;
-        int i;
-
         if (shape->transform) {
+            int i;
             s32 s = 256.0f * shape->posScale;
             s32 tx = 256.0f * shape->posTrans->x;
             s32 ty = 256.0f * shape->posTrans->y;
@@ -984,6 +983,7 @@ void RFLiInitShapeRes(RFLiShapeRes* shape) {
             }
 
         } else if (shape->flipX != 0) {
+            int i;
             for (i = 0; i < shape->numVtxPos; i++) {
                 s16 temp[3];
 
@@ -995,6 +995,7 @@ void RFLiInitShapeRes(RFLiShapeRes* shape) {
                 ptr16 += VTX_COORDS_IN_POS;
             }
         } else {
+            int i;
             for (i = 0; i < shape->numVtxPos; i++) {
                 RFLiTransformCoordinate(&shape->vtxPosBuf[i * VTX_COORDS_IN_POS], ptr16);
                 ptr16 += VTX_COORDS_IN_POS;
@@ -1012,8 +1013,8 @@ void RFLiInitShapeRes(RFLiShapeRes* shape) {
     ptr8 += sizeof(u16);
 
     {
-        s16* ptr16 = (s16*)ptr8;
         u32 byteSize = SIZE_VTX_NRM(shape->numVtxNrm);
+        s16* ptr16 = (s16*)ptr8;
 
         if (shape->flipX != 0) {
             int i;

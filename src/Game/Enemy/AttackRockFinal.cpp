@@ -95,8 +95,7 @@ void AttackRockFinal::control() {
     TVec3f dir;
     TVec3f zdir;
     MR::getKoopaBattleTargetPos(&dir);
-    TVec3f toPlayer = mPosition - dir;
-    MR::normalizeOrZero(&dir, toPlayer);
+    MR::normalizeOrZero(&dir, mPosition - dir);
     MR::turnQuatZDirRate(&mQuatCC, mQuatCC, dir, 0.3f);
     mQuatCC.getZDir(zdir);
     mRide->setHostZDir(&zdir);

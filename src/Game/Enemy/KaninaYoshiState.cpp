@@ -227,6 +227,18 @@ void KaninaYoshiState::calcShotPosition(TVec3f* out, f32 progress) {
     curve.calcPosition(out, rate);
 }
 
+namespace {
+    inline void subtractShotPosition(TVec3f& result, const TVec3f& current) {
+        result.sub(current);
+    }
+
+    inline TVec3f shotDisplacement(const TVec3f& next, const TVec3f& current) {
+        TVec3f result(next);
+        subtractShotPosition(result, current);
+        return result;
+    }
+}
+
 // NONMATCHING: vector difference and scale clamping use different scheduling.
 void KaninaYoshiState::exeShotArc() {
     if (MR::isFirstStep(this)) {
@@ -246,11 +258,10 @@ void KaninaYoshiState::exeShotArc() {
     TVec3f first(0.0f), second(0.0f);
     calcShotPosition(&first, rate0);
     calcShotPosition(&second, rate1);
-    TVec3f delta(second);
-    delta.sub(first);
-    mLocalVelocity = delta;
+    mLocalVelocity = shotDisplacement(second, first);
     mClaw->mScale.x = MR::clamp(mClaw->mScale.x + 0.2f, 0.0f, 1.0f);
-    MR::setScale(mClaw, TVec3f(mClaw->mScale.x));
+    TVec3f scale(mClaw->mScale.x);
+    MR::setScale(mClaw, scale);
     if (!tryKill()) {
         if (mArcStep > 135) {
             setNerve(&NrvKaninaYoshiState::KaninaYoshiStateNrvFall::sInstance);

@@ -137,6 +137,12 @@ void BrosBase::emitBrosYoshiEatItem() {
     MR::emitItemYoshiEat(this);
 }
 
+namespace {
+    inline const TVec3f& getBrosProjectilePosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 void BrosBase::killProjectiles() {
     const TVec3f* pos;
     for (s32 i = 0; i < 5; i++) {
@@ -146,7 +152,7 @@ void BrosBase::killProjectiles() {
             p->clearState();
             break;
         case 2: {
-            pos = &p->mPosition;
+            pos = &getBrosProjectilePosition(*p);
             if (MR::getDeclareRemnantStarPieceCount(this) > 3) {
                 MR::appearStarPiece(this, *pos, 1, 10.0f, 40.0f, false);
             }

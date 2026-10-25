@@ -93,10 +93,11 @@ bool drive(const fs::path& p,unsigned delay=0,bool omit=false,bool falseAck=fals
             }
         }
         if(earlyExit && f==10+delay) {session.normalExit();return session.gaveUp();}
-        if(session.gaveUp())return false;
+        if(session.gaveUp()) { std::fprintf(stderr,"power fixture stopped f=%u: %s\n",f,session.reportText().c_str());return false; }
     }
     session.normalExit();
     const auto report=session.reportJson();
+    if(session.gaveUp()) std::fprintf(stderr,"power fixture normalExit: %s\n",session.reportText().c_str());
     return session.finished() && !session.gaveUp() && calls==1 &&
         report.find("\"normal_exit_verified\":true")!=std::string::npos &&
         report.find("\"shutdown_rows_compared\":6")!=std::string::npos;

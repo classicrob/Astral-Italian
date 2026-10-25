@@ -34,10 +34,7 @@ CameraTargetObj* CameraCubePlanet::calc() {
 
     TVec3f side = up.cross(front);
     TQuat4f rot;
-    f32 angle = mAngleX;
-    f32 halfAngle = 0.5f * angle;
-    rot.toTvec()->scale(sin(halfAngle), side);
-    rot.w = cos(halfAngle);
+    rot.setRotate(side, mAngleX);
     rot.transform(up);
     rot.transform(front);
     front.setLength(mDist);

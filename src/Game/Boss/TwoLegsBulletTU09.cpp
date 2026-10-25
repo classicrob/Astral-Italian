@@ -43,7 +43,7 @@ u8 TwoLegsStateJump::getAttackFlag() const {
     return mAttacked;
 }
 
-bool TwoLegsStateJump::isStamped(HitSensor* pSender) {
+bool TwoLegsStateJump::isStamped(HitSensor* pSender) const {
     if (!MR::isEqualSensor(pSender, mHost, "StampLeft") && !MR::isEqualSensor(pSender, mHost, "StampRight")) {
         return false;
     }

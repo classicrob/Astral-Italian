@@ -599,13 +599,8 @@ bool BattanKing::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*) {
     return false;
 }
 
-// NONMATCHING: regalloc
 bool BattanKing::receiveMsgEnemyAttack(u32, HitSensor*, HitSensor* pReceiver) {
-    if (!MR::isSensorAutoRush(pReceiver)) {
-        return false;
-    } else {
-        return MR::isPlayerElementModeInvincible();
-    }
+    return !MR::isSensorAutoRush(pReceiver) ? false : MR::isPlayerElementModeInvincible();
 }
 
 bool BattanKing::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {

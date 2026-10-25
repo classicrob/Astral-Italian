@@ -18,6 +18,12 @@
 #include <nw4r/ut/TextWriterBase.h>
 #include <revolution/mtx.h>
 
+namespace {
+    extern const f32 sLayoutReferenceWidth;
+    extern const f32 sLayoutHalfWidth;
+    extern const f32 sLayoutHalfScale;
+}
+
 static const wchar_t sDefaultMsg[] = L"XXXXXXXX";
 
 namespace LayoutCoreUtil {
@@ -132,14 +138,14 @@ namespace LayoutCoreUtil {
 namespace MR {
     // NONMATCHING: floating-point register allocation and load ordering.
     void convertScreenPosToLayoutPos(TVec2f* pLayoutPos, const TVec2f& rScreenPos) {
-        pLayoutPos->x = rScreenPos.x * 608.0f / MR::getScreenWidth() - 304.0f;
-        pLayoutPos->y = -(rScreenPos.y * MR::getScreenHeight() / MR::getScreenHeight() - (MR::getScreenHeight() * 0.5f));
+        pLayoutPos->x = rScreenPos.x * sLayoutReferenceWidth / MR::getScreenWidth() - sLayoutHalfWidth;
+        pLayoutPos->y = -(rScreenPos.y * MR::getScreenHeight() / MR::getScreenHeight() - (MR::getScreenHeight() * sLayoutHalfScale));
     }
 
     // NONMATCHING: floating-point register allocation and load ordering.
     void convertLayoutPosToScreenPos(TVec2f* pScreenPos, const TVec2f& rLayoutPos) {
-        pScreenPos->x = MR::getScreenWidth() * 0.5f + rLayoutPos.x * MR::getScreenWidth() / 608.0f;
-        pScreenPos->y = MR::getScreenHeight() * 0.5f + -rLayoutPos.y * MR::getScreenHeight() / MR::getScreenHeight();
+        pScreenPos->x = MR::getScreenWidth() * sLayoutHalfScale + rLayoutPos.x * MR::getScreenWidth() / sLayoutReferenceWidth;
+        pScreenPos->y = MR::getScreenHeight() * sLayoutHalfScale + -rLayoutPos.y * MR::getScreenHeight() / MR::getScreenHeight();
     }
 
     void convertPaneLocalPosToScreenPos(TVec2f* pScreenPos, const nw4r::lyt::Pane* pPane, const TVec2f& rLocalPos) {
@@ -152,3 +158,9 @@ namespace MR {
         convertLayoutPosToScreenPos(pScreenPos, layoutPos);
     }
 };  // namespace MR
+
+namespace {
+    const f32 sLayoutReferenceWidth = 608.0f;
+    const f32 sLayoutHalfWidth = 304.0f;
+    const f32 sLayoutHalfScale = 0.5f;
+}

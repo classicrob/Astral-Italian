@@ -328,7 +328,7 @@ void CrystalCage::tryOnSwitchDead() {
 }
 
 // NONMATCHING: 68%; target saves LR/r31 after the null check (shrink-wrapped prologue), ours saves them up front (prologue placement only)
-bool CrystalCage::isDisplayModelId(s32 id) {
+bool CrystalCage::isDisplayModelId(s32 id) const {
     if (!mDisplayModel) {
         return false;
     }

@@ -756,7 +756,7 @@ static inline BOOL WPADiCheckReconnect(void) {
 
 // NONMATCHING: compiler inlining, save-gpr range and stack scheduling differ.
 void WPADiManageHandler(OSAlarm*, OSContext*) {
-    s32 chan;
+    u8 chan;
     s32 status = WUDGetStatus();
     if (status != WPAD_STATE_SETUP) {
         if (status == WPAD_STATE_ENABLED && !_initialized) {
@@ -2571,7 +2571,7 @@ void __wpadCertCalcModX(s32 chan) {
     do {
         s32 workBits = LINTMsb(p_cb->certWork);
         if (workBits > modulusBits) {
-            LINTLshift(shifted, __wpadCertModulus, workBits - modulusBits - 1);
+            LINTLshift(shifted, (u32*)__wpadCertModulus, workBits - modulusBits - 1);
             if (LINTCmp(p_cb->certWork, shifted) >= 0) {
                 LINTSub(p_cb->certWork, p_cb->certWork, shifted);
             }
@@ -2595,7 +2595,7 @@ void __wpadCertCalcModY(s32 chan) {
     do {
         s32 workBits = LINTMsb(p_cb->certWork);
         if (workBits > modulusBits) {
-            LINTLshift(shifted, __wpadCertModulus, workBits - modulusBits - 1);
+            LINTLshift(shifted, (u32*)__wpadCertModulus, workBits - modulusBits - 1);
             if (LINTCmp(p_cb->certWork, shifted) >= 0) {
                 LINTSub(p_cb->certWork, p_cb->certWork, shifted);
             }
@@ -2784,7 +2784,7 @@ void __wpadCertWork(s32 chan) {
                 break;
             case 7:
                 if (p_cb->certChallengeBit != 0) {
-                    LINTMul(p_cb->certWork, p_cb->certParamX, __wpadCertMultiplier);
+                    LINTMul(p_cb->certWork, p_cb->certParamX, (u32*)__wpadCertMultiplier);
                 } else {
                     memcpy(p_cb->certWork, p_cb->certParamX, sizeof(p_cb->certParamX));
                 }

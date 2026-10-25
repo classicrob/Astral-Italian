@@ -78,7 +78,7 @@ bool TwoLegsStateWalkNoDamage::isStampTiming(NerveExecutor* pState, TwoLegs* pHo
 }
 
 // NONMATCHING: attacked-flag load is scheduled after the nonvolatile register save.
-bool TwoLegsStateWalkNoDamage::isWalkEnd() {
+bool TwoLegsStateWalkNoDamage::isWalkEnd() const {
     if (mAttacked) {
         return true;
     }

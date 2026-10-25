@@ -261,16 +261,9 @@ bool StarPieceDirector::appearPieceToDirection(const NameObj* pNameObj, const TV
     return appearedStarPiece;
 }
 
-// NONMATCHING: quaternion/vector stack slots and f30/f31 allocation differ.
-bool StarPieceDirector::appearPieceToDirectionRandom(const NameObj* host, const TVec3f& pos, const TVec3f& velocity, s32 count, f32 angle, bool lightEffect, bool ignoreWater, bool quickCollect) {
-    StarPieceHostInfo* hostInfo = findHostInfo(host);
-    if (!hostInfo) return false;
-    bool appeared = false;
-    for (s32 i = 0; i < count; i++) {
-        if (!hostInfo->isAppearable()) break;
-        StarPiece* piece = getDeadStarPiece();
-        TVec3f direction(velocity);
-        TVec3f axis(direction);
+namespace {
+    inline void randomizeStarPieceDirection(TVec3f* pDirection, f32 angle) {
+        TVec3f axis(*pDirection);
         f32 tiltAngle;
         f32 speed = axis.length();
         if (!MR::normalizeOrZero(&axis)) {
@@ -286,9 +279,21 @@ bool StarPieceDirector::appearPieceToDirectionRandom(const NameObj* host, const 
             tilt.transform(rotated);
             spin.transform(rotated);
             align.transform(rotated);
-            direction.set(rotated);
-            direction.setLength(speed);
+            pDirection->set(rotated);
+            pDirection->setLength(speed);
         }
+    }
+}
+
+bool StarPieceDirector::appearPieceToDirectionRandom(const NameObj* host, const TVec3f& pos, const TVec3f& velocity, s32 count, f32 angle, bool lightEffect, bool ignoreWater, bool quickCollect) {
+    StarPieceHostInfo* hostInfo = findHostInfo(host);
+    if (!hostInfo) return false;
+    bool appeared = false;
+    for (s32 i = 0; i < count; i++) {
+        if (!hostInfo->isAppearable()) break;
+        StarPiece* piece = getDeadStarPiece();
+        TVec3f direction(velocity);
+        randomizeStarPieceDirection(&direction, angle);
         if (!piece) break;
         piece->setHostInfo(hostInfo);
         hostInfo->mActiveCount++;

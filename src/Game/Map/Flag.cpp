@@ -303,9 +303,13 @@ void Flag::updateFlag() {
             // Add random wind accel at single point
             s32 pointV = MR::getRandom(0, mNumPointsV);
             s32 pointU = MR::getRandom(0, mNumPointsU);
+#ifdef GALAXY_NATIVE
             f32 windZ = MR::getRandom(-1.0f, 1.0f);
             f32 windX = MR::getRandom(-1.0f, 1.0f);
             TVec3f wind(windX, 0.0f, windZ);
+#else
+            TVec3f wind(MR::getRandom(-1.0f, 1.0f), 0.0f, MR::getRandom(-1.0f, 1.0f));
+#endif
             MR::vecKillElement(wind, mUp, &wind);
             wind.scale(MR::getRandom(mRandomWindAccelMin, mRandomWindAccelMax));
             mFixPoints[pointV].mPoints[pointU]->addAccel(wind);
@@ -317,9 +321,13 @@ void Flag::updateFlag() {
     } else {
         // Add random wind accel across whole flag
         for (s32 idxV = 0; idxV < mNumPointsV; idxV++) {
+#ifdef GALAXY_NATIVE
             f32 windZ = MR::getRandom(-1.0f, 1.0f);
             f32 windX = MR::getRandom(-1.0f, 1.0f);
             TVec3f wind(windX, 0.0f, windZ);
+#else
+            TVec3f wind(MR::getRandom(-1.0f, 1.0f), 0.0f, MR::getRandom(-1.0f, 1.0f));
+#endif
             wind.scale(MR::getRandom(mRandomWindAccelMin, mRandomWindAccelMax));
             mFixPoints[idxV].mPoints[0]->addAccel(wind);
         }

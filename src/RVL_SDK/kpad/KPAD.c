@@ -1352,10 +1352,9 @@ static void KPADiControlMplsCallback(s32 chan, s32 result);
 
 static void KPADiControlDpdCallback(s32 chan, s32 result);
 
-// NONMATCHING: GPR allocation in the exact-size 0x3C-byte copy after three attempts.
-static void KPADiMplsSamplingCallback(s32 chan, const KPADMPLSStatus* sample) {
-    KPADInsideStatus* kp = &inside_kpads[chan];
+static void KPADiMplsSamplingCallback(s32 chan, KPADMPLSStatus* sample) {
     KPADStatus* output;
+    KPADInsideStatus* kp = &inside_kpads[chan];
     if (kp->mplsWritePos) {
         output = kp->mplsWritePos - 1;
         kp->mplsWritePos = output;

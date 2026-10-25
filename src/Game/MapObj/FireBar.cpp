@@ -285,11 +285,10 @@ void FireBar::updateHitSensor(HitSensor* pSensor) {
         return;
     }
 
-    f32 minDistance = FLOAT_MAX;
-
     TVec3f position = mPosition;
 
     s32 fireBallCount = mFireBallCount / mStickCount;
+    f32 minDistance = FLOAT_MAX;
 
     TVec3f up;
     MR::calcUpVec(&up, this);

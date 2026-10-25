@@ -212,7 +212,7 @@ public:
 
     bool tryAttackStrong(HitSensor*, HitSensor*);  // fn_80108920
     bool tryAttack(HitSensor*, HitSensor*);        // fn_80108990
-    bool isStamped(HitSensor*);        // fn_80108A00
+    bool isStamped(HitSensor*) const;        // fn_80108A00
     u8 getAttackFlag() const;          // fn_801089F0
     bool isJumpEnd();                  // fn_80108AB0
     bool tryNextJump();                // fn_80108B50
@@ -244,7 +244,7 @@ public:
     static bool tryStrongStamp(NerveExecutor*, TwoLegs*, HitSensor*, HitSensor*);  // fn_801090C0
     static bool tryStamp(NerveExecutor*, TwoLegs*, HitSensor*, HitSensor*);        // fn_80109120
     static bool isStampTiming(NerveExecutor*, TwoLegs*, HitSensor*);               // fn_80109180
-    bool isWalkEnd();                  // fn_801092D0
+    bool isWalkEnd() const;            // fn_801092D0
     void exeWalk();                    // fn_80109390
 
     /* 0x10 */ s32 mStepCount;

@@ -204,20 +204,22 @@ namespace MR {
         return pSoundHandle;
     }
 
-    // NONMATCHING: target calls non-const getSoundID__21AudSoundNameConverterFPiPCc, ours CFPCc (const decl); 1-2% residual
+    inline JAISoundHandle* startSoundObjectParam(AudSoundObject* pSoundObject, const char* pName, s32 param3, s32 param4) {
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+        return pSoundObject->startSoundParam(id, param3, param4);
+    }
+
     JAISoundHandle* startSound(const LiveActor* pActor, const char* pName, s32 param3, s32 param4) {
         updateMapSoundCodeFoot(pActor);
 
         if (param3 != -1) {
             AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
-            JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
 
-            return pSoundObject->startSoundParam(id, param3, param4);
+            return startSoundObjectParam(pSoundObject, pName, param3, param4);
         } else {
             AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
-            JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
 
-            return pSoundObject->startSound(id);
+            return startSoundObject(pSoundObject, pName);
         }
     }
 

@@ -123,7 +123,7 @@ f32 move_mpls_orient(KMPLSState* state, Vec* direction, Vec* previous, Vec* chan
 }
 
 // NONMATCHING: Temporary matrices/vector copies, stack slots, and FP registers differ; aiming/height refresh, valid-report gate, ordered math-call inputs, and max-error branches are retained.
-f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* context) {
+f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, KPADStatus* context) {
     KMPLSState* state = (KMPLSState*)((uintptr_t)kmplsWork + offsetof(KMPLSWork, channels) + sizeof(KMPLSState) * chan);
     f32 scale = 0.383864f;
     KPADMPLSDirection horizon;
@@ -189,9 +189,9 @@ f32 revise_dir_dpd(s32 chan, KPADMPLSDirection* direction, const KPADStatus* con
 
 // NONMATCHING: Shorter FPR save set and fewer temporary spills; all nine ordered direction-update expressions and normalization argument agree.
 void calc_mpls_dir(KMPLSState* state) {
+    Vec originalZ;
     Vec originalY = state->sample.direction.Y;
     Vec originalX = state->sample.direction.X;
-    Vec originalZ;
     f32 xAfterYx, xAfterYy, xAfterYz;
     f32 yAfterXx, yAfterXy, yAfterXz;
     f32 x = state->rotationStep * state->sample.angularVelocity.x;
@@ -354,7 +354,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 s32 raw;
                 s32 sum;
                 s32 difference;
-                if (state->reportMode < 2) raw = get_mpls_data_x(state, &report->u.mp);
+                if (state->reportMode < 2) raw = get_mpls_data_x(state, (WPADMPStatus*)&report->u.mp);
                 else raw = report->u.fs.fsAccZ;
                 stable[0] = 1;
                 state->history[0][state->historyHead] = raw;
@@ -416,7 +416,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 s32 raw;
                 s32 sum;
                 s32 difference;
-                if (state->reportMode < 2) raw = get_mpls_data_y(state, &report->u.mp);
+                if (state->reportMode < 2) raw = get_mpls_data_y(state, (WPADMPStatus*)&report->u.mp);
                 else raw = -report->u.fs.fsAccX;
                 stable[1] = 1;
                 state->history[1][state->historyHead] = raw;
@@ -478,7 +478,7 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 s32 raw;
                 s32 sum;
                 s32 difference;
-                if (state->reportMode < 2) raw = get_mpls_data_z(state, &report->u.mp);
+                if (state->reportMode < 2) raw = get_mpls_data_z(state, (WPADMPStatus*)&report->u.mp);
                 else raw = -report->u.fs.fsAccY;
                 stable[2] = 1;
                 state->history[2][state->historyHead] = raw;
@@ -600,8 +600,8 @@ void set_calibration_data(s32 chan) {
     }
 }
 
-// NONMATCHING: Initial status-byte load is scheduled before stack allocation; remaining instructions agree modulo pool relocations.
-s32 get_mpls_data_x(KMPLSState* state, const WPADMPStatus* report) {
+// NONMATCHING: literal-pool offsets differ.
+s32 get_mpls_data_x(KMPLSState* state, WPADMPStatus* report) {
     f32 zero;
     f64 conversion;
     f64 value;
@@ -629,8 +629,8 @@ s32 get_mpls_data_x(KMPLSState* state, const WPADMPStatus* report) {
     return (s32)(0.5 + output);
 }
 
-// NONMATCHING: Initial status-byte load is scheduled before stack allocation; remaining instructions agree modulo pool relocations.
-s32 get_mpls_data_y(KMPLSState* state, const WPADMPStatus* report) {
+// NONMATCHING: literal-pool offsets differ.
+s32 get_mpls_data_y(KMPLSState* state, WPADMPStatus* report) {
     f32 zero;
     f64 conversion;
     f64 value;
@@ -658,8 +658,8 @@ s32 get_mpls_data_y(KMPLSState* state, const WPADMPStatus* report) {
     return (s32)(0.5 + output);
 }
 
-// NONMATCHING: Initial status-byte load is scheduled before stack allocation; remaining instructions agree modulo pool relocations.
-s32 get_mpls_data_z(KMPLSState* state, const WPADMPStatus* report) {
+// NONMATCHING: literal-pool offsets differ.
+s32 get_mpls_data_z(KMPLSState* state, WPADMPStatus* report) {
     f32 zero;
     f64 conversion;
     f64 value;
@@ -759,7 +759,7 @@ void KMPLSRead(s32 chan, KPADMPLSStatus* result, s32 ringEnd, s32 count,
             state->accelTrust = 0.0f;
         }
         if (state->dpdCorrection) {
-            state->dpdTrust = revise_dir_dpd(chan, &state->sample.direction, context);
+            state->dpdTrust = revise_dir_dpd(chan, &state->sample.direction, (KPADStatus*)context);
         } else {
             state->dpdTrust = 0.0f;
         }

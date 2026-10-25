@@ -659,20 +659,22 @@ namespace {
         MR::extractMtxTrans(MR::getPlayerBaseMtx(), &playerTrans);
         MR::normalizeOrZero(pOut, playerTrans - pActor->mPosition);
     }
+    inline void calcVecFromPlayerJoint(TVec3f* pOut, TPos3f& joint, const TVec3f& actorPosition) {
+        TVec3f position;
+        TVec3f front;
+        MR::extractMtxTrans(joint.toMtxPtr(), &position);
+        MR::extractMtxZDir(joint.toMtxPtr(), &front);
+        MR::normalizeOrZero(pOut, position - front * 10.0f - actorPosition);
+    }
 };  // namespace
 
-// NONMATCHING: player-joint vector temporaries use different stack slots.
 bool NPCActor::turnToPlayer(f32 f1) {
     TPos3f playerJoint;
     TVec3f zDir;
     TVec3f toPlayer;
     if (mMsgCtrl != nullptr && MR::isTalkTalking(mMsgCtrl)) {
-        TVec3f position;
-        TVec3f front;
         MR::calcPlayerJointMtx(&playerJoint, "Face0");
-        MR::extractMtxTrans(playerJoint.toMtxPtr(), &position);
-        MR::extractMtxZDir(playerJoint.toMtxPtr(), &front);
-        MR::normalizeOrZero(&toPlayer, position - front * 10.0f - mPosition);
+        calcVecFromPlayerJoint(&toPlayer, playerJoint, mPosition);
     } else {
         ::calcVecToPlayer(&toPlayer, this);
     }

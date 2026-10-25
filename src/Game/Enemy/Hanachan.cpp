@@ -1365,31 +1365,32 @@ TVec3f Hanachan::calcSensorDirection(const HitSensor* pSensor, const HitSensor* 
 }
 
 // NONMATCHING: vector expression scheduling, stack slots and saved-register allocation.
+namespace {
+    inline void turnBodyPartToPrevious(TQuat4f* rotation, const TVec3f& position, const TVec3f& target, const TVec3f& gravity) {
+        TVec3f direction = target - position;
+        MR::normalizeOrZero(&direction);
+        MR::blendQuatUpFront(rotation, -gravity, direction, 0.3f, 0.5f);
+    }
+}
+
 void Hanachan::moveBodyAlongHead() {
     for (s32 i = 1; i < mBodyParts.size(); i++) {
+        HanachanParts* const& body = mBodyParts[i];
         TVec3f toPrev = *MR::getSensorPos(mBodyParts[i - 1], "Body");
-        toPrev.sub(*MR::getSensorPos(mBodyParts[i], "Body"));
+        toPrev.sub(*MR::getSensorPos(body, "Body"));
 
         TVec3f push = -toPrev;
         push.setLength(::hCollideRange + MR::getSensorRadius(mBodyParts[i - 1], "Body") / 2.0f +
-                       MR::getSensorRadius(mBodyParts[i], "Body") / 2.0f);
+                       MR::getSensorRadius(body, "Body") / 2.0f);
 
-        mBodyParts[i]->mPushVelocity.add(toPrev + push);
+        body->mPushVelocity.add(toPrev + push);
 
-        if (MR::isBindedWall(mBodyParts[i])) {
-            HanachanParts* parts = mBodyParts[i];
-            TVec3f fall(*parts->getCommonGravity());
-            fall.scale(-5.0f);
-            parts->mFallVelocity.set(fall);
+        if (MR::isBindedWall(body)) {
+            HanachanParts* parts = body;
+            parts->mFallVelocity.set(parts->getCommonGravity()->scaleInline(-5.0f));
         }
 
-        TVec3f* grav = &mBodyParts[i]->mGravity;
-        const TVec3f* pTargetPos = MR::getSensorPos(mBodyParts[i - 1], "Body");
-        const TVec3f* pSensorPos = MR::getSensorPos(mBodyParts[i], "Body");
-        TQuat4f* pRotation = &mBodyParts[i]->mRotationQuat;
-        TVec3f dir = *pTargetPos - *pSensorPos;
-        MR::normalizeOrZero(&dir);
-
-        MR::blendQuatUpFront(pRotation, -*grav, dir, 0.3f, 0.5f);
+        turnBodyPartToPrevious(&body->mRotationQuat, *MR::getSensorPos(body, "Body"),
+                               *MR::getSensorPos(mBodyParts[i - 1], "Body"), body->mGravity);
     }
 }

@@ -491,10 +491,7 @@ void PunchingKinoko::addVelocityToUpPos(f32 height, f32 gain, f32 attenuate) {
     TVec3f up;
     MR::calcPositionUpOffset(&up, this, height);
     TVec3f* pGroundPos = &mGroundChecker->mPosition;
-    TVec3f diff(up);
-    diff.sub(*pGroundPos);
-    TVec3f vel(diff);
-    vel.scale(gain);
+    TVec3f vel = (up - *pGroundPos).scaleInline(gain);
     MR::addVelocity(mGroundChecker, vel);
     MR::attenuateVelocity(mGroundChecker, attenuate);
 }

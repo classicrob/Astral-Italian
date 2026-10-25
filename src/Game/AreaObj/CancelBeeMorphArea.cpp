@@ -17,13 +17,7 @@ void CancelBeeMorphArea::movement() {
     TVec3f up(0.0f);
     MR::getPlayerUpVec(&up);
 
-    TVec3f offset(up);
-    offset.x *= 150.0f;
-    offset.y *= 150.0f;
-    offset.z *= 150.0f;
-
-    TVec3f pos(*MR::getPlayerPos());
-    pos.add(offset);
+    TVec3f pos = *MR::getPlayerPos() + up.scaleInline(150.0f);
 
     if (isInVolume(*MR::getPlayerPos()) || isInVolume(pos)) {
         // the target evaluates the player position once more here; the result is unused

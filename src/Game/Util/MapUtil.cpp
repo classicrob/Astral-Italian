@@ -519,6 +519,16 @@ namespace MR {
         return hit;
     }
 
+    namespace {
+        inline TVec3f calcUpperGroundRayStart(const TVec3f& position, const TVec3f& gravity, f32 scale) {
+            TVec3f offset(gravity);
+            offset.scale(scale);
+            TVec3f start(position);
+            start.sub(offset);
+            return start;
+        }
+    }
+
     bool calcMapGroundUpper(TVec3f* pOut, const LiveActor* pActor) {
         CollisionParts* pParts = getCollisionParts(const_cast<LiveActor*>(pActor));
         TVec3f gravity;
@@ -527,10 +537,7 @@ namespace MR {
         calcModelBoundingRadius(&radius, pActor);
         f32 offsetScale = 2.5f * radius;
         f32 directionScale = 4.0f * radius;
-        TVec3f offset(gravity);
-        offset.scale(offsetScale);
-        TVec3f start(pActor->mPosition);
-        start.sub(offset);
+        TVec3f start = calcUpperGroundRayStart(pActor->mPosition, gravity, offsetScale);
         TVec3f direction(gravity);
         direction.scale(directionScale);
         HitInfo hit;

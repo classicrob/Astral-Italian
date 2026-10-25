@@ -10,15 +10,15 @@
 
 extern char lbl_80694810[];
 #ifdef GALAXY_NATIVE
-extern const char* lbl_807CFA18;
+extern const char* sActionFlagResourceName;
 #else
-const char* lbl_807CFA18 = "ActionFlagCtrl";
+const char* sActionFlagResourceName = "ActionFlagCtrl";
 #endif
 
 ActionFlagSensorInfo::ActionFlagSensorInfo() : mName(nullptr), mFlag(0), mStartFrame(-1), mEndFrame(-1) {}
 
 ActionFlagCtrl* ActionFlagCtrl::tryCreate(LiveActor* pHost) {
-    if (MR::isExistFileInArc(MR::getResourceHolder(pHost), lbl_80694810, lbl_807CFA18)) {
+    if (MR::isExistFileInArc(MR::getResourceHolder(pHost), lbl_80694810, sActionFlagResourceName)) {
         ActionFlagCtrl* pCtrl = new ActionFlagCtrl(pHost);
         if (pCtrl != nullptr) {
             return pCtrl;
@@ -42,7 +42,7 @@ void ActionFlagCtrl::init() {
     ActionFlagInfo* info;
     const char* sensorValue;
     mHitSensorKeeper = mHost->mSensorKeeper;
-    JMapInfo* csv = MR::tryCreateCsvParser(MR::getResourceHolder(mHost), "%s.bcsv", lbl_807CFA18);
+    JMapInfo* csv = MR::tryCreateCsvParser(MR::getResourceHolder(mHost), "%s.bcsv", sActionFlagResourceName);
     if (!csv) return;
     mNumEntries = MR::getCsvDataElementNum(csv);
     mEntries = new ActionFlagInfo[mNumEntries];

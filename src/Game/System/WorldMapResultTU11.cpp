@@ -400,7 +400,7 @@ void WorldMapOwner::tryTalkPoint(s32 node) {
 }
 
 // NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue) (FP order/grouping checked: no FP instructions).
-void WorldMapOwner::prepareWorld() {
+void WorldMapOwner::prepareWorld() const {
     WorldMapOwnerContext* pContext = mContext;
     pContext->mWorld->prepare();
     if (mContext->mModel != nullptr) {
@@ -409,7 +409,7 @@ void WorldMapOwner::prepareWorld() {
 }
 
 // NONMATCHING: instruction scheduling only (the target hoists the mContext load above the stw r0 of the prologue) (FP order/grouping checked: no FP instructions).
-void WorldMapOwner::finishWorld() {
+void WorldMapOwner::finishWorld() const {
     WorldMapOwnerContext* pContext = mContext;
     pContext->mWorld->finish();
     if (mContext->mModel != nullptr) {

@@ -510,9 +510,9 @@ namespace JGeometry {
             f32 c = COS(angle);
 
             this->mMtx[0][0] = 1.0f;
-            this->mMtx[2][1] = s;
             this->mMtx[1][1] = c;
             this->mMtx[1][2] = -s;
+            this->mMtx[2][1] = s;
             this->mMtx[2][2] = c;
             this->mMtx[2][0] = 0.0f;
             this->mMtx[0][2] = 0.0f;
@@ -524,9 +524,9 @@ namespace JGeometry {
             f32 s = SIN(angle);
             f32 c = COS(angle);
 
-            this->mMtx[0][2] = s;
             this->mMtx[1][1] = 1.0f;
             this->mMtx[0][0] = c;
+            this->mMtx[0][2] = s;
             this->mMtx[2][0] = -s;
             this->mMtx[2][2] = c;
             this->mMtx[2][1] = 0.0f;

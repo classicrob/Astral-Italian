@@ -21,6 +21,14 @@
 
 
 namespace {
+    extern const f32 sGlideGravityAccel;
+    extern const f32 sPadPitchOffset;
+    extern const f32 sPitchAngleDamping;
+    extern const f32 sYawInputAccel;
+    extern const f32 sYawAngleDamping;
+    extern const f32 sRollInputAccel;
+    extern const f32 sRollAngleDamping;
+
     extern const f32 sGlideSpeedMin;
     extern const f32 sGlideSpeedMax;
     extern const f32 sPitchPositiveRate;
@@ -663,7 +671,7 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
 
     mSpeed *= 0.995f;
     f32 gravityRate = MR::clamp(mGravity.dot(mDirFront), 0.0f, 1.0f);
-    mSpeed += gravityRate * 0.8f;
+    mSpeed += gravityRate * sGlideGravityAccel;
     mSpeed = MR::clamp(mSpeed, sGlideSpeedMin, sGlideSpeedMax);
 
     MR::turnVecToVecDegree(&mUp, mUp, -mGravity, 1.0f, TVec3f(0, 1, 0));
@@ -673,14 +681,14 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     MR::vecKillElement(mVelocity, mDirFront, &mVelocity);
     MR::vecKillElement(mVelocity, mSide, &mVelocity);
 
-    f32 verticalSpeed = mVelocity.dot(mUp);
-    mFriction = verticalSpeed * frictionRate - sideRate * (1.0f - MR::abs(gravityRate));
+    f64 verticalSpeed = mVelocity.dot(mUp);
+    mFriction = static_cast< f32 >(verticalSpeed) * frictionRate - sideRate * (1.0f - MR::abs(gravityRate));
     mFriction = MR::clamp(mFriction, -sFrictionMinMagnitude, 30.0f);
 
     TVec3f pad(0.0f, 0.0f, 0.0f);
     MR::getCorePadAcceleration(&pad, WPAD_CHAN0);
-    f32 padY = MR::clamp(pad.y, -0.75f, 0.6f);
-    pad.y = padY + 0.42f;
+    f64 padY = MR::clamp(pad.y, -0.75f, 0.6f);
+    pad.y = static_cast< f32 >(padY) + sPadPitchOffset;
 
     mPitchAccel *= 0.95f;
     f32 pitchAdd = 0.0f;
@@ -692,7 +700,8 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     mPitchAccel += pitchAdd;
     mPitchAccel = MR::clamp(mPitchAccel, -sPitchLimit, sPitchLimit);
 
-    mPitchAngle = mPitchAngle * 0.7f + mPitchAccel;
+    mPitchAngle *= sPitchAngleDamping;
+    mPitchAngle += mPitchAccel;
     f32 speedRate = (mSpeed - sGlideSpeedMin) / (sGlideSpeedMax - sGlideSpeedMin);
     f32 ease = MR::getEaseOutValue(speedRate, 0.0f, 1.0f, 1.0f);
     ease = MR::getEaseOutValue(ease, 0.0f, 1.0f, 1.0f);
@@ -712,7 +721,7 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
         }
 
         padX = MR::clamp(padX, -sPadSideLimit, sPadSideLimit);
-        mYawAccel += padX * 0.3f;
+        mYawAccel += padX * sYawInputAccel;
         mYawAccel = MR::clamp(mYawAccel, -sYawAccelLimit, sYawAccelLimit);
     }
 
@@ -720,7 +729,8 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
         mYawAccel = 0.0f;
     }
 
-    mYawAngle = mYawAngle * 0.7f + mYawAccel;
+    mYawAngle *= sYawAngleDamping;
+    mYawAngle += mYawAccel;
     mYawAngle = MR::clamp(mYawAngle, -sYawLimit, sYawLimit);
     MR::rotateVecDegree(&mDirUp, mUp, mFront, mYawAngle);
 
@@ -782,11 +792,12 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
         }
 
         padX = MR::clamp(padX, -sPadSideLimit, sPadSideLimit);
-        mRollAccel += padX * 0.3f;
+        mRollAccel += padX * sRollInputAccel;
         mRollAccel = MR::clamp(mRollAccel, -sRollAccelLimit, sRollAccelLimit);
     }
 
-    mRollAngle = mRollAngle * 0.8f + mRollAccel;
+    mRollAngle *= sRollAngleDamping;
+    mRollAngle += mRollAccel;
     mRollAngle = MR::clamp(mRollAngle, -sRollAngleLimit, sRollAngleLimit);
 
     if (pad.z > -sPadBackLimit || MR::abs(pad.x) > 0.15f) {
@@ -1119,4 +1130,14 @@ namespace {
     const f32 sRollAccelLimit = 10.0f;
     const f32 sRollAngleLimit = 50.0f;
     extern const volatile f32 sWaterPitchLift = 0.0f;
+}
+
+namespace {
+    const f32 sGlideGravityAccel = 0.8f;
+    const f32 sPadPitchOffset = 0.42f;
+    const f32 sPitchAngleDamping = 0.7f;
+    const f32 sYawInputAccel = 0.3f;
+    const f32 sYawAngleDamping = 0.7f;
+    const f32 sRollInputAccel = 0.3f;
+    const f32 sRollAngleDamping = 0.8f;
 }

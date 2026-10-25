@@ -23,7 +23,7 @@ public:
     void initModel();
     void tryOnSwitchDead();
     void appear();
-    bool isDisplayModelId(s32);
+    bool isDisplayModelId(s32) const;
     bool hasPowerStarId();
     void exeFall();
     void exeWait();

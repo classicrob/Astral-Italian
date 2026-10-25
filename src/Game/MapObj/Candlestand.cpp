@@ -290,9 +290,7 @@ void Candlestand::appearItem() {
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);
 
-    TVec3f offset(upVec);
-    offset *= height;
-    position += offset;
+    position += upVec * height;
 
     if (mItem == -1) {
         angle = ::getParam(mObjectName)->mCoinAngle;

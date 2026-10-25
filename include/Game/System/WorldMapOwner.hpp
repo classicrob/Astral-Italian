@@ -61,7 +61,7 @@ public:
     bool isGalaxyInfoAppeared() const;
     const char* getGalaxyInfoName() const;
     void showGalaxyInfo(const char* pName);
-    void setRocketPosWithTarget(const TVec3f* pPos);  // fn_804E8480: rocket position, then the camera target follows the rocket
+    void setRocketPosWithTarget(const TVec3f* pPos) const;  // fn_804E8480: rocket position, then the camera target follows the rocket
     void setRocketScale(const TVec3f* pScale);        // fn_804E84D0
     const TVec3f* getRocketPosition() const;          // fn_804E8510: position of the camera holder's rocket
     void startDemo();                                 // fn_804E8780
@@ -104,8 +104,8 @@ public:
     s32 updatePointing() NO_INLINE;
     void updateCurrentPaths() NO_INLINE;
     void tryTalkPoint(s32 node) NO_INLINE;
-    void prepareWorld() NO_INLINE;
-    void finishWorld() NO_INLINE;
+    void prepareWorld() const NO_INLINE;
+    void finishWorld() const NO_INLINE;
     const char* getCurrentGalaxyName() NO_INLINE;
     bool hasWorldDataAtCurrent() NO_INLINE;
     bool isWorldDataType3AtCurrent() NO_INLINE;

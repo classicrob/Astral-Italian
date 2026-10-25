@@ -1,5 +1,3 @@
-#define JGEOMETRY_VEC3_WMR_OUTLINE
-#pragma auto_inline off
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -7,7 +5,10 @@
 #include "Game/Util/TalkUtil.hpp"
 #include "Game/System/WorldMapResultStateLeaveHome.hpp"
 
-extern TVec3f sCameraTable[4];
+extern TVec3f sCameraTable;
+extern TVec3f lbl_8072BAFC;
+extern TVec3f lbl_8072BB08;
+extern TVec3f lbl_8072BB14;
 
 static const char* sWorldNewsCameraName = "ワールドニュースカメラ(ワールド1初プレイ)";
 
@@ -155,12 +156,11 @@ void WorldMapResultStateLeaveHome::exeStart() {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::calcCenter() {
     WorldMapResultBox box;
     box.extendByWorld(mHost->getWorld());
     mCenter.set<f32>(box.mMax.x, mPos.y, mPos.z);
-    mCenter.add(sCameraTable[3]);
+    mCenter.add(lbl_8072BB14);
 }
 
 void WorldMapResultStateLeaveHome::moveCamera(s32 step) {
@@ -197,7 +197,6 @@ void WorldMapResultStateLeaveHome::exeMove() {
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -214,19 +213,12 @@ void WorldMapResultStateLeaveHome::exeZoomIn() {
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x5A);
     WorldMapOwner* host = mHost;
-    TVec3f sp8(mPos);
-    sp8.add(sCameraTable[0]);
-    TVec3f sp14 = sp8 * (1.0f - rate);
-    TVec3f sp20 = mPos * rate;
-    TVec3f sp2C(sp20);
-    sp2C.add(sp14);
-    host->setRocketPosFromPrev(sp2C);
+    host->setRocketPosFromPrev(mPos * rate + (mPos + sCameraTable) * (1.0f - rate));
     if (MR::isGreaterEqualStep(this, 0x5A)) {
         kill();
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -243,19 +235,12 @@ void WorldMapResultStateLeaveHome::exeZoomOut() {
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x1E);
     WorldMapOwner* host = mHost;
-    TVec3f sp8(mPos);
-    sp8.add(sCameraTable[1]);
-    TVec3f sp14 = sp8 * (1.0f - rate);
-    TVec3f sp20 = mPos * rate;
-    TVec3f sp2C(sp20);
-    sp2C.add(sp14);
-    host->setRocketPosFromPrev(sp2C);
+    host->setRocketPosFromPrev(mPos * rate + (mPos + lbl_8072BAFC) * (1.0f - rate));
     if (MR::isGreaterEqualStep(this, 0x1E)) {
         kill();
     }
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 void WorldMapResultStateLeaveHome::exeZoomOutSub() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -272,13 +257,7 @@ void WorldMapResultStateLeaveHome::exeZoomOutSub() {
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x1E);
     WorldMapOwner* host = mHost;
-    TVec3f sp8(mPos);
-    sp8.add(sCameraTable[2]);
-    TVec3f sp14 = sp8 * (1.0f - rate);
-    TVec3f sp20 = mPos * rate;
-    TVec3f sp2C(sp20);
-    sp2C.add(sp14);
-    host->setRocketPosFromPrev(sp2C);
+    host->setRocketPosFromPrev(mPos * rate + (mPos + lbl_8072BB08) * (1.0f - rate));
     if (MR::isGreaterEqualStep(this, 0x1E)) {
         kill();
     }
@@ -372,10 +351,7 @@ namespace NrvWorldMapResultStateLeaveHome {
     WorldMapResultStateLeaveHomeFovOut WorldMapResultStateLeaveHomeFovOut::sInstance ATTRIBUTE_WEAK;
     WorldMapResultStateLeaveHomeMessageEnd WorldMapResultStateLeaveHomeMessageEnd::sInstance ATTRIBUTE_WEAK;
 };  
-// NONMATCHING: static initialization order and base-load scheduling (FP argument order/grouping checked).
-TVec3f sCameraTable[4] = {
-    TVec3f(-16000.0f, 0.0f, 0.0f),
-    TVec3f(-9000.0f, 0.0f, 0.0f),
-    TVec3f(9000.0f, 0.0f, 0.0f),
-    TVec3f(-35000.0f, 0.0f, 0.0f),
-};
+TVec3f sCameraTable(-16000.0f, 0.0f, 0.0f);
+TVec3f lbl_8072BAFC(-9000.0f, 0.0f, 0.0f);
+TVec3f lbl_8072BB08(9000.0f, 0.0f, 0.0f);
+TVec3f lbl_8072BB14(-35000.0f, 0.0f, 0.0f);

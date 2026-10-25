@@ -177,7 +177,7 @@ static JAUStdSoundInfo* newSoundInfo(JAUSection* pSection) {
 namespace {
     // position of the sound's audible (if it has one)
 // NONMATCHING: instruction scheduling
-    bool getSoundPos(JAISound& rSound, TVec3f* pPos) NO_INLINE {
+    bool getSoundPos(const JAISound& rSound, TVec3f* pPos) NO_INLINE {
         JAIAudible* audible = rSound.mAudible;
         if (audible != nullptr) {
             pPos->set(audible->getPos());

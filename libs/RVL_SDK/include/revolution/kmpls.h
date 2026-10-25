@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 // The callback receives one 0x3C-byte result, valid for the duration of the call.
-typedef void (*KMPLSSamplingCallback)(s32 chan, const KPADMPLSStatus* sample);
+typedef void (*KMPLSSamplingCallback)(s32 chan, KPADMPLSStatus* sample);
 BOOL KMPLSIsInit(void);
 void KMPLSSetKpadRingBuffer(s32 chan, const KPADUnifiedWpadStatus* internalRing,
                           const KPADUnifiedWpadStatus* externalRing, u32 externalLength);

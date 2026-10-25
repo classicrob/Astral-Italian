@@ -637,8 +637,7 @@ void KingTossin::exeRollingLv2() {
         mRollCount++;
         mIsTargetInSight = false;
         mTimer = 60;
-        TVec3f up = -mGravity;
-        PSVECCrossProduct(&up, &mMoveDir, &mMoveDir);
+        mMoveDir.cross(-mGravity, mMoveDir);
         MR::rotateVecDegree(&mMoveDir, mGravity, 45.0f * MR::getRandom(0L, 5L));
         MR::normalizeOrZero(&mMoveDir);
 

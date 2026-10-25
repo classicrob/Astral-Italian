@@ -210,7 +210,7 @@ PartsModel* WorldMapFunction::createPartsModel(LiveActor* host, const char* name
 }
 MiniPlayerRocket* WorldMapOwner::getRocket() const { return mContext->mCamera->mRocket; }
 // NONMATCHING: regalloc (FP order/grouping checked: no FP instructions).
-void WorldMapOwner::setRocketPosWithTarget(const TVec3f* pos) {
+void WorldMapOwner::setRocketPosWithTarget(const TVec3f* pos) const {
     WorldMapCameraHolder* camera = mContext->mCamera;
     MiniPlayerRocket* rocket = camera->mRocket;
     MR::setPosition(rocket, *pos);

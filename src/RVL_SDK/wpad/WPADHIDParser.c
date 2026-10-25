@@ -1149,9 +1149,9 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
     if (mode == 4) {
         if ((data[5] & 3) == 2) {
             MP_REPORT->status = (data[4] & 3) | ((data[3] & 3) << 2) | 0x80;
-            MP_REPORT->rotation[0] = (s16)data[2] | (s16)((data[5] & 0xFC) << 6);
-            MP_REPORT->rotation[1] = (s16)data[0] | (s16)((data[3] & 0xFC) << 6);
-            MP_REPORT->rotation[2] = (s16)data[1] | (s16)((data[4] & 0xFC) << 6);
+            MP_REPORT->rotation[0] = (s16)((data[5] & 0xFC) << 6) | (s16)data[2];
+            MP_REPORT->rotation[1] = (s16)((data[3] & 0xFC) << 6) | (s16)data[0];
+            MP_REPORT->rotation[2] = (s16)((data[4] & 0xFC) << 6) | (s16)data[1];
         } else {
             (*p_status)->err = WPAD_ERR_CORRUPTED;
         }
@@ -1245,9 +1245,9 @@ void __parse_mp_data(s32 chan, WPADStatus** p_status, u8 mode, u8* data, u8 len)
             if (MP_REPORT->status & 1) {
                 MP_REPORT->status |= previous->status & 0x40;
             }
-            MP_REPORT->rotation[0] = (s16)data[2] | (s16)((data[5] & 0xFC) << 6);
-            MP_REPORT->rotation[1] = (s16)data[0] | (s16)((data[3] & 0xFC) << 6);
-            MP_REPORT->rotation[2] = (s16)data[1] | (s16)((data[4] & 0xFC) << 6);
+            MP_REPORT->rotation[0] = (s16)((data[5] & 0xFC) << 6) | (s16)data[2];
+            MP_REPORT->rotation[1] = (s16)((data[3] & 0xFC) << 6) | (s16)data[0];
+            MP_REPORT->rotation[2] = (s16)((data[4] & 0xFC) << 6) | (s16)data[1];
         }
     } else {
         (*p_status)->err = WPAD_ERR_CORRUPTED;

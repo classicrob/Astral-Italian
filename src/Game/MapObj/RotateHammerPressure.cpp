@@ -3,12 +3,16 @@
 #include <revolution/mtx.h>
 #include "Game/Util.hpp"
 
-static const TVec3f sRotateHammerPressureOffsets[4] = {
-    TVec3f(-800.0f, -600.0f, 0.0f),
-    TVec3f(605.0f, 800.0f, 0.0f),
-    TVec3f(1.0f, 1.0f, 1.0f),
-    TVec3f(-600.0f, 450.0f, 0.0f),
-};
+namespace MR {
+    inline void setMtxTrans(MtxPtr mtx, const TVec3f& position) {
+        setMtxTrans(mtx, position.x, position.y, position.z);
+    }
+}
+
+static const TVec3f sUpShadowOffset(-800.0f, -600.0f, 0.0f);
+static const TVec3f sSideShadowOffset(605.0f, 800.0f, 0.0f);
+static const TVec3f sShadowScale(1.0f, 1.0f, 1.0f);
+static const TVec3f sPushCollisionOffset(-600.0f, 450.0f, 0.0f);
 
 RotateHammerPressure::RotateHammerPressure(const char* name)
     : RotateMoveObj(name), mUpDir(0.0f, 0.0f, 0.0f), mSideDir(0.0f, 0.0f, 0.0f), _1A8(false), _1A9(false), mPushCollision(nullptr) {
@@ -55,9 +59,7 @@ void RotateHammerPressure::init(const JMapInfoIter& rIter) {
     MR::setEffectHostMtx(this, "Stop", mMatrices[3]);
 }
 
-// NONMATCHING: vector stack slots, floating-point scheduling, and folded scale arithmetic differ.
 void RotateHammerPressure::control() {
-    const TVec3f* offsets = sRotateHammerPressureOffsets;
     MapObjActor::control();
     if (_1A8) {
         return;
@@ -65,8 +67,8 @@ void RotateHammerPressure::control() {
     {
         TVec3f sideOffset;
         TVec3f upOffset;
-        PSMTXMultVecSR(mMatrices[0], &offsets[1], &sideOffset);
-        PSMTXMultVecSR(mMatrices[0], &offsets[0], &upOffset);
+        PSMTXMultVecSR(mMatrices[0], &sSideShadowOffset, &sideOffset);
+        PSMTXMultVecSR(mMatrices[0], &sUpShadowOffset, &upOffset);
         MR::setShadowProjection(this, "UpShadow", mPosition + upOffset, -mUpDir, true);
         MR::setShadowProjection(this, "SideShadow", mPosition + sideOffset, mSideDir, true);
         TVec3f up;
@@ -76,32 +78,34 @@ void RotateHammerPressure::control() {
             MR::invalidateShadow(this, "UpShadow");
         } else {
             mMatrices[3].set(getBaseMtx());
-            TVec3f pos = mPosition + upOffset;
-            MR::setMtxTrans(mMatrices[3], pos.x, pos.y, pos.z);
+            MR::setMtxTrans(mMatrices[3], mPosition + upOffset);
             MR::validateShadow(this, "UpShadow");
         }
         if (angle > 50.0f) {
             MR::invalidateShadow(this, "SideShadow");
         } else {
             mMatrices[3].set(getBaseMtx());
-            TVec3f pos = mPosition + sideOffset;
-            MR::setMtxTrans(mMatrices[3], pos.x, pos.y, pos.z);
+            MR::setMtxTrans(mMatrices[3], mPosition + sideOffset);
             MR::validateShadow(this, "SideShadow");
         }
-        f32 upScale = MR::clamp(0.5f + (angle - 40.0f) / (90.0f - 40.0f), 0.1f, 1.0f);
+        f32 maxAngle = 90.0f;
+        f32 minAngle = 40.0f;
+        f32 upScale = MR::clamp(0.5f + (angle - minAngle) / (maxAngle - minAngle), 0.1f, 1.0f);
         mMatrices[1].set(getBaseMtx());
         mMatrices[1].setScale(upScale);
-        f32 sideScale = 1.0f - MR::clamp(angle / 50.0f - 0.5f, 0.0f, 1.0f - 0.1f);
+        f32 halfScale = 0.5f;
+        f32 maxScale = 1.0f;
+        f32 minScale = 0.1f;
+        angle = 1.0f - MR::clamp(angle / 50.0f - halfScale, 0.0f, maxScale - minScale);
         mMatrices[2].set(getBaseMtx());
-        mMatrices[2].setScale(sideScale);
+        mMatrices[2].setScale(angle);
     }
-    TVec3f offset(offsets[3]);
+    TVec3f offset(sPushCollisionOffset);
     if (_1A9) offset.x = -offset.x;
     TVec3f up(0.0f);
     mMatrices[0].getZDir(up);
     if (_1A9) {
-        TVec3f gravity(-mGravity);
-        PSVECCrossProduct(&gravity, &up, &up);
+        up.cross(-mGravity, up);
     } else {
         PSVECCrossProduct(&mGravity, &up, &up);
     }

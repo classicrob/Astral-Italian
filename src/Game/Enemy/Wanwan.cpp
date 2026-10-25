@@ -899,9 +899,15 @@ void Wanwan::exeBreak() {
         mtx.concat(rot, mtx);
         TVec3f euler;
         mtx.getEulerXYZ(euler);
-        mModel->mRotation.x = euler.x * 57.29578f;
-        mModel->mRotation.y = euler.y * 57.29578f;
-        mModel->mRotation.z = euler.z * 57.29578f;
+        f32 x = euler.x;
+        f32 y = euler.y;
+        f32 z = euler.z;
+        x *= 57.29578f;
+        y *= 57.29578f;
+        z *= 57.29578f;
+        mModel->mRotation.x = x;
+        mModel->mRotation.y = y;
+        mModel->mRotation.z = z;
         mModel->appear();
         MR::invalidateClipping(mModel);
         MR::startAction(mModel, "Break");

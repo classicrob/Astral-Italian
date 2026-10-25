@@ -15,7 +15,7 @@ A native Apple Silicon Mac port of Super Mario Galaxy 2, built on the community 
 - On M1-class Macs the title screen can show intermittent bursts of slow frames on a relaunch (in our measurements 7-41 frames over 50 ms in the first 5 minutes, worst 70-600 ms); 5.4.1 shows the same intermittently, so it is not new in this build.
 - Rare gameplay stalls remain: one 258 ms frame in the VsKoopaLv1 Bowser battle galaxy and one 111 ms frame on the first visit to Sky Station.
 - The cold-start menu can still be slightly less even than 5.4.1 on some runs, though its worst frames are far better.
-- On M1-class Macs, audio can occasionally crackle or drop out for a moment, sometimes in short bursts; we are investigating. If it happens, press M (or F9) right after, and mention it in the note when you run Collect Bug Report.command.
+- Audio can occasionally crackle or drop out for a moment, sometimes in short bursts (seen mostly on M1-class Macs); we are investigating. If it happens, press M (or F9) right after, and mention it in the note when you run Collect Bug Report.command.
 - A direct boot into World 8's map galaxy crashes (not reachable in normal play).
 - Windowed play adds some input latency compared with fullscreen (VSync Auto turns VSync off in fullscreen).
 

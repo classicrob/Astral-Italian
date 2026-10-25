@@ -5,22 +5,11 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class YoshiBlock;
+class YoshiBlockCollision;
 class DiceMover;
 class ResourceHolder;
 
-class YoshiBlockCollision : public DynamicCollisionObj {
-public:
-    YoshiBlockCollision(YoshiBlock*);
 
-    virtual ~YoshiBlockCollision();
-
-    virtual void init(const JMapInfoIter&);
-    virtual void appear();
-    virtual void kill();
-    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
-
-    /* 0x128 */ YoshiBlock* mYoshiBlock;
-};
 
 class YoshiBlock : public LiveActor {
 public:
@@ -44,4 +33,18 @@ public:
     /* 0xCC */ TVec3f mBasePos;
     /* 0xD8 */ TVec3f mBaseRot;
     /* 0xE4 */ TVec3f mSize;
+};
+
+class YoshiBlockCollision : public DynamicCollisionObj {
+public:
+    YoshiBlockCollision(YoshiBlock*);
+
+    virtual ~YoshiBlockCollision();
+
+    virtual void init(const JMapInfoIter&);
+    virtual void appear();
+    virtual void kill();
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
+
+    /* 0x128 */ YoshiBlock* mYoshiBlock;
 };

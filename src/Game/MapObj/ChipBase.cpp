@@ -21,6 +21,10 @@
 #endif
 
 namespace {
+    extern char sChipWaitAction[];
+}
+
+namespace {
     static const f32 sBubbleHitRadius = 150.0f;
     static const f32 sBodyHitRadius = 80.0f;
     static const f32 sShadowRadius = 50.0f;
@@ -36,7 +40,7 @@ inline void ChipBase::exeHide() {}
 
 inline void ChipBase::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, "Wait");
+        MR::tryStartActionNotPlaying(this, sChipWaitAction);
         MR::validateHitSensors(this);
     }
 }
@@ -113,6 +117,10 @@ void ChipBase::initSensor() {
     }
 
     MR::addHitSensorEnemy(this, "Body", 8, radius * scale, TVec3f(0.0f, ::sBodyHitYOffset, 0.0f));
+}
+
+namespace {
+    char sChipWaitAction[] = "Wait";
 }
 
 void ChipBase::initShadow(const JMapInfoIter& rIter) {
@@ -296,7 +304,7 @@ bool ChipBase::requestGet(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool ChipBase::requestShow() {
     if (isNerve(GET_NERVE(ChipBase, ChipBaseNrvHide))) {
-        MR::startAction(this, "Wait");
+        MR::startAction(this, sChipWaitAction);
         MR::showModel(this);
 
         setNerve(GET_NERVE(ChipBase, ChipBaseNrvWait));
@@ -389,7 +397,7 @@ void ChipBase::startFall() {
 
 void ChipBase::exeFall() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, "Wait");
+        MR::tryStartActionNotPlaying(this, sChipWaitAction);
         MR::validateHitSensors(this);
     }
 
@@ -404,7 +412,7 @@ void ChipBase::exeFall() {
 
 void ChipBase::exeFlashing() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, "Wait");
+        MR::tryStartActionNotPlaying(this, sChipWaitAction);
         MR::validateHitSensors(this);
     }
 

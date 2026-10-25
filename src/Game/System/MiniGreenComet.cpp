@@ -8,10 +8,10 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-static const char* sAppearActionName = "MiniGreenComet";
-
 MiniGreenComet::MiniGreenComet() : LiveActor("グリーンコメット（ワールドマップ）") {
 }
+
+static const char* sAppearActionName = "MiniGreenComet";
 
 void MiniGreenComet::init(const JMapInfoIter& rIter) {
     s32 result = MR::initActor(this, rIter, "MiniGreenComet", false);

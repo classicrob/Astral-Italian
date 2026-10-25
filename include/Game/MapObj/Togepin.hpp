@@ -8,17 +8,6 @@ class MapObjConnector;
 class TogepinHole;
 class TogepinScorerSub;
 
-class TogepinHole : public LiveActor {
-public:
-    TogepinHole(const char*, LiveActor*);
-
-    virtual ~TogepinHole();
-    virtual void init(const JMapInfoIter&);
-    virtual void calcAndSetBaseMtx();
-
-    /* 0x90 */ MapObjConnector* mConnector;
-};
-
 class Togepin : public LiveActor {
 public:
     Togepin(const char*, LiveActor*);
@@ -51,6 +40,17 @@ public:
     /* 0x98 */ TogepinHole* mHole;
     /* 0x9C */ TVec3f mInitPos;
     /* 0xA8 */ bool mIsRushRockMario;
+};
+
+class TogepinHole : public LiveActor {
+public:
+    TogepinHole(const char*, LiveActor*);
+
+    virtual ~TogepinHole();
+    virtual void init(const JMapInfoIter&);
+    virtual void calcAndSetBaseMtx();
+
+    /* 0x90 */ MapObjConnector* mConnector;
 };
 
 class TogepinGroup : public LiveActorGroup {

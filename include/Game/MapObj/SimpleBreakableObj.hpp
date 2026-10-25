@@ -63,6 +63,15 @@ public:
     /* 0xF2 */ bool _E6;
 };
 
+class CollisionParts;
+
+class SimpleBreakableStrongLightObj : public SimpleBreakableObj {
+public:
+    SimpleBreakableStrongLightObj(const char* pName) : SimpleBreakableObj(pName) {}
+    virtual ~SimpleBreakableStrongLightObj();
+    virtual void connectToScene(const MapObjActorInitInfo&);
+};
+
 class SimpleBreakableIndirectObj : public SimpleBreakableObj {
 public:
     SimpleBreakableIndirectObj(const char* pName) : SimpleBreakableObj(pName) {
@@ -72,15 +81,6 @@ public:
     }
 
     virtual void connectToScene(const MapObjActorInitInfo&) override;
-};
-
-class CollisionParts;
-
-class SimpleBreakableStrongLightObj : public SimpleBreakableObj {
-public:
-    SimpleBreakableStrongLightObj(const char* pName) : SimpleBreakableObj(pName) {}
-    virtual ~SimpleBreakableStrongLightObj();
-    virtual void connectToScene(const MapObjActorInitInfo&);
 };
 
 class SimpleBreakableCollisionObj : public SimpleBreakableObj {

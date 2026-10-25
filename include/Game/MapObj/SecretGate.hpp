@@ -23,12 +23,7 @@ public:
     /* 0xA8 */ TVec3f mEffectTrans;
 };
 
-class SecretGateGroup : public LiveActorGroup {
-public:
-    SecretGateGroup(const char*, int);
 
-    virtual ~SecretGateGroup();
-};
 
 class SecretGateCounter : public LiveActor {
 public:
@@ -43,4 +38,11 @@ public:
     /* 0x90 */ LiveActorGroup* mGroup;
     /* 0x94 */ s32 mPassCount;
     /* 0x98 */ CollectCounter* mCounter;
+};
+
+class SecretGateGroup : public LiveActorGroup {
+public:
+    SecretGateGroup(const char*, int);
+
+    virtual ~SecretGateGroup();
 };

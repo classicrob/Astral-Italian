@@ -9,6 +9,23 @@
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
+namespace {
+    char sDrillBulletModelName[] = "Horino";
+    char sDrillBulletHillName[] = "ホリーノ塚の道";
+    char sDrillBulletBodySensor[] = "Body";
+    char sDrillBulletAttackSensor[] = "Attack";
+    char sDrillBulletScaleAction[] = "Scale";
+    char sDrillBulletFreezeState[] = "SupportFreeze";
+    char sDrillBulletGroundAction[] = "Ground";
+    char sDrillBulletDigInAction[] = "DigWallIn";
+    char sDrillBulletDigOutSignAction[] = "DigWallOutSign";
+    char sDrillBulletDigOutAction[] = "DigWallOut";
+    char sDrillBulletStepDownAction[] = "StepDown";
+    char sDrillBulletSpinAction[] = "SpinReaction";
+    char sDrillBulletAttackSuccessAction[] = "AttackSuccess";
+    char sDrillBulletExplosionEffect[] = "Explosion";
+}
+
 namespace NrvDrillBullet {
     NEW_NERVE(DrillBulletNrvMove, DrillBullet, Move);
     NEW_NERVE(DrillBulletNrvDigWallIn, DrillBullet, DigWallIn);
@@ -20,7 +37,12 @@ namespace NrvDrillBullet {
     // Star-pointer bind: updates the state, then goes back to Move unless it can dig again.
     class DrillBulletNrvBindStarPointer : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const;
+        virtual void execute(Spine* pSpine) const {
+            DrillBullet* pActor = reinterpret_cast<DrillBullet*>(pSpine->mExecutor);
+            if (MR::updateActorState(pActor) && !pActor->tryDigWall()) {
+                pActor->setNerve(&DrillBulletNrvMove::sInstance);
+            }
+        }
         static DrillBulletNrvBindStarPointer sInstance;
     };
     DrillBulletNrvBindStarPointer DrillBulletNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
@@ -44,19 +66,19 @@ DrillBullet::~DrillBullet() {
 }
 
 void DrillBullet::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "Horino", false);
+    MR::initActor(this, rIter, sDrillBulletModelName, false);
     MR::addEffectHitNormal(this, nullptr);
     MR::moveCoordAndTransToNearestRailPos(this);
     MR::initAndSetRailClipping(&mRailClip, this, 100.0f, 500.0f);
 
-    mPartsModel = new HorinoHill(this, 7, "ホリーノ塚の道", 150.0f);
+    mPartsModel = new HorinoHill(this, 7, sDrillBulletHillName, 150.0f);
     mPartsModel->initWithoutIter();
     mScale.x = 1.2f;
     mScale.y = 1.2f;
     mScale.z = 1.2f;
-    MR::setSensorRadius(this, "Body", 1.2f * MR::getSensorRadius(this, "Body"));
-    MR::setSensorRadius(this, "Attack", 1.2f * MR::getSensorRadius(this, "Attack"));
-    MR::startBtkAndSetFrameAndStop(this, "Scale", 1.0f);
+    MR::setSensorRadius(this, sDrillBulletBodySensor, 1.2f * MR::getSensorRadius(this, sDrillBulletBodySensor));
+    MR::setSensorRadius(this, sDrillBulletAttackSensor, 1.2f * MR::getSensorRadius(this, sDrillBulletAttackSensor));
+    MR::startBtkAndSetFrameAndStop(this, sDrillBulletScaleAction, 1.0f);
     MR::invalidateShadowAll(this);
 
     MR::getJMapInfoArg0NoInit(rIter, &mIsNoGravity);
@@ -68,7 +90,7 @@ void DrillBullet::init(const JMapInfoIter& rIter) {
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mAnimScaleCtrl->setParamTight();
     mStarPointBind = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
-    MR::initActorState(this, mStarPointBind, GET_DRILL_BULLET_NERVE(DrillBulletNrvBindStarPointer), "SupportFreeze");
+    MR::initActorState(this, mStarPointBind, GET_DRILL_BULLET_NERVE(DrillBulletNrvBindStarPointer), sDrillBulletFreezeState);
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), TVec3f(0.0f, 75.0f, 0.0f));
 
     if (MR::useStageSwitchAwake(this, rIter)) {
@@ -208,8 +230,8 @@ void DrillBullet::makeActorDead() {
 
 void DrillBullet::kill() {
     MR::tryRumbleDefaultHit(this, 0);
-    MR::emitEffect(this, "Explosion");
-    MR::startActionSound(this, "Explosion", -1, -1, -1);
+    MR::emitEffect(this, sDrillBulletExplosionEffect);
+    MR::startActionSound(this, sDrillBulletExplosionEffect, -1, -1, -1);
     LiveActor::kill();
 }
 
@@ -218,8 +240,8 @@ void DrillBullet::kill() {
 void DrillBullet::exeMove() {
     if (MR::isFirstStep(this)) {
         mPartsModel->appear();
-        MR::emitEffect(this, "Ground");
-        MR::startAction(this, "Horino");
+        MR::emitEffect(this, sDrillBulletGroundAction);
+        MR::startAction(this, sDrillBulletModelName);
     }
     MR::moveCoordAndFollowTrans(this, 8.0f);
     tryDigWall();
@@ -227,28 +249,28 @@ void DrillBullet::exeMove() {
 
 void DrillBullet::exeDigWallIn() {
     if (MR::isFirstStep(this)) {
-        MR::emitEffect(this, "DigWallIn");
+        MR::emitEffect(this, sDrillBulletDigInAction);
     }
     MR::moveCoordAndFollowTrans(this, 1.6f);
-    if (!MR::isEffectValid(this, "DigWallIn")) {
+    if (!MR::isEffectValid(this, sDrillBulletDigInAction)) {
         setNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvMove));
     }
 }
 
 void DrillBullet::exeDigWallOut() {
     if (MR::isFirstStep(this)) {
-        MR::emitEffect(this, "DigWallOutSign");
+        MR::emitEffect(this, sDrillBulletDigOutSignAction);
     }
     MR::moveCoordAndFollowTrans(this, 1.6f);
-    if (!MR::isEffectValid(this, "DigWallOutSign")) {
-        MR::emitEffect(this, "DigWallOut");
+    if (!MR::isEffectValid(this, sDrillBulletDigOutSignAction)) {
+        MR::emitEffect(this, sDrillBulletDigOutAction);
         setNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvMove));
     }
 }
 
 void DrillBullet::exeStepDown() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "StepDown");
+        MR::startAction(this, sDrillBulletStepDownAction);
     }
     if (MR::isActionEnd(this)) {
         MR::emitItemStomp(this);
@@ -259,9 +281,9 @@ void DrillBullet::exeStepDown() {
 void DrillBullet::exeReaction() {
     if (MR::isFirstStep(this)) {
         if (isNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvSpinReaction))) {
-            MR::startAction(this, "SpinReaction");
+            MR::startAction(this, sDrillBulletSpinAction);
         } else {
-            MR::startAction(this, "AttackSuccess");
+            MR::startAction(this, sDrillBulletAttackSuccessAction);
         }
     }
     MR::moveCoordAndFollowTrans(this, 8.0f);
@@ -321,11 +343,4 @@ bool DrillBullet::isTargetable() const {
         return true;
     }
     return false;
-}
-
-void NrvDrillBullet::DrillBulletNrvBindStarPointer::execute(Spine* pSpine) const {
-    DrillBullet* pActor = reinterpret_cast<DrillBullet*>(pSpine->mExecutor);
-    if (MR::updateActorState(pActor) && !pActor->tryDigWall()) {
-        pActor->setNerve(GET_DRILL_BULLET_NERVE(DrillBulletNrvMove));
-    }
 }

@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/MapObj/Coin.hpp"
 #include "Game/LiveActor/FlashingCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"

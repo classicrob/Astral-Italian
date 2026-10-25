@@ -34,6 +34,18 @@
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
+// Group of Pattan (small jump-flower) enemies spawned by BattanKing. Vtable __vt__12PattanHolder.
+// Defined here, after the includes, so its vtable follows the delegators but precedes the filter bases (original order).
+class PattanHolder : public LiveActorGroup {
+public:
+    inline PattanHolder(const char* pName, s32 capacity) : LiveActorGroup(pName, capacity) {
+    }
+};
+
+// Base-matrix validation callback type used by init().
+typedef BaseMatrixFollowValidateDelegator< BattanKing >::Func BattanKingValidateFunc;
+
+
 namespace {
     // (actor name, parts/arc name, joint name) of the five collision parts.
     struct CollisionPartsInfo {
@@ -237,7 +249,7 @@ void BattanKing::init(const JMapInfoIter& rIter) {
     MR::declarePowerStar(this);
     MR::makeMtxTR(mMtxFollow, this);
 
-    BaseMatrixFollowValidateDelegator<BattanKing>::Func validate = &BattanKing::isValidCollisionState;
+    BattanKingValidateFunc validate = &BattanKing::isValidCollisionState;
     MR::addBaseMatrixFollowTarget(this, rIter, &mMtxFollow, new BaseMatrixFollowValidateDelegator<BattanKing>(this, validate));
 
     initNerve(&NrvBattanKing::BattanKingNrvWaitStand::sInstance, 2);

@@ -15,7 +15,9 @@ namespace NrvChorobon {
     // Freeze has a custom execute: it hands control to the star-pointer state, then goes to Move.
     class ChorobonNrvFreeze : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const;
+        virtual void execute(Spine* pSpine) const {
+            MR::updateActorStateAndNextNerve(reinterpret_cast<LiveActor*>(pSpine->mExecutor), &ChorobonNrvMove::sInstance);
+        }
         static ChorobonNrvFreeze sInstance;
     };
     ChorobonNrvFreeze ChorobonNrvFreeze::sInstance ATTRIBUTE_WEAK;
@@ -183,8 +185,4 @@ void Chorobon::exeKill() {
 }
 
 Chorobon::~Chorobon() {
-}
-
-void NrvChorobon::ChorobonNrvFreeze::execute(Spine* pSpine) const {
-    MR::updateActorStateAndNextNerve(reinterpret_cast<LiveActor*>(pSpine->mExecutor), GET_CHOROBON_NERVE(ChorobonNrvMove));
 }

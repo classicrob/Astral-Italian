@@ -13,6 +13,18 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
+namespace {
+    char sCannonBallModelName[] = "ElectricBullet";
+    char sCannonBallArchiveName[] = "KoopaJrCastle";
+    char sCannonBallBreakEffect[] = "Break";
+    char sCannonBallBreakSound[] = "EmElecbublletBreak";
+    char sCannonBallLongBreakReaction[] = "\x94\x6a\x89\xf3\x81\x69\x97\x5d\x89\x43\x82\xa0\x82\xe8\x81\x6a";
+    char sCannonBallLongBreakEffect[] = "BreakLong";
+    char sCannonBallShotAction[] = "Shot";
+    char sCannonBallMoveAction[] = "Move";
+    char sCannonBallFlySound[] = "EmLvElecbublletFly";
+}
+
 namespace NrvKoopaJrCastleCannonBall { KoopaJrCastleCannonBallNrvMove KoopaJrCastleCannonBallNrvMove::sInstance ATTRIBUTE_WEAK; }
 
 KoopaJrCastleCannonBall::KoopaJrCastleCannonBall(const char* pName) : LiveActor(pName) {
@@ -23,15 +35,15 @@ KoopaJrCastleCannonBall::KoopaJrCastleCannonBall(const char* pName) : LiveActor(
 }
 
 void KoopaJrCastleCannonBall::init(const JMapInfoIter&) {
-    MR::initActor(this, "ElectricBullet", "KoopaJrCastle", false);
+    MR::initActor(this, sCannonBallModelName, sCannonBallArchiveName, false);
     initNerve(&NrvKoopaJrCastleCannonBall::KoopaJrCastleCannonBallNrvMove::sInstance, 0);
     makeActorDead();
 }
 
 void KoopaJrCastleCannonBall::kill() {
     MR::tryHitReactionBreak(this);
-    MR::emitEffect(this, "Break");
-    MR::startActionSound(this, "EmElecbublletBreak", -1, -1, -1);
+    MR::emitEffect(this, sCannonBallBreakEffect);
+    MR::startActionSound(this, sCannonBallBreakSound, -1, -1, -1);
     LiveActor::kill();
 }
 
@@ -57,9 +69,9 @@ void KoopaJrCastleCannonBall::shoot(MtxPtr mtx, const f32& speed) {
 
 namespace {
     inline void breakLong(LiveActor* actor) {
-        MR::tryHitReaction(actor, "\x94\x6a\x89\xf3\x81\x69\x97\x5d\x89\x43\x82\xa0\x82\xe8\x81\x6a");
-        MR::emitEffect(actor, "BreakLong");
-        MR::startActionSound(actor, "EmElecbublletBreak", -1, -1, -1);
+        MR::tryHitReaction(actor, sCannonBallLongBreakReaction);
+        MR::emitEffect(actor, sCannonBallLongBreakEffect);
+        MR::startActionSound(actor, sCannonBallBreakSound, -1, -1, -1);
         actor->LiveActor::kill();
     }
 }
@@ -67,11 +79,11 @@ namespace {
 // NONMATCHING: string-address registers and vector temporary stack placement
 void KoopaJrCastleCannonBall::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Shot");
-        MR::startBtk(this, "ElectricBullet");
+        MR::startAction(this, sCannonBallShotAction);
+        MR::startBtk(this, sCannonBallModelName);
     }
-    if (MR::isBckOneTimeAndStopped(this)) MR::startAction(this, "Move");
-    MR::startActionSound(this, "EmLvElecbublletFly", -1, -1, -1);
+    if (MR::isBckOneTimeAndStopped(this)) MR::startAction(this, sCannonBallMoveAction);
+    MR::startActionSound(this, sCannonBallFlySound, -1, -1, -1);
     if (MR::isGreaterEqualStep(this, 10) && MR::isLessStep(this, 90)) {
         TVec3f target(0.0f, 0.0f, 0.0f);
         TVec3f up(0.0f, 1.0f, 0.0f);

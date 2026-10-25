@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"  // FunctorBase is defined before BossStinkBug (weak vtable order)
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Util.hpp"
 #include "Game/Boss/BossStinkBugActionSequencer.hpp"

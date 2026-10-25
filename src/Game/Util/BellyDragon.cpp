@@ -173,7 +173,7 @@ void BellyDragon::exeAttack() {
     }
 }
 
-void NrvBellyDragon::BellyDragonNrvEnd::execute(Spine* pSpine) const {
+inline void NrvBellyDragon::BellyDragonNrvEnd::execute(Spine* pSpine) const {
     BellyDragon* actor = reinterpret_cast< BellyDragon* >(pSpine->mExecutor);
     if (MR::updateActorState(actor)) {
         actor->kill();

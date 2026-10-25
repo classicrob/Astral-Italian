@@ -27,8 +27,12 @@ namespace {
 };  // namespace
 
 namespace NrvBossStinkBugFlyDemo {
-    // Demo is declared before TryStart so that exeTryStart (inlined into TryStart::execute) can reference it;
-    // the static instances are still constructed in the order TryStart, Demo, DemoEnd.
+    class BossStinkBugFlyDemoNrvTryStart : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static BossStinkBugFlyDemoNrvTryStart sInstance;
+    };
+
     class BossStinkBugFlyDemoNrvDemo : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
@@ -53,7 +57,11 @@ void BossStinkBugFlyDemo::exeTryStart() {
 }
 
 namespace NrvBossStinkBugFlyDemo {
-    NEW_NERVE(BossStinkBugFlyDemoNrvTryStart, BossStinkBugFlyDemo, TryStart);
+    inline void BossStinkBugFlyDemoNrvTryStart::execute(Spine* pSpine) const {
+        BossStinkBugFlyDemo* actor = reinterpret_cast<BossStinkBugFlyDemo*>(pSpine->mExecutor);
+        actor->exeTryStart();
+    }
+    BossStinkBugFlyDemoNrvTryStart BossStinkBugFlyDemoNrvTryStart::sInstance ATTRIBUTE_WEAK;
     BossStinkBugFlyDemoNrvDemo BossStinkBugFlyDemoNrvDemo::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(BossStinkBugFlyDemoNrvDemoEnd, BossStinkBugFlyDemo, DemoEnd);
 };  // namespace NrvBossStinkBugFlyDemo

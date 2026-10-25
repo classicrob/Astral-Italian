@@ -14,11 +14,6 @@
 
 namespace NrvKoopaJrRobot {
     // the six phases chain through updateActorStateAndNextNerve (see execute bodies)
-    class KoopaJrRobotNrvIntro : public Nerve {
-    public:
-        virtual void execute(Spine*) const;
-        static KoopaJrRobotNrvIntro sInstance;
-    };
     class KoopaJrRobotNrvPhase1 : public Nerve {
     public:
         virtual void execute(Spine*) const;
@@ -33,6 +28,11 @@ namespace NrvKoopaJrRobot {
     public:
         virtual void execute(Spine*) const;
         static KoopaJrRobotNrvPhase3 sInstance;
+    };
+    class KoopaJrRobotNrvIntro : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static KoopaJrRobotNrvIntro sInstance;
     };
     class KoopaJrRobotNrvDemo : public Nerve {
     public:

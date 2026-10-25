@@ -168,13 +168,6 @@ public:
     /* 0x18 */ u8 mFlag18;
 };
 
-// Group of Pattan (small jump-flower) enemies spawned by BattanKing. Vtable __vt__12PattanHolder.
-class PattanHolder : public LiveActorGroup {
-public:
-    inline PattanHolder(const char* pName, s32 capacity) : LiveActorGroup(pName, capacity) {
-    }
-};
-
 namespace BattanKingParam {
     extern const f32 sRun[4];
     extern const f32 sDash[4];

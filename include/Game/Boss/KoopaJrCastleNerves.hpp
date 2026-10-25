@@ -400,6 +400,11 @@ namespace NrvKoopaJrCastleDominate {
 }  // namespace NrvKoopaJrCastleDominate
 
 namespace NrvKoopaJrCastleRingBeam {
+    class KoopaJrCastleRingBeamNrvPre : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static KoopaJrCastleRingBeamNrvPre sInstance;
+    };
     class KoopaJrCastleRingBeamNrvA : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
@@ -408,16 +413,12 @@ namespace NrvKoopaJrCastleRingBeam {
         }
         static KoopaJrCastleRingBeamNrvA sInstance;
     };
-    class KoopaJrCastleRingBeamNrvPre : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const {
-            KoopaJrCastleRingBeam* a = reinterpret_cast< KoopaJrCastleRingBeam* >(pSpine->mExecutor);
-            if (MR::isGreaterStep(a, 90)) {
-                a->setNerve(&KoopaJrCastleRingBeamNrvA::sInstance);
-            }
+    inline void KoopaJrCastleRingBeamNrvPre::execute(Spine* pSpine) const {
+        KoopaJrCastleRingBeam* a = reinterpret_cast< KoopaJrCastleRingBeam* >(pSpine->mExecutor);
+        if (MR::isGreaterStep(a, 90)) {
+            a->setNerve(&KoopaJrCastleRingBeamNrvA::sInstance);
         }
-        static KoopaJrCastleRingBeamNrvPre sInstance;
-    };
+    }
 }  // namespace NrvKoopaJrCastleRingBeam
 
 namespace NrvKoopaJrCastleStateBattle1 {

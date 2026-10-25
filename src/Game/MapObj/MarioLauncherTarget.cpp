@@ -2,6 +2,14 @@
 #include "Game/MapObj/MapPartsRailMover.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+namespace {
+    char sLauncherTargetHitSound[] = "CS_PERC_AUD_GOOD";
+    char sLauncherTargetNoHitAction[] = "NoHit";
+    char sLauncherTargetBodySensor[] = "Body";
+    char sLauncherTargetOneUpReaction[] = "1up当たり";
+    char sLauncherTargetMissReaction[] = "はずれヒット";
+}
+
 namespace NrvMarioLauncherTarget {
     class MarioLauncherTargetNrvWait : public Nerve {
     public:
@@ -12,15 +20,15 @@ namespace NrvMarioLauncherTarget {
     NEW_NERVE(MarioLauncherTargetNrvHit, MarioLauncherTarget, Hit);
     class MarioLauncherTargetNrvNoHit : public Nerve {
     public:
-        virtual void execute(Spine* spine) const;
+        virtual void execute(Spine* spine) const {
+            MarioLauncherTarget* actor = static_cast<MarioLauncherTarget*>(spine->mExecutor);
+            if (MR::isFirstStep(actor)) MR::startAction(actor, sLauncherTargetNoHitAction);
+        }
         static MarioLauncherTargetNrvNoHit sInstance;
     };
     MarioLauncherTargetNrvNoHit MarioLauncherTargetNrvNoHit::sInstance ATTRIBUTE_WEAK;
 }
-void NrvMarioLauncherTarget::MarioLauncherTargetNrvNoHit::execute(Spine* spine) const {
-    MarioLauncherTarget* actor = static_cast<MarioLauncherTarget*>(spine->mExecutor);
-    if (MR::isFirstStep(actor)) MR::startAction(actor, "NoHit");
-}
+
 MarioLauncherTarget::MarioLauncherTarget(const char* name) : LiveActor(name), mRailMover(nullptr), mClippingCenter(0.0f, 0.0f, 0.0f) {}
 MarioLauncherTarget::~MarioLauncherTarget() {}
 void MarioLauncherTarget::init(const JMapInfoIter& iter) {
@@ -49,23 +57,23 @@ void MarioLauncherTarget::control() {
 void MarioLauncherTarget::exeHit() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Hit");
-        MR::startCSSound("CS_PERC_AUD_GOOD", nullptr, -1, 15, 1.0f);
+        MR::startCSSound(sLauncherTargetHitSound, nullptr, -1, 15, 1.0f);
         MR::addPlayerLeft(1);
     }
 }
 bool MarioLauncherTarget::receiveOtherMsg(u32 msg, HitSensor* sender, HitSensor* receiver) {
     if (msg != 0xF4) return false;
-    if (MR::isEqualSensor(receiver, this, "Body")) {
+    if (MR::isEqualSensor(receiver, this, sLauncherTargetBodySensor)) {
         if (!isNerve(&NrvMarioLauncherTarget::MarioLauncherTargetNrvWait::sInstance)) return false;
         TVec3f pos(*MR::getSensorPos(this, "Hit"));
         f32 distance = PSVECDistance(&pos, MR::getSensorPos(sender));
         f32 radius = MR::getSensorRadius(sender);
         f32 targetRadius = MR::getSensorRadius(this, "Hit");
         if (targetRadius + radius > distance) {
-            MR::tryHitReaction(this, "1up当たり");
+            MR::tryHitReaction(this, sLauncherTargetOneUpReaction);
             setNerve(&NrvMarioLauncherTarget::MarioLauncherTargetNrvHit::sInstance);
         } else {
-            MR::tryHitReaction(this, "はずれヒット");
+            MR::tryHitReaction(this, sLauncherTargetMissReaction);
             setNerve(&NrvMarioLauncherTarget::MarioLauncherTargetNrvNoHit::sInstance);
         }
         return false;

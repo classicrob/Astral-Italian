@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"  // FunctorBase is defined before PressureBase/PressureMessenger (weak vtable order)
 #include "Game/MapObj/PressureBase.hpp"
 #include "Game/LiveActor/ActorStateParamScale.hpp"
 #include "Game/LiveActor/Nerve.hpp"

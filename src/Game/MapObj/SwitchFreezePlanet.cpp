@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/MapObj/SwitchFreezePlanet.hpp"
 #include "Game/MapObj/MapObjActorInitInfo.hpp"
 #include "Game/Map/PlanetMapFunction.hpp"

@@ -9,6 +9,10 @@
 #include "Game/Util/YoshiLockOnUtil.hpp"
 
 namespace {
+    extern char sSpaceMineBodySensor[];
+}
+
+namespace {
     const f32 sRotateSpeedNormal = 1.0f;
     const f32 sRotateSpeedFast = 1.0f;
     // sDeadTime
@@ -33,7 +37,7 @@ namespace NrvSpaceMine {
 
         virtual void executeOnEnd(Spine* pSpine) const {
             SpaceMine* actor = reinterpret_cast<SpaceMine*>(pSpine->mExecutor);
-            actor->getSensor("Body")->setType(0x40);
+            actor->getSensor(sSpaceMineBodySensor)->setType(0x40);
             actor->resumeMapPartsFunctions();
         }
 
@@ -207,6 +211,10 @@ bool SpaceMine::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
 // NONMATCHING: the normalize test compiles to cror/bne/b in the target (ours: beq), and the target frame is 0x10 bytes larger
 // with the tongue-hit temporaries in different slots; the register assignment of pSender/this is swapped as a result.
+namespace {
+    char sSpaceMineBodySensor[] = "Body";
+}
+
 bool SpaceMine::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     TVec3f hitPos;
     if (MR::isMsgYoshiStartTongue(msg)) {
@@ -214,7 +222,7 @@ bool SpaceMine::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
             return false;
         }
 
-        HitSensor* pBody = getSensor("Body");
+        HitSensor* pBody = getSensor(sSpaceMineBodySensor);
         const TVec3f* pBodyPos = MR::getSensorPos(pBody);
         TVec3f dir(*MR::getSensorPos(pSender));
         dir -= *pBodyPos;
@@ -306,7 +314,7 @@ void SpaceMine::exeReaction() {
 void SpaceMine::exePause() {
     if (MR::isFirstStep(this)) {
         pauseMapPartsFunctions();
-        getSensor("Body")->setType(0x18);
+        getSensor(sSpaceMineBodySensor)->setType(0x18);
     }
 
     YoshiFunction::tryYoshiLick(mLockOnTarget);

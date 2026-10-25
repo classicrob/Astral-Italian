@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #pragma auto_inline off
 #include "Game/Boss/KoopaBattle.hpp"
 #include "Game/Boss/KoopaBattleAccessor.hpp"

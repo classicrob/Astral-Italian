@@ -134,21 +134,21 @@ namespace NrvYoshiTongueAction {
     };
     State18 State18::sInstance ATTRIBUTE_WEAK;
 
-    void State1::executeOnEnd(Spine* spine) const {
+    inline void State1::executeOnEnd(Spine* spine) const {
         YoshiTongueAction* action = static_cast<YoshiTongueAction*>(spine->mExecutor);
         action->_A4 = 100.0f;
         MR::endStarPointerMode(action);
     }
-    void State8::executeOnEnd(Spine* spine) const {
+    inline void State8::executeOnEnd(Spine* spine) const {
         static_cast<YoshiTongueAction*>(spine->mExecutor)->mArrow->kill();
     }
-    void State13::executeOnEnd(Spine* spine) const {
+    inline void State13::executeOnEnd(Spine* spine) const {
         YoshiTongueAction* action = static_cast<YoshiTongueAction*>(spine->mExecutor);
         action->fn_80421790();
         action->mTarget->sendReleaseEatenMessage();
         action->fn_804217B0();
     }
-    void State18::executeOnEnd(Spine* spine) const {
+    inline void State18::executeOnEnd(Spine* spine) const {
         MR::endStarPointerMode(static_cast<YoshiTongueAction*>(spine->mExecutor));
     }
 }
@@ -1239,7 +1239,7 @@ void YoshiLockOnManager::endLockOn() {
 }
 
 
-void NrvYoshiTongueAction::State18::execute(Spine* spine) const {
+inline void NrvYoshiTongueAction::State18::execute(Spine* spine) const {
     YoshiTongueAction* action = static_cast<YoshiTongueAction*>(spine->mExecutor);
     if (MR::isFirstStep(action)) MR::startStarPointerModePictureBook(action);
 }

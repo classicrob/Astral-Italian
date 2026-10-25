@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
-#include "Game/Util/CollisionPartsFilter.hpp"
 
 class BreakModel;
 class SupportTicoStop;
@@ -9,17 +8,6 @@ class Battan;
 
 // Rail-riding Battan with five collision parts and four break parts.
 // LiveActor = 0x90 bytes in SMG2; members start at 0x90.
-
-// Collision filter built in Battan::init: rejects the Battan's own collision parts.
-class BattanPartsFilter : public CollisionPartsFilterBase {
-public:
-    BattanPartsFilter(Battan* pHost, bool (Battan::*callback)(const CollisionParts*) const);
-
-    virtual bool isInvalidParts(const CollisionParts*) const;
-
-    /* 0x04 */ Battan* mHost;
-    /* 0x08 */ bool (Battan::*mCallback)(const CollisionParts*) const;
-};
 
 class Battan : public LiveActor {
 public:
@@ -81,4 +69,18 @@ public:
     /* 0xC9 */ bool mIsDropStarPiece;
     /* 0xCA */ bool mIsPlayerFront;
     /* 0xCB */ bool mIsPlayerSide;
+};
+
+// Included after Battan so CollisionPartsFilterBase is defined after the actor (original weak vtable order).
+#include "Game/Util/CollisionPartsFilter.hpp"
+
+// Collision filter built in Battan::init: rejects the Battan's own collision parts.
+class BattanPartsFilter : public CollisionPartsFilterBase {
+public:
+    BattanPartsFilter(Battan* pHost, bool (Battan::*callback)(const CollisionParts*) const);
+
+    virtual bool isInvalidParts(const CollisionParts*) const;
+
+    /* 0x04 */ Battan* mHost;
+    /* 0x08 */ bool (Battan::*mCallback)(const CollisionParts*) const;
 };

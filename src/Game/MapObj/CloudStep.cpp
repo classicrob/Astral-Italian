@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"
 #include "Game/MapObj/CloudStep.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LiveActor.hpp"

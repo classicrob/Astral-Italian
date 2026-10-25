@@ -1,3 +1,4 @@
+#include "Game/Util/Functor.hpp"  // FunctorBase is defined before the SimpleBreakable actors (weak vtable order)
 
 #include "Game/MapObj/SimpleBreakableObj.hpp"
 #include "Game/LiveActor/ModelObj.hpp"

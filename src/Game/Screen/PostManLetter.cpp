@@ -260,7 +260,7 @@ void PostManLetterList::push_back(const s32& id) {
 PostManLetter::~PostManLetter() {
 }
 
-void NrvPostManLetter::PostManLetterNrvDelay::execute(Spine* spine) const {
+inline void NrvPostManLetter::PostManLetterNrvDelay::execute(Spine* spine) const {
     PostManLetter* actor = reinterpret_cast<PostManLetter*>(spine->mExecutor);
     if (MR::isGreaterEqualStep(actor, 30)) {
         actor->setNerve(&PostManLetterNrvAppear::sInstance);

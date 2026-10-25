@@ -5,22 +5,7 @@
 class HitSensor;
 class MarinePlantMember;
 
-class MarinePlantMember : public LiveActor {
-public:
-    MarinePlantMember(const char*, const char*);
 
-    virtual void init(const JMapInfoIter&);
-    virtual ~MarinePlantMember();
-
-    bool tryReactToSensor(HitSensor*);
-    void initAxisAndScale();
-
-    void exeWait();
-    void exeReact();
-
-    /* 0x90 */ u8 _90[0x18];
-    /* 0xA8 */ TVec3f mSpinAxis;
-};
 
 class MarinePlant : public LiveActor {
 public:
@@ -45,4 +30,21 @@ public:
     /* 0x90 */ MarinePlantMember** mMembers;
     /* 0x94 */ s32 mNumMembers;
     /* 0x98 */ f32 mRadius;
+};
+
+class MarinePlantMember : public LiveActor {
+public:
+    MarinePlantMember(const char*, const char*);
+
+    virtual void init(const JMapInfoIter&);
+    virtual ~MarinePlantMember();
+
+    bool tryReactToSensor(HitSensor*);
+    void initAxisAndScale();
+
+    void exeWait();
+    void exeReact();
+
+    /* 0x90 */ u8 _90[0x18];
+    /* 0xA8 */ TVec3f mSpinAxis;
 };

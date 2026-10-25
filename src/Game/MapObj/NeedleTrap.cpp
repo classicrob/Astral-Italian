@@ -4,6 +4,11 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
+namespace {
+    char sNeedleCollisionName[] = "Needle";
+    char sNeedleJointName[] = "ColPos";
+}
+
 namespace NrvNeedleTrap {
     NEW_NERVE(NeedleTrapNrvWaitFirst, NeedleTrap, WaitFirst);
     NEW_NERVE(NeedleTrapNrvWait, NeedleTrap, Wait);
@@ -17,8 +22,8 @@ NeedleTrap::~NeedleTrap() {}
 void NeedleTrap::init(const JMapInfoIter& iter) {
     MR::initActor(this, iter, false);
     initNerve(&NrvNeedleTrap::NeedleTrapNrvWaitFirst::sInstance);
-    MtxPtr mtx = MR::getJointMtx(this, "ColPos");
-    mNeedleCollision = MR::createCollisionObj(this, "Needle", getSensor(nullptr), mtx);
+    MtxPtr mtx = MR::getJointMtx(this, sNeedleJointName);
+    mNeedleCollision = MR::createCollisionObj(this, sNeedleCollisionName, getSensor(nullptr), mtx);
     MR::invalidateCollisionParts(mNeedleCollision);
     MR::getJMapInfoArg0NoInit(iter, &mFirstWait);
     makeActorAppeared();

@@ -465,17 +465,17 @@ void CareTakerHunter::exeEnd() {
 
 CareTakerHunter::~CareTakerHunter() {}
 
-void NrvCareTakerHunter::CareTakerHunterNrvTakeOutStar::execute(Spine* spine) const {
+inline void NrvCareTakerHunter::CareTakerHunterNrvTakeOutStar::execute(Spine* spine) const {
     CareTakerHunter* actor = static_cast<CareTakerHunter*>(spine->mExecutor);
     MR::isFirstStep(actor);
     actor->mTakeOutStar->takeOut();
 }
-void NrvCareTakerHunter::CareTakerHunterNrvWaitDefault::execute(Spine* spine) const {
+inline void NrvCareTakerHunter::CareTakerHunterNrvWaitDefault::execute(Spine* spine) const {
     CareTakerHunter* actor = static_cast<CareTakerHunter*>(spine->mExecutor);
     MR::tryTalkNearPlayerAndStartMoveTalkAction(actor);
     MR::tryStartReactionAndPushNerve(actor, GET_NERVE(CareTakerHunter, CareTakerHunterNrvReaction));
 }
-void NrvCareTakerHunter::CareTakerHunterNrvWaitEnd::execute(Spine* spine) const {
+inline void NrvCareTakerHunter::CareTakerHunterNrvWaitEnd::execute(Spine* spine) const {
     CareTakerHunter* actor = static_cast<CareTakerHunter*>(spine->mExecutor);
     MR::requestStageBGMVolumeDown(0, false);
     MR::tryTalkNearPlayerAndStartTalkAction(actor);

@@ -30,6 +30,7 @@
 #include <petari/screenshot.hpp>
 
 #include "present.h"
+#include "../boot_splash.h"
 
 namespace petari_present {
 namespace {
@@ -549,7 +550,7 @@ Frame take() noexcept {
 void surface_dump_prepare() noexcept {
   const auto& config = surfaceDumpConfig();
   static bool done = false;
-  if (!config.enabled || done) return;
+  if ((!config.enabled && !std::getenv("PETARI_BOOT_SPLASH_CAPTURE")) || done) return;
   done = true;
   // The surface is created render-only; reconfigure once with copy-source usage so it can be read back.
   using namespace aurora::webgpu;
@@ -559,24 +560,38 @@ void surface_dump_prepare() noexcept {
   g_surface.Configure(&configuration);
 }
 
-std::function<void()> surface_dump_encode(const wgpu::CommandEncoder& encoder, const wgpu::Texture& texture) noexcept {
+std::function<void()> surface_dump_encode(const wgpu::CommandEncoder& encoder, const wgpu::Texture& texture,
+    bool boot, std::uint64_t frame, bool* bootCapture) noexcept {
   const auto& config = surfaceDumpConfig();
-  if (!config.enabled || !texture) return {};
-  static uint64_t seenMark = 0, sinceMark = 0;
-  static const char* label = "none";
-  static bool directoryMade = false;
-  const auto counter = PetariNative::EfbDump::markCounter.load(std::memory_order_acquire);
-  if (counter != seenMark) {
-    seenMark = counter;
-    sinceMark = 0;
-    label = PetariNative::EfbDump::markLabel.load(std::memory_order_acquire);
-  }
-  const auto index = sinceMark++;
-  if (index >= config.span || index % config.every != 0) return {};
-  if (!labelListed(config.labels, label)) return {};
-  if (!directoryMade) {
-    if (std::system(("mkdir -p '" + config.dir + "'").c_str()) != 0) return {};
-    directoryMade = true;
+  if (!texture) return {};
+  if (bootCapture) *bootCapture = false;
+  std::string path;
+  bool capture = false;
+  const char* requested = boot ? std::getenv("PETARI_BOOT_SPLASH_CAPTURE") : nullptr;
+  if (requested && *requested && frame >= 1 && !PetariBootSplash::captureClaimed.exchange(true)) {
+    // The caller invokes this readback only AFTER this exact surface texture
+    // was submitted and Present() returned success. A failed present emits no
+    // successful capture receipt. This is our own drawable, not ScreenCapture.
+    path = requested;
+    capture = true;
+    if (bootCapture) *bootCapture = true;
+  } else {
+    if (!config.enabled) return {};
+    static uint64_t seenMark = 0, sinceMark = 0;
+    static const char* label = "none";
+    static bool directoryMade = false;
+    const auto counter = PetariNative::EfbDump::markCounter.load(std::memory_order_acquire);
+    if (counter != seenMark) {
+      seenMark = counter; sinceMark = 0;
+      label = PetariNative::EfbDump::markLabel.load(std::memory_order_acquire);
+    }
+    const auto index = sinceMark++;
+    if (index >= config.span || index % config.every != 0 || !labelListed(config.labels, label)) return {};
+    if (!directoryMade) {
+      if (std::system(("mkdir -p '" + config.dir + "'").c_str()) != 0) return {};
+      directoryMade = true;
+    }
+    path = config.dir + "/surface-" + label + "-" + std::to_string(index) + ".png";
   }
   if (!(texture.GetUsage() & wgpu::TextureUsage::CopySrc)) return {};
   PetariNative::HostAllocationScope host;
@@ -591,8 +606,32 @@ std::function<void()> surface_dump_encode(const wgpu::CommandEncoder& encoder, c
   const wgpu::TexelCopyBufferInfo destination{.layout = {.bytesPerRow = rowBytes, .rowsPerImage = height}, .buffer = readback};
   const wgpu::Extent3D extent{width, height, 1};
   encoder.CopyTextureToBuffer(&source, &destination, &extent);
-  auto path = config.dir + "/surface-" + label + "-" + std::to_string(index) + ".png";
-  return [readback, bytes, width, height, rowBytes, bgra, path = std::move(path)] {
+  return [readback, bytes, width, height, rowBytes, bgra, capture, frame, path = std::move(path)] {
+    if (capture) {
+      // Keep readback/PNG work off the render and main frame loops. The callback
+      // owns its buffer; there is no borrowed stack state and no 5 s spin wait.
+      readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,
+        [readback, bytes, width, height, rowBytes, bgra, frame, path](wgpu::MapAsyncStatus status, wgpu::StringView) {
+          PetariNative::HostAllocationScope scope;
+          if (status != wgpu::MapAsyncStatus::Success) {
+            std::fprintf(stderr, "[gx boot splash capture] result=failed frame=%llu\n", (unsigned long long)frame);
+            return;
+          }
+          const auto* data = static_cast<const unsigned char*>(readback.GetConstMappedRange(0, bytes));
+          std::vector<unsigned char> rgb(size_t(width) * height * 3);
+          for (uint32_t y = 0; y < height; ++y) for (uint32_t x = 0; x < width; ++x) {
+            const auto* pixel = data + size_t(y) * rowBytes + x * 4;
+            auto* out = rgb.data() + (size_t(y) * width + x) * 3;
+            out[0] = pixel[bgra ? 2 : 0]; out[1] = pixel[1]; out[2] = pixel[bgra ? 0 : 2];
+          }
+          readback.Unmap();
+          PetariNative::writePngRgb(path, width, height, rgb.data());
+          std::fprintf(stderr, "[gx boot splash capture] result=written frame=%llu width=%u height=%u source=presented-surface after_present=1 path=%s\n",
+            (unsigned long long)frame, width, height, path.c_str());
+          PetariBootSplash::captureDone = true;
+        });
+      return;
+    }
     PetariNative::HostAllocationScope scope;
     std::atomic<int> state{0};
     readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,

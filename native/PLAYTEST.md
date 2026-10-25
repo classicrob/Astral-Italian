@@ -791,3 +791,46 @@ Warm observations must preserve their prime's private cache and Metal namespace.
 never clears Metal, verifies app identity/normal prime exit, and records before /
 after cache inventories. Replacement prime/second-launch measurements are
 labelled separately if earlier cold caches were already trimmed.
+
+### Frontend preparation on ordinary startup frames (5.4.2 follow-up)
+
+Initialization only arms the finite, data-derived frontend Generic set; it does
+not wait or dispatch that set inside `aurora_initialize`. After initialization,
+the main thread renders the title's determinate “Preparing graphics… N%” pill
+on black at 60 Hz through ordinary Aurora frames. It services SDL and a default
+AppKit run-loop turn. The 54 jobs are released only after AppKit reports launch
+finished, WindowServer reports our window on screen with alpha 1 and nonzero
+bounds, and an actual surface `Present()` succeeds. Drawn utility/UI work remains
+runnable; speculative specialised work waits until the finite phase ends. The
+existing scheduler resumes unchanged after readiness, error, quit, or the 5 s
+cap. Reaching the cap does not become success.
+
+The first successful splash presentation anchors the **same** frame recorder
+used by the game. Every subsequent prep presentation contributes a Startup row;
+the next game interval continues from the last prep present. Frame IDs continue,
+and `[gx startup frame mapping]` reports the prep prefix and game CSV offset.
+The game, route recorder and input scripts do not advance in the prep loop. The
+version-2 `[gx frontend pre-present]` receipt retains its historical name but
+reports actual presented frames (at least three), rather than claiming zero.
+The five-second budget starts when the finite work is released, after the first
+presentation; first-draw/UI initialization time is separately visible in launch
+observers. All intervals after the first presentation remain scored normally.
+
+`PETARI_BOOT_SPLASH_CAPTURE=<absolute PNG>` opts into one in-app capture of the
+second-or-later splash surface. The copy uses the exact acquired drawable after
+its ImGui pass; a PNG callback is scheduled only after that same surface's
+`Present()` succeeds. Readback/PNG encoding is asynchronous and owns its buffer.
+The receipt identifies its presentation serial. This proves the app submitted
+those pixels to its own surface, **not physical scan-out**; independent owned
+WindowServer state and CSV cadence are also required. It uses no screen-capture
+or Automation permission request. AppleEvent heartbeat sends use a PID address,
+`kAEWaitReply | kAENeverInteract | kAEDoNotPromptForUserConsent`; denial, timeout,
+missing reply, missing image, or missing window evidence fails the proof. Python
+AEDesc matches the SDK's two-byte packing (12 bytes on arm64).
+
+The v14 pack bytes, PFD metadata and generated frontend membership are unchanged.
+Native renderer sources and CMake changes change the renderer/cache identity.
+Server tests include the real frontend loop with a deterministic clock, plus a
+separate-process no-prompt heartbeat against a normally pumped GUI window. GUI
+and measured acceptance remain required on the server-built candidate; static
+source checks are not a responsiveness or performance certification.

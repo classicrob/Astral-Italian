@@ -249,7 +249,7 @@ def patch_framebuffer(text):
 def patch_aurora(text):
     splash = Path(__file__).resolve().parent / 'boot_splash.h'
     text = f'#include "{splash}"\n' + text
-    text = replace_once(text, '        gfx::after_present();', '        petari_boot_splash_presented();\n        gfx::after_present();')
+    text = replace_once(text, '        gfx::after_present();', '        if (petariBootFrame) petari_boot_splash_presented(petariProbeFrame);\n        if (petariBootCapture && petariSurfaceDump) petariSurfaceDump();\n        gfx::after_present();')
     text = replace_once(text, '#include "webgpu/gpu_prof.hpp"\n',
                         '#include "webgpu/gpu_prof.hpp"\n#include "present_aurora.hpp"\n')
     text = replace_once(
@@ -269,6 +269,7 @@ def patch_aurora(text):
                         '  gfx::end_frame([rmlBindGroup = std::move(rmlBindGroup), rmlOverlay, viewport,\n',
                         '  gfx::end_frame([rmlBindGroup = std::move(rmlBindGroup), rmlOverlay, viewport,\n'
                         '                  petariPresent = std::move(petariPresent),\n'
+                        '                  petariBootFrame = PetariBootSplash::active.load(),\n'
                         '                  petariProbeFrame = PetariNative::LatencyProbe::frame.load() - 1,\n')
     text = replace_once(
         text,
@@ -277,9 +278,11 @@ def patch_aurora(text):
         '        presentBindGroup = rmlBindGroup;\n'
         '      } else {\n',
         '      wgpu::BindGroup presentBindGroup;\n'
-        '      bool petariDrawImage = true;\n'
+        '      bool petariDrawImage = !petariBootFrame;\n'
         '      bool petariDim = false;\n'
-        '      if (rmlBindGroup && !rmlOverlay) {\n'
+        '      if (petariBootFrame) {\n'
+        '        // Normal black splash: only the same ImGui progress pill is drawn.\n'
+        '      } else if (rmlBindGroup && !rmlOverlay) {\n'
         '        presentBindGroup = rmlBindGroup;\n'
         '      } else if (petariPresent.active) {\n'
         '        petariDrawImage = petari_present::bind_image(petariPresent, presentBindGroup);\n'
@@ -320,12 +323,13 @@ def patch_aurora(text):
     # Opt-in dump of the final window image (the presented frame plus the ImGui overlay).
     text = replace_once(text, '    wgpu::Texture currentTexture;\n    wgpu::TextureView currentView;\n',
                         '    wgpu::Texture currentTexture;\n    wgpu::TextureView currentView;\n'
-                        '    std::function<void()> petariSurfaceDump;\n')
+                        '    std::function<void()> petariSurfaceDump;\n'
+                        '    bool petariBootCapture = false;\n')
     text = replace_once(text, '        imgui::render(pass, imguiDrawData);\n        pass.End();\n      }\n',
                         '        imgui::render(pass, imguiDrawData);\n        pass.End();\n      }\n'
-                        '      petariSurfaceDump = petari_present::surface_dump_encode(encoder, currentTexture);\n')
+                        '      petariSurfaceDump = petari_present::surface_dump_encode(encoder, currentTexture, petariBootFrame, petariProbeFrame, &petariBootCapture);\n')
     text = replace_once(text, '    webgpu::gpu_prof::after_submit();\n',
-                        '    if (petariSurfaceDump) {\n      petariSurfaceDump();\n    }\n    webgpu::gpu_prof::after_submit();\n')
+                        '    if (petariSurfaceDump && !petariBootCapture) {\n      petariSurfaceDump();\n    }\n    webgpu::gpu_prof::after_submit();\n')
     text = replace_once(text, '      g_queue.Submit(1, &buffer);\n',
                         '      PetariNative::FrameTelemetry::Scope petariTiming{PetariNative::FrameTelemetry::FrameSubmit};\n'
                         '      g_queue.Submit(1, &buffer);\n')

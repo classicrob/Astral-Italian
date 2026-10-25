@@ -624,7 +624,7 @@ void drawPreparingGraphics(float fraction, float imageX, float imageY, float ima
     list->PushClipRect(image.point(-1.0f, -1.0f), image.point(1.0f, 1.0f), false);
     list->AddRectFilled(pillMin, pillMax, color(0.02f, 0.03f, 0.08f, 0.50f), height * 0.5f);
     char text[64];
-    std::snprintf(text, sizeof(text), "Preparing graphics... %u%%", static_cast<unsigned>(fraction * 100.0f));
+    std::snprintf(text, sizeof(text), "Preparing graphics… %u%%", static_cast<unsigned>(fraction * 100.0f));
     centeredText(list, textFont(), imageHeight * 0.026f, (pillMax.x - pillMin.x) * 0.9f,
                  ImVec2((pillMin.x + pillMax.x) * 0.5f, pillMin.y + height * 0.42f), color(0.92f, 0.95f, 1.0f, 0.88f), text);
     const float inset = height * 0.5f;

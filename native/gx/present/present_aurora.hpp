@@ -39,7 +39,8 @@ bool bind_image(const Frame& frame, wgpu::BindGroup& out) noexcept;
 // surface a copy source once; encode() returns the work to run after the frame was submitted, or an empty
 // function when this frame is not dumped.
 void surface_dump_prepare() noexcept;
-std::function<void()> surface_dump_encode(const wgpu::CommandEncoder& encoder, const wgpu::Texture& texture) noexcept;
+std::function<void()> surface_dump_encode(const wgpu::CommandEncoder& encoder, const wgpu::Texture& texture,
+    bool boot = false, std::uint64_t frame = 0, bool* bootCapture = nullptr) noexcept;
 
 // Render worker: darkens the image drawn in the pass.
 void draw_dim(const wgpu::RenderPassEncoder& pass, const Frame& frame) noexcept;

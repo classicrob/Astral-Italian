@@ -14,6 +14,8 @@ struct PipelinePreparationView {
 namespace App {
 // Before game/OS startup. Returns false if the window closes or compilation fails.
 bool preparePipelines(SDL_Window* window);
+// Finite frontend preparation after launch, rendered as normal startup frames.
+bool prepareFrontend(SDL_Window* window);
 }
 namespace HomeMenu {
 bool drawPipelinePreparation(const PipelinePreparationView& view, float width, float height);

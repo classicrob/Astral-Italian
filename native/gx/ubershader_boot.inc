@@ -326,38 +326,6 @@ static void petari_uber_scan_frontend(const std::filesystem::path& dir, RenderTa
   std::fprintf(stderr, "[gx frontend source] policy=exact-stage-hash-membership configs=%zu global_matches=%zu global_missing=%zu manifest_errors=%zu\n",
       frontend.size(), matched, missing, petariUberBoot.manifestErrors);
 }
-static bool petari_uber_finish_pre_present(PetariPipeline::Clock::time_point started,
-                                          PetariPipeline::Clock::time_point deadline,
-                                          PetariFrontendPump& pump) {
-  for (;;) {
-    size_t published = 0, total = 0;
-    { std::lock_guard lock{g_pipelineMutex}; total = petariUberBoot.titleKeys.size(); published = total - petari_uber_title_pending(); }
-    ::petari_boot_splash_progress(published, total);
-    pump.poll(); // SDL/AppKit events, on the initializing main thread; no frame begin/end
-    std::unique_lock lock{g_pipelineMutex};
-    if (!pump.mainThread || g_pipelineThreadEnd || !petari_uber_title_pending() || PetariPipeline::Clock::now() >= deadline) break;
-    g_pipelineReadyCv.wait_until(lock, std::min(deadline, PetariPipeline::Clock::now() + std::chrono::milliseconds(8)));
-  }
-  std::lock_guard lock{g_pipelineMutex};
-  const auto elapsed = PetariPipeline::milliseconds(PetariPipeline::Clock::now() - started);
-  const auto pending = petari_uber_title_pending();
-  const auto failed = std::count_if(petariUberBoot.titleKeys.begin(), petariUberBoot.titleKeys.end(),
-      [](auto key) { return petariUberBoot.failed.contains(key); });
-  const bool ready = pump.mainThread && !g_pipelineThreadEnd && !pending && !failed &&
-      petariUberBoot.frontEndScanned && !petariUberBoot.titleKeys.empty() && !petariUberBoot.manifestErrors &&
-      !petariUberBoot.rejectedConfigs && PetariPipeline::Clock::now() <= deadline;
-  std::string keys;
-  for (auto key : petariUberBoot.titleKeys) {
-    char value[18]; std::snprintf(value, sizeof(value), "%016llx,", static_cast<unsigned long long>(key)); keys += value;
-  }
-  petariUberPrePresent = false; // exact previous scheduler resumes, including on cap/error
-  std::fprintf(stderr, "[gx frontend pre-present] version=1 result=%s keys=%zu completed=%zu pending=%zu failed=%zu manifest_errors=%zu elapsed_ms=%.3f cap_ms=5000 workers=%u pumps=%u pump_max_gap_ms=%.3f main_thread=%u presented_frames=0 key_list=%s\n",
-      ready ? "ready" : pending ? "cap" : "failed", petariUberBoot.titleKeys.size(), petariUberBoot.titleKeys.size() - pending,
-      pending, size_t(failed), petariUberBoot.manifestErrors, elapsed, petariActiveWorkers, pump.calls, pump.maxGapMs,
-      pump.mainThread, keys.c_str());
-  g_pipelineQueueCv.notify_all();
-  return ready;
-}
 static void petari_uber_scan_seeds(const std::filesystem::path& dir, RenderTargetLayout scene,
                                   RenderTargetLayout off) {
   const auto scan = [&](const std::filesystem::path& path, unsigned priority) {
@@ -518,9 +486,14 @@ static void petari_uber_async_stop() {
   petariUberBoot.started = false; // a later device/cache initialization may start a fresh generation
   petariUberTitleReleased = false;
   petariUberPrePresent = false;
+  petariUberFrontendArmed = false;
 }
 } // namespace aurora::gfx
 
+namespace aurora::gfx {
+static PetariPipeline::Clock::time_point petariFrontendStart{};
+static std::function<void()> petariFrontendScan, petariFrontendRemainder;
+}
 namespace aurora::gx {
 void petari_uber_boot() {
   if (!petari_uber_enabled()) return;
@@ -530,35 +503,73 @@ void petari_uber_boot() {
   const char* env = std::getenv("PETARI_PIPELINE_SEED_DIR");
   const auto dir = env && *env ? std::filesystem::path(env) :
       std::filesystem::path(g_config.resourcesPath ? g_config.resourcesPath : "") / "pipeline-seeds";
-  bool queued = false;
-  unsigned workers = 0;
-  {
-    std::lock_guard lock{gfx::g_pipelineMutex};
-    workers = gfx::petariActiveWorkers;
-    if (!gfx::petariUberBoot.started) {
-      gfx::petariUberBoot = {};
-      gfx::petariUberTitleReleased = false;
-      gfx::petariUberBoot.started = true;
-      gfx::petariUberBoot.startedAt = start;
-      if (gfx::g_hasPipelineThread && !gfx::g_pipelineThreadEnd) {
-        gfx::petariUberPrePresent = true;
-        queued = true;
-      }
-    }
-  }
-  if (queued) {
+  std::lock_guard lock{gfx::g_pipelineMutex};
+  if (gfx::petariUberBoot.started) return;
+  gfx::petariUberBoot = {};
+  gfx::petariUberTitleReleased = false;
+  gfx::petariUberBoot.started = true;
+  gfx::petariUberBoot.startedAt = start;
+  gfx::petariUberFrontendArmed = gfx::g_hasPipelineThread && !gfx::g_pipelineThreadEnd;
+  gfx::petariFrontendScan = [dir, scene, off] {
     gfx::PetariFrontendPump pump;
-    ::petari_boot_splash_progress(0, 0);
-    pump.poll();
-    const auto deadline = start + std::chrono::milliseconds(5000);
-    gfx::petari_uber_scan_frontend(dir, scene, off, &pump, deadline);
-    gfx::g_pipelineQueueCv.notify_all();
-    gfx::petari_uber_finish_pre_present(start, deadline, pump);
-    std::lock_guard lock{gfx::g_pipelineMutex};
-    gfx::petari_uber_push_job({0, 0, [dir, scene, off] { gfx::petari_uber_scan_seeds(dir, scene, off); }});
-  }
-  gfx::g_pipelineQueueCv.notify_all();
-  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u main_thread_compiles=0 prep_policy=bounded_frontend_generic_before_present workers=%u prep_workers=%u\n",
-      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), queued, workers, workers);
+    gfx::petari_uber_scan_frontend(dir, scene, off, &pump,
+        gfx::petariFrontendStart + std::chrono::milliseconds(5000));
+  };
+  gfx::petariFrontendRemainder = [dir, scene, off] { gfx::petari_uber_scan_seeds(dir, scene, off); };
+  std::fprintf(stderr, "[gx uber async] event=boot_return enqueue_ms=%.3f queued=%u main_thread_compiles=0 prep_policy=armed_normal_frames workers=%u\n",
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - start), gfx::petariUberFrontendArmed, gfx::petariActiveWorkers);
 }
-} // namespace aurora::gx
+}
+extern "C" bool petari_gx_frontend_armed() {
+  std::lock_guard lock{aurora::gfx::g_pipelineMutex};
+  return aurora::gfx::petariUberFrontendArmed;
+}
+extern "C" void petari_gx_frontend_begin() {
+  using namespace aurora::gfx;
+  {
+    std::lock_guard lock{g_pipelineMutex};
+    if (!petariUberFrontendArmed) return;
+    petariFrontendStart = PetariPipeline::Clock::now();
+    petariUberPrePresent = true;
+    petariUberFrontendArmed = false;
+  }
+  // No Generic key exists before this point. Admission is atomic across the
+  // exact finite set; utilities may draw the splash throughout the phase.
+  if (petariFrontendScan) petariFrontendScan();
+  g_pipelineQueueCv.notify_all();
+}
+extern "C" void petari_gx_frontend_status(unsigned* total, unsigned* pending, unsigned* failed, double* elapsedMs) {
+  using namespace aurora::gfx;
+  std::lock_guard lock{g_pipelineMutex};
+  *total = petariUberBoot.titleKeys.size();
+  *pending = petari_uber_title_pending();
+  *failed = std::count_if(petariUberBoot.titleKeys.begin(), petariUberBoot.titleKeys.end(),
+      [](auto key) { return petariUberBoot.failed.contains(key); });
+  *elapsedMs = petariFrontendStart == PetariPipeline::Clock::time_point{} ? 0 :
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - petariFrontendStart);
+}
+extern "C" bool petari_gx_frontend_finish(unsigned frames, unsigned pumps, double maxGapMs, bool mainThread) {
+  using namespace aurora::gfx;
+  std::lock_guard lock{g_pipelineMutex};
+  const auto elapsed = petariFrontendStart == PetariPipeline::Clock::time_point{} ? 0 :
+      PetariPipeline::milliseconds(PetariPipeline::Clock::now() - petariFrontendStart);
+  const auto pending = petari_uber_title_pending();
+  const auto failed = std::count_if(petariUberBoot.titleKeys.begin(), petariUberBoot.titleKeys.end(),
+      [](auto key) { return petariUberBoot.failed.contains(key); });
+  const bool ready = petariUberPrePresent && mainThread && frames >= 3 && !g_pipelineThreadEnd && !pending && !failed &&
+      petariUberBoot.frontEndScanned && !petariUberBoot.titleKeys.empty() && !petariUberBoot.manifestErrors &&
+      !petariUberBoot.rejectedConfigs && elapsed <= 5000;
+  std::string keys;
+  for (auto key : petariUberBoot.titleKeys) {
+    char value[18]; std::snprintf(value, sizeof(value), "%016llx,", static_cast<unsigned long long>(key)); keys += value;
+  }
+  petariUberPrePresent = petariUberFrontendArmed = false;
+  std::fprintf(stderr, "[gx frontend pre-present] version=2 result=%s keys=%zu completed=%zu pending=%zu failed=%zu manifest_errors=%zu elapsed_ms=%.3f cap_ms=5000 workers=%u pumps=%u pump_max_gap_ms=%.3f main_thread=%u presented_frames=%u key_list=%s\n",
+      ready ? "ready" : pending ? "cap" : "failed", petariUberBoot.titleKeys.size(), petariUberBoot.titleKeys.size() - pending,
+      pending, size_t(failed), petariUberBoot.manifestErrors, elapsed, petariActiveWorkers, pumps, maxGapMs,
+      mainThread, frames, keys.c_str());
+  if (petariFrontendRemainder) petari_uber_push_job({0, 0, std::move(petariFrontendRemainder)});
+  petariFrontendScan = {};
+  g_pipelineQueueCv.notify_all();
+  return ready;
+}

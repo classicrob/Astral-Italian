@@ -43,7 +43,6 @@ PREFIX = r'''
 #include <vector>
 #include <sqlite3.h>
 static unsigned bootPumps=0;
-extern "C" void petari_boot_splash_progress(size_t,size_t) {}
 static bool petari_uber_pump_boot_events() { ++bootPumps; return true; }
 namespace PetariPipeline {
 using Clock=std::chrono::steady_clock;
@@ -244,7 +243,7 @@ int main(int argc,char** argv) {
   CHECK(gfx::petariUberJobs.size()==2);
  } else if(test=="boot") {
   gx::petari_uber_boot();
-  CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.size()==1);
+  CHECK(gfx::petariUberBoot.started);CHECK(gfx::petariUberJobs.empty());CHECK(gfx::petariUberFrontendArmed);
   CHECK(gx::builds==0); // no seed assets in this fixture: no GPU compile on the main thread
   CHECK(!gfx::petariUberTitleReleased);
   gfx::petariActiveStage="Unknown";gfx::petari_uber_observe_title(true,true);
@@ -252,7 +251,7 @@ int main(int argc,char** argv) {
   gfx::petariActiveStage="FileSelect";gfx::petari_uber_observe_title(true,true);
   CHECK(gfx::petariUberTitleReleased);
   gfx::petari_uber_async_stop();CHECK(gfx::petariUberJobs.empty());CHECK(gx::builds==0);
-  gx::petari_uber_boot();CHECK(gfx::petariUberJobs.size()==1); // generation can restart after shutdown
+  gx::petari_uber_boot();CHECK(gfx::petariUberJobs.empty() && gfx::petariUberFrontendArmed); // arm generation can restart after shutdown
   CHECK(!gfx::petariUberTitleReleased && !take(2)); // release gate resets each boot
  } else if(test=="front_only") {
   auto d=c;d.shaderConfig.variant=2;
@@ -336,13 +335,20 @@ int main(int argc,char** argv) {
   if(test=="prepresent_failed")c.shaderConfig.throws=true;
   gfx::petari_uber_queue_variant(c,l,1,true);
   if(test!="prepresent_cap") { auto job=take(0);CHECK(job);job(); }
-  gfx::PetariFrontendPump pump;
-  auto start=PetariPipeline::Clock::now();
-  bool ready=gfx::petari_uber_finish_pre_present(start,start+std::chrono::milliseconds(2),pump);
-  CHECK(ready==(test=="prepresent_ready"));
-  CHECK(!gfx::petariUberPrePresent && bootPumps>0);
-  CHECK(PetariPipeline::milliseconds(PetariPipeline::Clock::now()-start)<100);
-  CHECK(!take(0)); // cap/failure/success all restore worker0's normal reservation
+  gfx::petariFrontendStart=PetariPipeline::Clock::now()-std::chrono::milliseconds(test=="prepresent_cap"?5001:1);
+  CHECK(petari_gx_frontend_finish(3,10,16.7,true)==(test=="prepresent_ready"));
+  CHECK(!gfx::petariUberPrePresent && !gfx::petariUberFrontendArmed);
+  CHECK(!take(0)); // cap/failure/success restore worker0's normal reservation
+ } else if(test=="armed" || test=="utility") {
+  gfx::petari_uber_queue_variant(c,l,1,true);
+  if(test=="armed") {
+    gfx::petariUberFrontendArmed=true;
+    for(unsigned i=0;i<4;++i)CHECK(!take(i)); // cannot start before first visible present
+  } else {
+    gfx::petariUberPrePresent=true;
+    gfx::g_pipelineQueue.push_back({99});gfx::petariPipelineSamples[99].drawBlocking=true;
+    for(unsigned i=0;i<4;++i)CHECK(!take(i)); // clear/UI must draw during prep
+  }
  } else if(test=="frontend_data" || test=="frontend_missing") {
   gfx::seedFixture=true;
   auto dir=std::filesystem::path(argv[2])/test;
@@ -366,13 +372,13 @@ int main(int argc,char** argv) {
   if(test=="frontend_missing") {
     CHECK(gfx::petariUberBoot.manifestErrors==1);
     while(auto job=take(0))job();
-    CHECK(!gfx::petari_uber_finish_pre_present(start,deadline,pump));return 0;
+    gfx::petariFrontendStart=start;CHECK(!petari_gx_frontend_finish(3,1,1,true));return 0;
   }
   CHECK(gfx::petariUberBoot.titleKeys.size()==3 && gfx::petariUberBoot.manifestErrors==0);
   CHECK(gfx::petariUberBoot.scheduled.contains(gx::petari_uber_keys(unrelated,l).generic)); // exact observed global-only bootstrap
   while(auto job=take(0))job();
   CHECK(gx::genericBuilds==3 && gx::fastBuilds==0);
-  CHECK(gfx::petari_uber_finish_pre_present(start,deadline,pump));
+  gfx::petariFrontendStart=start;CHECK(petari_gx_frontend_finish(3,1,1,true));
  } else if(test=="unready") {
   auto key=gx::petari_uber_key(c,l,gx::PetariUberTier::Generic);gx::petari_uber_scheduled(key);
   gx::petari_uber_not_ready(key,false);gx::petari_uber_not_ready(key,true);
@@ -403,7 +409,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "admission", "frame_alias", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias", "prepresent_workers", "prepresent_cap", "prepresent_failed", "prepresent_ready", "frontend_data", "frontend_missing"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "admission", "frame_alias", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias", "prepresent_workers", "prepresent_cap", "prepresent_failed", "prepresent_ready", "frontend_data", "frontend_missing", "armed", "utility"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test, self.tmp.name], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

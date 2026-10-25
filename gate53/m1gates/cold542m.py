@@ -60,7 +60,7 @@ def arm(args, stage, repeat, spot):
     assert common.tree(original / 'Contents/Resources') == before_resources
     out = common.ROOT / 'runs' / f'{args.label}-{stage}-r{repeat}'
     process = common.run(app, out, stage=stage, script=common.REPO / 'native/tools/perf_sweep_move.script',
-                         extra={'PETARI_PIPELINE_DIAG': '0', 'PETARI_TRACE_BOOT': '0'}, cold=True, seconds=240, startup_observe=True, boot_probe=args.require_boot_responsiveness)
+                         extra={'PETARI_PIPELINE_DIAG': '0', 'PETARI_TRACE_BOOT': '0'}, cold=True, seconds=240, startup_observe=True, boot_probe=args.require_boot_responsiveness, boot_probe_m1_screen=args.tier=='m1')
     startup = json.loads((out/'startup-observer.json').read_text())
     measured = tier_cold54m.analyze(out)
     deadline_counts = {'YosshiHomeGalaxy':183, 'MokumokuValleyGalaxy':168, 'MarioFaceShipGalaxy':74, 'VsKoopaLv1Galaxy':207}
@@ -90,7 +90,7 @@ def arm(args, stage, repeat, spot):
               'legacy_gate_observation': legacy, 'legacy_gate_exit': old.returncode,
               'pipeline_diag': 0, 'trace_boot': 0, 'nice': 0, 'bundle_id': args.bundle_id, 'tier': args.tier, 'baseline': args.baseline,
               'gate_sources': {n: common.sha(common.HERE / n) for n in
-                               ('cold542m.py', 'gate542m.py', 'gate533.py', 'tier_cold54m.py', 'common.py')},
+                               ('cold542m.py', 'gate542m.py', 'gate533.py', 'tier_cold54m.py', 'common.py', 'boot_response542.py', 'boot_frames542.py', 'screenshot_boot542.py')},
               'raw_artifacts': {n: common.sha(out / n) for n in ('frames.csv', 'app.log', 'launch.json', 'quiet.json', 'route.csv')},
               'acceptance_scope': 'direct cold cohort only; title, symmetric baseline startup and both hardware tiers required separately'}
     common.write(out / 'RESULT.json', result)

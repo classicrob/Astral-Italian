@@ -738,7 +738,12 @@ startup gate uses candidate upper minus baseline lower <=2000 ms, with no
 uncertainty allowance. Missing evidence is unproven/fail. Historical CSV-only
 startup sums cannot establish this end-to-end gate.
 
-### 5.4.2 frontend boot display and bootstrap membership
+### Earlier 5.4.2 frontend boot display and bootstrap membership (superseded)
+
+The overlay/probe design in the next two paragraphs is historical (9ec3d907).
+It failed the cross-process OS evidence. The ordinary-frame design and current
+non-TCC gate below replace it; earlier failures are retained. The membership
+generator described afterward remains current.
 
 The bounded frontend Generic phase now shows the existing SDL window and adds a
 native AppKit black overlay, “Preparing graphics… N%” and a determinate
@@ -823,14 +828,31 @@ its ImGui pass; a PNG callback is scheduled only after that same surface's
 The receipt identifies its presentation serial. This proves the app submitted
 those pixels to its own surface, **not physical scan-out**; independent owned
 WindowServer state and CSV cadence are also required. It uses no screen-capture
-or Automation permission request. AppleEvent heartbeat sends use a PID address,
-`kAEWaitReply | kAENeverInteract | kAEDoNotPromptForUserConsent`; denial, timeout,
-missing reply, missing image, or missing window evidence fails the proof. Python
-AEDesc matches the SDK's two-byte packing (12 bytes on arm64).
+or Automation permission request. The main-loop gap is measured between actual
+main-thread run-loop turns; **max gap <= 100 ms** is required on every new-build
+arm. WindowServer must independently show the owned window on screen with alpha
+1 and nonzero bounds. Missing/invalid capture pixels, CSV coverage, or window
+samples fails this proof. The unchanged menu/startup scorer also sees all of
+these Startup intervals.
+
+Cross-process AppleEvent delivery requires Automation consent on the tested
+server: send status 0 can carry reply error `-1744` (consent would be required),
+with no direct cookie (`-1701`). Therefore cross-PID sends remain **observations**,
+never a gate; no permission is requested. A strict self-process event-loop check
+remains in the GUI test. Any observational send uses the PID address and
+`kAEWaitReply | kAENeverInteract | kAEDoNotPromptForUserConsent`. Python AEDesc
+matches the SDK's two-byte packing (12 bytes on arm64).
+
+On the M1 only, an additional screenshot observation may be launched through the
+specific Python.app identity already authorized by the user. It first calls the
+read-only screen-capture preflight in that LaunchServices process; denial,
+missing identity, or missing screenshot is recorded and never prompts/retries.
+This observation and the next user playtest's human glance are not blockers.
 
 The v14 pack bytes, PFD metadata and generated frontend membership are unchanged.
 Native renderer sources and CMake changes change the renderer/cache identity.
 Server tests include the real frontend loop with a deterministic clock, plus a
-separate-process no-prompt heartbeat against a normally pumped GUI window. GUI
+strict self-process heartbeat against a normally pumped GUI window (the
+separate-process no-prompt outcome is retained as an observation). GUI
 and measured acceptance remain required on the server-built candidate; static
 source checks are not a responsiveness or performance certification.

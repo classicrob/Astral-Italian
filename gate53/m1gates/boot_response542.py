@@ -48,15 +48,21 @@ def ping(pid, executable):
             if d.dataHandle: ae.AEDisposeDesc(C.byref(d))
 
 class Probe:
-    def __init__(self,folder,pid,app):
+    def __init__(self,folder,pid,app,*,m1_screenshot=False):
         self.folder,self.pid,self.app=Path(folder),pid,Path(app)
         self.stop=threading.Event();self.samples=[];self.error=None;self.screenshot=None
-        self.shown=False;self.ended=False
+        self.shown=False;self.ended=False;self.frames=None;self.m1_screenshot=m1_screenshot
         self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
     def run(self):
         try:
             while not self.stop.is_set():
                 text=(self.folder/'app.log').read_text(errors='replace')
+                if re.search(r'^\[gx boot splash\] event=shown .*mode=normal-frames$',text,re.M):
+                    # Only the new native protocol uses non-TCC proof. Keep
+                    # historical v1 behavior/results intact, including failures.
+                    from boot_frames542 import Probe as FrameProbe
+                    self.frames=FrameProbe(self.folder,self.pid,self.app,m1_screenshot=self.m1_screenshot)
+                    return
                 self.shown='[gx boot splash] event=shown' in text
                 self.ended='[gx boot splash] event=handed_off' in text
                 if self.shown and not self.ended:
@@ -72,6 +78,7 @@ class Probe:
         except Exception as exc:self.error=repr(exc)
     def finish(self):
         self.stop.set();self.thread.join(timeout=7)
+        if getattr(self,"frames",None) is not None:return self.frames.finish()
         passed=(not self.thread.is_alive() and self.error is None and self.shown and self.ended and
                 bool(self.samples) and all(s['passed'] for s in self.samples) and
                 self.screenshot is not None and self.screenshot['exit']==0 and (self.folder/'boot-splash.png').is_file())

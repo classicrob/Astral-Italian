@@ -90,9 +90,10 @@ def frontend_pre_present(text):
             f[key] = float(f[key])
             if not math.isfinite(f[key]) or f[key] < 0: raise ValueError('invalid timing')
         keys = f['key_list'].rstrip(',').split(',')
-        evidence['passed'] = (f['version'] == 1 and f['result'] == 'ready' and 0 < f['keys'] <= 2048 and
+        normal_frames=(f['version']==2 and f['presented_frames']>=3 and len(re.findall(r'^\[gx frontend release\] finished_launching=1 window_onscreen=1 alpha=1 bounds_nonzero=1 first_present=1 presented_frames=[1-9][0-9]*$',text,re.M))==1)
+        evidence['passed'] = ((f['version']==1 and f['presented_frames']==0 or normal_frames) and f['result'] == 'ready' and 0 < f['keys'] <= 2048 and
             f['keys'] == f['completed'] == len(keys) == len(set(keys)) and all(re.fullmatch('[0-9a-f]{16}', k) for k in keys) and
-            f['pending'] == f['failed'] == f['manifest_errors'] == f['presented_frames'] == 0 and
+            f['pending'] == f['failed'] == f['manifest_errors'] == 0 and
             f['cap_ms'] == 5000 and f['elapsed_ms'] <= f['cap_ms'] and f['workers'] > 0 and f['pumps'] > 0 and f['main_thread'] == 1)
         evidence['fields'] = f
     except (KeyError, ValueError) as exc: evidence['error'] = str(exc)

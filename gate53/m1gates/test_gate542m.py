@@ -125,6 +125,14 @@ class Gate(unittest.TestCase):
         for bad in ('', good+'\n'+good, good.replace('result=ready','result=cap'), good.replace('completed=1','completed=0'), good.replace('elapsed_ms=1000','elapsed_ms=5000.001'), good.replace('main_thread=1','main_thread=0'), good.replace('pumps=2','pumps=0'), good.replace('keys=1','keys=2')):
             self.assertFalse(gate.frontend_pre_present(bad)['passed'])
 
+    def test_normal_frame_frontend_publication(self):
+        line='[gx frontend pre-present] version=2 result=ready keys=1 completed=1 pending=0 failed=0 manifest_errors=0 elapsed_ms=50 cap_ms=5000 workers=4 pumps=10 pump_max_gap_ms=20 main_thread=1 presented_frames=3 key_list=1234567890abcdef,'
+        release='[gx frontend release] finished_launching=1 window_onscreen=1 alpha=1 bounds_nonzero=1 first_present=1 presented_frames=1'
+        self.assertTrue(gate.frontend_pre_present(line+'\n'+release)['passed'])
+        self.assertFalse(gate.frontend_pre_present(line)['passed'])
+        self.assertFalse(gate.frontend_pre_present(line.replace('presented_frames=3','presented_frames=0')+'\n'+release)['passed'])
+        self.assertFalse(gate.frontend_pre_present(line+'\n'+release+'\n'+release)['passed'])
+
     def test_timeout(self):
         self.text = self.text.replace('title-observation-complete', 'title-observation-timeout')
         self.assertFalse(self.read()['passed'])

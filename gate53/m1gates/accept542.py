@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exact 9ec3d907/072 acceptance commands: per-arm heavy->native, no outer lock.
+"""Exact server-candidate/072 acceptance commands: per-arm heavy->native, no outer lock.
 
 One invocation works on M1/M4 with explicit tier, owned IDs and lock paths.
 Nonzero threshold receipts are retained; runner/identity failures stop the plan.
@@ -71,8 +71,8 @@ def main():
   prime=add('title',build,'warm-prime-r1',None)
   add('title',build,'warm-second-r1',None,warm_from=prime)
  (out/'COMMANDS.json').write_text(json.dumps(dict(plan=plan,tier=args.tier,comparison_window_seconds=300,
-  baseline='07223918',candidate='9ec3d907',warm='replacement prime / immediate second launch, exact same private cache + Metal namespace',
-  direct_scoring='gate533 unchanged + gate542m explicit tier / target deadline counts / frontend-ready / OS probe; actual receipts retain all',
+  baseline='07223918',candidate=args.candidate_dir.name,warm='replacement prime / immediate second launch, exact same private cache + Metal namespace',
+  direct_scoring='gate533 unchanged + gate542m explicit tier / target deadline counts / frontend-ready / non-TCC main-loop and visible-surface proof; actual receipts retain all',
   no_outer_lock=True),indent=2)+'\n')
  if args.plan_only: return 0
  results=[]

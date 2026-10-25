@@ -135,7 +135,7 @@ def rows(path):
 
 FAULT = re.compile(r'FATAL|AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:|more than 2 GiB|unhandled tcg| in ".*" on line \d+\.')
 
-def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0,fixture=None,verify_fixture_attrs=False,startup_observe=False,boot_probe=False):
+def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=False,seconds=180,bound=False,cold=False,nice=0,load_workers=0,fixture=None,verify_fixture_attrs=False,startup_observe=False,boot_probe=False, boot_probe_m1_screen=False):
  """The lock covers cache clearing, app lifetime and cleanup; terminate only this Popen PID."""
  out=Path(out);assert not out.exists(),out
  assert out.resolve().is_relative_to(ROOT.resolve()) and out.resolve()!=ROOT.resolve(),'run output must stay inside owned m1g'
@@ -167,6 +167,7 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
   if script:
    env.update(PETARI_INPUT_SCRIPT=str(script),PETARI_INPUT_SCRIPT_STEADY='60',PETARI_INPUT_SCRIPT_QUIT='1',PETARI_INPUT_SCRIPT_LOG=str(out/'input.csv'))
   env.update(extra or {})
+  if boot_probe:env['PETARI_BOOT_SPLASH_CAPTURE']=str(out/'boot-splash.png')
   command=[str(exe),'--disc',str(DISC),'--user',str(user)]
   if stage:command+=['--stage',stage,'--scenario',str(scenario)]
   if nice:command=['/usr/bin/nice','-n',str(nice),*command]
@@ -190,7 +191,7 @@ def run(app,out,*,stage=None,scenario=1,script=None,extra=None,warm=None,copied=
     responsiveness=None
     if boot_probe:
      from boot_response542 import Probe
-     responsiveness=Probe(out,p.pid,app)
+     responsiveness=Probe(out,p.pid,app,m1_screenshot=boot_probe_m1_screen)
     info['pid']=p.pid
     if nice:time.sleep(.05)
     try:info['child_nice_at_spawn']=os.getpriority(os.PRIO_PROCESS,p.pid)

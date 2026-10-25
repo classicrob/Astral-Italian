@@ -3,12 +3,12 @@
 
 The Wii TU (NameObjFactory.cpp) declares Wii-sized stand-in classes so its createNameObj<T>
 instantiations match without ~480 headers; natively those would under-allocate, so the native
-build gets its own cCreateTable / cPostCreationTable built from the REAL class headers.
-Classes without a usable real header get a named trap creator (PLACEHOLDER(port)).
+build instantiates the shared NameObjFactoryTables.inc rows with REAL class headers.
+Generation refuses any row that disagrees with the shared table, including traps.
 
   python3 tools/port/gen_native_factory.py [--exclude CLASS ...]   (needs build/SB4E01/asm)
-Iterate with tools/team/nativecheck.py; classes whose real header does not compile natively
-can be passed with --exclude (they become traps too).
+Iterate with tools/team/nativecheck.py. Resolve missing classes before regenerating;
+--exclude is diagnostic and cannot replace a shared creator with a trap.
 """
 import argparse, re, sys
 from pathlib import Path
@@ -193,16 +193,10 @@ def main():
     for cls, why in sorted(traps.items()):
         o.append(f"    // PLACEHOLDER(port): {cls}: {why}; resolve when its owner lane sources the class header")
         o.append(f'    NameObj* trap{cls}(const char* pName) {{ trapMissingClass("{cls}", pName); }}')
-    o += ["}  // namespace", "", "namespace NameObjFactory {",
-          f"    extern const Name2CreateFunc cCreateTable[{len(rows)}];",
-          f"    const Name2CreateFunc cCreateTable[{len(rows)}] = {{"]
-    o += [f"        {{{n}, {f}}}," for n, f in rows]
-    o += ["    };", "", "    struct PostCreationEntry {", "        const char* mName;",
-          "        void (*mFunction)(const JMapInfoIter&);", "    };",
-          f"    extern const PostCreationEntry cPostCreationTable[{len(postrows)}];",
-          f"    const PostCreationEntry cPostCreationTable[{len(postrows)}] = {{"]
-    o += [f"        {{{n}, {f}}}," for n, f in postrows]
-    o += ["    };", "}  // namespace NameObjFactory", "#endif", ""]
+    sys.path.insert(0, str(ROOT / 'tools/team'))
+    from check_factory_tables import check_native_rows, shared_rows
+    check_native_rows(shared_rows(ROOT / 'src/Game/NameObj/NameObjFactoryTables.inc'), rows + postrows)
+    o += ["}  // namespace", "", '#include "../src/Game/NameObj/NameObjFactoryTables.inc"', "#endif", ""]
     OUT.write_text("\n".join(o))
     print(f"{len(rows)} create entries ({len(rows) - sum(1 for r in rows if r[1].startswith('trap'))} real, "
           f"{len(traps)} trap classes), {len(postrows)} post-creation entries -> {OUT.relative_to(ROOT)}")

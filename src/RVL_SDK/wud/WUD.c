@@ -682,11 +682,11 @@ static int WUDiSetPinCode(BD_ADDR addr) {
     return 0;
 }
 
-static BOOL WUDiIsFinishLinkKeyCmd(void) {
+static BOOL WUDiIsBusyLinkKeyCmd(void) {
     if (_wcb.linkKeyState != WUD_STATE_LINK_KEY_START) {
-        return FALSE;
+        return TRUE;
     }
-    return TRUE;
+    return FALSE;
 }
 
 static BOOL WUDiIsFinishScCmd(void) {
@@ -880,7 +880,7 @@ static u8 WUDiStoredLinkKey(void) {
     WUDCB* p = &_wcb;
     WUDDevInfo* pInfo;
 
-    if (!WUDiIsFinishLinkKeyCmd()) {
+    if (WUDiIsBusyLinkKeyCmd()) {
         return WUD_STATE_SYNC_STORED_LINK_KEY_TO_EEPROM;
     }
 
@@ -898,13 +898,13 @@ static u8 WUDiStoredLinkKey(void) {
 }
 
 static u8 WUDiWaitFinishStoring(void) {
-    return WUDiIsFinishLinkKeyCmd() ? WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND : WUD_STATE_SYNC_WAIT_FOR_STORING;
+    return !WUDiIsBusyLinkKeyCmd() ? WUD_STATE_SYNC_STORED_DEV_INFO_TO_NAND : WUD_STATE_SYNC_WAIT_FOR_STORING;
 }
 
 static u8 WUDiWaitFinishReading(void) {
     WUDSyncState nextState = WUD_STATE_SYNC_WAIT_FOR_READING;
 
-    if (WUDiIsFinishLinkKeyCmd()) {
+    if (!WUDiIsBusyLinkKeyCmd()) {
         nextState = WUD_STATE_SYNC_VIRGIN_STANDARD;
         WUDiRemoveDevice(_wcb.pairAddr);
     }
@@ -1106,7 +1106,7 @@ static void SyncHandler(void) {
     case WUD_STATE_SYNC_6:
     case WUD_STATE_SYNC_13:
     case WUD_STATE_SYNC_CANCEL_SEARCH: {
-        break;
+        return;
     }
 
     case WUD_STATE_SYNC_11:

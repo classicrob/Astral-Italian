@@ -7,15 +7,12 @@
 CamYoshiEffector::CamYoshiEffector() {
 }
 
-// NONMATCHING: vector temporary registers and stack placement.
 void CamYoshiEffector::update(CameraMan* camera) {
     if (!MR::isPlayerElementModeYoshiDash()) {
         return;
     }
 
-    const TVec3f& watchPos = CameraLocalUtil::getWatchPos(camera);
-    TVec3f direction(CameraLocalUtil::getPos(camera));
-    direction.sub(direction, watchPos);
+    TVec3f direction = CameraLocalUtil::getPos(camera) - CameraLocalUtil::getWatchPos(camera);
     f32 distance = direction.length();
     if (MR::normalizeOrZero(&direction)) {
         return;

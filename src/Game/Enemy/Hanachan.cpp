@@ -374,7 +374,6 @@ bool HanachanParts::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor
     return true;
 }
 
-// NONMATCHING: floating-point register allocation.
 bool HanachanParts::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pSender)) {
         return false;
@@ -386,15 +385,9 @@ bool HanachanParts::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     f32 depth;
 
     if (!mHost->isOwnSensor(pSender)) {
-        f32 length = dir.length();
-        f32 senderRadius = MR::getSensorRadius(pSender);
-        f32 receiverRadius = MR::getSensorRadius(pReceiver);
-        depth = (receiverRadius + senderRadius) - length;
+        depth = (MR::getSensorRadius(pReceiver) + MR::getSensorRadius(pSender)) - dir.length();
     } else {
-        f32 length = dir.length();
-        f32 senderHalf = MR::getSensorRadius(pSender) / 2.0f;
-        f32 receiverRadius = MR::getSensorRadius(pReceiver);
-        depth = (receiverRadius / 2.0f + senderHalf) - length;
+        depth = (MR::getSensorRadius(pReceiver) / 2.0f + MR::getSensorRadius(pSender) / 2.0f) - dir.length();
 
         if (depth < 0.0f) {
             return false;

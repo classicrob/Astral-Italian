@@ -32,7 +32,7 @@ KoopaStateOpeningDemo::KoopaStateOpeningDemo(KoopaBattle* pHost, const JMapInfoI
         mPeach = reinterpret_cast< LiveActor* >(MR::createDemoObjWithAnimArc("デモ用ピーチ", "Peach", "PeachAnim", "Demo", mHost->getBaseMtx()));
         mPeach->makeActorDead();
         MR::initTalkAnimDemoCast(mPeach, rIter, sOpeningDemoName, pCameraName);
-        mPeachCage = reinterpret_cast< LiveActor* >(MR::createDemoObj("デモ用ピーチ泡籠", "PeachBubbleCage", "Demo", pHost->getBaseMtx()));
+        mPeachCage = reinterpret_cast< LiveActor* >(MR::createDemoObj("デモ用ピーチ泡籠", "PeachBubbleCage", "Demo", mHost->getBaseMtx()));
         mPeachCage->makeActorDead();
         MR::initTalkAnimDemoCast(mPeachCage, rIter, sOpeningDemoName, pCameraName);
     }

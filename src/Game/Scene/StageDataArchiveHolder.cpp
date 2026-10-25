@@ -83,6 +83,31 @@ namespace {
         return nullptr;
     }
 
+    inline const char* resolveResourceName(const char* pRes) {
+        s32 worldId = GameDataFunction::getCurrentWorldId();
+        const char* pPath = nullptr;
+        if (worldId < 2) {
+            pPath = nullptr;
+        } else if (findReplacementResource(pRes, sWorldSkyResourceTable, 6) != nullptr) {
+            pPath = sWorldSkyResourceTable[worldId - 2].mTo;
+        } else {
+            pPath = nullptr;
+        }
+
+        if (pPath == nullptr && GameDataFunction::isOnGameEventFlagStarPieceCounterStop()) {
+            pPath = findReplacementResource(pRes, sStarPieceCounterStopResourceTable, 1);
+        }
+
+        if (pPath == nullptr && MR::isPlayerLuigi()) {
+            pPath = findReplacementResource(pRes, sLuigiResourceTable, 18);
+        }
+
+        if (pPath != nullptr) {
+            return pPath;
+        }
+        return pRes;
+    }
+
     // NONMATCHING: regalloc (worldId/path share one register in the target) (FP order/grouping checked: no FP instructions).
     // fn_8045AA60: mounts every archive named in the "ResourceName" column of the given UseResource list.
     void mountUseResourceList(const char* pListName) {
@@ -106,30 +131,9 @@ namespace {
                 continue;
             }
 
+            const char* pPath = resolveResourceName(pResName);
+
             const char* pRes = pResName;
-            s32 worldId = GameDataFunction::getCurrentWorldId();
-            const char* pPath = nullptr;
-            if (worldId < 2) {
-                pPath = nullptr;
-            } else if (findReplacementResource(pRes, sWorldSkyResourceTable, 6) != nullptr) {
-                pPath = sWorldSkyResourceTable[worldId - 2].mTo;
-            } else {
-                pPath = nullptr;
-            }
-
-            if (pPath == nullptr && GameDataFunction::isOnGameEventFlagStarPieceCounterStop()) {
-                pPath = findReplacementResource(pRes, sStarPieceCounterStopResourceTable, 1);
-            }
-
-            if (pPath == nullptr && MR::isPlayerLuigi()) {
-                pPath = findReplacementResource(pRes, sLuigiResourceTable, 18);
-            }
-
-            if (pPath == nullptr) {
-                pPath = pRes;
-            }
-
-            pRes = pResName;
             bool isWorldMapResource;
             if (MR::getWorldMapHeap() == nullptr) {
                 isWorldMapResource = false;

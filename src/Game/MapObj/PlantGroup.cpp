@@ -669,16 +669,20 @@ void PlantMember::appear() {
 }
 
 
+namespace {
+    extern const f32 sAppearPeakScale;
+}
+
 #define PLANT_APPEAR_SCALE(dst, t, threshold)                                                                                                         \
     if ((t) <= 0.75f) {                                                                                                                       \
-        dst = JMAHermiteInterpolation<f32>(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
+        dst = JMAHermiteInterpolation<f32>(t, 0.0f, 0.0f, 3.0f, 0.75f, sAppearPeakScale, -0.9f);                                                               \
     } else if ((t) <= threshold) {                                                                                                                \
-        dst = JMAHermiteInterpolation<f32>(t, 0.75f, 1.0f, -0.9f, threshold, 1.0f, 0.55f);                                                             \
+        dst = JMAHermiteInterpolation<f32>(t, 0.75f, sAppearPeakScale, -0.9f, threshold, 1.0f, 0.55f);                                                             \
     } else {                                                                                                                                  \
         dst = JMAHermiteInterpolation<f32>(t, threshold, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
     }
 
-// NONMATCHING: target hoists the 0.92 Hermite threshold into f31 (5 saved FPRs); ours reloads it (3 saved FPRs)
+// NONMATCHING: scalar lifetimes use four saved FPRs instead of five.
 void PlantMember::control() {
     if (isAppearing()) {
         f32 threshold;
@@ -947,4 +951,8 @@ PlantGroup::~PlantGroup() {
 }
 
 PlantMember::~PlantMember() {
+}
+
+namespace {
+    const f32 sAppearPeakScale = 1.0f;
 }

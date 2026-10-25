@@ -40,7 +40,6 @@ namespace NrvOpeningDemoObj {
 OpeningDemoObj::OpeningDemoObj(const char* pName) : LiveActor(pName), mModelA(nullptr), mModelB(nullptr), mLayoutA(nullptr), mLayoutB(nullptr), mModelC(nullptr) {
 }
 
-// NONMATCHING: regalloc
 void OpeningDemoObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::connectToSceneMapObjMovement(this);
@@ -49,8 +48,7 @@ void OpeningDemoObj::init(const JMapInfoIter& rIter) {
     mModelA = MR::createModelObjMapObj("流れ星", "PeachShootingStar", nullptr);
     TPos3f zone = *MR::getZonePlacementMtx(mLinkInfo.mZoneID);
     TVec3f starPosition(0.0f, 0.0f, 0.0f);
-    TVec3f localStar = *reinterpret_cast<const TVec3f*>(&sStarLocalPosition);
-    zone.mult(localStar, starPosition);
+    zone.mult(TVec3f(*reinterpret_cast<const TVec3f*>(&sStarLocalPosition)), starPosition);
     mModelA->mPosition.set(starPosition);
     mModelA->mRotation.set(-90.0f, 0.0f, 0.0f);
     MR::tryRegisterDemoCast(mModelA, rIter);

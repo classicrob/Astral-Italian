@@ -22,6 +22,11 @@ static const char* const s_MaxBlocksEU[] = {
     "\n\n\nEr is geen vrije ruimte meer in het\ninterne geheugen van het Wii-systeem.\nLees de handleiding voor meer informatie.",
 };
 
+static const char* const s_MaxBlocksCompact[] = {
+    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202O\202T\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\213\363\202\253\227e\227\312\202\252\210\331\217\355\202\305\202\267\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
+    "\n\nError #405,\n\nThere is no more available space in\nWii system memory. Refer to the Wii\nOperations Manual for details.",
+};
+
 static const char* const s_MaxFilesUS[] = {
     "\n\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\213\363\202\253\203t\203@\203C\203\213\220\224\202\252\210\331\217\355\202\305\202\267\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
     "\n\n\nThere is no more available space in\nWii system memory. Refer to the Wii\nOperations Manual for details.",
@@ -40,6 +45,11 @@ static const char* const s_MaxFilesEU[] = {
     "\n\n\nNo queda espacio libre en la memoria de\nla consola Wii. Consulta el manual de\ninstrucciones de la consola Wii para\nobtener m\341s informaci\363n.",
     "\n\n\nImpossibile salvare altri dati nella\nmemoria della console Wii. Per maggiori\ninformazioni, consulta il manuale di\nistruzioni della console Wii.",
     "\n\n\nEr is geen ruimte meer beschikbaar\nin het interne geheugen van het\nWii-systeem. Lees de handleiding voor\nmeer informatie.",
+};
+
+static const char* const s_MaxFilesCompact[] = {
+    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202O\202U\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\213\363\202\253\203t\203@\203C\203\213\220\224\202\252\210\331\217\355\202\305\202\267\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
+    "\n\nError #406,\n\nThere is no more available space in\nWii system memory. Refer to the Wii\nOperations Manual for details.",
 };
 
 static const char* const s_CorruptUS[] = {
@@ -62,6 +72,11 @@ static const char* const s_CorruptEU[] = {
     "\n\n\nHet interne geheugen van het\nWii-systeem is beschadigd. Lees de\nWii-handleiding voor meer informatie.",
 };
 
+static const char* const s_CorruptCompact[] = {
+    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202O\202W\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\252\211\363\202\352\202\334\202\265\202\275\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
+    "\n\nError #408,\n\nThe Wii system memory has been damaged.\nRefer to the Wii Operations Manual for\ndetails.",
+};
+
 static const char* const s_AccessUS[] = {
     "\n\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\217\221\202\253\215\236\202\335/\223\307\202\335\217o\202\265\202\252\n\202\305\202\253\202\334\202\271\202\361\202\305\202\265\202\275\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
     "\n\n\nCould not access Wii system memory.\nRefer to the Wii Operations Manual for\ndetails.",
@@ -82,6 +97,11 @@ static const char* const s_AccessEU[] = {
     "\n\n\nHet interne geheugen van het Wii-systeem\nkan niet worden gelezen of beschreven.\nLees de Wii-handleiding voor meer\ninformatie.",
 };
 
+static const char* const s_AccessCompact[] = {
+    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202P\202P\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\217\221\202\253\215\236\202\335/\223\307\202\335\217o\202\265\202\252\n\202\305\202\253\202\334\202\271\202\361\202\305\202\265\202\275\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
+    "\n\nError #411,\n\nCould not access Wii system memory.\nRefer to the Wii Operations Manual for\ndetails.",
+};
+
 static const char* const s_UnexpectedUS[] = {
     "\n\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\217\221\202\253\215\236\202\335/\223\307\202\335\217o\202\265\222\206\202\311\n\203G\203\211\201[\202\252\224\255\220\266\202\265\202\334\202\265\202\275\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
     "\n\n\nAn error occurred while accessing Wii\nsystem memory. Refer to the Wii\nOperations Manual for details.",
@@ -100,26 +120,6 @@ static const char* const s_UnexpectedEU[] = {
     "\n\n\nSe ha producido un error durante la\nlectura o escritura de la memoria de\nla consola Wii. Consulta el manual de\ninstrucciones de la consola Wii para\nobtener m\341s informaci\363n.",
     "\n\n\nSi \350 verificato un errore durante la\nlettura o la modifica dei dati\nall'interno della memoria della\nconsole Wii. Per maggiori informazioni,\nconsulta il manuale di istruzioni della\nconsole Wii.",
     "\n\n\nEr is een fout opgetreden tijdens het\nlezen of beschrijven van het interne\ngeheugen van het Wii-systeem. Lees de\nWii-handleiding voor meer informatie.",
-};
-
-static const char* const s_MaxBlocksCompact[] = {
-    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202O\202T\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\213\363\202\253\227e\227\312\202\252\210\331\217\355\202\305\202\267\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
-    "\n\nError #405,\n\nThere is no more available space in\nWii system memory. Refer to the Wii\nOperations Manual for details.",
-};
-
-static const char* const s_MaxFilesCompact[] = {
-    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202O\202U\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\213\363\202\253\203t\203@\203C\203\213\220\224\202\252\210\331\217\355\202\305\202\267\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
-    "\n\nError #406,\n\nThere is no more available space in\nWii system memory. Refer to the Wii\nOperations Manual for details.",
-};
-
-static const char* const s_CorruptCompact[] = {
-    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202O\202W\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\252\211\363\202\352\202\334\202\265\202\275\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
-    "\n\nError #408,\n\nThe Wii system memory has been damaged.\nRefer to the Wii Operations Manual for\ndetails.",
-};
-
-static const char* const s_AccessCompact[] = {
-    "\n\n\203G\203\211\201[\203R\201[\203h\202S\202P\202P\201B\n\nWii\226{\221\314\225\333\221\266\203\201\203\202\203\212\202\314\217\221\202\253\215\236\202\335/\223\307\202\335\217o\202\265\202\252\n\202\305\202\253\202\334\202\271\202\361\202\305\202\265\202\275\201B\n\202\255\202\355\202\265\202\255\202\315Wii\226{\221\314\202\314\216\346\210\265\220\340\226\276\217\221\202\360\202\250\223\307\202\335\n\202\255\202\276\202\263\202\242\201B",
-    "\n\nError #411,\n\nCould not access Wii system memory.\nRefer to the Wii Operations Manual for\ndetails.",
 };
 
 static const char* const s_UnexpectedCompact[] = {

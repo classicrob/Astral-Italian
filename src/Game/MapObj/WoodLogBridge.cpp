@@ -46,9 +46,8 @@ void WoodLogBridgeParts::updateRandomKick() NO_INLINE {
     }
 }
 
-// NONMATCHING: 96%; stack slot order of the kick/diff temporaries is swapped (stack offsets only)
-// NONMATCHING: target negates the 2.5 pool constant at runtime (fneg) and reloads it per use; named locals get hoisted into f31
-// NONMATCHING: target negates the loaded 2.5 constant at runtime (fneg) instead of a folded -2.5f pool entry; arg setup order of the temp copy
+extern const f32 sSwaySoundSpeed;
+
 void WoodLogBridgeParts::control() {
     mVelocity.scale(0.95f);
     TVec3f kick = TVec3f(mRestPos - mPosition);
@@ -56,7 +55,7 @@ void WoodLogBridgeParts::control() {
     mVelocity.add(kick);
 
     s32 vol;
-    s32 k = (s32)(200.0f * (__fabsf(mVelocity.y) - 2.5f)) + 100;
+    s32 k = (s32)(200.0f * (__fabsf(mVelocity.y) - sSwaySoundSpeed)) + 100;
     if (k < 200) {
         vol = 200;
     } else {
@@ -66,13 +65,15 @@ void WoodLogBridgeParts::control() {
         }
     }
 
-    if (2.5f <= mVelocity.y) {
+    if (sSwaySoundSpeed <= mVelocity.y) {
         MR::startActionSound(this, "Sway1", vol, -1, -1);
     }
-    if (-2.5f >= mVelocity.y) {
+    if (-sSwaySoundSpeed >= mVelocity.y) {
         MR::startActionSound(this, "Sway2", vol, -1, -1);
     }
 }
+
+const f32 sSwaySoundSpeed = 2.5f;
 
 bool WoodLogBridgeParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pA, HitSensor* pB) {
     return mHost->receiveMessage(msg, pA, pB);
@@ -267,7 +268,9 @@ void drawLogQuad(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVe
 }
 
 // fn_8032C230: draws one log section as three quad strips.
-// NONMATCHING: target loads two separate 6.0 pool constants per call and negates them at runtime (fneg); ours folds -6.0f or hoists the constant into f31
+extern const f32 sLogHalfWidth;
+extern const f32 sLogHalfDepth;
+
 void drawLogSection(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVec3f* pD, const TVec3f* pE) NO_INLINE {
     const GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
     const GXColor blue = {0x80, 0x80, 0x80, 0xFF};
@@ -275,15 +278,18 @@ void drawLogSection(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const 
 #ifdef GALAXY_NATIVE
     const Color8 logBlue(blue);
     const Color8 logWhite(white);
-    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, 0.0f, 6.0f, 6.0f, -6.0f, 10.0f);
-    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, -6.0f, -6.0f, 0.0f, 6.0f, 10.0f);
-    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, 6.0f, -6.0f, -6.0f, -6.0f, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, 0.0f, sLogHalfDepth, sLogHalfWidth, -sLogHalfDepth, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, -sLogHalfWidth, -sLogHalfDepth, 0.0f, sLogHalfDepth, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &logBlue, &logWhite, sLogHalfWidth, -sLogHalfDepth, -sLogHalfWidth, -sLogHalfDepth, 10.0f);
 #else
-    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), 0.0f, 6.0f, 6.0f, -6.0f, 10.0f);
-    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), -6.0f, -6.0f, 0.0f, 6.0f, 10.0f);
-    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), 6.0f, -6.0f, -6.0f, -6.0f, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), 0.0f, sLogHalfDepth, sLogHalfWidth, -sLogHalfDepth, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), -sLogHalfWidth, -sLogHalfDepth, 0.0f, sLogHalfDepth, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), sLogHalfWidth, -sLogHalfDepth, -sLogHalfWidth, -sLogHalfDepth, 10.0f);
 #endif
 }
+
+const f32 sLogHalfWidth = 6.0f;
+const f32 sLogHalfDepth = 6.0f;
 
 // fn_8032C750: sets up the TEV/vertex state for the bridge draw.
 void setupLogDraw(const WoodLogBridge* pBridge) NO_INLINE {

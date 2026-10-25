@@ -128,7 +128,7 @@ class Trapeze { public: Trapeze(const char*); u8 _[0x118]; };
 class TubeSlider { public: TubeSlider(const char*); u8 _[0x1ac]; };
 class BakuBaku { public: BakuBaku(const char*); u8 _[0xac]; };
 class Balloonfish { public: Balloonfish(const char*); u8 _[0xb4]; };
-class BasaBasa { public: BasaBasa(const char*); u8 _[0xf4]; };
+class BasaBasa { public: BasaBasa(const char*); static void preloadIceFreezeResources(const JMapInfoIter&); u8 _[0xf4]; };
 class Battan { public: Battan(const char*); u8 _[0xcc]; };
 class BeeEater { public: BeeEater(const char*); u8 _[0x11c]; };
 class BegomanBaby { public: BegomanBaby(const char*); u8 _[0x148]; };
@@ -178,7 +178,7 @@ class LavaBubble { public: LavaBubble(const char*); u8 _[0x154]; };
 class MameMuimuiScorer { public: MameMuimuiScorer(const char*); u8 _[0x108]; };
 class MechanicKoopaMini { public: MechanicKoopaMini(const char*); u8 _[0xa0]; };
 class Menbo { public: Menbo(const char*); u8 _[0x150]; };
-class Meramera { public: Meramera(const char*); u8 _[0x1c4]; };
+class Meramera { public: Meramera(const char*); static void initPlayerResource(const JMapInfoIter&); u8 _[0x1c4]; };
 class Metbo { public: Metbo(const char*); u8 _[0xcc]; };
 class Mogucchi { public: Mogucchi(const char*); u8 _[0xfc]; };
 class Nigero { public: Nigero(const char*); u8 _[0xf4]; };
@@ -252,7 +252,7 @@ class ArrowSwitch { public: ArrowSwitch(const char*); u8 _[0xa8]; };
 class AttackRock { public: AttackRock(const char*); u8 _[0x12c]; };
 class AttackRockTutorial { public: AttackRockTutorial(const char*); u8 _[0x108]; };
 class AttackRockFinal { public: AttackRockFinal(const char*); u8 _[0x118]; };
-class BalloonFruit { public: BalloonFruit(const char*); u8 _[0xe8]; };
+class BalloonFruit { public: BalloonFruit(const char*); static void enableYoshiBalloonResource(); u8 _[0xe8]; };
 class BallOpener { public: BallOpener(const char*); u8 _[0xcc]; };
 class BallRail { public: BallRail(const char*); u8 _[0xe4]; };
 class BeeFlowerHover { public: BeeFlowerHover(const char*); u8 _[0xdc]; };
@@ -331,7 +331,7 @@ class SoundEmitter { public: SoundEmitter(const char*); u8 _[0x9c]; };
 class SpaceMine { public: SpaceMine(const char*); u8 _[0x12c]; };
 class SphereRailDash { public: SphereRailDash(const char*); u8 _[0xd4]; };
 class SpinCloudBlock { public: SpinCloudBlock(const char*); u8 _[0xd4]; };
-class SpinCloudItem { public: SpinCloudItem(const char*); u8 _[0x90]; };
+class SpinCloudItem { public: SpinCloudItem(const char*); static void enablePlayerResourceCloud(); u8 _[0x90]; };
 class SupportFlushPoint { public: SupportFlushPoint(const char*); u8 _[0x94]; };
 class TimeAttackClock { public: TimeAttackClock(const char*); u8 _[0xf8]; };
 class Tsukidashikun { public: Tsukidashikun(const char*); u8 _[0xd8]; };
@@ -371,7 +371,7 @@ class DarknessRoomDoor { public: DarknessRoomDoor(const char*); u8 _[0xdc]; };
 class ManholeCover { public: ManholeCover(const char*); u8 _[0x98]; };
 class LavaFloater { public: LavaFloater(const char*); u8 _[0xb4]; };
 class RailRotateMoveObj { public: RailRotateMoveObj(const char*); u8 _[0xe0]; };
-class Sandstorm { public: Sandstorm(const char*); u8 _[0xf8]; };
+class Sandstorm { public: Sandstorm(const char*); static void enablePlayerTornado(); u8 _[0xf8]; };
 class MarioFacePlanetPrevious { public: MarioFacePlanetPrevious(const char*); u8 _[0xf0]; };
 class WorldMapAccessPanel { public: WorldMapAccessPanel(const char*); u8 _[0xb8]; };
 class ItemRoomDoor { public: ItemRoomDoor(const char*); u8 _[0x94]; };
@@ -389,7 +389,7 @@ class SecretGateCounter { public: SecretGateCounter(const char*); u8 _[0x9c]; };
 class GliderBalloon { public: GliderBalloon(const char*); u8 _[0xb0]; };
 class GliderTree { public: GliderTree(const char*); u8 _[0x90]; };
 class MagmaMeteor { public: MagmaMeteor(const char*); u8 _[0xc4]; };
-class IceMeteor { public: IceMeteor(const char*); u8 _[0xc4]; };
+class IceMeteor { public: IceMeteor(const char*); static void initPlayerResource(const JMapInfoIter&); u8 _[0xc4]; };
 class VsOtaRockTankIcePlanetFence { public: VsOtaRockTankIcePlanetFence(const char*); u8 _[0x90]; };
 class MagmaSeaWave { public: MagmaSeaWave(const char*); u8 _[0xe4]; };
 class StarPieceClusterRock { public: StarPieceClusterRock(const char*); u8 _[0xa0]; };
@@ -457,7 +457,7 @@ class FountainBig { public: FountainBig(const char*); u8 _[0xa0]; };
 class RandomEffectObj { public: RandomEffectObj(const char*); u8 _[0xb0]; };
 class PhantomTorch { public: PhantomTorch(const char*); u8 _[0xa0]; };
 class InvisiblePolygonObj { public: InvisiblePolygonObj(const char*); u8 _[0xc0]; };
-class YoshiEgg { public: YoshiEgg(const char*); u8 _[0xc4]; };
+class YoshiEgg { public: YoshiEgg(const char*); static void fn_80417040(); u8 _[0xc4]; };
 class PullTargetBridge { public: PullTargetBridge(const char*); u8 _[0xb4]; };
 class PullTargetDrawer { public: PullTargetDrawer(const char*); u8 _[0xd4]; };
 class YoshiBlock { public: YoshiBlock(const char*); u8 _[0xf0]; };
@@ -525,6 +525,7 @@ namespace NameObjFactory {
     template <> NameObj* createNameObj<MorphItemNeoTeresa>(const char*) { return new MorphItemNeoTeresa("テレサオブジェ"); }
 };  // namespace NameObjFactory
 
+#ifdef GALAXY_NATIVE
 typedef NameObj* (*FactoryCreateFunc)(const char*);
 
 // References that instantiate every creator (the real table also carries names/archives).
@@ -1019,14 +1020,9 @@ extern const FactoryCreateFunc cFactoryCreateFuncs[] = {
     NameObjFactory::createBaseOriginCube< SoundEmitterCubeWorldMapSync >,
 };
 
-namespace NameObjFactory {
-    extern const Name2CreateFunc cCreateTable[977];
-    struct PostCreationEntry {
-        const char* mName;
-        void (*mFunction)(const JMapInfoIter&);
-    };
-    extern const PostCreationEntry cPostCreationTable[27];
+#endif
 
+namespace NameObjFactory {
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout) (FP order/grouping checked: no FP instructions).
     inline const Name2CreateFunc* findCreatorEntry(const char* name) {
         for (const Name2CreateFunc* entry = cCreateTable; entry != cCreateTable + 977; ++entry) {
@@ -1064,3 +1060,7 @@ namespace NameObjFactory {
         return child;
     }
 }
+
+#ifndef GALAXY_NATIVE
+#include "../src/Game/NameObj/NameObjFactoryTables.inc"
+#endif

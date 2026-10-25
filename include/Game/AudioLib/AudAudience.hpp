@@ -129,7 +129,12 @@ public:
             return 1.0f;
         }
 
-        f32 volumeRate = distVolBit == 1 && !mFarCamera ? mVolumeRate : (mSetting.mMinVolume - 1.0f) / (farDist - mSetting.mNearDistance);
+        f32 volumeRate;
+        if (distVolBit == 1 && !mFarCamera) {
+            volumeRate = mVolumeRate;
+        } else {
+            volumeRate = (mSetting.mMinVolume - 1.0f) / (farDist - mSetting.mNearDistance);
+        }
         return MR::clamp(volumeRate * (dist - mSetting.mNearDistance) + 1.0f, 0.0f, 1.0f);
     }
 

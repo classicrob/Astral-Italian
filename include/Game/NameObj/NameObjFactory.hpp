@@ -21,6 +21,14 @@ namespace NameObjFactory {
         /* 0x4 */ CreatorFuncPtr mCreateFunc;
     };
 
+    struct PostCreationEntry {
+        const char* mName;
+        void (*mFunction)(const JMapInfoIter&);
+    };
+
+    extern const Name2CreateFunc cCreateTable[977];
+    extern const PostCreationEntry cPostCreationTable[27];
+
     struct Name2Archive {
         /* 0x0* */ const char* mObjectName;
         /* 0x4* */ const char* mArchiveName;

@@ -1,5 +1,6 @@
 // Game-free session driven through the REAL native power callback. No GUI.
 #include "tape_play.hpp"
+#include "tape_script_record.hpp"
 #include <petari/platform/power.hpp>
 #include <revolution/os.h>
 #include <revolution/kpad.h>
@@ -113,6 +114,24 @@ void replace(std::string& s,const std::string& from,const std::string& to) {
 }
 int main() {
     __OSThreadInit();
+    using namespace PetariNative::App::TapeScriptRecord;
+    Pointer pointer;
+    check(parsePointer("Pointer:400,300",pointer) && pointer.kind==Pointer::Position && pointer.x==400 && pointer.y==300,"native pointer token exact");
+    check(parsePointer("Pointer:off",pointer) && pointer.kind==Pointer::Off,"native pointer off token");
+    for (const char* bad:{"Pointer:","Pointer:400","Pointer:400,300,0","Pointer:nan,1","Pointer:1,inf","Pointer:-1,2","Pointer:offx"})
+        check(!parsePointer(bad,pointer),"malformed/nonfinite native pointer rejected");
+    Tail tail;check(tail.queue(),"script completion queues a tail");
+    check(tail.step(1,false,true)==Tail::None,"tail cannot begin outside a recorder seam");
+    check(tail.step(2,true,true)==Tail::Begin,"next post-row seam starts tail");
+    check(tail.began(3,true),"tail time begins after the recorder logs actual event");
+    check(tail.step(180000000002ull,true,true)==Tail::None && !tail.powerAllowed(180000000002ull,true),"power before180 seconds rejected");
+    check(tail.step(180000000003ull,false,true)==Tail::None,"power cannot escape control seam");
+    check(tail.step(180000000003ull,true,true)==Tail::Power && tail.powerAllowed(180000000003ull,true),"real power permission only after180 seconds at seam");
+    check(!tail.powerAllowed(180000000003ull,false),"out-of-seam power rejected");
+    Tail dirty;dirty.queue();check(dirty.step(1,true,true)==Tail::Begin && dirty.began(2,true),"negative tail starts");
+    check(dirty.step(3,true,false)==Tail::Reject && !dirty.powerAllowed(180000000003ull,true),"input during native tail rejects admission");
+    Tail shortTail(179);check(!shortTail.queue(),"short native tail cannot be queued");
+
     const auto base=fs::temp_directory_path()/("tape-power-tests-"+std::to_string(getpid()));
     tape(base/"correct");check(drive(base/"correct"),"real callback preserves every state including shutdown");
     tape(base/"unpaired",5,true);

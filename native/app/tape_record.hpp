@@ -36,6 +36,7 @@ void beforeRead(const TapePhase::State& state);
 void beginControlSeam();
 void endControlSeam();
 void neutralTailBegin();
+void rejectSessionControl(const char* reason);
 bool powerRequest();
 void acknowledgePower(bool actualPowerFlag);
 void setLaunch(const std::string& stage, int scenario);  // actual parsed launch, before game boot

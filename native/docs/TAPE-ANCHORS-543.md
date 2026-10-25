@@ -339,3 +339,38 @@ be silently removed by segment selection. Both the native player and independent
 Python audit enforce this before replay. Legacy tapes retain their declared-prefix
 behavior. The positive power fixture pairs every read with a seam; a separate
 negative retains the extra open-loop read and must fail admission.
+
+## Native r7 producer (ref072 test instrument only)
+
+`PETARI_INPUT_SCRIPT_RECORD_TAIL_SECONDS=180` requires the recorder and forbids
+replay. Existing key lines remain unchanged. Recorder-only `Pointer:x,y` and
+`Pointer:off` tokens use native `Input::mouseMoved/mouseLeft`, with no OS events.
+`@valid N Pointer:x,y` applies at the post-Nth valid WorldMap01 row. The r7
+script retains120 idle /10 W /1200 idle, plus120 Pointer:off for filter settling.
+Its three pointer targets are400,300;900,450;700,600. The first is scheduled
+after150 map-valid rows, then108 and107 rows apart (the retained v2 observed
+spacing; native scheduling removes the host driver's polling latency).
+
+On script completion, all keys and pointer are released and a tail is queued.
+Only the next recorder post-row control seam records neutral-tail-begin. Its
+steady-clock start is acknowledged after the actual recorder event. Every tail
+seam rejects non-neutral native bound input. At >=180 wall seconds a control
+seam invokes Host::requestQuit, hence the real power callback and strict shutdown.
+The independent raw-read audit additionally rejects any non-neutral sample in the
+declared tail. No frames, inputs or power metadata are synthesized at finish.
+Absent the opt-in, normal script and live input behavior is retained.
+
+This addition belongs ONLY to the072 recorder reference. Ref002 and the admitted
+2be2e2f4 candidate consume the resulting existing power/phase protocol unchanged.
+The reference has zero src/include/libs/native/gx/native/data delta from07223918.
+
+Native tail audit policy `native-neutral-controls-v1` is explicit in the r7 plan,
+launch and proof lineage. Every SDK sample must have zero core/extension button
+masks, zero core/extension stick/trigger magnitude (no deadzone), no accel-speed
+or angular-velocity event, and pointer invalid. Every channel's entire240-byte
+KPADStatus must equal its first tail sample byte-for-byte: this includes accel,
+pointer fields, extension union, MPLS and unknown unk_EC. No per-sample fields are
+exempted as timestamps or sequence fields. Only read-envelope frame/ordinal,
+returned sample count and vector length can advance; every actual sample and
+connection remains recorded and is compared exactly on replay. The legacy
+conversion path retains its full single-bootstrap payload check.

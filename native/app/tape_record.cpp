@@ -282,6 +282,9 @@ void neutralTailBegin() {
     appendControl("neutral-tail-begin");
     gNeutralStarted=true;gNeutralStart=std::chrono::steady_clock::now();
 }
+void rejectSessionControl(const char* reason) {
+    if (gOpen && !gFinished && gControlError.empty()) gControlError=reason;
+}
 bool powerRequest() {
     if (!gControlsActive.load(std::memory_order_acquire)) return false;
     if (std::this_thread::get_id()!=gControlThread || !gControlSeam) { gAmbiguousControl.store(true); return false; }

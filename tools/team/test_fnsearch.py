@@ -177,6 +177,22 @@ class VariantSafety(unittest.TestCase):
 
 
 class CompileEdge(unittest.TestCase):
+    def test_candidate_cleanup_removes_overlay_but_preserves_symlink_targets(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); work = root/'scratch'; work.mkdir()
+            outside = root/'original'; outside.mkdir(); (outside/'source').write_text('original')
+            candidate = work/'candidate-00001'; candidate.mkdir()
+            (candidate/'linked').symlink_to(outside, target_is_directory=True)
+            (candidate/'object.o').write_text('object')
+            search = f.Search(root, {}, {'source':'src/Test.cpp'}, work, root/'target', 30)
+            row = {'work':str(candidate)}
+            search.discard(row)
+            self.assertFalse(candidate.exists())
+            self.assertEqual((outside/'source').read_text(), 'original')
+            self.assertNotIn('work', row)
+            with self.assertRaisesRegex(ValueError, 'outside private scratch'):
+                search.discard({'work':str(outside)})
+
     def test_scoped_flags_and_quoted_pragma_are_preserved(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

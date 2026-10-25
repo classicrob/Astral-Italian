@@ -140,3 +140,10 @@ holder durations/reasons, receiving-thread host samples, IODeviceTree topology,
 monitor attempt/deadline/backoff spans and startup/callback phase boundaries.
 It documents what remains unknown and the deferred native/runtime test plan.
 The original ccd0a360 overhead verdict does not qualify this extension.
+
+The source guard alone is insufficient: the38572b67 production compiler
+hoisted trace TLS resolvers ahead of worker_main's guard. The noinline enabled
+body correction requires the per-build
+[Release codegen acceptance](GPU-TRACE-CODEGEN-ACCEPTANCE.md), including the
+retained test executable's probe. Do not treat a missing probe or a source-only
+check as completed codegen proof.

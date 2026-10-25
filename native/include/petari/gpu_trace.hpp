@@ -1,7 +1,8 @@
 #pragma once
 
-// Native-only diagnostic. The macro is the complete disabled path: arguments
-// are not evaluated and no trace state (other than the flag) is accessed.
+// Native-only diagnostic. Each hook tests one cached flag before entering an
+// outlined body. Release codegen must confirm no trace TLS resolution escaped
+// that guard; source argument gating alone did not prevent LLVM hoisting.
 #include <petari/frame_telemetry.hpp>
 #include <petari/gpu_trace_host.hpp>
 #include <array>
@@ -292,8 +293,20 @@ inline bool configure(const char* diag, const char* path, const char* binding = 
     enabled.store(true, std::memory_order_release);
     return true;
 }
+namespace detail {
+// Keep the complete enabled body across a non-inlined call boundary. A guard
+// around inline TLS helpers alone is insufficient: LLVM hoisted six TLS
+// address resolvers to render_worker::worker_main entry before its first flag
+// check. This synchronous, reference-capturing callable never escapes or
+// allocates; globals (including trace TLS) are resolved only inside this body.
+template<class Body> [[gnu::noinline]] inline void invokeEnabled(Body&& body) {
+    body();
+}
+} // namespace detail
 } // namespace PetariNative::GpuTrace
 
 #define PETARI_GPU_TRACE(...) do { \
-    if (::PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)) { __VA_ARGS__; } \
+    if (::PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)) { \
+        ::PetariNative::GpuTrace::detail::invokeEnabled([&]() { __VA_ARGS__; }); \
+    } \
 } while (false)

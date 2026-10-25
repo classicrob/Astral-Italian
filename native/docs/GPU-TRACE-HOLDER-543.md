@@ -200,3 +200,31 @@ and native test execution remain pending PORT's server rerun. The retained
 syntax plan, exact commands/input hashes and logs are in
 m1g/campaigns/sola-543-gpu-trace-buildfix-r1/. These are syntax results, not an
 app build or executable test pass.
+
+## Compiler-hoisted TLS correction (source only; new codegen pending)
+
+Read-only review of app38572b67/exe8de84712 found six trace TLS address
+resolvers hoisted into render_worker::worker_main entry, before its first
+trace-enabled check: workerOverflow, workerContext, threadId, producerSequence,
+workerDepth, workerStack. These run once per worker startup, not per item,
+but violate the strict disabled-path claim. Evidence is retained at
+m1g/campaigns/sola-543-traceh-codegen-r1/ (all131 input hashes unchanged).
+This defect is preserved as FAIL in CODEGEN-RESULT.json. It is not retroactively
+qualified by the earlier source-token or runtime protocol tests.
+
+The macro now invokes its complete enabled body through a synchronous
+[[gnu::noinline]] helper. Globals/TLS are resolved inside that callable; the
+callable only captures references to existing locals, never escapes and does
+not allocate or schedule work. No exception swallowing/noexcept conversion is
+introduced. The caller keeps one cached flag check; compiler verification,
+not this source structure alone, must certify the resulting off path.
+
+For every future diagnostic/default-off trace build that might land on main,
+[native/docs/GPU-TRACE-CODEGEN-ACCEPTANCE.md](GPU-TRACE-CODEGEN-ACCEPTANCE.md) is a
+required acceptance step: inspect the newly built Release worker_main,
+giveCpu, waitForCpu AND the dedicated test probe. Record exact image/test hashes,
+UUID/dSYM bindings and bounded disassembly. Old385 codegen remains a retained
+failure; the deleted98 test-probe executable leaves its proof PENDING.
+No build, syntax-only compiler or runtime measurement of this correction has
+run on the M1. The assigned build/probe/overhead slot follows SOL B r7 and
+the decomp Mario proof, per PORT/head.

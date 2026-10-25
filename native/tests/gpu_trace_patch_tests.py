@@ -117,6 +117,13 @@ class TracePatchTests(unittest.TestCase):
         self.assertLess(macro.index('enabled.load'), macro.index('__VA_ARGS__'))
         self.assertNotIn('getenv', macro)
         self.assertNotIn('nowNs', macro)
+        self.assertIn('detail::invokeEnabled([&]() { __VA_ARGS__; })', macro)
+        self.assertLess(macro.index('enabled.load'), macro.index('invokeEnabled'))
+        self.assertIn('[[gnu::noinline]] inline void invokeEnabled', header)
+        helper = header[header.index('namespace detail {'):header.index('} // namespace detail')]
+        self.assertIn('body();', helper)
+        self.assertNotIn('std::function', helper)
+        self.assertNotIn('new ', helper)
 
 if __name__ == '__main__':
     unittest.main(argv=[sys.argv[0]])

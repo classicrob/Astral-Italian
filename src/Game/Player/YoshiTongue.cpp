@@ -179,10 +179,12 @@ namespace {
     void fn_8041D910(TVec3f* output, const TVec3f& start, const TVec3f& startTangent, const TVec3f& endTangent, const TVec3f& end, f32 t) {
         f32 square = t * t;
         f32 cube = square * t;
+        f32 doubleSquare = 2.0f * square;
+        f32 doubleCube = 2.0f * cube;
         f32 tripleSquare = 3.0f * square;
         f32 endWeight = -2.0f * cube + tripleSquare;
-        f32 startTangentWeight = t + (cube - 2.0f * square);
-        f32 startWeight = 1.0f + (2.0f * cube - tripleSquare);
+        f32 startTangentWeight = t + (cube - doubleSquare);
+        f32 startWeight = 1.0f + (doubleCube - tripleSquare);
         f32 endTangentWeight = cube - square;
         output->x = endTangentWeight * endTangent.x + (startTangentWeight * startTangent.x + (startWeight * start.x + endWeight * end.x));
         output->y = endTangentWeight * endTangent.y + (startTangentWeight * startTangent.y + (startWeight * start.y + endWeight * end.y));
@@ -199,10 +201,13 @@ void YoshiTongueCurve::fn_8041D750(const TVec3f& start, const TVec3f& startTange
     mSamples[0].set(start);
     mSamples[6].set(end);
     f32 length = 0.0f;
+    f32 previousLength = length;
     for (u32 index = 1; index <= 6; ++index) {
-        f32 distance = PSVECDistance(&mSamples[index], &mSamples[index - 1]);
-        mDistances[index] = distance + length;
+        f64 distanceResult = PSVECDistance(&mSamples[index], &mSamples[index - 1]);
+        f32 distance = distanceResult;
+        mDistances[index] = distance + previousLength;
         length += distance;
+        previousLength = length;
     }
     mDistances[0] = 0.0f;
     if (length > 0.0f) {

@@ -467,17 +467,19 @@ void Nyoropon::setFaceAttack() {
     }
 }
 
-// NONMATCHING: joint controller and loop registers differ
+namespace {
+    inline void initNyoroponJointController(Nyoropon* actor, const char* name, const JointControlDelegator<Nyoropon>::func& calcFunc, s32 index) {
+        JointControlDelegator<Nyoropon>* controller = new JointControlDelegator<Nyoropon>(actor, calcFunc, nullptr);
+        MR::setJointControllerParam(controller, actor, name);
+        actor->mJointCtrls[index] = controller;
+    }
+}
+
 void Nyoropon::initBodyJointControllers() {
     mJointCtrls = new JointController*[7];
-    JointControlDelegator< Nyoropon >* pCtrl;
-    const char* pName;
     for (s32 i = 0; i < 7; i++) {
         JointControlDelegator< Nyoropon >::func calcFunc = &Nyoropon::calcJointMatrix;
-        pName = sJointNames[i];
-        pCtrl = new JointControlDelegator< Nyoropon >(this, calcFunc, nullptr);
-        MR::setJointControllerParam(pCtrl, this, pName);
-        mJointCtrls[i] = pCtrl;
+        initNyoroponJointController(this, sJointNames[i], calcFunc, i);
     }
 }
 

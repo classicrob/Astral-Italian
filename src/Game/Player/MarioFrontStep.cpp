@@ -151,9 +151,13 @@ bool MarioFrontStep::close() {
     return true;
 }
 
+inline const TVec3f& getFrontStepFacing(const MarioFrontStep& step) {
+    return step.getPlayer()->mFrontVec;
+}
+
 bool MarioFrontStep::postureCtrl(MtxPtr pMtx) {
     TVec3f blendVec;
-    if (MR::vecBlendSphere(-getPlayer()->getAirGravityVec(), -getPlayer()->mFrontVec, &blendVec, 0.25f)) {
+    if (MR::vecBlendSphere(-getPlayer()->getAirGravityVec(), -getFrontStepFacing(*this), &blendVec, 0.25f)) {
         MR::normalizeOrZero(&blendVec);
     } else {
         blendVec = -getPlayer()->getAirGravityVec();

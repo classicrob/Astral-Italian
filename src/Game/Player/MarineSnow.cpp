@@ -8,10 +8,13 @@
 #include <JSystem/JKernel/JKRHeap.hpp>
 #include <JSystem/JUtility/JUTTexture.hpp>
 
-// NONMATCHING: compiler adds a redundant initial zero-count loop guard.
+inline u32 getMarineSnowParticleCount(const MarineSnow& snow) {
+    return snow.mParticleCount;
+}
+
 MarineSnow::MarineSnow() : mParticleCount(16), mParticlePositions(new (32) TVec3f[mParticleCount]), mCellSize(1000.0f) {
     u32 idx = 0;
-    do {
+    for (; idx < getMarineSnowParticleCount(*this); ++idx) {
         TVec3f randVec;
         f32 y;
         const f32 z = mCellSize * MR::getRandom();
@@ -19,8 +22,7 @@ MarineSnow::MarineSnow() : mParticleCount(16), mParticlePositions(new (32) TVec3
         const f32 x = mCellSize * MR::getRandom();
         randVec.set(x, y, z);
         mParticlePositions[idx] = randVec;
-        ++idx;
-    } while (idx < mParticleCount);
+    }
 
     mFadeStep = 0;
 

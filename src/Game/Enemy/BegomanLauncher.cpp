@@ -149,7 +149,6 @@ void BegomanLauncher::exeWaitForLaunch() {
     }
 }
 
-// NONMATCHING: compiler reuses r31 for the child index instead of recomputing it into r0.
 void BegomanLauncher::exeLaunch() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
@@ -167,8 +166,8 @@ void BegomanLauncher::exeLaunch() {
                 if (MR::isDead(mBegomanArray[i])) {
                     MR::calcGravity(this);
                     MR::setPosition(mBegomanArray[i], mPosition);
-                    TVec3f& velocity = mBegomanArray[i]->mVelocity;
                     TVec3f launchVelocity = mGravity * -30.0f;
+                    TVec3f& velocity = mBegomanArray[i]->mVelocity;
                     velocity.x = launchVelocity.x;
                     velocity.y = launchVelocity.y;
                     velocity.z = launchVelocity.z;

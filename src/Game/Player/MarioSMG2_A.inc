@@ -1487,12 +1487,13 @@ void Mario::fn_8039A600() {
     }
 }
 
-// NONMATCHING: explicit typed mode14 storage dispatch, register allocation and boolean lowering.
+// NONMATCHING: revival-gravity register allocation.
 f32 Mario::calcJumpGravity() {
     MarioConstTable* entry;
     if (this->_76C != 0) {
+        f32 ratio = static_cast<f32>(this->_76C);
         entry = getActor()->getConst().getTable();
-        f32 ratio = static_cast<f32>(this->_76C) / static_cast<f32>(entry->mBeeGravityReviveTime);
+        ratio /= static_cast<f32>(entry->mBeeGravityReviveTime);
         f32 multiplier = this->fn_8039ADC0();
         f32 gravity = (1.0f - ratio) + ratio * entry->mGravityAirWalk;
         multiplier = gravity * multiplier;

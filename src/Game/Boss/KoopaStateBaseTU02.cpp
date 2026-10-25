@@ -39,13 +39,19 @@ void KoopaStateBattleStart::exeBattleStartLoop() {
 }
 
 // NONMATCHING: register allocation only (target reuses r31 for the temp, then for &mHost->mPosition computed before operator*)
+namespace {
+    inline TVec3f& getKoopaStartPosition(const KoopaStateBattleStart& state) {
+        return state.mHost->mPosition;
+    }
+}
+
 void KoopaStateBattleStart::exeBattleStartEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "BattleStartEnd");
     }
     f32 rate = MR::calcNerveRate(this, 60);
     f32 ease = 1.0f + 0.5f * (rate * (1.0f + rate * (rate - 2.0f)));
-    mHost->mPosition.set< f32 >(mStartPos + (mEndPos - mStartPos) * ease);
+    getKoopaStartPosition(*this).set< f32 >(mStartPos + (mEndPos - mStartPos) * ease);
     if (MR::isGreaterEqualStep(this, 60)) {
         kill();
     }

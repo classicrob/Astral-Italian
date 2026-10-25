@@ -104,10 +104,15 @@ u32 YoshiLockOnManager::getTargetCapacity() {
     return 16;
 }
 
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
+namespace {
+    inline bool hasYoshiLockOnTarget(MR::BothDirPtrLink* const& link) {
+        return link != nullptr;
+    }
+}
+
 u32 YoshiLockOnManager::takeActiveTargets(YoshiLockOnTargetDesc* out, u32) {
     u32 count = 0;
-    for (YoshiLockOnIterator iterator(mActive.mHead); iterator.mLink; count++, iterator++) iterator->copyTargetInfo(out+count);
+    for (YoshiLockOnIterator iterator(mActive.mHead); hasYoshiLockOnTarget(iterator.mLink); count++, iterator++) iterator->copyTargetInfo(out+count);
     clearActiveTargets();
     return count;
 }

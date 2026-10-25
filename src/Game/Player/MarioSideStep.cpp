@@ -22,6 +22,11 @@ bool MarioSideStep::start() {
 }
 
 // NONMATCHING: equivalent vector-helper inlining, saved registers, and string-pool materialization.
+inline void sendSideStepWallPush(const Triangle& wall, MarioActor* actor, const char* bodyName) {
+    HitSensor* wallSensor = wall.mSensor;
+    MR::sendArbitraryMsg(0xB1, wallSensor, actor->getSensor(bodyName));
+}
+
 bool MarioSideStep::update() {
     if (!((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
         return false;
@@ -58,8 +63,7 @@ bool MarioSideStep::update() {
             changeAnimation("壁押し", 0UL);
             const Triangle* wall = getPlayer()->getWallPolygon();
             if (wall) {
-                HitSensor* wallSensor = wall->mSensor;
-                MR::sendArbitraryMsg(0xB1, wallSensor, mActor->getSensor("Body"));
+                sendSideStepWallPush(*wall, mActor, "Body");
             }
         } else if (forward > 0.0f) {
             if (forward > 0.707f) {

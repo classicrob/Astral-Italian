@@ -85,13 +85,17 @@ void MarioSearchLight::fn_803F1E80(HitSensor* sensor) {
 }
 
 // NONMATCHING: two constructor-argument setup instructions are reversed.
+inline const TVec3f& getSearchLightPosition(const MarioSearchLight& light) {
+    return light.mPosition;
+}
+
 void MarioSearchLight::updateHitSensor(HitSensor* sensor) {
     f32 spacing = 1250.0f;
     for (s32 i = 0; static_cast<u32>(i) < 4; i++) {
         if (getSensor(sSensorNames[i]) == sensor) {
             TVec3f front;
             MR::calcFrontVec(&front, this);
-            TVec3f position = mPosition + front * (_BC + spacing * i);
+            TVec3f position = getSearchLightPosition(*this) + front * (_BC + spacing * i);
             sensor->mPosition.x = position.x;
             sensor->mPosition.y = position.y;
             sensor->mPosition.z = position.z;

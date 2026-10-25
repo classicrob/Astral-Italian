@@ -39,12 +39,16 @@ MarioModelDL::MarioModelDL(LiveActor* actor, const char* material, const char* t
     }
 }
 
+inline u32 getDisplayListMaterial(const MarioModelDL& display) {
+    return display.mMaterialIndex;
+}
+
 void MarioModelDL::setDisplayList(u32 index) {
     J3DModelX* model;
     u8* list;
     u16 size;
     DLholder* holders = mDisplayLists;
-    u32 material = mMaterialIndex;
+    u32 material = getDisplayListMaterial(*this);
     list = holders[index].mDL;
     size = holders[index].mSize;
     model = mModel;
@@ -79,10 +83,13 @@ MarioFrontHistory::MarioFrontHistory(Mario* mario) {
     }
 }
 
-// NONMATCHING: source and destination pointer registers are swapped.
+inline TVec3f& getFrontHistorySlot(MarioFrontHistory& history) {
+    return history.mValues[history.mIndex];
+}
+
 #pragma opt_common_subs off
 void MarioFrontHistory::update() {
-    mValues[mIndex] = mMario->mFrontVec;
+    getFrontHistorySlot(*this) = mMario->mFrontVec;
     mIndex = static_cast<u16>(mIndex + 1) % mCount;
 }
 

@@ -43,6 +43,7 @@ PREFIX = r'''
 #include <vector>
 #include <sqlite3.h>
 static unsigned bootPumps=0;
+extern "C" void petari_boot_splash_progress(size_t,size_t) {}
 static bool petari_uber_pump_boot_events() { ++bootPumps; return true; }
 namespace PetariPipeline {
 using Clock=std::chrono::steady_clock;
@@ -342,9 +343,9 @@ int main(int argc,char** argv) {
   CHECK(!gfx::petariUberPrePresent && bootPumps>0);
   CHECK(PetariPipeline::milliseconds(PetariPipeline::Clock::now()-start)<100);
   CHECK(!take(0)); // cap/failure/success all restore worker0's normal reservation
- } else if(test=="frontend_data") {
+ } else if(test=="frontend_data" || test=="frontend_missing") {
   gfx::seedFixture=true;
-  auto dir=std::filesystem::path(argv[2])/"frontend-data";
+  auto dir=std::filesystem::path(argv[2])/test;
   std::filesystem::create_directory(dir);
   auto d=c;d.fixed=2;auto unrelated=c;unrelated.fixed=3;
   auto database=[&](const char* name,std::vector<gx::PipelineConfig> configs) {
@@ -361,11 +362,16 @@ int main(int argc,char** argv) {
   CHECK(!database("Unknown.db",{c}));CHECK(!database("FileSelect.db",{d,c}));CHECK(!database("__global__.db",{c,d,unrelated}));
   gfx::petariUberPrePresent=true;gfx::PetariFrontendPump pump;
   const auto start=PetariPipeline::Clock::now(),deadline=start+std::chrono::seconds(1);
-  gfx::petari_uber_scan_frontend(dir,l,l,&pump,deadline);
-  CHECK(gfx::petariUberBoot.titleKeys.size()==2 && gfx::petariUberBoot.manifestErrors==0);
-  CHECK(!gfx::petariUberBoot.scheduled.contains(gx::petari_uber_keys(unrelated,l).generic));
+  gfx::petari_uber_scan_frontend(dir,l,l,&pump,deadline,{test=="frontend_missing" ? 0ULL : gfx::xxh3_hash(unrelated,0)});
+  if(test=="frontend_missing") {
+    CHECK(gfx::petariUberBoot.manifestErrors==1);
+    while(auto job=take(0))job();
+    CHECK(!gfx::petari_uber_finish_pre_present(start,deadline,pump));return 0;
+  }
+  CHECK(gfx::petariUberBoot.titleKeys.size()==3 && gfx::petariUberBoot.manifestErrors==0);
+  CHECK(gfx::petariUberBoot.scheduled.contains(gx::petari_uber_keys(unrelated,l).generic)); // exact observed global-only bootstrap
   while(auto job=take(0))job();
-  CHECK(gx::genericBuilds==2 && gx::fastBuilds==0);
+  CHECK(gx::genericBuilds==3 && gx::fastBuilds==0);
   CHECK(gfx::petari_uber_finish_pre_present(start,deadline,pump));
  } else if(test=="unready") {
   auto key=gx::petari_uber_key(c,l,gx::PetariUberTier::Generic);gx::petari_uber_scheduled(key);
@@ -397,7 +403,7 @@ class Async(unittest.TestCase):
         subprocess.run(["clang++", "-std=c++20", "-pthread", "-I", str(GX), str(cpp), "-lsqlite3", "-o", str(cls.binary)], check=True)
 
     def test_async_semantics(self):
-        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "admission", "frame_alias", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias", "prepresent_workers", "prepresent_cap", "prepresent_failed", "prepresent_ready", "frontend_data"):
+        for test in ("claim", "tier_claim", "failed", "variant", "priority", "stage", "admission", "frame_alias", "boot", "wake", "unready", "no_workers", "flag_off", "front_only", "tiers", "stage_order", "alias", "prepresent_workers", "prepresent_cap", "prepresent_failed", "prepresent_ready", "frontend_data", "frontend_missing"):
             with self.subTest(test=test):
                 completed = subprocess.run([str(self.binary), test, self.tmp.name], capture_output=True, text=True, timeout=10)
                 self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

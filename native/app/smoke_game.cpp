@@ -328,6 +328,12 @@ void recordRouteFrame(bool background) {
     if (write) {
         static unsigned long routeRow = 0;
         static bool firstValid = false;
+        static std::string firstValidStage;
+        static int firstValidScenario = -1;
+        const char* stageName = row.stage ? row.stage : "";
+        if (firstValidStage != stageName || firstValidScenario != row.scenario) {
+            firstValidStage = stageName; firstValidScenario = row.scenario; firstValid = false;
+        }
         if (row.valid && !firstValid) {
             firstValid = true;
             const auto mono = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();

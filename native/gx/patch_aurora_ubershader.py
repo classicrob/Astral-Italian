@@ -71,7 +71,7 @@ else:
 }
 
 bool get_pipeline(PipelineRef ref, CompiledPipeline& pipeline) {''')
-  text=f'#include <SDL3/SDL_events.h>\n#include <SDL3/SDL_init.h>\nstatic bool petari_uber_pump_boot_events() {{ if (!SDL_IsMainThread()) return false; SDL_PumpEvents(); return true; }}\n#include <type_traits>\n#include "{root / "lib/gfx/render_worker.hpp"}"\nnamespace aurora::webgpu::gpu_prof {{ void petari_csv_finish(); }}\n'+text
+  text=f'#include "{here / "boot_splash.h"}"\n#include <SDL3/SDL_events.h>\n#include <SDL3/SDL_init.h>\nstatic bool petari_uber_pump_boot_events() {{ if (!SDL_IsMainThread()) return false; SDL_PumpEvents(); return true; }}\n#include <type_traits>\n#include "{root / "lib/gfx/render_worker.hpp"}"\nnamespace aurora::webgpu::gpu_prof {{ void petari_csv_finish(); }}\n'+text
   # Emit exact pending key membership before a complete-scene wait. Normal
   # pipeline diagnostics do not retain that vector after the frame completes.
   replace('  if (ready()) return;\n  petariPipelineWaiters.fetch_add(1, std::memory_order_relaxed);','''  if (ready()) return;

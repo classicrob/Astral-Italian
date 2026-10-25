@@ -32,6 +32,9 @@ def main():
     p.add_argument('--require-frontend-prepresent', action='store_true')
     p.add_argument('--tier', choices=('m1', 'm4'), required=True)
     p.add_argument('--baseline', action='store_true')
+    p.add_argument('--require-boot-responsiveness', action='store_true')
+    p.add_argument('--keep-cache', action='store_true', help='Preserve this arm private cache for an explicit warm second launch')
+    p.add_argument('--warm-from', type=Path, help='Reuse this completed matching prime arm private cache and existing Metal namespace; never clear')
     p.add_argument('--label', required=True)
     p.add_argument('--bundle-id', default=OWN_ID, help='Dedicated perf bundle ID; must match the prepared app')
     p.add_argument('--heavy-lock', type=Path, default=common.HEAVY)
@@ -75,14 +78,29 @@ def arm(args):
     original = Path(prep['original_app'])
     assert common.sha(original / 'Contents/MacOS/Petari') == prep['original_exe_sha256']
     assert common.tree(original / 'Contents/Resources') == resources
+    gate_sources = {name: common.sha(HERE / name) for name in ('title542m.py','gate542m.py','quit_owned_app.js','common.py','startup542.py','boot_response542.py')}
     common.disk(); out.mkdir(parents=True)
     common.wait_quiet(out / 'quiet.json')
     base = Path(subprocess.check_output(['/usr/bin/getconf', 'DARWIN_USER_CACHE_DIR'], text=True).strip())
     target = base / own_id
     assert base.is_absolute() and target.name == own_id and base != Path('/')
-    if target.exists(): shutil.rmtree(target)
-    cache, user = out / 'cache', out / 'user'
-    cache.mkdir(); user.mkdir()
+    warm_from = args.warm_from.resolve() if args.warm_from else None
+    if warm_from:
+        assert warm_from.is_relative_to(common.ROOT.resolve())
+        prime = json.loads((warm_from / 'launch.json').read_text())
+        completed = json.loads((warm_from / 'process.json').read_text())
+        assert prime['perf_exe_sha256'] == before and prime['bundle_id'] == own_id
+        assert prime.get('keep_cache') is True and completed['normal_exit']
+        cache = Path(prime['environment']['PETARI_CACHE_DIR']).resolve()
+        assert cache == warm_from / 'cache' and cache.is_dir() and target.is_dir()
+    else:
+        if target.exists(): shutil.rmtree(target)
+        cache = out / 'cache'
+        cache.mkdir()
+    user = out / 'user'
+    user.mkdir()
+    cache_before = common.tree(cache)
+    metal_before = common.tree(target) if target.exists() else {}
     env = {k: v for k, v in os.environ.items() if not k.startswith(('PETARI_', 'ASTRAL_', 'DYLD_', 'THRPROBE_'))}
     env.update(SDL_AUDIO_DRIVER='dummy', PETARI_MODS='none', PETARI_CACHE_DIR=str(cache),
                PETARI_FRAME_CSV=str(out / 'frames.csv'), PETARI_FRAME_STATS='1', PETARI_PIPELINE_DIAG='0',
@@ -93,10 +111,12 @@ def arm(args):
     command = [str(executable), '--disc', str(common.DISC), '--user', str(user)]
     started = time.monotonic(); timeout = 315 if args.baseline else 900
     launch = {'command': command, 'environment': {k: v for k, v in env.items() if k.startswith(('PETARI_', 'SDL_'))},
-              'label': args.label, 'baseline': args.baseline, 'build_kind': prep['build_kind'],
+              'gate_sources_at_launch': gate_sources, 'label': args.label, 'baseline': args.baseline, 'build_kind': prep['build_kind'],
               'source_commit': prep['source_commit'], 'original_exe_sha256': prep['original_exe_sha256'],
               'perf_exe_sha256': before, 'prep': str(args.prep), 'prep_sha256': common.sha(args.prep),
-              'bundle_id': own_id, 'cold_metal_cleared': True, 'fresh_private_cache': str(cache),
+              'bundle_id': own_id, 'cold_metal_cleared': not bool(warm_from), 'fresh_private_cache': None if warm_from else str(cache),
+              'warm_from': str(warm_from) if warm_from else None, 'keep_cache': args.keep_cache,
+              'private_cache_before': cache_before, 'metal_namespace': str(target), 'metal_before': metal_before,
               'no_input': True, 'nice': os.getpriority(os.PRIO_PROCESS, 0), 'load': os.getloadavg(),
               'comparison_window_seconds': 300, 'native_observation_minimum_seconds': None if args.baseline else 315,
               'hard_cap_seconds': 900, 'start_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
@@ -107,6 +127,10 @@ def arm(args):
         observer.popen_before()
         proc = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=env)
         observer.spawned(proc.pid)
+        boot_probe = None
+        if args.require_boot_responsiveness:
+            from boot_response542 import Probe
+            boot_probe = Probe(out, proc.pid, app)
         launch['popen_clocks'] = {k:observer.result[k] for k in ('popen_call_before','popen_return_after')}
         launch['pid'] = proc.pid; common.write(out / 'launch.json', launch)
         timed_out, orderly, error = False, None, None
@@ -133,6 +157,7 @@ def arm(args):
                 try: proc.wait(timeout=10)
                 except subprocess.TimeoutExpired: proc.kill(); proc.wait()
     startup = observer.finish()
+    boot_response = boot_probe.finish() if boot_probe else None
     text = (out / 'app.log').read_text(errors='replace')
     process = {'exit': proc.returncode, 'timed_out': timed_out, 'seconds': time.monotonic() - started,
                'no_faults': not common.FAULT.search(text), 'binary_unchanged': common.sha(executable) == before,
@@ -151,15 +176,22 @@ def arm(args):
               'frames_flushed': process['frames_csv_flushed'], 'no_input_in_route': neutral and bool(route),
               'no_stage_entry': all(r['stage'] in ('', 'FileSelect') for r in route),
               'fixed_window_complete': scored is not None and scored['fixed_window']['complete']}
-    if not args.baseline: checks['gate542m'] = scored is not None and scored['passed']
+    if args.require_boot_responsiveness: checks['boot_responsive_visible'] = boot_response is not None and boot_response['passed']
+    if not args.baseline:
+        checks['native_title_draw_bound_verified'] = startup.get('native_title_draw_inside_external_bounds') is True
+        checks['gate542m'] = scored is not None and scored['passed']
     result = {'passed': all(checks.values()), 'checks': checks, 'label': args.label, 'baseline': args.baseline,
-              'source_commit': prep['source_commit'], 'perf_exe_sha256': before, 'original_exe_sha256': prep['original_exe_sha256'],
+              'boot_response': boot_response, 'source_commit': prep['source_commit'], 'perf_exe_sha256': before, 'original_exe_sha256': prep['original_exe_sha256'],
               'process': process, 'gate542m': scored, 'comparison_window_seconds': 300,
               'baseline_scope': 'retained unsplit evidence, no missing-signal acceptance claim' if args.baseline else None,
               'prep': str(args.prep), 'prep_sha256': common.sha(args.prep), 'launch_sha256': common.sha(out / 'launch.json'),
-              'gate_sources': {name: common.sha(HERE / name) for name in ('title542m.py','gate542m.py','quit_owned_app.js','common.py')}}
+              'gate_sources': gate_sources}
     common.write(out / 'RESULT.json', result)
-    common.trim(out)
+    common.write(out / 'cache-provenance.json', {'private_path': str(cache), 'private_before': cache_before,
+                 'private_after': common.tree(cache), 'metal_path': str(target), 'metal_before': metal_before,
+                 'metal_after': common.tree(target) if target.exists() else {}, 'warm_from': str(warm_from) if warm_from else None,
+                 'cleared': not bool(warm_from), 'keep_cache': args.keep_cache})
+    common.trim(out, cache=not args.keep_cache)
     print(json.dumps(result), flush=True)
     return 0 if result['passed'] else 1
 

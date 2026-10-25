@@ -5,7 +5,7 @@ script=Path(__file__).resolve().parents[1]/'gx/pipeline_cache_identity.py'
 spec=importlib.util.spec_from_file_location('cache_identity',script);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 with tempfile.TemporaryDirectory() as tmp:
     root=Path(tmp)/'first';aurora=Path(tmp)/'aurora'
-    for name in ['native/gx/CMakeLists.txt','native/gx/patch.py','native/gx/policy.hpp','native/app/CMakeLists.txt','native/cmake/GraphicsPresentation.cmake']:
+    for name in ['native/gx/CMakeLists.txt','native/gx/patch.py','native/gx/policy.hpp','native/gx/boot.mm','native/app/CMakeLists.txt','native/cmake/GraphicsPresentation.cmake']:
         f=root/name;f.parent.mkdir(parents=True,exist_ok=True);f.write_text(name+'\n')
     for name in ['lib/gx/pipeline.hpp','lib/gfx/clear.hpp','lib/gfx/pipeline_cache.cpp','lib/webgpu/gpu_cache.cpp']:
         f=aurora/name;f.parent.mkdir(parents=True,exist_ok=True);f.write_text('schema '+name+'\n')
@@ -13,6 +13,10 @@ with tempfile.TemporaryDirectory() as tmp:
     assert module.identity(other,aurora)==key,'clean builds at different paths must match'
     os.utime(other/'native/gx/policy.hpp',(1,1));assert module.identity(other,aurora)==key,'mtime is not identity'
     (other/'native/gx/policy.hpp').write_text('changed semantics\n');assert module.identity(other,aurora)!=key
+    (other/'native/gx/policy.hpp').write_bytes((root/'native/gx/policy.hpp').read_bytes())
+    assert module.identity(other,aurora)==key
+    (other/'native/gx/boot.mm').write_text('changed native splash\n')
+    assert module.identity(other,aurora)!=key,'Objective-C++ renderer changes must invalidate caches'
     source=Path(tmp)/'seed.db'
     with sqlite3.connect(source) as db:db.execute('CREATE TABLE pipeline_cache(config BLOB)');db.execute('INSERT INTO pipeline_cache VALUES(?)',(b'untouched',))
     before=hashlib.sha256(source.read_bytes()).hexdigest();destination=Path(tmp)/'bundle/seed.db';module.stamp(source,destination,key)

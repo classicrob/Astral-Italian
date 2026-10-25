@@ -247,6 +247,9 @@ def patch_framebuffer(text):
 
 
 def patch_aurora(text):
+    splash = Path(__file__).resolve().parent / 'boot_splash.h'
+    text = f'#include "{splash}"\n' + text
+    text = replace_once(text, '        gfx::after_present();', '        petari_boot_splash_presented();\n        gfx::after_present();')
     text = replace_once(text, '#include "webgpu/gpu_prof.hpp"\n',
                         '#include "webgpu/gpu_prof.hpp"\n#include "present_aurora.hpp"\n')
     text = replace_once(

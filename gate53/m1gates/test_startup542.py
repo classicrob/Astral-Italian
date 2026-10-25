@@ -14,7 +14,7 @@ m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 class Startup(unittest.TestCase):
     def test_route_flush_bounds_contain_native_event_at_boundary(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp); (root/'app.log').write_text('')
+            root = Path(tmp); (root/'app.log').write_text('[native first valid] stage=FileSelect route_row=0 monotonic_ns=1 wall_ns=1\n')
             (root/'route.csv').write_text('frame,stage,valid\n')
             observer = m.Observer(root, 'Yoshi'); observer.spawned(123)
             with (root/'route.csv').open('a') as out:
@@ -61,9 +61,10 @@ class Startup(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); (root/'app.log').write_text('')
             observer = m.Observer(root); observer.spawned(123)
-            with (root/'app.log').open('a') as out: out.write('[gx uber async] event=title_first_draw phase=recording elapsed_ms=5\n')
+            with (root/'app.log').open('a') as out: out.write(f"[gx uber async] event=title_first_draw phase=recording elapsed_ms=5 wall_ns={m.clocks()['wall_ns']}\n")
             observer.thread.join(timeout=1); result = observer.finish()
             self.assertIn('title_first_draw', result)
+            self.assertTrue(result['native_title_draw_inside_external_bounds'])
             self.assertNotIn('first_valid', result)
 
     def test_missing_endpoint_is_not_invented(self):

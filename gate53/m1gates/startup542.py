@@ -72,7 +72,7 @@ class Observer:
                                 'prior_flush_row_count': prior_count, 'lower': lower, 'upper': after,
                                 'elapsed_ms_bounds': [(lower['monotonic_ns'] - self.start['monotonic_ns']) / 1e6,
                                                       (after['monotonic_ns'] - self.start['monotonic_ns']) / 1e6]}
-                    native = re.search(r'\[native first valid\] stage=([^ ]+) route_row=(\d+) monotonic_ns=(\d+) wall_ns=(\d+)', text)
+                    native = next((n for n in re.finditer(r'\[native first valid\] stage=([^ ]+) route_row=(\d+) monotonic_ns=(\d+) wall_ns=(\d+)', text) if n[1] == self.stage), None)
                     if native and 'native_first_valid' not in self.result:
                         self.result['native_first_valid'] = {'stage': native[1], 'route_row': int(native[2]),
                                                             'monotonic_ns': int(native[3]), 'wall_ns': int(native[4])}
@@ -94,6 +94,11 @@ class Observer:
     def finish(self):
         self.stop_event.set(); self.thread.join(timeout=5)
         self.result['observer_joined'] = not self.thread.is_alive()
+        title = self.result.get('title_first_draw')
+        if title:
+            match = re.search(r'wall_ns=(\d+)', title['raw'])
+            if match:
+                self.result['native_title_draw_inside_external_bounds'] = (title['appearance_lower']['wall_ns'] <= int(match[1]) <= title['appearance_upper']['wall_ns'])
         first, native = self.result.get('first_valid'), self.result.get('native_first_valid')
         if first and native:
             self.result['native_first_valid_inside_external_bounds'] = (native['stage'] == self.stage and

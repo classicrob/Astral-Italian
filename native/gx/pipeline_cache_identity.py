@@ -6,7 +6,7 @@ import re
 
 def identity(root,aurora):
     root,aurora=Path(root),Path(aurora)
-    files=[p for p in (root/'native/gx').rglob('*') if p.is_file() and p.suffix in ('.cpp','.hpp','.h','.py','.inc','.cmake','.wgsl') and '__pycache__' not in p.parts]
+    files=[p for p in (root/'native/gx').rglob('*') if p.is_file() and p.suffix in ('.cpp','.mm','.hpp','.h','.py','.inc','.cmake','.wgsl') and '__pycache__' not in p.parts]
     files += [root/'native/gx/CMakeLists.txt',root/'native/app/CMakeLists.txt',root/'native/cmake/GraphicsPresentation.cmake']
     digest=hashlib.sha256(b'petari-renderer-cache-v1\0aurora-08122911e8621acb7ded6563813b264bec1494b5\0')
     for f in sorted(set(files)):

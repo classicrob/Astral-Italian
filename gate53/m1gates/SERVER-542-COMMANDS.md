@@ -105,3 +105,18 @@ and expected counts are retained in `deadline_admission`; a missing line fails.
 This proves validated metadata admission, not GPU compilation completion. Missing
 or invalid `.pfd` prints `policy=first-use-order reason=... configs=0`. Unknown and
 explicit fallback stages are not misreported as admitted.
+
+For the native boot-overlay candidate, additionally build
+`petari_boot_splash_tests` and run `ctest -R '^native_boot_splash(_hidden)?$'`.
+The visible case verifies determinate text/bar, a real self-PID AppleEvent reply
+while SDL pumps, and first-presentation handoff; the hidden case checks that
+background smoke does not show or attach an overlay. Run
+`python3 -B native/tests/frontend_membership_tests.py` and
+`python3 -B gate53/m1gates/test_boot_response542.py` as well as existing suites.
+Pass `--require-boot-responsiveness` on new-build title542m/cold542m commands;
+never pass it to the unchanged 5.4.1 baseline. Each actual arm must retain its
+`boot-response.json` and `boot-splash.png`; a missing/timed-out/denied OS reply or
+missing screenshot is a failure, independent of pump-count logs. Warm title:
+prime with `--keep-cache`, then immediately use the SAME app and
+`--warm-from <prime-out> --keep-cache` (no intervening Metal clear). Keep the
+cache receipts; do not turn a fresh cache into a claimed second launch.

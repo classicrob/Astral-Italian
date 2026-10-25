@@ -1429,10 +1429,10 @@ BOOL VIEnableDVDStopMotor(BOOL enable) {
 u32 VIGetDVDStopMotorCount(void) {
     u32 count;
 
-    if (_gIdleCount_dvd >= THD_TIME_TO_DVD_STOP) {
+    if (_gIdleCount_dimming >= THD_TIME_TO_DIMMING) {
         count = 0;
     } else {
-        count = (u32)THD_TIME_TO_DVD_STOP - _gIdleCount_dvd;
+        count = (u32)THD_TIME_TO_DIMMING - _gIdleCount_dimming;
     }
 
     return count;

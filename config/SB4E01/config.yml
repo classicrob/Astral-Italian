@@ -28,3 +28,4 @@ block_relocations:
 - source: .rodata:0x80657C14
 - source: .rodata:0x80657C18
 - source: .rodata:0x80657C1C
+- source: .rodata:0x80659800

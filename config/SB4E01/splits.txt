@@ -2312,10 +2312,13 @@ Game/Boss/PoltaWaitStart.cpp:
 Game/Boss/Sandy.cpp:
 	.text       start:0x800FAC80 end:0x800FBA60
 	.ctors      start:0x80643F9C end:0x80643FA0
+	.data       start:0x8067A050 end:0x8067A1C8
 
 Game/Boss/SandyBall.cpp:
 	.text       start:0x800FBA60 end:0x800FD1F0
 	.ctors      start:0x80643FA0 end:0x80643FA4
+	.rodata     start:0x80647878 end:0x80647898
+	.data       start:0x8067A1C8 end:0x8067A378
 
 Game/Boss/SandyBallHolder.cpp:
 	.text       start:0x800FD1F0 end:0x800FDB10
@@ -2341,10 +2344,13 @@ Game/Boss/SandyHand.cpp:
 Game/Boss/SandyMini.cpp:
 	.text       start:0x800FF0C0 end:0x800FFDA0
 	.ctors      start:0x80643FA8 end:0x80643FAC
+	.rodata     start:0x806478B8 end:0x806478C0
+	.data       start:0x8067A588 end:0x8067A700
 
 Game/Boss/SandyBlur.cpp:
 	.text       start:0x800FFDA0 end:0x800FFF70
 	.ctors      start:0x80643FAC end:0x80643FB0
+	.data       start:0x8067A700 end:0x8067A730
 
 Game/Boss/SandyState.cpp:
 	.text       start:0x800FFF70 end:0x80100320
@@ -2368,14 +2374,17 @@ Game/Boss/SandyStateDemoPowerUp.cpp:
 Game/Boss/SandyStatePhase1.cpp:
 	.text       start:0x80101750 end:0x80101D50
 	.ctors      start:0x80643FC0 end:0x80643FC4
+	.data       start:0x8067AB28 end:0x8067ABE0
 
 Game/Boss/SandyStatePhase2.cpp:
 	.text       start:0x80101D50 end:0x80102320
 	.ctors      start:0x80643FC4 end:0x80643FC8
+	.data       start:0x8067ABE0 end:0x8067AC88
 
 Game/Boss/SandyStatePhase3.cpp:
 	.text       start:0x80102320 end:0x80102CA0
 	.ctors      start:0x80643FC8 end:0x80643FCC
+	.data       start:0x8067AC88 end:0x8067AD58
 
 Game/Boss/TwoLegs.cpp:
 	.text       start:0x80102CA0 end:0x801042E0
@@ -13820,6 +13829,7 @@ JSystem/JAudio2/JASDSPChannel.cpp:
 
 JSystem/JAudio2/JASDSPInterface.cpp:
 	.text       start:0x80591F70 end:0x80592670 align:16
+	.rodata     start:0x806594E0 end:0x80659A48
 	.data       start:0x80709DE0 end:0x80709DF8
 	.sdata      start:0x807D08D8 end:0x807D08DD
 	.sbss       start:0x807D6518 end:0x807D6528

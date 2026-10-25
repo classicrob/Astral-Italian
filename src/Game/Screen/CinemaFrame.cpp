@@ -123,6 +123,31 @@ bool CinemaFrame::isStop() const {
            isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvBlank));
 }
 
+// NONMATCHING: compiler duplicates equivalent false-result blocks.
+namespace {
+    inline bool isCinemaPowerStarGreen() {
+        if (MR::isInitializeStateEnd()) {
+            if (MR::isStageMarioFaceShip()) {
+                if (GameSequenceFunction::hasStageResultSequence() &&
+                    MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()))
+                    return true;
+            } else if (MR::isPowerStarGreenInCurrentStage()) {
+                return true;
+            }
+        } else if (MR::isScenarioDecided() && MR::isPowerStarGreenInCurrentStage()) {
+            return true;
+        }
+        return false;
+    }
+}
+
+void CinemaFrame::setColor() {
+    MR::startAnim(this, "Color", 1);
+    bool green = isCinemaPowerStarGreen();
+    if (green) MR::setAnimFrameAndStop(this, 1.0f, 1);
+    else MR::setAnimFrameAndStop(this, 0.0f, 1);
+}
+
 void CinemaFrame::exeScreen() {
     if (MR::isFirstStep(this)) {
         MR::startAnim(this, "End", 0);
@@ -160,29 +185,4 @@ void CinemaFrame::exeBlankToFrame() {
 void CinemaFrame::exeFrameToScreen() {
     MR::startAnimAtFirstStep(this, "End", 0);
     MR::setNerveAtAnimStopped(this, GET_NERVE(CinemaFrame, CinemaFrameNrvScreen), 0);
-}
-
-// NONMATCHING: compiler duplicates equivalent false-result blocks.
-namespace {
-    inline bool isCinemaPowerStarGreen() {
-        if (MR::isInitializeStateEnd()) {
-            if (MR::isStageMarioFaceShip()) {
-                if (GameSequenceFunction::hasStageResultSequence() &&
-                    MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()))
-                    return true;
-            } else if (MR::isPowerStarGreenInCurrentStage()) {
-                return true;
-            }
-        } else if (MR::isScenarioDecided() && MR::isPowerStarGreenInCurrentStage()) {
-            return true;
-        }
-        return false;
-    }
-}
-
-void CinemaFrame::setColor() {
-    MR::startAnim(this, "Color", 1);
-    bool green = isCinemaPowerStarGreen();
-    if (green) MR::setAnimFrameAndStop(this, 1.0f, 1);
-    else MR::setAnimFrameAndStop(this, 0.0f, 1);
 }

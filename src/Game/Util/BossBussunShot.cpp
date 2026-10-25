@@ -79,12 +79,15 @@ void BossBussunSequencer::updateCamera() {
     MR::setProgrammableCameraParam(mHost, blendPos, eye, mCamUp);
 }
 
-// NONMATCHING: register/stack or instruction/branch lowering (FP operand order/grouping checked).
 namespace {
-    inline void calcNormalizedFrameAxis(TVec3f* axis, const TVec3f& toPlayer, const TVec3f& up, f32 dist) {
+    inline TVec3f calcNormalizedFrameDirection(const TVec3f& toPlayer, f32 dist) {
         TVec3f dir(toPlayer);
         dir *= 1.0f / dist;
-        PSVECCrossProduct(&dir, &up, axis);
+        return dir;
+    }
+
+    inline void calcNormalizedFrameAxis(TVec3f* axis, const TVec3f& direction, const TVec3f& up) {
+        PSVECCrossProduct(&direction, &up, axis);
     }
 }
 
@@ -105,7 +108,7 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
 
     TVec3f up(isNear ? mUpVec : -mUpVec);
     TVec3f axis;
-    calcNormalizedFrameAxis(&axis, toPlayer, up, dist);
+    calcNormalizedFrameAxis(&axis, calcNormalizedFrameDirection(toPlayer, dist), up);
     if (MR::normalizeOrZero(&axis)) {
         MR::makeAxisVerticalZX(&axis, up);
     }

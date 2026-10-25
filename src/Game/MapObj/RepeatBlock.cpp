@@ -91,6 +91,10 @@ void RepeatBlockTail::exeAppearLoop() {
     }
 }
 
+inline s32 addRepeatBlockDepth(s32 planeOffset, s32 depth) {
+    return planeOffset + depth;
+}
+
 void RepeatBlockTail::forEachAtom(s32 dir, s32 idx, void (RepeatBlockTail::*pFunc)(RepeatBlockAtom*)) {
     if (dir == 0 || dir == 2 || dir == 4) {
         idx = (getCellNum(dir) - 1) - idx;
@@ -124,7 +128,7 @@ void RepeatBlockTail::forEachAtom(s32 dir, s32 idx, void (RepeatBlockTail::*pFun
     for (s32 x = xBegin; x < xEnd; x++) {
         for (s32 y = yBegin; y < yEnd; y++) {
             for (s32 z = zBegin; z < zEnd; z++) {
-                (this->*pFunc)(mAtoms[(x * mParent->mNumY + y) * mParent->mNumZ + z]);
+                (this->*pFunc)(mAtoms[addRepeatBlockDepth((x * mParent->mNumY + y) * mParent->mNumZ, z)]);
             }
         }
     }

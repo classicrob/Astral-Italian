@@ -455,6 +455,12 @@ const wchar_t* TalkFunction::getSubMessage(const TalkMessageCtrl* pCtrl) {
 }
 
 // NONMATCHING: register allocation and equivalent floating addition operand order differ.
+namespace {
+    inline LiveActor* getTalkHost(const TalkMessageCtrl& control) {
+        return control.mHostActor;
+    }
+}
+
 bool TalkMessageCtrl::isNearPlayer(f32 distance) const {
     if (mTalkDistance < 0.0f) {
         return true;
@@ -467,7 +473,7 @@ bool TalkMessageCtrl::isNearPlayer(f32 distance) const {
         }
     }
 
-    TVec3f v2(mHostActor->mPosition);
+    TVec3f v2(getTalkHost(*this)->mPosition);
     if (mMtx != nullptr) {
         v2.set< f32 >(mMtx[0][3], mMtx[1][3], mMtx[2][3]);
     }

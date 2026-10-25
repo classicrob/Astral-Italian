@@ -23,6 +23,12 @@ ALWAYS_INLINE void createObj(TubeSlider* slider, const char* name, f32 offset, T
 }
 }
 // NONMATCHING: call-argument load scheduling; JumpStep ctor symbol needs its erroneous _v suffix removed.
+namespace {
+    inline TubeSlider* getObjectTubeSlider(const TubeSliderObjCreator& creator) {
+        return creator.mSlider;
+    }
+}
+
 void TubeSliderObjCreator::init(const JMapInfoIter& iter) {
     TVec3f pos(0.0f);
     MR::getJMapInfoTrans(iter, &pos);
@@ -34,7 +40,7 @@ void TubeSliderObjCreator::init(const JMapInfoIter& iter) {
     MR::getJMapInfoArg1NoInit(iter, &offset);
     TVec3f up(0.0f, 1.0f, 0.0f);
     if (angle == -1.0f) angle = TubeSliderFunction::getFloorAngle(mSlider);
-    TubeSliderFunction::calcTubeVecDegree(angle, &up, mSlider);
+    TubeSliderFunction::calcTubeVecDegree(angle, &up, getObjectTubeSlider(*this));
     createObj(mSlider, mObjName, offset, up, iter);
 }
 TubeSliderObjCreator::~TubeSliderObjCreator() {}

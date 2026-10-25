@@ -23,9 +23,13 @@ void SpinDriverShootPath::initUsingParabolic(const JMapInfoIter& rIter, const TV
     setStartPosition(rStartingPosition);
 }
 
+inline const TVec3f& getShootPathRailStart(const SpinDriverShootPath& path) {
+    return path.mRailRider->mStartPos;
+}
+
 void SpinDriverShootPath::setStartPosition(const TVec3f& rStartPos) {
     if (mUsesParabolic) {
-        TVec3f startPos(mRailRider->mStartPos);
+        TVec3f startPos(getShootPathRailStart(*this));
         TVec3f endPos(mRailRider->mEndPos);
         mPath->initFromMaxHeight(rStartPos, endPos, startPos);
     }

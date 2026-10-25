@@ -86,9 +86,15 @@ void JumpSpider::init(const JMapInfoIter& rIter) {
     MR::emitEffect(this, "EyeLight");
 }
 
+namespace {
+    inline const TVec3f& getJumpSpiderPosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 void JumpSpider::initAfterPlacement() {
     MR::calcGravity(this);
-    TVec3f v15(mPosition - mGravity * 10.0f);
+    TVec3f v15(getJumpSpiderPosition(*this) - mGravity * 10.0f);
     TVec3f v1, v2;
 
     if (MR::getFirstPolyNormalOnLineToMap(&v1, v15, mGravity * 300.0f, &v2, nullptr)) {

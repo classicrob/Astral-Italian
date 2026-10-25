@@ -41,6 +41,12 @@ Shellfish::Shellfish(const char* pName)
     : LiveActor(pName), mScaleController(), mStarPointerState(), mItem(), mItemType(), mIsItemBound(), mLowCollision() {
 }
 
+namespace {
+    inline const TVec3f& getShellfishPosition(const LiveActor& actor) {
+        return actor.mPosition;
+    }
+}
+
 void Shellfish::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "Shellfish", false);
     initHitSensor(2);
@@ -55,7 +61,7 @@ void Shellfish::init(const JMapInfoIter& rIter) {
     TVec3f up;
     MR::calcUpVec(&up, this);
     TVec3f shadowPosition;
-    shadowPosition.scaleAdd(30.0f, front, mPosition);
+    shadowPosition.scaleAdd(30.0f, front, getShellfishPosition(*this));
     shadowPosition.scaleAdd(5.0f, up, shadowPosition);
     MR::setShadowDropPosition(this, nullptr, shadowPosition);
     MR::setShadowDropDirection(this, nullptr, -up);

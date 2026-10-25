@@ -47,9 +47,7 @@ void ModelWipeScene::init() {
 
     TPos3f viewMtx;
     viewMtx.setPositionFromLookAt(TVec3f(cEye), TVec3f(cUp), TVec3f(sOrigin));
-    TVec3f offset;
-    offset.x = offset.y = offset.z = 0.0f;
-    mCamera->setViewMtx(viewMtx, false, false, offset);
+    mCamera->setViewMtx(viewMtx, false, false, TVec3f(0.0f, 0.0f, 0.0f));
 
     mCloudActor = new MultiSceneActor("雲ワイプ", "WipeModelCloud", mCamera->mProjection, false);
     mCloudActor->initWithoutIter();

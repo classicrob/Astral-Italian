@@ -237,9 +237,13 @@ bool PatakuriBig::receiveOtherMsg(u32, HitSensor*, HitSensor*) {
 }
 
 namespace {
+    inline void applyBodyOffset(TVec3f* const& result, const TVec3f& offset) {
+        result->add(offset);
+    }
+
     inline TVec3f addBodyOffset(const TVec3f& base, const TVec3f& offset) {
         TVec3f result(base);
-        result.add(offset);
+        applyBodyOffset(&result, offset);
         return result;
     }
 }

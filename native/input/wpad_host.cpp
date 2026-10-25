@@ -18,6 +18,7 @@
 
 #include <revolution/kpad.h>
 #include <petari/kpad_record.hpp>
+#include <petari/tape_input_observer.hpp>
 #include <petari/kpad_replay.hpp>
 #include <revolution/kpad/KPADInternal.h>
 
@@ -1368,7 +1369,7 @@ void serviceReplayCommands() {
 
 using namespace PetariNative::Input;
 
-extern "C" BOOL petari_kpad_replay_read(s32 chan, KPADStatus* buffer, u32 capacity, s32* error, s32* returned) {
+static BOOL tapeReadCore(s32 chan, KPADStatus* buffer, u32 capacity, s32* error, s32* returned) {
     if (KpadRecord::active() && !gReplayActive.load(std::memory_order_acquire)) {
         // Tape recording: the read is the SDK's own (KPADReadEx = KPADiRead with readEx), its result is
         // appended to the tape together with the connection the game's WPADProbe would report.
@@ -1387,6 +1388,17 @@ extern "C" BOOL petari_kpad_replay_read(s32 chan, KPADStatus* buffer, u32 capaci
     if (!returned) misuse("petari_kpad_replay_read", "missing return-count destination");
     *returned = hooks.read(chan, buffer, capacity, error, hooks.user);
     return TRUE;
+}
+
+extern "C" BOOL petari_kpad_replay_read(s32 chan, KPADStatus* buffer, u32 capacity, s32* error, s32* returned) {
+    return TapeObserver::dispatch(chan, capacity, buffer, error, returned,
+        [&] { return tapeReadCore(chan, buffer, capacity, error, returned); },
+        [&] {
+            Interrupts guard;
+            const Channel& ch = channel("tape input observation", chan);
+            return std::make_pair(gReplayActive.load(std::memory_order_acquire) ? gReplayProbeErrors[chan] : readiness(ch),
+                                  static_cast<u32>(ch.devType));
+        });
 }
 
 // --- SDK API ---

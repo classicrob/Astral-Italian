@@ -144,6 +144,11 @@ Meta parseSidecar(const std::string& text) {
     const Json root = JsonReader(text).parse();
     if (root.type != Json::Type::Object) throw H::ReplayError("bad tape sidecar: not an object");
     Meta meta;
+    if (const auto* schema = root.find("schema")) {
+        if (schema->type != Json::Type::Number || (schema->number != 1 && schema->number != 2))
+            throw H::ReplayError("unsupported tape schema (expected 1 or 2)");
+        meta.schema = static_cast<unsigned>(schema->number);
+    }
     const auto number = [&](const Json& obj, const char* key) {
         const Json* v = obj.find(key);
         if (!v || v->type != Json::Type::Number || v->number < 0) throw H::ReplayError(std::string("bad tape sidecar: missing ") + key);
@@ -197,11 +202,102 @@ Meta parseSidecar(const std::string& text) {
             seg.seed = static_cast<std::uint32_t>(number(r, "rng_seed"));
             meta.playStarts.push_back(std::move(seg));
         }
+    if (meta.schema == 2) {
+        const auto require = [](bool value, const char* why) { if (!value) throw H::ReplayError(why); };
+        const auto integer = [&](const Json& j, const char* key) -> std::uint64_t {
+            const auto* v = j.find(key);
+            require(v && v->type == Json::Type::Number && std::isfinite(v->number) && v->number >= 0 &&
+                    std::floor(v->number) == v->number && v->number <= 10000000, "invalid schema2 frame/id");
+            return static_cast<std::uint64_t>(v->number);
+        };
+        const auto string = [&](const Json& j, const char* key) {
+            const auto* v = j.find(key); require(v && v->type == Json::Type::String, "missing schema2 string"); return v->text;
+        };
+        const auto boolean = [&](const Json& j, const char* key) {
+            const auto* v = j.find(key); require(v && v->type == Json::Type::Bool, "missing schema2 boolean"); return v->boolean;
+        };
+        const auto state = [&](const Json& j) {
+            TapePhase::State s;
+            s.inputFrame = integer(j,"input_frame"); s.kind = string(j,"kind");
+            s.scene = string(j,"scene"); s.stage = string(j,"stage");
+            const auto* scenario = j.find("scenario");
+            require(scenario && scenario->type == Json::Type::Number && std::floor(scenario->number)==scenario->number &&
+                    scenario->number >= -1 && scenario->number <= 10000, "invalid schema2 scenario");
+            s.scenario = static_cast<int>(scenario->number);
+            s.firstNormal = boolean(j,"first_normal_update"); s.valid = boolean(j,"valid");
+            s.grounded = boolean(j,"grounded"); s.dead = boolean(j,"dead");
+            s.rngObserved = boolean(j,"rng_observed"); s.mapWait = boolean(j,"map_wait"); s.galaxyMap = boolean(j,"galaxy_map");
+            const auto* seed = j.find("rng_seed");
+            require(seed && seed->type == Json::Type::Number && seed->number>=0 && seed->number<=UINT32_MAX &&
+                    std::floor(seed->number)==seed->number, "invalid schema2 RNG");
+            s.rng = static_cast<std::uint32_t>(seed->number);
+            const auto* bits = j.find("position_bits");
+            require(bits && bits->type == Json::Type::Array && bits->items.size()==3, "missing schema2 position bits");
+            for (unsigned i=0;i<3;++i) {
+                const auto& b=bits->items[i];
+                require(b.type==Json::Type::Number && b.number>=0 && b.number<=UINT32_MAX && std::floor(b.number)==b.number,
+                        "invalid schema2 position bits");
+                s.position[i]=static_cast<std::uint32_t>(b.number);
+                float f; std::memcpy(&f,&s.position[i],4); require(std::isfinite(f),"nonfinite schema2 marker position");
+            }
+            return s;
+        };
+        require(string(root,"marker_protocol")==TapePhase::kProtocol, "unsupported schema2 marker protocol");
+        require(string(root,"marker_error").empty(), "recorder rejected schema2 marker path");
+        const auto* launch=root.find("launch");
+        require(launch && launch->type==Json::Type::Object,"schema2 launch metadata missing");
+        meta.launchStage=string(*launch,"stage");
+        meta.launchScenario=static_cast<int>(integer(*launch,"scenario"));
+        require(meta.launchScenario>0 && meta.launchScenario<=10000,"invalid schema2 launch scenario");
+        const auto* phases=root.find("input_phases");
+        require(phases && phases->type==Json::Type::Array && !phases->items.empty(), "schema2 requires game-defined input phases");
+        for (const auto& j:phases->items) {
+            TapePhase::Phase p; p.id=integer(j,"id");
+            const auto first=integer(j,"first_input_frame"); p.endInputFrame=integer(j,"end_input_frame_exclusive");
+            const auto endKind=string(j,"end_kind");
+            require(endKind=="phase-transition" || endKind=="recording-prefix", "invalid schema2 end kind");
+            p.open=endKind=="recording-prefix";
+            const auto* marker=j.find("marker"); require(marker && marker->type==Json::Type::Object,"schema2 marker missing");
+            p.marker=state(*marker);
+            require(p.id==meta.inputPhases.size() && first==p.marker.inputFrame && first>0 &&
+                    p.endInputFrame>first && p.endInputFrame<=meta.seams, "unordered/out-of-prefix schema2 phase");
+            require(p.marker.kind=="controller-normal" || p.marker.kind=="scenario-foreground", "unknown schema2 phase kind");
+            if (!meta.inputPhases.empty())
+                require(!meta.inputPhases.back().open && first>=meta.inputPhases.back().endInputFrame, "overlapping schema2 phases");
+            if (p.marker.kind=="controller-normal" && !p.marker.firstNormal)
+                require(!meta.inputPhases.empty() && meta.inputPhases.back().marker.kind=="scenario-foreground",
+                        "Normal marker is neither first update nor overlay resume");
+            const auto* points=j.find("checkpoints");
+            require(points && points->type==Json::Type::Array,"schema2 checkpoints missing");
+            for (const auto& point:points->items) {
+                TapePhase::Checkpoint c; c.kind=string(point,"kind");
+                const auto* ps=point.find("state"); require(ps && ps->type==Json::Type::Object,"schema2 checkpoint state missing");
+                c.state=state(*ps);
+                require(c.state.key()==p.marker.key() && c.state.inputFrame>=first && c.state.inputFrame<p.endInputFrame,
+                        "schema2 checkpoint outside phase");
+                require((c.kind=="map-wait" && c.state.mapWait) || (c.kind=="galaxy-map" && c.state.galaxyMap),
+                        "invalid schema2 checkpoint predicate");
+                require(p.checkpoints.empty() || c.state.inputFrame>=p.checkpoints.back().state.inputFrame,
+                        "unordered schema2 checkpoints");
+                for (const auto& existing:p.checkpoints)
+                    require(c.state.inputFrame!=existing.state.inputFrame || c.kind!=existing.kind,
+                            "duplicate schema2 checkpoint");
+                p.checkpoints.push_back(std::move(c));
+            }
+            meta.inputPhases.push_back(std::move(p));
+        }
+    }
     return meta;
 }
 
 Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
     mMeta = parseSidecar(slurp(dir / "route.tape.json"));
+    if (const char* path=std::getenv("PETARI_TAPE_PLAY_READ_MAP"); path && *path) {
+        if (std::filesystem::exists(path)) throw H::ReplayError("read mapping output already exists");
+        const auto parent=std::filesystem::path(path).parent_path();
+        if (!parent.empty()) std::filesystem::create_directories(parent);
+        mReadMap.open(path); if (!mReadMap) throw H::ReplayError("cannot create read mapping output");
+    }
     {   // route.csv: the recorded positions, one row per game loop (row index == the csv's frame column)
         std::ifstream in(dir / "route.csv");
         if (!in) throw H::ReplayError("cannot open route.csv");
@@ -232,6 +328,7 @@ Session::Session(const std::filesystem::path& dir, Mode mode) : mMode(mode) {
     }
     const std::uint64_t rows = std::min<std::uint64_t>(mMeta.seams, mRoute.size());
     if (rows < 2) throw H::ReplayError("the tape has no complete game loop");
+    if (mMeta.schema == 2 && wholeSession()) { initializePhases(dir,rows); return; }
     if (wholeSession()) {
         // Game/End anchors cover FileSelect, helm and map, but schema 1 has no ready checkpoint for Logo/Title or
         // ScenarioSelect (stage=the destination, scenario=-1). Those visits must also feed their inputs: anchor on the
@@ -449,6 +546,13 @@ Step Session::startPlay(const SeamState& s) {
 }
 
 bool Session::acknowledgeSeed(std::uint32_t seed) {
+    if (mPendingMarkerSeed) {
+        mPendingMarkerSeed=false;
+        auto& e=mPhaseEvidence[mSegIndex]; e.rngReadback=seed;
+        e.rngVerified=seed==mMeta.inputPhases[mSegIndex].marker.rng;
+        if (!e.rngVerified) phaseFailure("schema2 marker RNG read-back differs");
+        return e.rngVerified;
+    }
     if (!mPendingSeed) return mError.empty();
     mPendingSeed = false;
     auto& r = mReport[mSegIndex];
@@ -468,8 +572,10 @@ bool Session::acknowledgeSeed(std::uint32_t seed) {
 }
 
 Step Session::seam(const SeamState& s) {
+    if (mMeta.schema==2 && wholeSession()) return phaseSeam(s);
     Step step;
     ++mSeams;
+    mActualOrdinal=0;
     if (mDone) return step;
     if (mPendingSeed) {
         inputFailure("play-ready RNG checkpoint was not acknowledged", s);
@@ -597,7 +703,11 @@ void Session::inputFailure(const std::string& why, const SeamState& observed) {
 std::int32_t Session::read(std::int32_t channel, std::uint32_t capacity, void* buffer, std::int32_t* error) {
     auto* out = static_cast<KPADStatus*>(buffer);
     try {
+        if (mPendingMarkerSeed) phaseFailure("schema2 input before marker RNG acknowledgement");
+        const bool recorded = !mDone && mError.empty() && !mReplay->waitingForSync();
         const H::Read& input = !mDone && mError.empty() ? mReplay->consume(channel, capacity) : mReplay->neutral(channel, capacity);
+        recordReadMap(input,recorded);
+        ++mActualOrdinal;
         for (std::size_t i = 0; i < input.samples.size(); ++i) out[i] = H::decodeSample(input.samples[i]);
         if (mActive && mError.empty() && !mReplay->waitingForSync()) {
             auto& report = mReport[mSegIndex];
@@ -627,6 +737,8 @@ std::int32_t Session::read(std::int32_t channel, std::uint32_t capacity, void* b
         return input.returned;
     }
 }
+
+#include "tape_phase_replay.inc"
 
 bool Session::press(int mod) {
     if (mDone || mReplay->waitingForSync() || !mError.empty()) return false;
@@ -704,7 +816,10 @@ std::string Session::reportJson() const {
     std::ostringstream out;
     out << std::setprecision(9);
     out << "{\n  \"mode\": " << jsonString(wholeSession() ? "whole-session" : "segments")
-        << ",\n  \"anchor_policy\": " << jsonString(wholeSession() ? "interactive-and-play-ready-v1" : "legacy-play-ready")
+        << ",\n  \"tape_schema\": " << mMeta.schema
+        << ",\n  \"tape_format_label\": " << jsonString(mMeta.schema==1 ? "legacy-v1" : "game-phase-v2")
+        << ",\n  \"legacy_policy\": " << (mMeta.schema==1 ? "true" : "false")
+        << ",\n  \"anchor_policy\": " << jsonString(wholeSession() ? (mMeta.schema==2 ? TapePhase::kPolicy : "interactive-and-play-ready-v1") : "legacy-play-ready")
             << ",\n  \"position_limit\": " << kPositionLimit
             << ",\n  \"interactive_position_bit_exact\": " << (wholeSession() ? "true" : "false")
             << ",\n  \"finished\": " << (mDone && mError.empty() ? "true" : "false")
@@ -720,7 +835,7 @@ std::string Session::reportJson() const {
                 << "],\"position_bits\":[" << bits(s.x) << ',' << bits(s.y) << ',' << bits(s.z) << "]}";
         };
         out << (i ? "," : "") << "\n    {\"segment\": " << r.index << ", \"stage\": " << jsonString(r.stage) << ", \"scenario\": " << r.scenario
-            << ", \"anchor\": " << jsonString(!wholeSession() ? "play-ready" : mMeta.segments[mPlan[i].index].sceneReady ? "initialize-End" : "scene-identity")
+            << ", \"anchor\": " << jsonString(!wholeSession() ? "play-ready" : mMeta.schema==2 ? "game-defined-pre-read" : mMeta.segments[mPlan[i].index].sceneReady ? "initialize-End" : "scene-identity")
             << ", \"rng_checkpoint_available\": " << (mMeta.segments[mPlan[i].index].hasSeed ? "true" : "false")
             << ", \"scene_anchor_recorded_frame\": " << r.sceneStartRow
             << ", \"scene_anchor_replay_frame\": " << (r.started ? std::to_string(r.replaySceneStart) : "null")
@@ -733,7 +848,7 @@ std::string Session::reportJson() const {
             << ", \"identity_offset_checked\": " << (r.identityObserved ? "true" : "false")
             << ", \"identity_offset_passed\": " << (r.identityObserved && std::abs(r.identityOffset) <= kIdentityOffsetLimit ? "true" : "false")
             << ", \"identity_rows_skipped\": " << r.identityRowsSkipped
-            << ", \"comparison_anchor\": " << jsonString(!wholeSession() || r.requiresPlayReady ? "play-ready" : "scene-start")
+            << ", \"comparison_anchor\": " << jsonString(!wholeSession() || r.requiresPlayReady ? "play-ready" : mMeta.schema==2 ? "pre-read-scene" : "scene-start")
             << ", \"play_ready_required\": " << (r.requiresPlayReady ? "true" : "false")
             << ", \"route_start_row\": " << r.startRow << ", \"tape_frames\": " << r.frames << ", \"started\": " << (r.started ? "true" : "false")
             << ", \"completed\": " << (r.completed ? "true" : "false") << ", \"rows_compared\": " << r.rowsCompared
@@ -776,7 +891,29 @@ std::string Session::reportJson() const {
         }
         out << "}";
     }
-    out << "\n  ]\n}\n";
+    out << "\n  ]";
+    if (mMeta.schema==2 && wholeSession()) {
+        out << ",\n  \"marker_protocol\":" << jsonString(TapePhase::kProtocol)
+            << ",\n  \"non_interactive_gap_loops\":" << mNeutralLoops << ",\n  \"input_phases\":[";
+        for (std::size_t i=0;i<mPhaseEvidence.size();++i) {
+            const auto& e=mPhaseEvidence[i]; const auto& p=mMeta.inputPhases[i];
+            out << (i ? "," : "") << "{\"id\":" << p.id << ",\"marker_checked\":" << (e.markerChecked ? "true":"false")
+                << ",\"marker_passed\":" << (e.markerPassed ? "true":"false")
+                << ",\"rng_verified\":" << (e.rngVerified ? "true":"false")
+                << ",\"recorded_marker\":" << TapePhase::stateJson(p.marker)
+                << ",\"actual_marker\":" << (e.markerChecked ? TapePhase::stateJson(e.actualMarker) : "null")
+                << ",\"frame_offset\":" << (e.markerChecked ? std::to_string(static_cast<std::int64_t>(e.actualMarker.inputFrame)-static_cast<std::int64_t>(p.marker.inputFrame)) : "null")
+                << ",\"rng_natural_before_restore\":" << e.rngNatural << ",\"rng_readback\":" << e.rngReadback
+                << ",\"end_input_frame_exclusive\":" << p.endInputFrame
+                << ",\"exit_required\":" << (p.open ? "false":"true")
+                << ",\"exit_checked\":" << (e.exitChecked ? "true":"false")
+                << ",\"exit_passed\":" << (e.exitPassed ? "true":"false")
+                << ",\"checkpoints_required\":" << p.checkpoints.size()
+                << ",\"checkpoints_checked\":" << e.checkpointsChecked << '}';
+        }
+        out << ']';
+    }
+    out << "\n}\n";
     return out.str();
 }
 

@@ -6,6 +6,7 @@
 // (scripted sessions). tools/port/replay_tape.py replays such a tape headless from a ready seam.
 #include <cstdint>
 #include <string>
+#include "tape_phase.hpp"
 
 namespace PetariNative::App::TapeRecord {
 
@@ -27,6 +28,9 @@ void seam(const Seam& s);
 // Normal app shutdown only: flush the final CSV/KPAD frames and write complete=true. Safe to call repeatedly;
 // atexit remains a backup. Crash/forced-exit paths must leave the last incomplete checkpoint untouched.
 void finish();
+// Game-defined state, before channel 0's input; never guesses from coordinates.
+void beforeRead(const TapePhase::State& state);
+void setLaunch(const std::string& stage, int scenario);  // actual parsed launch, before game boot
 
 // For tests: the sidecar text for a state.
 struct Ready {

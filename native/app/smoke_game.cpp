@@ -2,6 +2,7 @@
 // state. SDK side: no Aurora or SDL headers here.
 
 #include <chrono>
+#include "tape_scene.hpp"
 
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
@@ -358,5 +359,6 @@ void recordRouteFrame(bool background) {
         TapeRecord::seam(seam);
     }
     if (capture) PlaytestCapture::frame(row);
+    TapeScene::nextFrame();
 }
 }

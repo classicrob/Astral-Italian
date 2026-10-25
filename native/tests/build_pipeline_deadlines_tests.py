@@ -71,7 +71,7 @@ class Build(unittest.TestCase):
 
     def test_exact_pair(self):
         result = self.run_build(); self.assertTrue(result['passed'])
-        self.assertEqual(deadlines.read(self.root / 'out/A.first-use.bin', 'A', self.rows), {11: 0, 12: 1})
+        self.assertEqual(deadlines.read(self.root / 'out/A.pfd', 'A', self.rows), {11: 0, 12: 1})
         self.assertTrue(result['all_database_rows_unchanged'])
 
     def test_edited_raw(self):
@@ -182,7 +182,7 @@ class Build(unittest.TestCase):
         self.assertEqual(result['missing_or_failed_stages'],['A'])
         self.assertEqual(result['explicit_whole_stage_fallbacks'],['A'])
         self.assertFalse(result['stage_results'][0]['admitted'])
-        self.assertFalse((self.root/'out/A.first-use.bin').exists())
+        self.assertFalse((self.root/'out/A.pfd').exists())
 
     def test_unrecorded_stage_cannot_be_explicit_fallback(self):
         with self.assertRaisesRegex(ValueError,'attempted, unqualified'):
@@ -230,7 +230,7 @@ class Build(unittest.TestCase):
         result=self.run_build();self.assertTrue(result['passed']);item=result['stage_results'][0]
         self.assertFalse(item['raw_recording_passed']);self.assertTrue(item['warm_definition_requalified'])
         self.assertTrue(item['warm_packet_order_preserved'])
-        self.assertEqual(deadlines.read(self.root/'out/A.first-use.bin','A',self.rows),{11:0,12:1})
+        self.assertEqual(deadlines.read(self.root/'out/A.pfd','A',self.rows),{11:0,12:1})
 
     def test_warm_missing_native_anchor_fails_closed(self):
         path=self.batch/'A/warm-2/route.tape.json';side=json.loads(path.read_text())
@@ -304,7 +304,7 @@ class Build(unittest.TestCase):
         self.assertTrue(item['admitted']);self.assertEqual(item['manifest_closure']['added_hashes'],['000000000000000d'])
         self.assertEqual(item['uncovered_configs_absent_global'],['4562580ba2df567a'])
         after=seedpack.database_rows(str(self.root/'out/FileSelect.db'))
-        self.assertEqual(deadlines.read(self.root/'out/FileSelect.first-use.bin','FileSelect',after),{11:0,13:1})
+        self.assertEqual(deadlines.read(self.root/'out/FileSelect.pfd','FileSelect',after),{11:0,13:1})
         self.assertNotIn(14,[r[1] for r in after])
 
     def test_title_unapproved_global_gap_fails_closed(self):
@@ -378,7 +378,7 @@ class Build(unittest.TestCase):
         unknown = next(r for r in result['frontend_results'] if r['stage']=='Unknown')
         self.assertFalse(unknown['admitted'])
         self.assertFalse(unknown['bootstrap_scope_qualified'])
-        self.assertFalse((self.root / 'out/Unknown.first-use.bin').exists())
+        self.assertFalse((self.root / 'out/Unknown.pfd').exists())
 
 
 if __name__ == '__main__': unittest.main()

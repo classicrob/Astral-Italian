@@ -34,6 +34,7 @@ MAGIC_DEADLINES = b"PSD2"
 MARKER = ".seedpack.json"
 GLOBAL = "__global__"
 NEVER = 0xFFFFFFFF
+LEGACY_DEADLINE_SUFFIX = ".first-use.bin"  # generated-expansion migration only; never bundled/loaded
 SCHEMA = (
     "CREATE TABLE aurora_schema(value INTEGER);"
     "CREATE TABLE pipeline_cache(type INTEGER, hash INTEGER, config_version INTEGER, config_size INTEGER, "
@@ -100,15 +101,17 @@ def pack(seed_dir, out):
     for r in rows:
         if r[3] != len(r[4]) or r[3] > 0xFFFF or r[2] > 0xFFFF:
             raise ValueError("config size/version out of range or inconsistent")
+    if glob.glob(os.path.join(seed_dir, '*' + LEGACY_DEADLINE_SUFFIX)):
+        raise ValueError('legacy deadline filenames require a fresh .pfd expansion before packing')
     sidecars = {}
     stages = stage_paths(seed_dir)
     for path in stages:
         name = os.path.basename(path)[:-3]
-        sidecar = os.path.join(seed_dir, name + '.first-use.bin')
+        sidecar = os.path.join(seed_dir, name + '.pfd')
         if os.path.exists(sidecar):
             sidecars[name] = deadlines.read(sidecar, name, database_rows(path))
-    unexpected = set(glob.glob(os.path.join(seed_dir, '*.first-use.bin'))) - {
-        os.path.join(seed_dir, os.path.basename(p)[:-3] + '.first-use.bin') for p in stages}
+    unexpected = set(glob.glob(os.path.join(seed_dir, '*.pfd'))) - {
+        os.path.join(seed_dir, os.path.basename(p)[:-3] + '.pfd') for p in stages}
     if unexpected:
         raise ValueError('deadline sidecar has no matching stage: ' + str(sorted(unexpected)))
     buf = bytearray((MAGIC_DEADLINES if sidecars else MAGIC) + struct.pack("<I", len(rows)))
@@ -244,11 +247,11 @@ def expand(pack_path, out_dir, pack_hash=None):
         write_database(os.path.join(out_dir, name + ".db"), meta, blobs, selected)
         if name in sidecars:
             rows = [(meta[i][0], meta[i][1], meta[i][2], meta[i][3], blobs[i], f) for i, f in selected]
-            with open(os.path.join(out_dir, name + '.first-use.bin'), 'wb') as stream:
+            with open(os.path.join(out_dir, name + '.pfd'), 'wb') as stream:
                 stream.write(deadlines.encode(name, rows, sidecars[name]))
     marker = {"pack_sha256": pack_hash or sha256(pack_path), "global_sha256": sha256(os.path.join(out_dir, GLOBAL + ".db")),
               "databases": sorted(os.path.basename(p)[:-3] for p in glob.glob(os.path.join(out_dir, "*.db"))),
-              "deadline_sidecars": {os.path.basename(p): sha256(p) for p in glob.glob(os.path.join(out_dir, '*.first-use.bin'))}}
+              "deadline_sidecars": {os.path.basename(p): sha256(p) for p in glob.glob(os.path.join(out_dir, '*.pfd'))}}
     with open(os.path.join(out_dir, MARKER), "w") as stream:
         json.dump(marker, stream, indent=1)
         stream.write("\n")
@@ -257,6 +260,10 @@ def expand(pack_path, out_dir, pack_hash=None):
 
 def verify(a, b):
     bad = 0
+    for directory in (a, b):
+        if glob.glob(os.path.join(directory, '*' + LEGACY_DEADLINE_SUFFIX)):
+            print('legacy deadline filenames cannot be verified as .pfd:', directory)
+            bad += 1
     names = sorted(os.path.basename(p) for p in glob.glob(os.path.join(a, "*.db")))
     for name in names:
         other = os.path.join(b, name)
@@ -271,8 +278,8 @@ def verify(a, b):
     for name in extra:
         print("extra", name)
         bad += 1
-    sidecars = {os.path.basename(p) for p in glob.glob(os.path.join(a, '*.first-use.bin'))}
-    other_sidecars = {os.path.basename(p) for p in glob.glob(os.path.join(b, '*.first-use.bin'))}
+    sidecars = {os.path.basename(p) for p in glob.glob(os.path.join(a, '*.pfd'))}
+    other_sidecars = {os.path.basename(p) for p in glob.glob(os.path.join(b, '*.pfd'))}
     for name in sorted(sidecars | other_sidecars):
         if name not in sidecars or name not in other_sidecars or Path(a, name).read_bytes() != Path(b, name).read_bytes():
             print('DIFF deadline sidecar', name)
@@ -326,7 +333,8 @@ def local_state(out_dir):
     try:
         marker = json.loads(Path(marker_path).read_text())
         current = sorted(os.path.basename(p)[:-3] for p in glob.glob(os.path.join(out_dir, "*.db")))
-        sidecars = {os.path.basename(p): sha256(p) for p in glob.glob(os.path.join(out_dir, '*.first-use.bin'))}
+        sidecars = {os.path.basename(p): sha256(p) for pattern in ('*.pfd', '*' + LEGACY_DEADLINE_SUFFIX)
+                    for p in glob.glob(os.path.join(out_dir, pattern))}
         if marker["databases"] == current and marker["global_sha256"] == sha256(os.path.join(out_dir, GLOBAL + ".db")) and marker.get('deadline_sidecars', {}) == sidecars:
             return "expansion", marker
     except (OSError, ValueError, KeyError):
@@ -354,7 +362,7 @@ def ensure(pack_dir, out_dir):
         print(f"pipeline seeds: WARNING: {out_dir} changed since it was expanded from a pack; left untouched, so a newer "
               f"{os.path.basename(pack_path)} is NOT applied. To replace it: seedpack.py expand --force")
         return 0
-    if state == "expansion" and marker["pack_sha256"] == pack_hash:
+    if state == "expansion" and marker["pack_sha256"] == pack_hash and all(name.endswith(".pfd") for name in marker.get("deadline_sidecars", {})):
         print(f"pipeline seeds: {out_dir} is up to date ({os.path.basename(pack_path)})")
         return 0
     try:

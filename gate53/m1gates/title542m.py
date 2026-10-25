@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import plistlib
+import re
 import shutil
 import subprocess
 import sys
@@ -30,8 +31,18 @@ def main():
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--baseline', action='store_true')
     p.add_argument('--label', required=True)
+    p.add_argument('--bundle-id', default=OWN_ID, help='Dedicated perf bundle ID; must match the prepared app')
+    p.add_argument('--heavy-lock', type=Path, default=common.HEAVY)
+    p.add_argument('--native-lock', type=Path, default=common.LOCK)
+    p.add_argument('--disc', type=Path, default=common.DISC)
+    p.add_argument('--require-deadline-stage', action='append', default=[], metavar='Stage:count')
     p.add_argument('--heavy-held', action='store_true', help=argparse.SUPPRESS)
     args = p.parse_args()
+    if not re.fullmatch(r'dev\.petari\.Petari\.perf[A-Za-z0-9_-]+', args.bundle_id): p.error('dedicated perf bundle ID required')
+    if args.baseline and args.require_deadline_stage: p.error('historical baseline has no deadline metadata')
+    try: args.required_deadlines = gate542m.deadline_requirements(args.require_deadline_stage or ([] if args.baseline else ['FileSelect:69']))
+    except ValueError as exc: p.error(str(exc))
+    common.HEAVY, common.LOCK, common.DISC = args.heavy_lock.expanduser(), args.native_lock.expanduser(), args.disc.expanduser()
     if not args.heavy_held:
         return subprocess.run(['/usr/bin/lockf', '-k', str(common.HEAVY), sys.executable, '-B', __file__,
                                *sys.argv[1:], '--heavy-held']).returncode
@@ -42,9 +53,10 @@ def main():
 
 def arm(args):
     app, out = args.app.resolve(), args.out.resolve()
+    own_id = args.bundle_id
     assert out.is_relative_to(common.ROOT.resolve()) and not out.exists() and out != common.ROOT.resolve()
     prep = json.loads(args.prep.read_text())
-    assert prep['bundle_id'] == OWN_ID and Path(prep['app']).resolve() == app
+    assert prep['bundle_id'] == own_id and Path(prep['app']).resolve() == app
     assert prep['build_kind'] == 'server-candidate'
     assert prep['build']['source'] == prep['source_commit']
     assert prep['build']['binary_sha256'] == prep['original_exe_sha256']
@@ -55,13 +67,17 @@ def arm(args):
     before = common.sha(executable)
     assert before == prep['perf_sha256']
     with (app / 'Contents/Info.plist').open('rb') as file:
-        assert plistlib.load(file)['CFBundleIdentifier'] == OWN_ID
+        assert plistlib.load(file)['CFBundleIdentifier'] == own_id
     resources = common.tree(app / 'Contents/Resources')
+    assert resources == prep['resource_tree']
+    original = Path(prep['original_app'])
+    assert common.sha(original / 'Contents/MacOS/Petari') == prep['original_exe_sha256']
+    assert common.tree(original / 'Contents/Resources') == resources
     common.disk(); out.mkdir(parents=True)
     common.wait_quiet(out / 'quiet.json')
     base = Path(subprocess.check_output(['/usr/bin/getconf', 'DARWIN_USER_CACHE_DIR'], text=True).strip())
-    target = base / OWN_ID
-    assert base.is_absolute() and target.name == 'dev.petari.Petari.perfm1b' and base != Path('/')
+    target = base / own_id
+    assert base.is_absolute() and target.name == own_id and base != Path('/')
     if target.exists(): shutil.rmtree(target)
     cache, user = out / 'cache', out / 'user'
     cache.mkdir(); user.mkdir()
@@ -78,7 +94,7 @@ def arm(args):
               'label': args.label, 'baseline': args.baseline, 'build_kind': prep['build_kind'],
               'source_commit': prep['source_commit'], 'original_exe_sha256': prep['original_exe_sha256'],
               'perf_exe_sha256': before, 'prep': str(args.prep), 'prep_sha256': common.sha(args.prep),
-              'bundle_id': OWN_ID, 'cold_metal_cleared': True, 'fresh_private_cache': str(cache),
+              'bundle_id': own_id, 'cold_metal_cleared': True, 'fresh_private_cache': str(cache),
               'no_input': True, 'nice': os.getpriority(os.PRIO_PROCESS, 0), 'load': os.getloadavg(),
               'comparison_window_seconds': 300, 'native_observation_minimum_seconds': None if args.baseline else 315,
               'hard_cap_seconds': 900, 'start_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
@@ -92,7 +108,7 @@ def arm(args):
                 while proc.poll() is None and time.monotonic() - started < timeout:
                     time.sleep(min(1, max(.01, timeout - (time.monotonic() - started))))
                 if proc.poll() is None:
-                    quit_command = ['/usr/bin/osascript', '-l', 'JavaScript', str(HERE / 'quit_owned_app.js'), str(proc.pid), str(app)]
+                    quit_command = ['/usr/bin/osascript', '-l', 'JavaScript', str(HERE / 'quit_owned_app.js'), str(proc.pid), str(app), own_id]
                     sent = subprocess.run(quit_command, capture_output=True, text=True, timeout=30)
                     orderly = {'command': quit_command, 'exit': sent.returncode, 'stdout': sent.stdout, 'stderr': sent.stderr}
                     common.write(out / 'orderly-quit.json', orderly)
@@ -117,7 +133,7 @@ def arm(args):
                'normal_exit': proc.returncode == 0}
     process['error'] = error
     common.write(out / 'process.json', process)
-    scored = gate542m.score(out, title=not args.baseline, window_seconds=300) if process['frames_csv_flushed'] else None
+    scored = gate542m.score(out, title=not args.baseline, window_seconds=300, require_deadlines=args.required_deadlines) if process['frames_csv_flushed'] else None
     route = common.rows(out / 'route.csv')
     neutral = all(not any(float(r.get(k, 0)) for k in ('move_x', 'move_y', 'jump', 'spin', 'crouch', 'shoot', 'pointer_valid')) for r in route)
     checks = {'normal_exit': process['normal_exit'], 'not_timed_out': not timed_out, 'no_runner_error': error is None,
@@ -131,7 +147,8 @@ def arm(args):
               'source_commit': prep['source_commit'], 'perf_exe_sha256': before, 'original_exe_sha256': prep['original_exe_sha256'],
               'process': process, 'gate542m': scored, 'comparison_window_seconds': 300,
               'baseline_scope': 'retained unsplit evidence, no missing-signal acceptance claim' if args.baseline else None,
-              'prep': str(args.prep), 'prep_sha256': common.sha(args.prep), 'launch_sha256': common.sha(out / 'launch.json')}
+              'prep': str(args.prep), 'prep_sha256': common.sha(args.prep), 'launch_sha256': common.sha(out / 'launch.json'),
+              'gate_sources': {name: common.sha(HERE / name) for name in ('title542m.py','gate542m.py','quit_owned_app.js','common.py')}}
     common.write(out / 'RESULT.json', result)
     common.trim(out)
     print(json.dumps(result), flush=True)

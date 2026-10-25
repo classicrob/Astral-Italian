@@ -36,7 +36,7 @@ DENY_EXTENSIONS = {
 DENY_DIRS = {"files", "sys", "data", "gamedata", "game data", "disc", "stagedata", "objectdata", "audioress"}
 ALLOW_EXTENSIONS = {
     "", ".dylib", ".plist", ".db", ".json", ".txt", ".md", ".icns", ".png", ".strings", ".lproj", ".car",
-    ".html", ".command", ".sh", ".entitlements", ".license",
+    ".html", ".command", ".sh", ".entitlements", ".license", ".pfd",
 }
 # Text mentions of the game ID are fine in a README; binary files are checked for it separately.
 TEXT_EXTENSIONS = {".txt", ".md", ".json", ".plist", ".strings", ".html", ".command", ".sh", ".entitlements", ".license"}

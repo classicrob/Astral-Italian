@@ -43,7 +43,7 @@ def validate_source(seeds, pack):
     selected = {'__global__': [(i, row[4]) for i, row in enumerate(meta)], **dict(stages)}
     if {p.stem for p in seeds.glob('*.db')} != set(selected):
         raise ValueError('source seed database set differs from recording pack')
-    if list(seeds.glob('*.first-use.bin')):
+    if list(seeds.glob('*.pfd')) or list(seeds.glob('*' + seedpack.LEGACY_DEADLINE_SUFFIX)):
         raise ValueError('source seeds already contain deadline metadata')
     for stage, entries in selected.items():
         expected = {(meta[i][0], meta[i][1], meta[i][2], meta[i][3], blobs[i], rank) for i, rank in entries}
@@ -249,7 +249,7 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
                     item['uncovered_configs_absent_global'] = [f'{key:016x}' for key in uncovered]
                 rows, closure = close_manifest(seeds, output, stage, values)
                 item['manifest_closure'] = closure
-                target = output / (stage + '.first-use.bin')
+                target = output / (stage + '.pfd')
                 target.write_bytes(deadlines.encode(stage, rows, values))
                 assert deadlines.read(target, stage, rows) == values
                 item.update(admitted=True, configs=len(values), groups=len(set(values.values())),
@@ -292,7 +292,7 @@ def build(seeds, provenances, output, report, expected_stages=None, *, source_pa
             values = {int(k, 16): v for k, v in first.items()}
             rows, closure = close_manifest(seeds, output, stage, values)
             item['manifest_closure'] = closure
-            target = output / (stage + '.first-use.bin'); target.write_bytes(deadlines.encode(stage, rows, values))
+            target = output / (stage + '.pfd'); target.write_bytes(deadlines.encode(stage, rows, values))
             item.update(admitted=True, configs=len(values), groups=len(set(values.values())), sidecar_sha256=sha(target))
         except ValueError as exc:
             item['reason'] = str(exc)

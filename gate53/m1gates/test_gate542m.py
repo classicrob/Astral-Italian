@@ -26,11 +26,11 @@ class Gate(unittest.TestCase):
 
     def tearDown(self): self.tmp.cleanup()
 
-    def read(self, title=True, window=30):
+    def read(self, title=True, window=30, required=None):
         (self.root / 'app.log').write_text(self.text)
         with (self.root / 'frames.csv').open('w') as file:
             out = csv.DictWriter(file, fieldnames=self.rows[0].keys()); out.writeheader(); out.writerows(self.rows)
-        return gate.score(self.root, title, window)
+        return gate.score(self.root, title, window, required)
 
     def test_complete(self): self.assertTrue(self.read()['passed'])
 
@@ -77,6 +77,28 @@ class Gate(unittest.TestCase):
         self.rows = self.rows[:600]
         r = self.read()
         self.assertFalse(r['passed']); self.assertEqual(r['split_status'], 'no post-100 samples')
+
+    def test_required_deadline_admission_is_an_actual_gate(self):
+        required={'FileSelect':69}
+        self.assertFalse(self.read(required=required)['passed'])
+        self.text+='[gx first-use deadlines] stage=FileSelect policy=frame-then-cost reason=validated configs=69\n'
+        self.assertTrue(self.read(required=required)['passed'])
+        self.text+='[gx first-use deadlines] stage=FileSelect policy=first-use-order reason=missing-unreadable configs=0\n'
+        self.assertFalse(self.read(required=required)['passed'])
+
+    def test_deadline_admission_fails_on_missing_log(self):
+        self.assertFalse(gate.deadline_admissions('', {'FileSelect':69})['FileSelect']['passed'])
+
+    def test_deadline_admission_requires_validated_policy_and_exact_count(self):
+        good='[gx first-use deadlines] stage=FileSelect policy=frame-then-cost reason=validated configs=69'
+        self.assertTrue(gate.deadline_admissions(good,{'FileSelect':69})['FileSelect']['passed'])
+        for text in (good.replace('69','68'),good.replace('reason=validated','reason=missing-unreadable'),
+                     good+'\n'+good.replace('frame-then-cost','first-use-order')):
+            self.assertFalse(gate.deadline_admissions(text,{'FileSelect':69})['FileSelect']['passed'])
+
+    def test_deadline_requirements_reject_ambiguous_spec(self):
+        for spec in (['FileSelect:0'],['FileSelect:69','FileSelect:69'],['bad']):
+            with self.assertRaises(ValueError):gate.deadline_requirements(spec)
 
     def test_timeout(self):
         self.text = self.text.replace('title-observation-complete', 'title-observation-timeout')

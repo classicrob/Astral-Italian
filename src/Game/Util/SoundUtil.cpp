@@ -328,37 +328,6 @@ namespace MR {
 
 
 
-    bool hasME() {
-        AudChordInfo* pChordInfo = AudWrap::getSystem()->getChordInfo();
-
-        return pChordInfo->mTable.mLoaded && pChordInfo->mCurChord != nullptr && pChordInfo->mCurScale != nullptr;
-    }
-
-    void startSystemME(const char* pName) {
-        if (!hasME()) {
-            return;
-        }
-
-        u32 id = AudSingletonHolder< AudMeNameConverter >::get()->getMeID(pName);
-
-        AudWrap::getSystemMeObject()->startMe(id);
-    }
-
-#ifdef GALAXY_NATIVE
-    // DOL 80042230 / 800422F0 (unsplit, beside hasME and startSystemME).
-    u32 getMEID(const char* pName) {
-        return AudSingletonHolder< AudMeNameConverter >::get()->getMeID(pName);
-    }
-
-    void fn_800422F0(u32 id) {
-        if (!hasME()) {
-            return;
-        }
-
-        AudWrap::getSystemMeObject()->startMe(id);
-    }
-#endif
-
     inline s32 calcFootSoundCode(const LiveActor* pActor) {
         const Binder* pBinder = pActor->mBinder;
         if (pBinder == nullptr) {

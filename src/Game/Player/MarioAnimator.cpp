@@ -50,6 +50,58 @@ extern XanimeBckTable4 marioRideTripleAnimeTable[];
 namespace {
     // Original writable walk-state table at 0x806DC0F8.
     u8 walkStateTable[] = {0, 1, 1, 2, 2, 2, 3, 3};
+    // Original writable joint/animation literals, 0x806DC100..0x806DC37F.
+    // jname_chest retains its distinct later Spine1 literal.
+    char animName806DC100[] = "Spine1";
+    char animName806DC108[] = "基本";
+    char animName806DC110[] = "テニス基本";
+    char animName806DC11C[] = "坂前後ウエイト";
+    char animName806DC12C[] = "坂左右ウエイト";
+    char animName806DC13C[] = "カリカリ限界";
+    char animName806DC14C[] = "飛び込み準備";
+    char animName806DC15C[] = "Spine2";
+    char animName806DC164[] = "ShoulderL";
+    char animName806DC170[] = "ShoulderR";
+    char animName806DC17C[] = "Head";
+    char animName806DC184[] = "ArmL1";
+    char animName806DC18C[] = "ArmR2";
+    char animName806DC194[] = "着地";
+    char animName806DC19C[] = "着地B";
+    char animName806DC1A4[] = "着地C";
+    char animName806DC1AC[] = "着地ターン";
+    char animName806DC1B8[] = "着地幅とび";
+    char animName806DC1C4[] = "すべり着地";
+    char animName806DC1D0[] = "pulloutgraspend";
+    char animName806DC1E0[] = "壁すべり";
+    char animName806DC1EC[] = "壁くっつき";
+    char animName806DC1F8[] = "ブレーキ";
+    char animName806DC204[] = "ターンブレーキ";
+    char animName806DC214[] = "ターンジャンプ";
+    char animName806DC224[] = "左空パンチ";
+    char animName806DC230[] = "アイテムドリル";
+    char animName806DC240[] = "ドリルひろいクイック";
+    char animName806DC258[] = "ドリルひろい";
+    char animName806DC268[] = "CarryDrillStart";
+    char animName806DC278[] = "カブ抜き";
+    char animName806DC288[] = "PullOut";
+    char animName806DC290[] = "ひろいクイック";
+    char animName806DC2A0[] = "ひろい空中";
+    char animName806DC2AC[] = "ひろい";
+    char animName806DC2B4[] = "CarryStart";
+    char animName806DC2C0[] = "ドリルウエイト";
+    char animName806DC2D0[] = "カブウエイト";
+    char animName806DC2E0[] = "ひろいウエイト";
+    char animName806DC2F0[] = "SwimBubble";
+    char animName806DC2FC[] = "両手投げ";
+    char animName806DC308[] = "マリオ[亀投げ]";
+    char animName806DC318[] = "水泳亀投げ";
+    char animName806DC324[] = "水泳基本";
+    char animName806DC330[] = "投げ";
+    char animName806DC338[] = "坂右ウエイト";
+    char animName806DC348[] = "坂左ウエイト";
+    char animName806DC358[] = "坂前ウエイト";
+    char animName806DC368[] = "坂後ウエイト";
+    char animName806DC378[] = "ラン";
 }
 
 MarioAnimator::MarioAnimator(MarioActor* pActor) : mActor(pActor), mExtraAnimationEnabled(false) {
@@ -111,22 +163,22 @@ void MarioAnimator::init() {
 
     mXanimePlayer = new XanimePlayer(MR::getJ3DModel(mActor), mResourceTable);
 
-    changeDefault("基本");
-    change("基本");
+    changeDefault(animName806DC108);
+    change(animName806DC108);
 
     mXanimePlayer->getCore()->enableJointTransform(MR::getJ3DModelData(mActor));
 
     mActor->mModelManager->mXanimePlayer = mXanimePlayer;
     mXanimePlayerUpper = new XanimePlayer(MR::getJ3DModel(mActor), mResourceTable, mXanimePlayer);
-    changeDefaultUpper("基本");
-    mXanimePlayerUpper->changeAnimationBck("基本");
+    changeDefaultUpper(animName806DC108);
+    mXanimePlayerUpper->changeAnimationBck(animName806DC108);
     mXanimePlayerUpper->mCore->shareJointTransform(mXanimePlayer->mCore);
     XanimeResourceTable* rideResources = new XanimeResourceTable(MR::getResourceHolder(mActor), marioRideAnimeTable,
         marioRideAnimeAuxTable, marioRideAnimeOfsTable, marioRideSingleAnimeTable,
         marioRideDoubleAnimeTable, marioRideTripleAnimeTable, nullptr);
     mXanimePlayerExtra = new XanimePlayer(MR::getJ3DModel(mActor), rideResources);
-    mXanimePlayerExtra->setDefaultAnimation("基本");
-    mXanimePlayerExtra->changeAnimationBck("基本");
+    mXanimePlayerExtra->setDefaultAnimation(animName806DC108);
+    mXanimePlayerExtra->changeAnimationBck(animName806DC108);
     XanimeCore* extraCore = mXanimePlayerExtra->mCore;
     extraCore->enableJointTransform(MR::getJ3DModelData(mActor));
     PSMTXCopy(MR::tmpMtxRotYRad(PI), _DC.toMtxPtr());
@@ -191,12 +243,12 @@ bool MarioAnimator::isLandingAnimationRun() const {
         return false;
     }
 
-    if (isAnimationRun("着地") || isAnimationRun("着地B") || isAnimationRun("着地C") || isAnimationRun("着地ターン") ||
-        isAnimationRun("着地幅とび")) {
+    if (isAnimationRun(animName806DC194) || isAnimationRun(animName806DC19C) || isAnimationRun(animName806DC1A4) || isAnimationRun(animName806DC1AC) ||
+        isAnimationRun(animName806DC1B8)) {
         return true;
     }
 
-    if (isAnimationRun("すべり着地")) {
+    if (isAnimationRun(animName806DC1C4)) {
         return true;
     }
 
@@ -216,7 +268,7 @@ bool MarioAnimator::isLandingAnimationRun() const {
         return true;
     }
 
-    if (MR::isBckPlaying(mActor, "pulloutgraspend")) {
+    if (MR::isBckPlaying(mActor, animName806DC1D0)) {
         return true;
     }
 
@@ -224,16 +276,16 @@ bool MarioAnimator::isLandingAnimationRun() const {
 }
 
 bool MarioAnimator::isCancelableAnimationRun() const {
-    if (isAnimationRun("着地") || isAnimationRun("着地B") || isAnimationRun("着地C") || isAnimationRun("着地ターン") ||
-        isAnimationRun("着地幅とび")) {
+    if (isAnimationRun(animName806DC194) || isAnimationRun(animName806DC19C) || isAnimationRun(animName806DC1A4) || isAnimationRun(animName806DC1AC) ||
+        isAnimationRun(animName806DC1B8)) {
         return true;
     }
 
-    if (isAnimationRun("すべり着地")) {
+    if (isAnimationRun(animName806DC1C4)) {
         return true;
     }
 
-    if (MR::isBckPlaying(mActor, "pulloutgraspend")) {
+    if (MR::isBckPlaying(mActor, animName806DC1D0)) {
         return true;
     }
 
@@ -242,24 +294,24 @@ bool MarioAnimator::isCancelableAnimationRun() const {
 
 bool MarioAnimator::isWalkOrWaitingMotion() const {
     if (isAnimationStop()) {
-        if (isAnimationRun("基本") || isAnimationRun("テニス基本")) {
+        if (isAnimationRun(animName806DC108) || isAnimationRun(animName806DC110)) {
             return true;
         }
     }
 
-    if (isAnimationRun("坂前後ウエイト")) {
+    if (isAnimationRun(animName806DC11C)) {
         return true;
     }
 
-    if (isAnimationRun("坂左右ウエイト")) {
+    if (isAnimationRun(animName806DC12C)) {
         return true;
     }
 
-    if (isAnimationRun("カリカリ限界")) {
+    if (isAnimationRun(animName806DC13C)) {
         return true;
     }
 
-    if (isAnimationRun("飛び込み準備")) {
+    if (isAnimationRun(animName806DC14C)) {
         return true;
     }
 
@@ -364,7 +416,7 @@ void MarioAnimator::setHand() {
     XjointTransform* armRJoint = core->getJointTransform(armR);
     armRJoint->mScaleModifier = scale;
     core = mXanimePlayer->mCore;
-    u8 armL = MR::getJointIndex(mActor, "ArmL1");
+    u8 armL = MR::getJointIndex(mActor, animName806DC184);
     XjointTransform* armLJoint = core->getJointTransform(armL);
     armLJoint->mScaleModifier = scale;
 }
@@ -532,7 +584,7 @@ void MarioAnimator::setHoming() {
         MR::blendMtx(_7C.toMtxPtr(), rotMtx, 0.1f, _7C.toMtxPtr());
 
         XanimeCore* core = mXanimePlayer->getCore();
-        u8 headIdx = MR::getJointIndex(mActor, "Head");
+        u8 headIdx = MR::getJointIndex(mActor, animName806DC17C);
         XjointTransform* jt = core->getJointTransform(headIdx);
         jt->mLocalRotationMtx = _7C.toMtxPtr();
     } else {
@@ -560,11 +612,11 @@ void MarioAnimator::setHoming() {
     }
 
     XanimeCore* core = mXanimePlayer->getCore();
-    u8 leftIdx = MR::getJointIndex(mActor, "ShoulderL");
+    u8 leftIdx = MR::getJointIndex(mActor, animName806DC164);
     core->getJointTransform(leftIdx)->mLocalTranslationOffset.x = leftShoulderRot;
 
     core = mXanimePlayer->getCore();
-    u8 rightIdx = MR::getJointIndex(mActor, "ShoulderR");
+    u8 rightIdx = MR::getJointIndex(mActor, animName806DC170);
     core->getJointTransform(rightIdx)->mLocalTranslationOffset.x = rightShoulderRot;
 }
 
@@ -652,10 +704,10 @@ void MarioAnimator::setWalkMode() {
             if (((getPlayer()->mMovementStates.mHighWord >> 10) & 1U)) {
                 change("ブレーキ滑り床");
             } else {
-                change("ブレーキ");
+                change(animName806DC1F8);
             }
         }
-    } else if (isAnimationRun("ブレーキ")) {
+    } else if (isAnimationRun(animName806DC1F8)) {
         getPlayer()->doBrakingAnimation();
         getPlayer()->mTargetWalkSpeedIndex = 0;
     } else {
@@ -735,7 +787,7 @@ void MarioAnimator::stopUpper(const char* pName) {
     bool shouldStop = pName == nullptr || mXanimePlayerUpper->isRun(pName);
 
     if (shouldStop) {
-        u16 jointID = MR::getJointIndex(mActor, "Spine1");
+        u16 jointID = MR::getJointIndex(mActor, animName806DC100);
         XanimeCore* upperCore = mXanimePlayerUpper->getCore();
         J3DModelData* modelData = MR::getJ3DModelData(mActor);
         XanimeCore* lowerCore = mXanimePlayer->getCore();
@@ -775,7 +827,7 @@ void MarioAnimator::changeDefaultUpper(const char* pName) {
 }
 
 u16 MarioAnimator::getUpperJointID() const {
-    return MR::getJointIndex(mActor, "Spine1");
+    return MR::getJointIndex(mActor, animName806DC100);
 }
 
 const char* jname_chest = "Spine1";
@@ -804,11 +856,11 @@ void MarioAnimator::updateJointRumble() {
 
     MarioActor* actor = mActor;
     XanimeCore* core = mXanimePlayer->mCore;
-    XjointTransform* larmJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(actor, "ArmL1")));
+    XjointTransform* larmJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(actor, animName806DC184)));
     larmJt->mLocalTranslationOffset.y = sineVal * power;
 
     core = mXanimePlayer->mCore;
-    XjointTransform* rarmJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ArmR2")));
+    XjointTransform* rarmJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC18C)));
     rarmJt->mLocalTranslationOffset.y = sineVal * power;
 
     f32 hipRot = 0.7f * ((f32)_74 / 60.0f);
@@ -833,7 +885,7 @@ void MarioAnimator::updateJointRumble() {
     _118 = hipRot;
 
     core = mXanimePlayer->mCore;
-    XjointTransform* hipJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Spine2")));
+    XjointTransform* hipJt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC15C)));
     hipJt->mLocalRotationMtx = _AC.toMtxPtr();
 }
 #pragma pop
@@ -849,44 +901,44 @@ void MarioAnimator::addRumblePower(f32 power, u32 time) {
 void MarioAnimator::setUpperRotateY(f32 angle) {
     PSMTXRotRad(_AC.toMtxPtr(), 'X', angle);
     XanimeCore* core = mXanimePlayer->mCore;
-    XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Spine2")));
+    XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC15C)));
     jt->mLocalRotationMtx = _AC.toMtxPtr();
 }
 
 void MarioAnimator::clearAllJointTransform() {
     {
         XanimeCore* core = mXanimePlayer->mCore;
-        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ShoulderL")));
+        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC164)));
         jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
-        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ShoulderR")));
+        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC170)));
         jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
-        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Head")));
+        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC17C)));
         jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
-        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "Spine2")));
+        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC15C)));
         jt->mLocalRotationMtx = nullptr;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
-        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ArmL1")));
+        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC184)));
         jt->mLocalTranslationOffset.y = 0.0f;
     }
 
     {
         XanimeCore* core = mXanimePlayer->mCore;
-        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, "ArmR2")));
+        XjointTransform* jt = core->getJointTransform(static_cast< u16 >(MR::getJointIndex(mActor, animName806DC18C)));
         jt->mLocalTranslationOffset.y = 0.0f;
     }
 
@@ -929,7 +981,7 @@ bool MarioAnimator::isMirrorAnimation() {
         camDir = -camDir;
     }
 
-    if (isAnimationRun("壁すべり") || isAnimationRun("壁くっつき")) {
+    if (isAnimationRun(animName806DC1E0) || isAnimationRun(animName806DC1EC)) {
         if (!_10C) {
             const TVec3f& wallNorm = getPlayer()->getWallNorm();
             f32 wallDot = camDir.dot(wallNorm);
@@ -947,7 +999,7 @@ bool MarioAnimator::isMirrorAnimation() {
 
     // Check if walling (player mMovementStates._37 bit check)
     if (((getPlayer()->mMovementStates.mHighWord >> 8) & 1U)) {
-        if (isAnimationRun("ブレーキ") || isAnimationRun("ターンブレーキ") || isAnimationRun("ターンジャンプ")) {
+        if (isAnimationRun(animName806DC1F8) || isAnimationRun(animName806DC204) || isAnimationRun(animName806DC214)) {
             if (!_10C) {
                 f32 frontDot = camDir.dot(getPlayer()->mFrontVec);
                 if (frontDot > 0.0f) {
@@ -965,7 +1017,7 @@ bool MarioAnimator::isMirrorAnimation() {
 
     // Clear cache flag
     _10C = false;
-    if (isAnimationRun("左空パンチ")) {
+    if (isAnimationRun(animName806DC224)) {
         return true;
     }
 
@@ -1016,9 +1068,9 @@ void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
         }
         return;
     }
-    if (MR::getSensorHost(pSensor) != nullptr && MR::isEqualString(MR::getSensorHost(pSensor)->mName, "アイテムドリル")) {
+    if (MR::getSensorHost(pSensor) != nullptr && MR::isEqualString(MR::getSensorHost(pSensor)->mName, animName806DC230)) {
         mActor->mMario->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
-        mActor->mMario->MarioModule::changeAnimationUpper("ドリルウエイト");
+        mActor->mMario->MarioModule::changeAnimationUpper(animName806DC2C0);
         mActor->clearNullAnimation(0);
         mActor->fn_803BA220();
         return;
@@ -1026,7 +1078,7 @@ void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     switch (pSensor->mType) {
     case ATYPE_BOMBHEI:
         mActor->mMario->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
-        mActor->mMario->MarioModule::changeAnimationUpper("カブウエイト");
+        mActor->mMario->MarioModule::changeAnimationUpper(animName806DC2D0);
         mActor->clearNullAnimation(0);
         mActor->fn_803BA220();
         break;
@@ -1034,19 +1086,19 @@ void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     case ATYPE_JET_TURTLE_SLOW:
         if (!mActor->mMario->isSwimming()) {
             s32 shouldChange = 1;
-            if (isAnimationRun("ひろいクイック")) {
+            if (isAnimationRun(animName806DC290)) {
                 shouldChange = isUpperAnimationTerminated(nullptr);
             }
             if (shouldChange) {
-                if (!isAnimationRun("ひろい空中") && mActor->isStopNullAnimation()) {
-                    mActor->mMario->MarioModule::changeAnimationUpper("ひろいウエイト");
+                if (!isAnimationRun(animName806DC2A0) && mActor->isStopNullAnimation()) {
+                    mActor->mMario->MarioModule::changeAnimationUpper(animName806DC2E0);
                     mActor->mMario->MarioModule::startPadVib(2);
                     mActor->clearNullAnimation(0);
                     mActor->fn_803BA220();
                 }
             }
         } else {
-            MR::emitEffect(MR::getSensorHost(pSensor), "SwimBubble");
+            MR::emitEffect(MR::getSensorHost(pSensor), animName806DC2F0);
         }
         break;
     }
@@ -1058,19 +1110,19 @@ void MarioAnimator::changeThrowAnimation(const HitSensor* pSensor) {
     switch (type) {
     case 0x1D:
         getPlayer()->MarioModule::stopAnimationUpper(nullptr);
-        getPlayer()->MarioModule::changeAnimation("両手投げ");
-        getPlayer()->MarioModule::startPadVib("マリオ[亀投げ]");
+        getPlayer()->MarioModule::changeAnimation(animName806DC2FC);
+        getPlayer()->MarioModule::startPadVib(animName806DC308);
         break;
     case 0x12:
     case 0x13:
         getPlayer()->MarioModule::stopAnimationUpper(nullptr);
         if (getPlayer()->isSwimming()) {
-            getPlayer()->MarioModule::changeAnimation("水泳亀投げ", "水泳基本");
+            getPlayer()->MarioModule::changeAnimation(animName806DC318, animName806DC324);
         } else {
-            getPlayer()->MarioModule::changeAnimation("投げ");
+            getPlayer()->MarioModule::changeAnimation(animName806DC330);
         }
 
-        getPlayer()->MarioModule::startPadVib("マリオ[亀投げ]");
+        getPlayer()->MarioModule::startPadVib(animName806DC308);
         break;
     }
 }
@@ -1092,12 +1144,12 @@ void MarioAnimator::waterToGround() {
     switch (state) {
     case 0x12:
     case 0x13:
-        getPlayer()->MarioModule::changeAnimationUpper("ひろいウエイト");
+        getPlayer()->MarioModule::changeAnimationUpper(animName806DC2E0);
         mActor->clearNullAnimation(0);
-        MR::deleteEffect(MR::getSensorHost(swimSensor), "SwimBubble");
+        MR::deleteEffect(MR::getSensorHost(swimSensor), animName806DC2F0);
         break;
     case 0x1D:
-        getPlayer()->MarioModule::changeAnimationUpper("カブウエイト");
+        getPlayer()->MarioModule::changeAnimationUpper(animName806DC2D0);
         mActor->clearNullAnimation(0);
         break;
     }
@@ -1328,7 +1380,7 @@ void MarioAnimator::fn_803E0C90() {
     if (((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
         getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
         getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
-        getPlayer()->MarioModule::stopAnimation(nullptr, "基本");
+        getPlayer()->MarioModule::stopAnimation(nullptr, animName806DC108);
     }
 }
 
@@ -1377,7 +1429,7 @@ void MarioAnimator::fn_803E0F80() {
 void MarioAnimator::fn_803E1020() { if (isAnimationStop()) mCurrBck = mXanimePlayer->getCurrentBckName(); }
 
 void MarioAnimator::fn_803E1060() {
-    if (isAnimationRun("基本") || isAnimationRun("がんばり走り")) setTilt();
+    if (isAnimationRun(animName806DC108) || isAnimationRun("がんばり走り")) setTilt();
     else resetTilt();
     if (isAnimationRun("スライダー尻")) setHipSliderTilt();
     if (isAnimationRun("坂すべり下向きあおむけ", 3)) setHipSlipTilt();
@@ -1437,7 +1489,7 @@ void MarioAnimator::fn_803E13D0() {
     mXanimePlayer->calcAnm(0);
     if (getPlayer()->isPlayerModeYoshi()) getYoshiAnimationPlayer()->calcAnm(0);
     if (_6C) {
-        mXanimePlayerUpper->calcAnm(MR::getJointIndex(mActor, "Spine1"));
+        mXanimePlayerUpper->calcAnm(MR::getJointIndex(mActor, animName806DC100));
         XanimePlayer* upper = mXanimePlayerUpper;
         upper->overWriteMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
         if (getPlayer()->isPlayerModeYoshi()) {
@@ -1452,7 +1504,7 @@ void MarioAnimator::fn_803E13D0() {
         }
     }
     if (getPlayer()->isPlayerModeYoshi()) {
-        mXanimePlayer->clearAnm(MR::getJointIndex(mActor, "Spine1"));
+        mXanimePlayer->clearAnm(MR::getJointIndex(mActor, animName806DC100));
         XanimePlayer* upper = mXanimePlayerUpper;
         upper->clearMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
         mXanimePlayerExtra->calcAnm(0);
@@ -1460,7 +1512,7 @@ void MarioAnimator::fn_803E13D0() {
 }
 
 void MarioAnimator::fn_803E1570() {
-    mXanimePlayer->clearAnm(MR::getJointIndex(mActor, "Spine1"));
+    mXanimePlayer->clearAnm(MR::getJointIndex(mActor, animName806DC100));
     XanimePlayer* upper = mXanimePlayerUpper;
     upper->clearMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
     if (getPlayer()->isPlayerModeYoshi()) {
@@ -1530,11 +1582,11 @@ void MarioAnimator::fn_803DEFD0(u32 joint,TVec3f* out) {
 void MarioAnimator::fn_803DEC10() {
     if (mActor->mMario->isPlayerModeInvincible() && mActor->mMario->mWalkSpeed>=1.5f) return;
     if (_78) {--_78;return;}
-    if (isAnimationRun("基本")) {
-        mXanimePlayer->changeTrackAnimation(2,"ラン");
+    if (isAnimationRun(animName806DC108)) {
+        mXanimePlayer->changeTrackAnimation(2,animName806DC378);
         if (mActor->mMario->isPlayerModeYoshi() && mActor->getYoshi()->mDashTimer<=0) {
-            getYoshiAnimationPlayer()->changeTrackAnimation(2,"ラン");
-            mXanimePlayerExtra->changeTrackAnimation(2,"ラン");
+            getYoshiAnimationPlayer()->changeTrackAnimation(2,animName806DC378);
+            mXanimePlayerExtra->changeTrackAnimation(2,animName806DC378);
         }
     }
 }
@@ -1603,22 +1655,22 @@ void MarioAnimator::fn_803DE880() {
         f32 angle=1.5707964f-mActor->mMario->marioAcos(absSide);if (angle>=0.7853982f) angle=0.7853982f;
         f32 ratio=angle/0.7853982f;weights[2]=ratio;weights[3]=1.0f-ratio;
         if (sideDot<0.0f) {
-            mXanimePlayer->changeTrackAnimation(2,"坂右ウエイト");
-            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂右ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂右ウエイト");}
+            mXanimePlayer->changeTrackAnimation(2,animName806DC338);
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,animName806DC338);mXanimePlayerExtra->changeTrackAnimation(2,animName806DC338);}
         } else {
-            mXanimePlayer->changeTrackAnimation(2,"坂左ウエイト");
-            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂左ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂左ウエイト");}
+            mXanimePlayer->changeTrackAnimation(2,animName806DC348);
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,animName806DC348);mXanimePlayerExtra->changeTrackAnimation(2,animName806DC348);}
         }
         _16=1;
     } else {
         f32 angle=1.5707964f-mActor->mMario->marioAcos(absFront);if (angle>=0.7853982f) angle=0.7853982f;
         f32 ratio=angle/0.7853982f;weights[2]=ratio;weights[3]=1.0f-ratio;
         if (frontDot<0.0f) {
-            mXanimePlayer->changeTrackAnimation(2,"坂前ウエイト");
-            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂前ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂前ウエイト");}
+            mXanimePlayer->changeTrackAnimation(2,animName806DC358);
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,animName806DC358);mXanimePlayerExtra->changeTrackAnimation(2,animName806DC358);}
         } else {
-            mXanimePlayer->changeTrackAnimation(2,"坂後ウエイト");
-            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂後ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂後ウエイト");}
+            mXanimePlayer->changeTrackAnimation(2,animName806DC368);
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,animName806DC368);mXanimePlayerExtra->changeTrackAnimation(2,animName806DC368);}
         }
         _16=2;
     }
@@ -1636,35 +1688,35 @@ XjointTransform* MarioAnimator::getJointCtrl(const char* name) const {
 }
 void MarioAnimator::fn_803DDF60() {
     mActor->_494=mActor->mDrillFixedPosition788;
-    mActor->mMario->fn_803B4630("ドリルひろいクイック");mActor->mMario->stopWalk();
+    mActor->mMario->fn_803B4630(animName806DC240);mActor->mMario->stopWalk();
 }
 void MarioAnimator::fn_803DDD80(const HitSensor* sensor) {
     LiveActor* host=MR::getSensorHost(sensor);
-    if (host && MR::isEqualString(MR::getSensorHost(sensor)->mName,"アイテムドリル")) {
+    if (host && MR::isEqualString(MR::getSensorHost(sensor)->mName,animName806DC230)) {
         mActor->_494=mActor->mDrillFixedPosition788;
         Mario* player=mActor->mMario;
         if (((player->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((player->mMovementStates.mLowWord >> 20) & 1U)) {
-            player->fn_803B4630("ドリルひろいクイック");mActor->mMario->stopWalk();return;
+            player->fn_803B4630(animName806DC240);mActor->mMario->stopWalk();return;
         }
-        player->fn_803B45E0("ドリルひろい","CarryDrillStart");mActor->mMario->stopWalk();return;
+        player->fn_803B45E0(animName806DC258,animName806DC268);mActor->mMario->stopWalk();return;
     }
     u32 type=sensor->mType;
     if (static_cast<u32>(type-0x12)>1) {
         if (type==0x1D) {
         mActor->_494=mActor->mTurnipFixedPosition784;
-        mActor->mMario->fn_803B45E0("カブ抜き","PullOut");mActor->mMario->stopWalk();
+        mActor->mMario->fn_803B45E0(animName806DC278,animName806DC288);mActor->mMario->stopWalk();
         }
     } else {
         mActor->_494=mActor->mCarryFixedPosition780;
         if (!mActor->mMario->isSwimming()) {
             if (mActor->_424==sensor) {
-                mActor->mMario->fn_803B4670("ひろいクイック");mActor->playEffect("ひろいクイック");mActor->mMario->startPadVib(2);return;
+                mActor->mMario->fn_803B4670(animName806DC290);mActor->playEffect(animName806DC290);mActor->mMario->startPadVib(2);return;
             }
             Mario* player=mActor->mMario;
             if (((player->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((player->mMovementStates.mLowWord >> 20) & 1U)) {
-                player->fn_803B4630("ひろい空中");mActor->mMario->stopWalk();return;
+                player->fn_803B4630(animName806DC2A0);mActor->mMario->stopWalk();return;
             }
-            player->fn_803B45E0("ひろい","CarryStart");mActor->mMario->stopWalk();return;
+            player->fn_803B45E0(animName806DC2AC,animName806DC2B4);mActor->mMario->stopWalk();return;
         }
         mActor->clearNullAnimation(0);mActor->mMario->startPadVib(2);
     }

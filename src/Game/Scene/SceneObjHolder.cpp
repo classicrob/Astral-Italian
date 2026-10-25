@@ -130,7 +130,7 @@ namespace MR {
 #include "Game/Ride/PlantLeaf.hpp"
 #include "Game/Ride/PlantStalk.hpp"
 #include "Game/Ride/SwingRope.hpp"
-#include "Game/Ride/Trapeze.hpp"
+#include "Game/Ride/TrapezeRopeDrawInit.hpp"
 #include "Game/Scene/PlacementStateChecker.hpp"
 #include "Game/Scene/SceneDataInitializer.hpp"
 #include "Game/Scene/SceneNameObjMovementController.hpp"

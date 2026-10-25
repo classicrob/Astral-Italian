@@ -244,6 +244,9 @@ Game/Util/MessageUtil.cpp:
 	.text       start:0x80041380 end:0x80042230
 	.data       start:0x8065E590 end:0x8065E628
 
+Game/Util/MeUtil.cpp:
+	.text       start:0x80042230 end:0x80042330
+
 Game/Util/ModelUtil.cpp:
 	.text       start:0x80042330 end:0x800447A0
 	.data       start:0x8065E628 end:0x8065E8E8
@@ -8692,9 +8695,24 @@ auto_10_807D4A74_sbss:
 	.sbss       start:0x807D4A74 end:0x807D4A78 align:4
 
 Game/NPC/PostmanEvent.cpp:
-	.text       start:0x8035AAA0 end:0x8035B9B0
-	.data       start:0x806BC0A8 end:0x806BC780
+	.text       start:0x8035AAA0 end:0x8035B160
+	.data       start:0x806BC0A8 end:0x806BC1E2
 	.sdata2     start:0x807DF370 end:0x807DF380
+
+auto_07_806BC1E2_data:
+	.data       start:0x806BC1E2 end:0x806BC1E8 align:2
+
+Game/NPC/PostmanEventInfo.cpp:
+	.text       start:0x8035B160 end:0x8035B330
+	.data       start:0x806BC1E8 end:0x806BC3E8
+
+Game/NPC/PostmanEventSystem.cpp:
+	.text       start:0x8035B330 end:0x8035B7A0
+	.data       start:0x806BC3E8 end:0x806BC428
+
+Game/NPC/PostmanTaskEventInfo.cpp:
+	.text       start:0x8035B7A0 end:0x8035B9B0
+	.data       start:0x806BC428 end:0x806BC780
 
 Game/NPC/PowerStarEventKeeper.cpp:
 	.text       start:0x8035B9B0 end:0x8035BF10

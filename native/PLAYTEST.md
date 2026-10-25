@@ -728,8 +728,9 @@ gameplay limits are unchanged. Original scores remain immutable when re-scoring.
 first-valid time is conservatively bounded by native 60-row route flushes, from
 the last poll before the previous flush to the poll observing the first valid
 row. It does not subtract rendered frame intervals or silently use play-ready
-as first-valid. Candidate native `[native first valid]` clocks validate that
-bound; the shared `[play ready]` line is retained separately. Title startup uses
+as first-valid. Candidate native `[native first valid]` wall-clock timestamps validate that
+bound; Python and C++ monotonic epochs are not assumed equal. Elapsed startup
+uses Python monotonic clocks on both builds; the shared `[play ready]` line is retained separately. Title startup uses
 the shared `event=title_first_draw` event (first native FileSelect GX draw), with
 external appearance bounds and candidate native clocks. Popen before/after wall
 and monotonic times are recorded. New baseline/candidate arms alternate; the

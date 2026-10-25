@@ -96,6 +96,8 @@ class Observer:
         first, native = self.result.get('first_valid'), self.result.get('native_first_valid')
         if first and native:
             self.result['native_first_valid_inside_external_bounds'] = (native['stage'] == self.stage and
-                native['route_row'] == first['route_row'] and first['lower']['monotonic_ns'] <= native['monotonic_ns'] <= first['upper']['monotonic_ns'])
+                native['route_row'] == first['route_row'] and first['lower']['wall_ns'] <= native['wall_ns'] <= first['upper']['wall_ns'])
+            self.result['native_bound_validation_clock'] = 'shared system wall clock; native/Python monotonic epochs are not assumed equal'
+            self.result['startup_elapsed_clock'] = 'Python time.monotonic_ns on both builds'
         (self.folder/'startup-observer.json').write_text(json.dumps(self.result, indent=2)+'\n')
         return self.result

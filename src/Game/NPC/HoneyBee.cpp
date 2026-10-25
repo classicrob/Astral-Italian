@@ -47,10 +47,8 @@ void HoneyBee::init(const JMapInfoIter& rIter) {
     s32 action=0;
     MR::getJMapInfoArg0NoInit(rIter,&action);
     mArg0=action;
-    mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault;
-    mParam._1C=cNPCTalkDefault; mParam._20=cNPCTalkTurnDefault;
-    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault;
-    mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    mParam.setDefaultAction();
+    setDefaults();
     mUseReactionActions=false;
     mSpinAttackRange=450.0f;
     switch(mArg0) {

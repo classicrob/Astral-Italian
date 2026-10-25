@@ -43,10 +43,7 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     mParam._18=waitAction;
     mParam._1C=talkAction;
     mParam._20=talkAction;
-    mSpinAction=cNPCSpinDefault;
-    mTrampledAction=cNPCTrampledDefault;
-    mPointingAction=cNPCPointingDefault;
-    mReactionAction=cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange=1000.0f;
     mTalkNerve=GET_NERVE(TicoFatCoin, TicoFatCoinNrvWait);
     MR::getJMapInfoArg1NoInit(iter,&mRequiredCoins);

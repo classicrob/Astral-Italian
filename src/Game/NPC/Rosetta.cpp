@@ -36,10 +36,7 @@ void Rosetta::init(const JMapInfoIter& rIter) {
     mParam._18 = turnAction;
     mParam._1C = talkAction;
     mParam._20 = talkAction;
-    mSpinAction = cNPCSpinDefault;
-    mTrampledAction = cNPCTrampledDefault;
-    mPointingAction = cNPCPointingDefault;
-    mReactionAction = cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange = 1500.0f;
     NPCActor::initialize(rIter, caps, "Rosetta", nullptr, nullptr);
 

@@ -1706,7 +1706,7 @@ auto_08_80728C8C_bss:
 Game/Boss/KoopaJrCastleStateBodyMove.cpp:
 	.text       start:0x800CEFF0 end:0x800D0370
 	.ctors      start:0x80643E84 end:0x80643E88
-	.data       start:0x806746C8 end:0x806747A8
+	.data       start:0x80674690 end:0x806747A8
 	.sbss       start:0x807D1568 end:0x807D158C
 
 auto_10_807D158C_sbss:
@@ -1928,7 +1928,10 @@ Game/Boss/KoopaJrRobotTU07.cpp:
 	.text       start:0x800DF9E0 end:0x800DFE30
 	.ctors      start:0x80643EE0 end:0x80643EE4
 	.sbss       start:0x807D1748 end:0x807D1754
-	.sdata2     start:0x807D85E8 end:0x807D85EC
+	.sdata2     start:0x807D85E8 end:0x807D85FC
+
+gap_11_807D85FC_sdata2:
+	.sdata2     start:0x807D85FC end:0x807D8600 align:4
 
 auto_10_807D1754_sbss:
 	.sbss       start:0x807D1754 end:0x807D1758 align:4
@@ -1937,6 +1940,7 @@ Game/Boss/KoopaJrRobotTU08.cpp:
 	.text       start:0x800DFE30 end:0x800E0220
 	.ctors      start:0x80643EE4 end:0x80643EE8
 	.sbss       start:0x807D1758 end:0x807D1760
+	.sdata2     start:0x807D8600 end:0x807D8614
 
 Game/Boss/KoopaJrRobotTU09.cpp:
 	.text       start:0x800E0220 end:0x800E0B50
@@ -8602,19 +8606,25 @@ Game/NPC/GhostAttackAccessor.cpp:
 
 Game/NPC/GliBirdNpc.cpp:
 	.text       start:0x8034B3E0 end:0x8034B570
-	.data       start:0x806B8C18 end:0x806B8CB8
+	.data       start:0x806B8C18 end:0x806B8CE1
 	.sdata      start:0x807CFEB8 end:0x807CFEBC
 	.sdata2     start:0x807DF148 end:0x807DF14C
 
 auto_11_807DF14C_sdata2:
 	.sdata2     start:0x807DF14C end:0x807DF150 align:4
 
+gap_07_806B8CE1_data:
+	.data       start:0x806B8CE1 end:0x806B8CE8 align:1
+
 Game/NPC/HoneyBee.cpp:
 	.text       start:0x8034B570 end:0x8034BCE0
 	.ctors      start:0x806446C4 end:0x806446C8
-	.data       start:0x806B8CE8 end:0x806B8EE0
+	.data       start:0x806B8CE8 end:0x806B8EED
 	.sbss       start:0x807D4908 end:0x807D4918
 	.sdata2     start:0x807DF150 end:0x807DF170
+
+gap_07_806B8EED_data:
+	.data       start:0x806B8EED end:0x806B8EF0 align:1
 
 Game/NPC/HoneyQueen.cpp:
 	.text       start:0x8034BCE0 end:0x8034C410
@@ -8628,11 +8638,14 @@ Game/NPC/Kinopio.cpp:
 	.text       start:0x8034C410 end:0x8034E280
 	.ctors      start:0x806446CC end:0x806446D0
 	.rodata     start:0x8064B8F8 end:0x8064B900
-	.data       start:0x806B9028 end:0x806B9488
+	.data       start:0x806B9028 end:0x806B9485
 	.bss        start:0x80729AD8 end:0x80729B10
 	.sdata      start:0x807CFEC8 end:0x807CFECC
 	.sbss       start:0x807D4920 end:0x807D4960
 	.sdata2     start:0x807DF188 end:0x807DF1E0
+
+gap_07_806B9485_data:
+	.data       start:0x806B9485 end:0x806B9488 align:1
 
 Game/NPC/KinopioBank.cpp:
 	.text       start:0x8034E280 end:0x8034F290
@@ -8646,13 +8659,16 @@ Game/NPC/KinopioPostman.cpp:
 	.text       start:0x8034F290 end:0x80350910
 	.ctors      start:0x806446D4 end:0x806446D8
 	.rodata     start:0x8064B9C0 end:0x8064B9E4
-	.data       start:0x806B97E0 end:0x806B9B98
+	.data       start:0x806B97E0 end:0x806B9B95
 	.sbss       start:0x807D4978 end:0x807D4990
 	.sdata2     start:0x807DF1F8 end:0x807DF220
 	.sbss2      start:0x807E3100 end:0x807E3104
 
 auto_12_807E3104_sbss2:
 	.sbss2      start:0x807E3104 end:0x807E3108 align:4
+
+gap_07_806B9B95_data:
+	.data       start:0x806B9B95 end:0x806B9B98 align:1
 
 auto_06_8064B9E4_rodata:
 	.rodata     start:0x8064B9E4 end:0x8064B9E8 align:4
@@ -8784,7 +8800,7 @@ Game/NPC/Moc.cpp:
 	.text       start:0x80355E90 end:0x803563D0
 	.ctors      start:0x806446FC end:0x80644700
 	.rodata     start:0x8064B9F8 end:0x8064BA38
-	.data       start:0x806BAF58 end:0x806BB090
+	.data       start:0x806BAF58 end:0x806BB089
 	.sdata      start:0x807CFEE8 end:0x807CFEEC
 	.sbss       start:0x807D49F0 end:0x807D49F4
 	.sdata2     start:0x807DF288 end:0x807DF28C
@@ -8795,13 +8811,19 @@ auto_11_807DF28C_sdata2:
 auto_10_807D49F4_sbss:
 	.sbss       start:0x807D49F4 end:0x807D49F8 align:4
 
+gap_07_806BB089_data:
+	.data       start:0x806BB089 end:0x806BB090 align:1
+
 Game/NPC/Monte.cpp:
 	.text       start:0x803563D0 end:0x80356AA0
 	.ctors      start:0x80644700 end:0x80644704
 	.rodata     start:0x8064BA38 end:0x8064BA40
-	.data       start:0x806BB090 end:0x806BB1A8
+	.data       start:0x806BB090 end:0x806BB1A1
 	.sbss       start:0x807D49F8 end:0x807D4A00
 	.sdata2     start:0x807DF290 end:0x807DF2A0
+
+gap_07_806BB1A1_data:
+	.data       start:0x806BB1A1 end:0x806BB1A8 align:1
 
 Game/NPC/MonteThrow.cpp:
 	.text       start:0x80356AA0 end:0x80357770
@@ -8814,7 +8836,10 @@ Game/NPC/MonteThrow.cpp:
 
 Game/NPC/Peach.cpp:
 	.text       start:0x80357770 end:0x80357940
-	.data       start:0x806BB2C0 end:0x806BB380
+	.data       start:0x806BB2C0 end:0x806BB3A9
+
+gap_07_806BB3A9_data:
+	.data       start:0x806BB3A9 end:0x806BB3B0 align:1
 
 Game/NPC/Penguin.cpp:
 	.text       start:0x80357940 end:0x80358790
@@ -8868,7 +8893,7 @@ auto_09_807CFEFC_sdata:
 Game/NPC/PlayAttackMan.cpp:
 	.text       start:0x8035A720 end:0x8035AAA0
 	.ctors      start:0x8064471C end:0x80644720
-	.data       start:0x806BBF68 end:0x806BC0A8
+	.data       start:0x806BBF68 end:0x806BC0A1
 	.sbss       start:0x807D4A70 end:0x807D4A74
 	.sdata2     start:0x807DF368 end:0x807DF36C
 
@@ -8877,6 +8902,9 @@ auto_11_807DF36C_sdata2:
 
 auto_10_807D4A74_sbss:
 	.sbss       start:0x807D4A74 end:0x807D4A78 align:4
+
+gap_07_806BC0A1_data:
+	.data       start:0x806BC0A1 end:0x806BC0A8 align:1
 
 Game/NPC/PostmanEvent.cpp:
 	.text       start:0x8035AAA0 end:0x8035B160
@@ -8926,12 +8954,15 @@ Game/NPC/RabbitStateWaitStart.cpp:
 Game/NPC/Rosetta.cpp:
 	.text       start:0x8035DA60 end:0x8035DEA0
 	.ctors      start:0x8064472C end:0x80644730
-	.data       start:0x806BCC70 end:0x806BCD60
+	.data       start:0x806BCC70 end:0x806BCD89
 	.sbss       start:0x807D4AC0 end:0x807D4AC4
 	.sdata2     start:0x807DF3B8 end:0x807DF3E0
 
 auto_10_807D4AC4_sbss:
 	.sbss       start:0x807D4AC4 end:0x807D4AC8 align:4
+
+gap_07_806BCD89_data:
+	.data       start:0x806BCD89 end:0x806BCD90 align:1
 
 Game/NPC/ScoreAttackMan.cpp:
 	.text       start:0x8035DEA0 end:0x8035EC70
@@ -9076,13 +9107,16 @@ Game/NPC/TicoEat.cpp:
 	.text       start:0x80367DE0 end:0x80368680
 	.ctors      start:0x8064476C end:0x80644770
 	.rodata     start:0x8064BA70 end:0x8064BA78
-	.data       start:0x806BE1F0 end:0x806BE360
+	.data       start:0x806BE1F0 end:0x806BE389
 	.bss        start:0x80729BA0 end:0x80729BD4
 	.sbss       start:0x807D4C08 end:0x807D4C20
 	.sdata2     start:0x807DF5A8 end:0x807DF5C0
 
 auto_08_80729BD4_bss:
 	.bss        start:0x80729BD4 end:0x80729BD8 align:4
+
+gap_07_806BE389_data:
+	.data       start:0x806BE389 end:0x806BE390 align:1
 
 Game/NPC/TicoFatCoin.cpp:
 	.text       start:0x80368680 end:0x803695B0
@@ -9096,7 +9130,7 @@ Game/NPC/TicoFatStarPiece.cpp:
 	.text       start:0x803695B0 end:0x8036B040
 	.ctors      start:0x80644774 end:0x80644778
 	.rodata     start:0x8064BA78 end:0x8064BA80
-	.data       start:0x806BE648 end:0x806BE9A8
+	.data       start:0x806BE648 end:0x806BE9A1
 	.sdata      start:0x807CFF50 end:0x807CFF60
 	.sbss       start:0x807D4C50 end:0x807D4C6C
 	.sdata2     start:0x807DF5D0 end:0x807DF638
@@ -9104,6 +9138,9 @@ Game/NPC/TicoFatStarPiece.cpp:
 
 auto_10_807D4C6C_sbss:
 	.sbss       start:0x807D4C6C end:0x807D4C70 align:4
+
+gap_07_806BE9A1_data:
+	.data       start:0x806BE9A1 end:0x806BE9A8 align:1
 
 Game/NPC/TicoFatStarPieceTransformation.cpp:
 	.text       start:0x8036B040 end:0x8036B8B0

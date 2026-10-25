@@ -7,10 +7,15 @@
 #include "Game/LiveActor/BreakModel.hpp"
 
 
-static const char* sDemoName = "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x83_\x83""E\x83\x93\x83""f\x83\x82";
-static const char* sCameraName = "DemoDown";
-static const char* sActionName = "DemoDown";
-static const char* sHeadActionName = "DemoDownKoopaJrRobot";
+namespace {
+    char sDemoNameText[] = "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x83_\x83""E\x83\x93\x83""f\x83\x82";
+    char sCameraNameText[] = "DemoDown";
+    char sHeadActionNameText[] = "DemoDownKoopaJrRobot";
+    extern const char* const sDemoName;
+    extern const char* const sCameraName;
+    extern const char* const sActionName;
+    extern const char* const sHeadActionName;
+}
 
 namespace NrvKoopaJrRobotStateTU07 {
     NEW_NERVE(KoopaJrRobotStateTU07NrvWait, KoopaJrRobotStateTU07, Wait);
@@ -42,6 +47,13 @@ void KoopaJrRobotStateTU07::exeWait() {
         MR::overlayWithPreviousScreen(2);
         setNerve(&NrvKoopaJrRobotStateTU07::KoopaJrRobotStateTU07NrvDown::sInstance);
     }
+}
+
+namespace {
+    const char* const sDemoName = sDemoNameText;
+    const char* const sCameraName = sCameraNameText;
+    const char* const sActionName = sCameraNameText;
+    const char* const sHeadActionName = sHeadActionNameText;
 }
 
 void KoopaJrRobotStateTU07::exeDown() {

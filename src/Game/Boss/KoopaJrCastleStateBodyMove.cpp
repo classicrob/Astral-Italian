@@ -15,12 +15,12 @@
 
 
 namespace {
-    const char sStateName[] = "\x88\xda\x93\xae";
-    const char sMoveLR[] = "MoveLR";
-    const char sMoveL[] = "MoveL";
-    const char sMoveR[] = "MoveR";
-    const char sMoveStart[] = "MoveStart";
-    const char sMoveRotate[] = "MoveRotate";
+    char sStateName[] = "\x88\xda\x93\xae";
+    char sMoveLR[] = "MoveLR";
+    char sMoveL[] = "MoveL";
+    char sMoveR[] = "MoveR";
+    char sMoveStart[] = "MoveStart";
+    char sMoveRotate[] = "MoveRotate";
     extern const f32 sMaxMoveSpeed;
     extern const f32 sCenterRadius;
 }

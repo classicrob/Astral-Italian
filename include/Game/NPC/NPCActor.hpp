@@ -155,11 +155,12 @@ public:
     void setBaseMtx(const TPos3f&);
     void setBaseMtx(MtxPtr);
 
+    // SMG1/SMG2 header inline with literal defaults: each TU emits weak @STRING@ copies, which mwld coalesces to the first one.
     inline void setDefaults() {
-        mSpinAction = cNPCSpinDefault;
-        mTrampledAction = cNPCTrampledDefault;
-        mPointingAction = cNPCPointingDefault;
-        mReactionAction = cNPCReactionDefault;
+        mSpinAction = "Spin";
+        mTrampledAction = "Trampled";
+        mPointingAction = "Pointing";
+        mReactionAction = "Reaction";
     }
 
     inline void setDefaults(const char* pReaction, const char* pPointing, const char* pTrampled, const char* pSpin) {

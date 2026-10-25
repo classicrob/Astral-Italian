@@ -67,9 +67,9 @@ void KinopioBank::init(const JMapInfoIter& iter) {
     MR::setScale(this,1.2f);
     MR::invalidateHitSensor(this,"Pickel");
     MR::offBind(this);
-    mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault; mParam._1C="Talk"; mParam._20="Talk";
+    mParam.setDefaultAction(); mParam._1C="Talk"; mParam._20="Talk";
     setTalkAction("Walk");
-    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault; mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange=450.0f;
     initTalkCtrlDirect(iter,"KinopioBank",TVec3f(0.0f,150.0f,0.0f),nullptr);
     MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&KinopioBank::branchFunc));

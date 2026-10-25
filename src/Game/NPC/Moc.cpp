@@ -39,7 +39,7 @@ void Moc::init(const JMapInfoIter& iter) {
     waitAction = "Wait";
     talkAction = "Talk";
     mParam._14=waitAction; mParam._18=turnAction; mParam._1C=talkAction; mParam._20=turnAction;
-    mSpinAction = cNPCSpinDefault; mTrampledAction = cNPCTrampledDefault; mPointingAction = cNPCPointingDefault; mReactionAction = cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange=450.0f;
     MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::branchFunc));
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::eventFunc));

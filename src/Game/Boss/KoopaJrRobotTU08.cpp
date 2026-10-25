@@ -4,9 +4,13 @@
 #include "Game/LiveActor/Nerve.hpp"
 
 
-static const char* sDemoName = "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x8e\xe3\x93_\x8fo\x8c\xbb\x83""f\x83\x82";
-static const char* sCameraName = "DemoWeakPointHead";
-static const char* sActionName = "DemoWeakPointHead";
+namespace {
+    char sDemoNameText[] = "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x8e\xe3\x93_\x8fo\x8c\xbb\x83""f\x83\x82";
+    char sCameraNameText[] = "DemoWeakPointHead";
+    extern const char* const sDemoName;
+    extern const char* const sCameraName;
+    extern const char* const sActionName;
+}
 
 namespace NrvKoopaJrRobotStateTU08 {
     NEW_NERVE(KoopaJrRobotStateTU08NrvWait, KoopaJrRobotStateTU08, Wait);
@@ -33,7 +37,6 @@ void KoopaJrRobotStateTU08::kill() {
     mIsDead = true;
 }
 
-// NONMATCHING: sDemoName load scheduled before the tryStartDemo arg setup in target
 void KoopaJrRobotStateTU08::exeWait() {
     KoopaJrRobot* host = mHost;
     if (MR::tryStartDemo(host, sDemoName)) {
@@ -41,6 +44,12 @@ void KoopaJrRobotStateTU08::exeWait() {
         MR::overlayWithPreviousScreen(2);
         setNerve(&NrvKoopaJrRobotStateTU08::KoopaJrRobotStateTU08NrvDemo::sInstance);
     }
+}
+
+namespace {
+    const char* const sDemoName = sDemoNameText;
+    const char* const sCameraName = sCameraNameText;
+    const char* const sActionName = sCameraNameText;
 }
 
 void KoopaJrRobotStateTU08::exeDemo() {

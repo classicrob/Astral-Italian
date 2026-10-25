@@ -84,7 +84,7 @@ void TicoFatStarPiece::init(const JMapInfoIter& iter) {
     param.mHitReactionSpringStrength = 0.12f;
     param.mHitReactionDamping = 0.9f;
     mScaleController = new AnimScaleController(nullptr);
-    mSpinAction = cNPCSpinDefault; mTrampledAction = cNPCTrampledDefault; mPointingAction = cNPCPointingDefault; mReactionAction = cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange = 1000.0f;
     mParam._14 = getActionName("Wait");
     mParam._18 = mParam._14;

@@ -69,13 +69,9 @@ void KinopioPostman::init(const JMapInfoIter& rIter) {
 
     const char* talk = "Talk";
     const char* walk = "Walk";
-    mSpinAction = cNPCSpinDefault;
-    mTrampledAction = cNPCTrampledDefault;
-    mPointingAction = cNPCPointingDefault;
-    mReactionAction = cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange = 450.0f;
-    mParam._14 = cNPCWaitDefault;
-    mParam._18 = cNPCTurnDefault;
+    mParam.setDefaultAction();
     mParam._1C = talk;
     mParam._20 = talk;
     mRailMoveAction = walk;

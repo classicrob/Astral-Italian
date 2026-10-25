@@ -58,8 +58,7 @@ void Pichan::init(const JMapInfoIter& iter) {
     caps.mReactionNerve = PICHAN_NERVE(Wait);
     mParam.setMoveAction("Wait", "Wait");
     mParam.setTalkAction("Talk", "Talk");
-    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault;
-    mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange = 450.0f;
     initialize(iter, caps, "Pichan", nullptr, nullptr);
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc(this, &Pichan::eventFunc));

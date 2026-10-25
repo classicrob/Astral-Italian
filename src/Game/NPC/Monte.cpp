@@ -40,10 +40,7 @@ void Monte::init(const JMapInfoIter& iter) {
         mThrow=new MonteThrow(this);
         mThrow->init(iter);
     }
-    mSpinAction=cNPCSpinDefault;
-    mTrampledAction=cNPCTrampledDefault;
-    mPointingAction=cNPCPointingDefault;
-    mReactionAction=cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange=450.0f;
     MR::onCalcGravity(this);
     mRumbler=new JointRumbler(this,"Center",3.0f,0.1f,30,true,0);

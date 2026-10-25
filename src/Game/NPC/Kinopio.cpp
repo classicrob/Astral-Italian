@@ -123,9 +123,9 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     mDelegator = MR::createJointDelegatorWithNullChildFunc< Kinopio >(this, &Kinopio::calcJointScale, "body");
 
     MR::tryRegisterDemoCast(this, rIter);
-    mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault; mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
+    setDefaults();
     mSpinAttackRange = ::sDistancePlayerIsEvent;
-    mParam._14=cNPCWaitDefault; mParam._18=cNPCTurnDefault;
+    mParam.setDefaultAction();
     mParam.setTalkAction("Talk", "Talk");
     setTalkAction("Walk");
     mFollowRailOnGround = true;

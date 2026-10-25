@@ -20,13 +20,14 @@ class Startup(unittest.TestCase):
             time.sleep(.02)
             native = m.clocks()
             with (root/'app.log').open('a') as out:
-                out.write(f"[native first valid] stage=Yoshi route_row=60 monotonic_ns={native['monotonic_ns']} wall_ns={native['wall_ns']}\n")
+                out.write(f"[native first valid] stage=Yoshi route_row=60 monotonic_ns={native['monotonic_ns'] + 10**15} wall_ns={native['wall_ns']}\n")
             with (root/'route.csv').open('a') as out:
                 out.writelines(f'{i},Yoshi,1\n' for i in range(60, 120)); out.flush()
             with (root/'app.log').open('a') as out: out.write('[play ready] frame 121 wall_ms=1000\n')
             observer.thread.join(timeout=1); result = observer.finish()
             self.assertTrue(result['observer_joined'])
             self.assertTrue(result['native_first_valid_inside_external_bounds'])
+            self.assertIn('not assumed equal', result['native_bound_validation_clock'])
             self.assertEqual(result['first_valid']['prior_flush_row_count'], 60)
             self.assertEqual(result['first_valid']['route_row'], 60)
             self.assertGreaterEqual(result['first_valid']['elapsed_ms_bounds'][1], result['first_valid']['elapsed_ms_bounds'][0])

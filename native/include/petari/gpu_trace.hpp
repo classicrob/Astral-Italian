@@ -25,7 +25,19 @@ struct Context {
     std::uint64_t packet = 0, ticket = 0, submission = 0, span = 0;
     std::uint64_t csv = 0, route = 0, subject = 0, detail = 0;
 };
+struct MutexObservation {
+    bool present = false;
+    std::uint64_t address = 0, cv = 0, explicitRequests = 0, cvUnknown = 0;
+};
+struct MachObservation {
+    bool present = false, stable = false;
+    std::uint64_t port = 0, generationBefore = 0, generationAfter = 0, publicationBefore = 0, publicationAfter = 0;
+    std::uint64_t beginNs = 0, endNs = 0, userNs = 0, systemNs = 0;
+    int state = -1, suspendCount = -1, error = -1;
+};
 struct Attributes {
+    MutexObservation mutex{};
+    MachObservation mach{};
     const char* reason = nullptr;
     const char* primitive = nullptr;
     std::uint64_t holder = 0, waiter = 0, heldNs = 0;
@@ -155,6 +167,7 @@ struct BatonState {
 };
 inline const char* nextGrantReason = "initial";
 inline thread_local std::uint64_t lastLocalGrant = 0;
+inline std::atomic<std::uint64_t> interruptHolderPublication{0}; // trace-only seqlock; no retries
 inline BatonState baton; // interrupt-lock serialized, including initial grant
 struct WaitState { const char* primitive = nullptr; Context context{}; std::uint64_t start = 0, deadline = 0; };
 inline Attributes waitAttributes(const WaitState& s, std::uint64_t ns) noexcept {
@@ -229,6 +242,21 @@ inline void writeRecord(Run& r, const Record& e) {
             (unsigned long long)h.observer, (unsigned long long)h.target, (unsigned long long)h.sampledNs,
             h.selfQos, h.requestedQos, h.relativePriority, h.policy, h.priority, h.cpu, h.qosError, h.schedError, h.cpuError);
     }
+    if (a.mutex.present) std::fprintf(r.file,
+        ",\"mutex\":{\"address\":%llu,\"cv\":%llu,\"explicit_pending_requests\":%llu,\"cv_waits_reacquire_unknown\":%llu}",
+        (unsigned long long)a.mutex.address, (unsigned long long)a.mutex.cv,
+        (unsigned long long)a.mutex.explicitRequests, (unsigned long long)a.mutex.cvUnknown);
+    if (a.mach.present) std::fprintf(r.file,
+        ",\"mach\":{\"target_port\":%llu,\"generation_before\":%llu,\"generation_after\":%llu,"
+        "\"publication_before\":%llu,\"publication_after\":%llu,"
+        "\"sample_begin_ns\":%llu,\"sample_end_ns\":%llu,\"state\":%d,\"suspend_count\":%d,\"error\":%d,"
+        "\"user_cpu_ns\":%llu,\"system_cpu_ns\":%llu,\"remote_cpu\":-1,\"stable_assigned_unresumed\":%s}",
+        (unsigned long long)a.mach.port, (unsigned long long)a.mach.generationBefore,
+        (unsigned long long)a.mach.generationAfter, (unsigned long long)a.mach.publicationBefore,
+        (unsigned long long)a.mach.publicationAfter, (unsigned long long)a.mach.beginNs,
+        (unsigned long long)a.mach.endNs, a.mach.state, a.mach.suspendCount, a.mach.error,
+        (unsigned long long)a.mach.userNs, (unsigned long long)a.mach.systemNs,
+        a.mach.stable ? "true" : "false");
     if (std::fputs("}\n", r.file) < 0 || std::ferror(r.file)) r.ioErrors.fetch_add(1, std::memory_order_relaxed);
 }
 inline void writerMain(Run& r) {
@@ -287,6 +315,8 @@ inline bool configure(const char* diag, const char* path, const char* binding = 
     std::fprintf(file, ",\"host_sample_semantics\":\"requested QoS excludes overrides; remote cpu unknown; local cpu instantaneous\","
         "\"backend_observation\":\"pinned Dawn; queue/GPU vs callback dispatch inseparable\"");
     writeTopology(file, readTopology());
+    std::fputs(",\"interrupt_mutex_observation\":\"explicit boundaries; CV release pending and predicate-reacquired bounds; no pure CV wake\","
+        "\"assigned_holder_sample\":\"existing state-poll cadence; TH_STATE_RUNNING includes runnable; remote CPU unknown\"", file);
     std::fputs("}\n", file);
     run->writer = std::thread([] { writerMain(*run); });
     std::atexit(shutdown);

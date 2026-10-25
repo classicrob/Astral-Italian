@@ -46,6 +46,10 @@ def operation_tokens(changed):
     # and startup configuration. No MonitorWait code is removed here.
     changed = changed.replace('#include <petari/gpu_trace.hpp>\n', '').replace('#include "gpu_trace_dawn.hpp"\n', '')
     changed = changed.replace('namespace GpuTrace = PetariNative::GpuTrace;\n', '')
+    changed = changed.replace('#include "interrupt_trace.hpp"\n', '')
+    # The enabled branch uses the SAME untimed std::condition_variable and
+    # predicate. Keep the literal original fallback as the erasure target.
+    changed = changed.replace('    if (PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)) {\n        PetariNative::GpuTrace::detail::invokeEnabled([&] { InterruptTrace::wait(cv, lock, predicate); });\n    } else {\n        cv.wait(lock, predicate);\n    }', '    cv.wait(lock, predicate);')
     changed = changed.replace('    PetariNative::GpuTrace::configure(std::getenv("PETARI_PIPELINE_DIAG"), std::getenv("PETARI_GPU_TRACE"),\n        std::getenv("PETARI_GPU_TRACE_BINDING_SHA256"));\n', '')
     changed = changed.replace('PresentStats::enabled() || PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)', 'PresentStats::enabled()')
     changed = strip_gates(changed)
@@ -119,7 +123,7 @@ class TracePatchTests(unittest.TestCase):
                      'native/app/frame_seam.cpp', 'native/app/smoke_game.cpp',
                      'native/app/app_main.cpp', 'native/app/latency_report.cpp',
                      'native/app/frontend_prepare.cpp', 'native/platform/os/os_internal.hpp',
-                     'native/platform/os/os_alarm.cpp', 'native/gx/pipeline_worker.inc']:
+                     'native/platform/os/os_alarm.cpp', 'native/platform/os/os_interrupts.cpp', 'native/gx/pipeline_worker.inc']:
             original = subprocess.check_output(['git', 'show', '7fcc610c:' + path], cwd=ROOT, text=True)
             changed = (ROOT / path).read_text()
             if path == MONITOR_PATH:
@@ -141,6 +145,24 @@ class TracePatchTests(unittest.TestCase):
             self.assertEqual(approved.count(before), 1, before)
             self.assertNotEqual(expected, operation_tokens(approved.replace(before, after)), before)
         self.assertEqual(expected, operation_tokens(approved + '\nPETARI_GPU_TRACE(PetariNative::GpuTrace::nextId());\n'))
+
+    def test_interrupt_wait_erasure_does_not_hide_a_changed_fallback(self):
+        path = 'native/platform/os/os_internal.hpp'
+        approved = committed_source(APPROVED_MONITOR_REVISION, path)
+        changed = (ROOT / path).read_text()
+        self.assertEqual(operation_tokens(approved), operation_tokens(changed))
+        changed = changed.replace('        cv.wait(lock, predicate);', '        cv.wait(lock, [] { return true; });')
+        self.assertNotEqual(operation_tokens(approved), operation_tokens(changed))
+        helper = (ROOT / 'native/platform/os/interrupt_trace.hpp').read_text()
+        self.assertIn('cv.wait(lock, [&]', helper)
+        self.assertNotIn('wait_until(', helper)
+        self.assertNotIn('condition_variable_any', helper)
+        self.assertNotIn('sleep_for(', helper)
+        self.assertLess(helper.index('if (!initial) cvReacquired'), helper.index('const bool ready = predicateFn();'))
+        self.assertIn('if (!ready) cvReleasePending', helper)
+        host = (ROOT / path).read_text()
+        guarded = host[host.index('if (PetariNative::GpuTrace::enabled.load'):]
+        self.assertLess(guarded.index('enabled.load'), guarded.index('invokeEnabled'))
 
     def test_observer_is_guarded(self):
         source = (ROOT / 'native/gx/efb_frame.inc').read_text()

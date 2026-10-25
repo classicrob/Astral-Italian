@@ -61,7 +61,9 @@ void SetTimer(OSAlarm*) {
         }
         pthread_attr_destroy(&attrs);
     }
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &timerCv(), nullptr, "alarm-cv", false));
     timerCv().notify_all();
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &timerCv(), nullptr, "alarm-cv", true));
 }
 
 void InsertAlarm(OSAlarm* alarm, OSTime fire, OSAlarmHandler handler, bool reschedule = false) {
@@ -144,7 +146,9 @@ void* timerMain(void*) {
         if (AlarmQueue.head == nullptr) {
             setInterruptOwner(false);
             PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("alarm-cond-untimed"));
+            PETARI_GPU_TRACE(InterruptTrace::cvReleasePending(&interruptMutex(), &cv, "alarm-untimed-unlock-pending"));
             cv.wait(lock);
+            PETARI_GPU_TRACE(InterruptTrace::cvReacquired(&interruptMutex(), &cv, "alarm-wait-return-reacquired"));
             PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
             setInterruptOwner(true);
             continue;
@@ -154,7 +158,9 @@ void* timerMain(void*) {
             setInterruptOwner(false);
             PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("alarm-cond-until",
                 std::chrono::duration_cast<std::chrono::nanoseconds>(deadline.time_since_epoch()).count()));
+            PETARI_GPU_TRACE(InterruptTrace::cvReleasePending(&interruptMutex(), &cv, "alarm-timed-unlock-pending"));
             cv.wait_until(lock, deadline);
+            PETARI_GPU_TRACE(InterruptTrace::cvReacquired(&interruptMutex(), &cv, "alarm-wait-return-reacquired"));
             PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
             setInterruptOwner(true);
             continue;

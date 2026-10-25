@@ -80,6 +80,7 @@ add_library(petari_platform_os STATIC
     os/os_interrupts.cpp
     os/os_thread.cpp
     os/monitor_wait.cpp
+    os/interrupt_trace.cpp
     os/os_alarm.cpp
     os/os_time.cpp
     os/os_report.cpp
@@ -185,6 +186,15 @@ if(BUILD_TESTING)
     target_link_libraries(petari_mod_galaxy_tests PRIVATE petari_platform)
     add_test(NAME native_mod_galaxy COMMAND petari_mod_galaxy_tests)
 
+    add_executable(petari_interrupt_trace_tests ${PETARI_REPO_ROOT}/native/tests/interrupt_trace_tests.cpp os/interrupt_trace.cpp)
+    target_include_directories(petari_interrupt_trace_tests PRIVATE os ${PETARI_REPO_ROOT}/native/include)
+    target_compile_features(petari_interrupt_trace_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_interrupt_trace_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_interrupt_trace_tests PRIVATE petari_gpu_trace_host Threads::Threads)
+    add_test(NAME native_interrupt_trace COMMAND petari_interrupt_trace_tests)
+    add_test(NAME native_interrupt_mutex_trace_report COMMAND "${Python3_EXECUTABLE}" -I
+        "${PETARI_REPO_ROOT}/native/tests/interrupt_mutex_trace_report_tests.py")
+    set_tests_properties(native_interrupt_trace PROPERTIES RUN_SERIAL TRUE TIMEOUT 15)
     add_executable(petari_monitor_wait_protocol_tests ${PETARI_REPO_ROOT}/native/tests/monitor_wait_protocol_tests.cpp)
     target_include_directories(petari_monitor_wait_protocol_tests PRIVATE os)
     target_compile_features(petari_monitor_wait_protocol_tests PRIVATE cxx_std_17)

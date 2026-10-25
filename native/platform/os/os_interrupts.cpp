@@ -18,7 +18,9 @@ std::atomic<std::uintptr_t> gOwner{0};
 InterruptReleaseTiming gHeldTiming, gLastReleaseTiming; // interruptMutex
 
 void disable() {
+    PETARI_GPU_TRACE(InterruptTrace::request(&interruptMutex(), "disable"));
     interruptMutex().lock();
+    PETARI_GPU_TRACE(InterruptTrace::acquired(&interruptMutex(), "disable"));
     setInterruptOwner(true);
     tDisabled = true;
     onInterruptsDisabled();
@@ -33,7 +35,9 @@ void enable() {
     thread_local std::vector<pthread_override_t> overrides;
     takeDeferredOverrides(overrides);
     setInterruptOwner(false);
+    PETARI_GPU_TRACE(InterruptTrace::releaseBegin(&interruptMutex(), "enable"));
     interruptMutex().unlock();
+    PETARI_GPU_TRACE(InterruptTrace::released(&interruptMutex(), "enable"));
     if (!overrides.empty()) {
         endOverrides(overrides);
     }

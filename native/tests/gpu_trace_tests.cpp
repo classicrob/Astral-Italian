@@ -118,6 +118,10 @@ int main() {
         waitBegin("outer-untimed"); waitBegin("inner-timed", deadlineAfter(1000000000));
         waitEnd(); waitEndIf("different"); assert(waitDepth == 1);
         waitEndIf("outer-untimed"); assert(waitDepth == 0));
+    PETARI_GPU_TRACE(Attributes sample; sample.mach.present = true; sample.mach.port = 7;
+        sample.mach.publicationBefore = 2; sample.mach.publicationAfter = 4;
+        sample.mach.generationBefore = 3; sample.mach.generationAfter = 4; sample.mach.error = 5;
+        emitAt("mach_error_fixture", {}, nowNs(), -1, sample));
     shutdown();
     assert(!enabled.load() && !run->ioErrors.load());
     const auto sequence = producerSequence;
@@ -128,6 +132,8 @@ int main() {
     assert(contents.find("writer_fixture") != std::string::npos);
     assert(contents.find("\"schema\":2") != std::string::npos);
     assert(contents.find("\"topology\":") != std::string::npos);
+    assert(contents.find("\"publication_before\":2,\"publication_after\":4") != std::string::npos);
+    assert(contents.find("\"remote_cpu\":-1,\"stable_assigned_unresumed\":false") != std::string::npos);
     assert(contents.find("\"host\":") != std::string::npos);
     assert(contents.find("\"primitive\":\"inner-timed\"") != std::string::npos);
     assert(contents.find("must_not_exist") == std::string::npos);

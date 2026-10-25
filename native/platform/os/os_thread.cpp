@@ -507,7 +507,9 @@ void giveCpu(OSThread* next) {
         PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("forced_holder_resume_requested",
             PetariNative::GpuTrace::withSubject({}, next)));
     } else if (found != hosts().end()) {
+        PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &found->second->cv, found->second->thread, "host-thread-cv", false));
         found->second->cv.notify_all();
+        PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &found->second->cv, found->second->thread, "host-thread-cv", true));
     }
 }
 
@@ -534,7 +536,9 @@ OSThread* popHighestReady() {
     }
     tBound = nullptr;
     setInterruptOwner(false);
+    PETARI_GPU_TRACE(InterruptTrace::releaseBegin(&interruptMutex(), "explicit-unlock"));
     interruptMutex().unlock();
+    PETARI_GPU_TRACE(InterruptTrace::released(&interruptMutex(), "explicit-unlock"));
     pthread_exit(nullptr);
 }
 
@@ -809,7 +813,10 @@ __attribute__((no_sanitize("thread"))) void walkSuspendedStack(std::uintptr_t fp
 // first three stretches of each) and summarised at exit and in hang reports.
 
 void publishHolder() {
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::interruptHolderPublication.fetch_add(1, std::memory_order_acq_rel));
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", false));
     gVirtualChanged.notify_all();
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", true));
     OSThread* holder = gCurrent.load(std::memory_order_relaxed);
     if (holder != gHolderThread.load(std::memory_order_relaxed)) {
         gHolderRunning.store(false, std::memory_order_relaxed);
@@ -835,6 +842,7 @@ void publishHolder() {
     gHolderStackHigh.store(high, std::memory_order_relaxed);
     gHolderEntry.store(entry, std::memory_order_relaxed);
     gHolderRunning.store(holder != nullptr && gCurrentRunning, std::memory_order_release);
+    PETARI_GPU_TRACE(PetariNative::GpuTrace::interruptHolderPublication.fetch_add(1, std::memory_order_release));
 }
 
 struct BlockSite {
@@ -1052,13 +1060,19 @@ struct PreemptAttempt {
 // the cache is read (no allocation, no dyld); unknown addresses are returned
 // to be symbolized after it runs again.
 ForceResult tryForcePreempt(PreemptAttempt& attempt, std::int64_t expectedSince) {
+    PETARI_GPU_TRACE(InterruptTrace::request(&interruptMutex(), "force-preempt-try"));
     std::unique_lock<std::mutex> lock(interruptMutex(), std::try_to_lock);
     if (!lock.owns_lock()) {
+        PETARI_GPU_TRACE(InterruptTrace::failed(&interruptMutex(), "force-preempt-try"));
         return ForceResult::Busy;  // someone is in an OS call; the holder may be about to take the preemption
     }
+    PETARI_GPU_TRACE(InterruptTrace::acquired(&interruptMutex(), "force-preempt-try"));
     setInterruptOwner(true);
     struct Release {
-        ~Release() { setInterruptOwner(false); }
+        ~Release() {
+            setInterruptOwner(false);
+            PETARI_GPU_TRACE(InterruptTrace::releasePending(&interruptMutex(), "unique-lock-destructor-unlock-pending"));
+        }
     } release;
     OSThread* holder = gCurrent.load(std::memory_order_relaxed);
     if (holder == nullptr || !gCurrentRunning || !gPreemptPending ||
@@ -1297,6 +1311,34 @@ void* batonMonitor(void*) {
         const bool running = gHolderRunning.load(std::memory_order_acquire);
         const mach_port_t port = gHolderPort.load(std::memory_order_relaxed);
         OSThread* holder = gHolderThread.load(std::memory_order_relaxed);
+        PETARI_GPU_TRACE(if (!running && holder && port != MACH_PORT_NULL) {
+            PetariNative::GpuTrace::Attributes a; auto& sample = a.mach;
+            sample.publicationBefore = PetariNative::GpuTrace::interruptHolderPublication.load(std::memory_order_acquire);
+            sample.generationBefore = gHolderHand.load(std::memory_order_acquire);
+            OSThread* target = gHolderThread.load(std::memory_order_relaxed);
+            const auto targetPort = gHolderPort.load(std::memory_order_relaxed);
+            const bool wasUnresumed = !gHolderRunning.load(std::memory_order_acquire);
+            sample.present = true; sample.port = targetPort;
+            sample.beginNs = PetariNative::GpuTrace::nowNs();
+            thread_basic_info_data_t info{}; mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+            sample.error = thread_info(targetPort, THREAD_BASIC_INFO, reinterpret_cast<thread_info_t>(&info), &count);
+            if (sample.error == KERN_SUCCESS && count == THREAD_BASIC_INFO_COUNT) {
+                sample.state = info.run_state; sample.suspendCount = info.suspend_count;
+                sample.userNs = static_cast<std::uint64_t>(info.user_time.seconds) * 1000000000 + info.user_time.microseconds * 1000ull;
+                sample.systemNs = static_cast<std::uint64_t>(info.system_time.seconds) * 1000000000 + info.system_time.microseconds * 1000ull;
+            } else if (sample.error == KERN_SUCCESS) { sample.error = KERN_INVALID_ARGUMENT; }
+            sample.endNs = PetariNative::GpuTrace::nowNs();
+            sample.generationAfter = gHolderHand.load(std::memory_order_acquire);
+            sample.stable = wasUnresumed && target && targetPort != MACH_PORT_NULL &&
+                sample.generationBefore == sample.generationAfter &&
+                gHolderThread.load(std::memory_order_relaxed) == target &&
+                gHolderPort.load(std::memory_order_relaxed) == targetPort && !gHolderRunning.load(std::memory_order_acquire);
+            sample.publicationAfter = PetariNative::GpuTrace::interruptHolderPublication.load(std::memory_order_acquire);
+            sample.stable = sample.stable && !(sample.publicationBefore & 1) &&
+                sample.publicationBefore == sample.publicationAfter;
+            auto c = PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::monitorContext, target);
+            PetariNative::GpuTrace::emitAt("assigned_unresumed_mach_sample", c, sample.endNs, sample.state, a);
+        });
         bool blocked = false;
         if (running && port != MACH_PORT_NULL) {
             const RunStateSample run = threadRunState(port);
@@ -1601,7 +1643,9 @@ std::uint64_t queueVirtualAsync() {
     const auto ticket = gNextVirtualAsync++;
     if (!ticket) fatal("virtual async ticket overflow");
     gVirtualAsync.push_back({ticket, false});
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", false));
     gVirtualChanged.notify_all();
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", true));
     return ticket;
 }
 
@@ -1620,7 +1664,9 @@ void activateVirtualAsync() {
             RunQueueBits == 0 && gHostBlockingThreads <= 1;
     });
     gVirtualAsyncActive.store(true, std::memory_order_release);
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", false));
     gVirtualChanged.notify_all();
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", true));
 }
 
 bool waitVirtualAsync(std::uint64_t ticket) {
@@ -1648,7 +1694,9 @@ bool cancelVirtualAsync(std::uint64_t ticket) {
     if (found == gVirtualAsync.end() || found->claimed) return false;
     gVirtualAsync.erase(found);
     if (gVirtualAsync.empty()) OSWakeupThread(&gVirtualPollers);
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", false));
     gVirtualChanged.notify_all();
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", true));
     return true;
 }
 
@@ -1660,7 +1708,9 @@ void finishVirtualAsync(std::uint64_t ticket) {
     if (found == gVirtualAsync.end()) fatal("unknown virtual async ticket");
     gVirtualAsync.erase(found);
     if (gVirtualAsync.empty()) OSWakeupThread(&gVirtualPollers);
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", false));
     gVirtualChanged.notify_all();
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", true));
 }
 
 void waitVirtualWork() {
@@ -1709,12 +1759,16 @@ struct ThreadRecord {
 
 bool lockInterruptsWithin(std::chrono::milliseconds limit) {
     const auto end = std::chrono::steady_clock::now() + limit;
+    PETARI_GPU_TRACE(InterruptTrace::request(&interruptMutex(), "hang-report-try"));
     while (!interruptMutex().try_lock()) {
+        PETARI_GPU_TRACE(InterruptTrace::failed(&interruptMutex(), "hang-report-try"));
         if (std::chrono::steady_clock::now() >= end) {
             return false;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        PETARI_GPU_TRACE(InterruptTrace::request(&interruptMutex(), "hang-report-try"));
     }
+    PETARI_GPU_TRACE(InterruptTrace::acquired(&interruptMutex(), "hang-report-try"));
     return true;
 }
 
@@ -1915,7 +1969,9 @@ void dumpThreads(std::FILE* out) {
     }
     dumpAlarms(out);
     if (locked && !held) {
+        PETARI_GPU_TRACE(InterruptTrace::releaseBegin(&interruptMutex(), "explicit-unlock"));
         interruptMutex().unlock();
+        PETARI_GPU_TRACE(InterruptTrace::released(&interruptMutex(), "explicit-unlock"));
     }
     std::fflush(out);
 }
@@ -2138,7 +2194,9 @@ BOOL OSCreateThread(OSThread* thread, void* (*func)(void*), void* param, void* s
         auto found = hosts().find(thread);
         if (found != hosts().end()) {
             found->second->terminated = true;
+            PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &found->second->cv, found->second->thread, "host-thread-cv", false));
             found->second->cv.notify_all();
+            PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &found->second->cv, found->second->thread, "host-thread-cv", true));
         }
 
         pthread_attr_t attrs;
@@ -2233,7 +2291,9 @@ void OSCancelThread(OSThread* thread) {
         auto found = hosts().find(thread);
         if (found != hosts().end() && thread != gCurrent.load(std::memory_order_relaxed)) {
             found->second->terminated = true;
+            PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &found->second->cv, found->second->thread, "host-thread-cv", false));
             found->second->cv.notify_all();
+            PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &found->second->cv, found->second->thread, "host-thread-cv", true));
         }
     }
 
@@ -2498,7 +2558,9 @@ void petari_os_end_host_blocking(void) {
     tHost->hostBlocking = false;
     PetariNative::setGameCpuReleased(false);
     --gHostBlockingThreads;
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", false));
     gVirtualChanged.notify_all();
+    PETARI_GPU_TRACE(InterruptTrace::notify(&interruptMutex(), &gVirtualChanged, nullptr, "virtual-change-cv", true));
     interruptReschedule();
     waitForCpu(self);
     OSEnableInterrupts();

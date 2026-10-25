@@ -10,6 +10,7 @@
 // the running thread to reschedule.
 
 #include <petari/gpu_trace.hpp>
+#include "interrupt_trace.hpp"
 #include <condition_variable>
 #include <cstdint>
 #include <cstdio>
@@ -58,7 +59,11 @@ void hostWait(std::condition_variable& cv, Predicate predicate) {
     setInterruptOwner(false);  // released while waiting
     PETARI_GPU_TRACE(PetariNative::GpuTrace::waitBegin("cond-untimed-predicate", 0,
         PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, boundThread(), reinterpret_cast<std::uintptr_t>(&cv))));
-    cv.wait(lock, predicate);
+    if (PetariNative::GpuTrace::enabled.load(std::memory_order_relaxed)) {
+        PetariNative::GpuTrace::detail::invokeEnabled([&] { InterruptTrace::wait(cv, lock, predicate); });
+    } else {
+        cv.wait(lock, predicate);
+    }
     PETARI_GPU_TRACE(PetariNative::GpuTrace::waitEnd());
     setInterruptOwner(true);
     lock.release();

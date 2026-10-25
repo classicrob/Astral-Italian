@@ -1,0 +1,13 @@
+diff --git a/src/Game/Enemy/BattanKing.cpp b/src/Game/Enemy/BattanKing.cpp
+index 2a23f09a..0433382d 100644
+--- a/src/Game/Enemy/BattanKing.cpp
++++ b/src/Game/Enemy/BattanKing.cpp
+@@ -132,7 +132,7 @@ void BattanKing::moveAndTurnToPlayer(const f32* params) {
+ static void calcVolumeMtx(MtxPtr pMtx, LiveActor* pActor, const BattanKingVolumeParam* pParam, const TVec3f& rShake) {
+     JMath::gekko_ps_copy12(pMtx, pActor->getBaseMtx());
+     TVec3f offset(pParam->mOffset);
+-    offset += rShake;
++    offset.add(rShake);
+     MR::addTransMtxLocal(pMtx, offset);
+     MR::preScaleMtx(pMtx, pParam->mScale);
+ }

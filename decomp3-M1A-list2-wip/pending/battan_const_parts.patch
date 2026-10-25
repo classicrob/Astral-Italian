@@ -1,0 +1,11 @@
+--- src/Game/Enemy/Battan.cpp
++++ src/Game/Enemy/Battan.cpp
+@@ -113,7 +113,7 @@
+     const char* mJointName;
+ };
+ 
+-static BattanPartsDesc sPartsDesc[5] = {
++static const BattanPartsDesc sPartsDesc[5] = {
+     {"コリジョン[体　]", "Battan", "Root"},
+     {"コリジョン[左腕]", "BattanArmL", "ArmL"},
+     {"コリジョン[右腕]", "BattanArmR", "ArmR"},

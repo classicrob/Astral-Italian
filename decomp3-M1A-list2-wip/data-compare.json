@@ -1,0 +1,412 @@
+[
+  {
+    "unit": "Game/Enemy/BattanKing",
+    "sections": [
+      {
+        "section": ".rodata",
+        "base": "0x80646da8",
+        "target_size": 72,
+        "source_size": 72,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".data",
+        "base": "0x8066c098",
+        "target_size": 1528,
+        "source_size": 1528,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".sdata",
+        "base": "0x807cf4e0",
+        "target_size": 8,
+        "source_size": 8,
+        "nonreloc_differences": 2,
+        "difference_offsets": [
+          "0x4",
+          "0x5"
+        ],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".sdata2",
+        "base": "0x807d75d8",
+        "target_size": 216,
+        "source_size": 204,
+        "nonreloc_differences": 136,
+        "difference_offsets": [
+          "0x0",
+          "0x1",
+          "0x3",
+          "0x7",
+          "0x8",
+          "0xb",
+          "0xc",
+          "0xf",
+          "0x10",
+          "0x13",
+          "0x14",
+          "0x15",
+          "0x18",
+          "0x19",
+          "0x1c",
+          "0x1d",
+          "0x21",
+          "0x24",
+          "0x25",
+          "0x28",
+          "0x29",
+          "0x2a",
+          "0x2b",
+          "0x2c",
+          "0x2d",
+          "0x2e",
+          "0x2f",
+          "0x30",
+          "0x31",
+          "0x33",
+          "0x34",
+          "0x35",
+          "0x37",
+          "0x38",
+          "0x39"
+        ],
+        "target_trailing_hex": "415000003da3d70a00000000"
+      }
+    ],
+    "init": [
+      {
+        "name": "__sinit_\\BattanKing_cpp",
+        "address": "0x8008d310",
+        "size": 972,
+        "tail_bytes": 580
+      }
+    ]
+  },
+  {
+    "unit": "Game/Screen/DepthOfFieldBlur",
+    "sections": [
+      {
+        "section": ".rodata",
+        "base": "0x8064c9b8",
+        "target_size": 8,
+        "source_size": 8,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".data",
+        "base": "0x806f2e70",
+        "target_size": 64,
+        "source_size": 64,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".sdata2",
+        "base": "0x807e1340",
+        "target_size": 48,
+        "source_size": 48,
+        "nonreloc_differences": 26,
+        "difference_offsets": [
+          "0x4",
+          "0x5",
+          "0x6",
+          "0x7",
+          "0x8",
+          "0xc",
+          "0xd",
+          "0xe",
+          "0x10",
+          "0x11",
+          "0x12",
+          "0x13",
+          "0x14",
+          "0x15",
+          "0x16",
+          "0x18",
+          "0x19",
+          "0x1a",
+          "0x1c",
+          "0x1d",
+          "0x20",
+          "0x21",
+          "0x22",
+          "0x24",
+          "0x25",
+          "0x26"
+        ],
+        "target_trailing_hex": ""
+      }
+    ],
+    "init": []
+  },
+  {
+    "unit": "Game/Screen/ImageEffectLocalUtil",
+    "sections": [
+      {
+        "section": ".rodata",
+        "base": "0x8064ca10",
+        "target_size": 8,
+        "source_size": 16,
+        "nonreloc_differences": 1,
+        "difference_offsets": [
+          "0x4"
+        ],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".data",
+        "base": "0x806f4558",
+        "target_size": 104,
+        "source_size": 104,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".sdata2",
+        "base": "0x807e1470",
+        "target_size": 32,
+        "source_size": 40,
+        "nonreloc_differences": 19,
+        "difference_offsets": [
+          "0x0",
+          "0x1",
+          "0x2",
+          "0x3",
+          "0x4",
+          "0x5",
+          "0x6",
+          "0x8",
+          "0xc",
+          "0xd",
+          "0xe",
+          "0x18",
+          "0x19",
+          "0x1a",
+          "0x1b",
+          "0x1c",
+          "0x1d",
+          "0x1e",
+          "0x1f"
+        ],
+        "target_trailing_hex": ""
+      }
+    ],
+    "init": []
+  },
+  {
+    "unit": "JSystem/J3DGraphLoader/J3DModelLoader",
+    "sections": [
+      {
+        "section": ".data",
+        "base": "0x80706c78",
+        "target_size": 392,
+        "source_size": 436,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      }
+    ],
+    "init": []
+  },
+  {
+    "unit": "Game/Util/BellyDragonTU02",
+    "sections": [
+      {
+        "section": ".data",
+        "base": "0x8066cb60",
+        "target_size": 776,
+        "source_size": 776,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".sdata2",
+        "base": "0x807d7700",
+        "target_size": 280,
+        "source_size": 156,
+        "nonreloc_differences": 133,
+        "difference_offsets": [
+          "0x0",
+          "0x1",
+          "0x4",
+          "0x5",
+          "0xc",
+          "0xd",
+          "0xe",
+          "0xf",
+          "0x11",
+          "0x12",
+          "0x13",
+          "0x14",
+          "0x15",
+          "0x16",
+          "0x17",
+          "0x18",
+          "0x19",
+          "0x1a",
+          "0x1b",
+          "0x1c",
+          "0x1d",
+          "0x20",
+          "0x21",
+          "0x22",
+          "0x23",
+          "0x24",
+          "0x25",
+          "0x26",
+          "0x27",
+          "0x28",
+          "0x29",
+          "0x2a",
+          "0x2b",
+          "0x2c",
+          "0x2d"
+        ],
+        "target_trailing_hex": "3c75c28f3c03126f3c449ba63c75c28f4348000042c800003f800000400000003ca3d70a40a000003c75c28f0000003c0000002d3c23d70a3d4ccccd3f0000003e4ccccd3e4ccccd3f8000003fc000003f99999a3f99999a3f19999a41700000447a0000442f000043960000447a00003a83126f3c23d70a43fa0000"
+      }
+    ],
+    "init": [
+      {
+        "name": "__sinit_\\BellyDragonTU02_cpp",
+        "address": "0x80092d10",
+        "size": 92,
+        "tail_bytes": 260
+      }
+    ]
+  },
+  {
+    "unit": "Game/Enemy/Jugem",
+    "sections": [
+      {
+        "section": ".rodata",
+        "base": "0x80648330",
+        "target_size": 8,
+        "source_size": 24,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".data",
+        "base": "0x80688da0",
+        "target_size": 1168,
+        "source_size": 1168,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      },
+      {
+        "section": ".sdata2",
+        "base": "0x807da8b8",
+        "target_size": 180,
+        "source_size": 200,
+        "nonreloc_differences": 124,
+        "difference_offsets": [
+          "0x0",
+          "0x4",
+          "0x5",
+          "0x6",
+          "0x7",
+          "0x8",
+          "0x9",
+          "0xc",
+          "0xd",
+          "0xe",
+          "0xf",
+          "0x10",
+          "0x11",
+          "0x12",
+          "0x13",
+          "0x14",
+          "0x15",
+          "0x16",
+          "0x17",
+          "0x1c",
+          "0x1d",
+          "0x1e",
+          "0x1f",
+          "0x28",
+          "0x29",
+          "0x2c",
+          "0x2d",
+          "0x30",
+          "0x31",
+          "0x32",
+          "0x33",
+          "0x34",
+          "0x35",
+          "0x38",
+          "0x39"
+        ],
+        "target_trailing_hex": ""
+      }
+    ],
+    "init": [
+      {
+        "name": "__sinit_\\Jugem_cpp",
+        "address": "0x8019f1f0",
+        "size": 352,
+        "tail_bytes": 768
+      }
+    ]
+  },
+  {
+    "unit": "Game/Util/DiceMover",
+    "sections": [],
+    "init": []
+  },
+  {
+    "unit": "Game/MapObj/ItemDice",
+    "sections": [
+      {
+        "section": ".data",
+        "base": "0x806a2e28",
+        "target_size": 1280,
+        "source_size": 1276,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": "00000000"
+      }
+    ],
+    "init": [
+      {
+        "name": "__sinit_\\ItemDice_cpp",
+        "address": "0x802b5630",
+        "size": 356,
+        "tail_bytes": 108
+      }
+    ]
+  },
+  {
+    "unit": "Game/Enemy/Battan",
+    "sections": [
+      {
+        "section": ".data",
+        "base": "0x80682e90",
+        "target_size": 888,
+        "source_size": 888,
+        "nonreloc_differences": 0,
+        "difference_offsets": [],
+        "target_trailing_hex": ""
+      }
+    ],
+    "init": [
+      {
+        "name": "__sinit_\\Battan_cpp",
+        "address": "0x8015b6d0",
+        "size": 428,
+        "tail_bytes": 420
+      }
+    ]
+  }
+]

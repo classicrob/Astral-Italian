@@ -1,0 +1,2613 @@
+[
+  {
+    "unit": "Game/Enemy/BattanKing",
+    "external_sda_references": []
+  },
+  {
+    "unit": "Game/Screen/DepthOfFieldBlur",
+    "external_sda_references": []
+  },
+  {
+    "unit": "Game/Screen/ImageEffectLocalUtil",
+    "external_sda_references": [
+      {
+        "address": "0x807e1468",
+        "bytes": "3f80000000000000",
+        "symbol": "lbl_807E1468",
+        "owners": [],
+        "site_count": 9,
+        "sites": [
+          [
+            "0x80476f40",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x130"
+          ],
+          [
+            "0x80476f78",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x168"
+          ],
+          [
+            "0x80476f80",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x170"
+          ],
+          [
+            "0x80476f98",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x188"
+          ],
+          [
+            "0x80477060",
+            "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff",
+            "0x80"
+          ],
+          [
+            "0x80477bf8",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x9c8"
+          ],
+          [
+            "0x80477c30",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0xa00"
+          ],
+          [
+            "0x80477c38",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0xa08"
+          ],
+          [
+            "0x80477c50",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0xa20"
+          ]
+        ]
+      },
+      {
+        "address": "0x807e146c",
+        "bytes": "0000000040490fdb",
+        "symbol": "lbl_807E146C",
+        "owners": [],
+        "site_count": 27,
+        "sites": [
+          [
+            "0x80476a2c",
+            "setupDrawTexture__20ImageEffectLocalUtilFv",
+            "0x4c"
+          ],
+          [
+            "0x80476bd4",
+            "setupDrawTexture__20ImageEffectLocalUtilFv",
+            "0x1f4"
+          ],
+          [
+            "0x80476f30",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x120"
+          ],
+          [
+            "0x80476f38",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x128"
+          ],
+          [
+            "0x80476f50",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x140"
+          ],
+          [
+            "0x80476f58",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x148"
+          ],
+          [
+            "0x80476f60",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x150"
+          ],
+          [
+            "0x80476f70",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x160"
+          ],
+          [
+            "0x80476f90",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x180"
+          ],
+          [
+            "0x80476fa0",
+            "sendTextureVertex__20ImageEffectLocalUtilFll",
+            "0x190"
+          ],
+          [
+            "0x804770a0",
+            "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff",
+            "0xc0"
+          ],
+          [
+            "0x8047715c",
+            "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff",
+            "0x17c"
+          ],
+          [
+            "0x804771b4",
+            "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff",
+            "0x1d4"
+          ],
+          [
+            "0x804772a0",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x70"
+          ],
+          [
+            "0x804779b0",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x780"
+          ],
+          [
+            "0x80477a60",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x830"
+          ],
+          [
+            "0x80477a94",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x864"
+          ],
+          [
+            "0x80477ab8",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x888"
+          ],
+          [
+            "0x80477ae0",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x8b0"
+          ],
+          [
+            "0x80477be0",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x9b0"
+          ],
+          [
+            "0x80477bec",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x9bc"
+          ],
+          [
+            "0x80477c08",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x9d8"
+          ],
+          [
+            "0x80477c10",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x9e0"
+          ],
+          [
+            "0x80477c18",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x9e8"
+          ],
+          [
+            "0x80477c28",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0x9f8"
+          ],
+          [
+            "0x80477c48",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0xa18"
+          ],
+          [
+            "0x80477c58",
+            "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf",
+            "0xa28"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "unit": "JSystem/J3DGraphLoader/J3DModelLoader",
+    "external_sda_references": [
+      {
+        "address": "0x807d6114",
+        "bytes": null,
+        "symbol": "sCurrentHeap__7JKRHeap",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x80535ef8",
+            "load__14J3DModelLoaderFPCvUl",
+            "0x18"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d6314",
+        "bytes": null,
+        "symbol": "mJoint__10J3DMtxCalc",
+        "owners": [
+          [
+            "JSystem/J3DGraphAnimator/J3DJoint",
+            ".sbss"
+          ]
+        ],
+        "site_count": 3,
+        "sites": [
+          [
+            "0x80537bb0",
+            "calc__73J3DMtxCalcNoAnm<27J3DMtxCalcCalcTransformMaya,24J3DMtxCalcJ3DSysInitMaya>Fv",
+            "0x0"
+          ],
+          [
+            "0x80537c50",
+            "calc__83J3DMtxCalcNoAnm<32J3DMtxCalcCalcTransformSoftimage,29J3DMtxCalcJ3DSysInitSoftimage>Fv",
+            "0x0"
+          ],
+          [
+            "0x80537cd0",
+            "calc__75J3DMtxCalcNoAnm<28J3DMtxCalcCalcTransformBasic,25J3DMtxCalcJ3DSysInitBasic>Fv",
+            "0x0"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "unit": "Game/Util/BellyDragonTU02",
+    "external_sda_references": [
+      {
+        "address": "0x807d7818",
+        "bytes": "42b4000000000000",
+        "symbol": "lbl_807D7818",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8009148c",
+            "calcJoint__19BellyDragonBodyPartFPQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>RC19JointControllerInfo",
+            "0x22c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807e2fd8",
+        "bytes": null,
+        "symbol": "lbl_807E2FD8",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8009037c",
+            "exeBindB__19BellyDragonBodyPartFv",
+            "0x3c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807e2fdc",
+        "bytes": null,
+        "symbol": "lbl_807E2FDC",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x80090310",
+            "exeExitA__19BellyDragonBodyPartFv",
+            "0x120"
+          ],
+          [
+            "0x80090518",
+            "exeBindB__19BellyDragonBodyPartFv",
+            "0x1d8"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "unit": "Game/Enemy/Jugem",
+    "external_sda_references": [
+      {
+        "address": "0x807da8b0",
+        "bytes": "3f80000000000000",
+        "symbol": "lbl_807DA8B0",
+        "owners": [],
+        "site_count": 12,
+        "sites": [
+          [
+            "0x8019ad40",
+            "moveJugemKeepingHeight__FP9LiveActorRCQ29JGeometry8TVec3<f>bfffff",
+            "0xd0"
+          ],
+          [
+            "0x8019b044",
+            "__ct__5JugemFPCc",
+            "0x24"
+          ],
+          [
+            "0x8019c3f4",
+            "exeDead__5JugemFv",
+            "0x44"
+          ],
+          [
+            "0x8019c61c",
+            "exeReBirth__5JugemFv",
+            "0x2c"
+          ],
+          [
+            "0x8019c62c",
+            "exeReBirth__5JugemFv",
+            "0x3c"
+          ],
+          [
+            "0x8019c64c",
+            "exeReBirth__5JugemFv",
+            "0x5c"
+          ],
+          [
+            "0x8019c928",
+            "exeFallRecovery__5JugemFv",
+            "0x38"
+          ],
+          [
+            "0x8019e440",
+            "calcJugemFollowPosition__5JugemFPQ29JGeometry8TVec3<f>f",
+            "0x1f0"
+          ],
+          [
+            "0x8019e79c",
+            "updateJugemMoveAnimation__5JugemFv",
+            "0x19c"
+          ],
+          [
+            "0x8019e7b0",
+            "updateJugemMoveAnimation__5JugemFv",
+            "0x1b0"
+          ],
+          [
+            "0x8019ea04",
+            "updateJugemCloudSway__5JugemFv",
+            "0x134"
+          ],
+          [
+            "0x8019ee90",
+            "appear__10JugemCloudFv",
+            "0x20"
+          ]
+        ]
+      },
+      {
+        "address": "0x807da8b4",
+        "bytes": "000000003f000000",
+        "symbol": "lbl_807DA8B4",
+        "owners": [],
+        "site_count": 34,
+        "sites": [
+          [
+            "0x8019abf4",
+            "turnJugemFrontToTarget__FPQ29JGeometry8TVec3<f>P9LiveActorRCQ29JGeometry8TVec3<f>f",
+            "0x24"
+          ],
+          [
+            "0x8019ad38",
+            "moveJugemKeepingHeight__FP9LiveActorRCQ29JGeometry8TVec3<f>bfffff",
+            "0xc8"
+          ],
+          [
+            "0x8019af74",
+            "findJugemNearestRailPoint__FPQ29JGeometry8TVec3<f>P9LiveActorRCQ29JGeometry8TVec3<f>",
+            "0x24"
+          ],
+          [
+            "0x8019b038",
+            "__ct__5JugemFPCc",
+            "0x18"
+          ],
+          [
+            "0x8019b154",
+            "init__5JugemFRC12JMapInfoIter",
+            "0x54"
+          ],
+          [
+            "0x8019b174",
+            "init__5JugemFRC12JMapInfoIter",
+            "0x74"
+          ],
+          [
+            "0x8019b1d4",
+            "init__5JugemFRC12JMapInfoIter",
+            "0xd4"
+          ],
+          [
+            "0x8019b1f8",
+            "init__5JugemFRC12JMapInfoIter",
+            "0xf8"
+          ],
+          [
+            "0x8019b664",
+            "control__5JugemFv",
+            "0x74"
+          ],
+          [
+            "0x8019b964",
+            "exeFollow__5JugemFv",
+            "0x64"
+          ],
+          [
+            "0x8019ba1c",
+            "exeApproach__5JugemFv",
+            "0x3c"
+          ],
+          [
+            "0x8019bc38",
+            "exePickTogezo__5JugemFv",
+            "0x38"
+          ],
+          [
+            "0x8019bda0",
+            "exeMoveUp__5JugemFv",
+            "0x50"
+          ],
+          [
+            "0x8019c290",
+            "exeBlowDown__5JugemFv",
+            "0x90"
+          ],
+          [
+            "0x8019c7a8",
+            "exeFallDownEaten__5JugemFv",
+            "0xd8"
+          ],
+          [
+            "0x8019c89c",
+            "exeFallLand__5JugemFv",
+            "0x9c"
+          ],
+          [
+            "0x8019dc80",
+            "throwJugemHeldTogezo__5JugemFRCQ29JGeometry8TVec3<f>",
+            "0x40"
+          ],
+          [
+            "0x8019dcc4",
+            "throwJugemHeldTogezo__5JugemFRCQ29JGeometry8TVec3<f>",
+            "0x84"
+          ],
+          [
+            "0x8019dd04",
+            "throwJugemHeldTogezo__5JugemFRCQ29JGeometry8TVec3<f>",
+            "0xc4"
+          ],
+          [
+            "0x8019de94",
+            "tryJugemPickTogezo__5JugemFv",
+            "0xb4"
+          ],
+          [
+            "0x8019e01c",
+            "calcJugemPickupPosition__5JugemFPQ29JGeometry8TVec3<f>l",
+            "0x3c"
+          ],
+          [
+            "0x8019e078",
+            "calcJugemPickupPosition__5JugemFPQ29JGeometry8TVec3<f>l",
+            "0x98"
+          ],
+          [
+            "0x8019e2d0",
+            "calcJugemFollowPosition__5JugemFPQ29JGeometry8TVec3<f>f",
+            "0x80"
+          ],
+          [
+            "0x8019e650",
+            "updateJugemMoveAnimation__5JugemFv",
+            "0x50"
+          ],
+          [
+            "0x8019e680",
+            "updateJugemMoveAnimation__5JugemFv",
+            "0x80"
+          ],
+          [
+            "0x8019e794",
+            "updateJugemMoveAnimation__5JugemFv",
+            "0x194"
+          ],
+          [
+            "0x8019e7a8",
+            "updateJugemMoveAnimation__5JugemFv",
+            "0x1a8"
+          ],
+          [
+            "0x8019ea28",
+            "updateJugemCloudSway__5JugemFv",
+            "0x158"
+          ],
+          [
+            "0x8019ead8",
+            "updateJugemCloudSway__5JugemFv",
+            "0x208"
+          ],
+          [
+            "0x8019f2d8",
+            "__sinit_\\Jugem_cpp",
+            "0xe8"
+          ],
+          [
+            "0x8019f2ec",
+            "__sinit_\\Jugem_cpp",
+            "0xfc"
+          ],
+          [
+            "0x8019f300",
+            "__sinit_\\Jugem_cpp",
+            "0x110"
+          ],
+          [
+            "0x8019f320",
+            "__sinit_\\Jugem_cpp",
+            "0x130"
+          ],
+          [
+            "0x8019f328",
+            "__sinit_\\Jugem_cpp",
+            "0x138"
+          ]
+        ]
+      },
+      {
+        "address": "0x807da96c",
+        "bytes": "4334000042dc0000",
+        "symbol": "lbl_807DA96C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8019f2e0",
+            "__sinit_\\Jugem_cpp",
+            "0xf0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807da970",
+        "bytes": "42dc0000428c0000",
+        "symbol": "lbl_807DA970",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8019f2e4",
+            "__sinit_\\Jugem_cpp",
+            "0xf4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807da974",
+        "bytes": "428c0000c28c0000",
+        "symbol": "lbl_807DA974",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8019f314",
+            "__sinit_\\Jugem_cpp",
+            "0x124"
+          ]
+        ]
+      },
+      {
+        "address": "0x807da978",
+        "bytes": "c28c000000000000",
+        "symbol": "lbl_807DA978",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8019f31c",
+            "__sinit_\\Jugem_cpp",
+            "0x12c"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "unit": "Game/Util/DiceMover",
+    "external_sda_references": [
+      {
+        "address": "0x807d7128",
+        "bytes": "3f80000000000000",
+        "symbol": "lbl_807D7128",
+        "owners": [],
+        "site_count": 11,
+        "sites": [
+          [
+            "0x800546a4",
+            "normalizeComponents__13DiceMoverUtilFPfPfPf",
+            "0x44"
+          ],
+          [
+            "0x80054780",
+            "averageNormalComponents__13DiceMoverUtilFPfPfPfPfPfPf",
+            "0x50"
+          ],
+          [
+            "0x80054ef0",
+            "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0x210"
+          ],
+          [
+            "0x80055edc",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0x2c"
+          ],
+          [
+            "0x80055f18",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0x68"
+          ],
+          [
+            "0x80055f88",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xd8"
+          ],
+          [
+            "0x80055ff0",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0x140"
+          ],
+          [
+            "0x80056138",
+            "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x98"
+          ],
+          [
+            "0x8005622c",
+            "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x18c"
+          ],
+          [
+            "0x800562e0",
+            "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x240"
+          ],
+          [
+            "0x80056394",
+            "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x2f4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d712c",
+        "bytes": "000000003f000000",
+        "symbol": "lbl_807D712C",
+        "owners": [],
+        "site_count": 16,
+        "sites": [
+          [
+            "0x80054930",
+            "setMtx__9DiceMoverFPA4_f",
+            "0x50"
+          ],
+          [
+            "0x80054958",
+            "setMtx__9DiceMoverFPA4_f",
+            "0x78"
+          ],
+          [
+            "0x80054ac4",
+            "calcRadius__9DiceMoverFv",
+            "0x14"
+          ],
+          [
+            "0x80054bf8",
+            "initCollisionPoints__9DiceMoverFll",
+            "0x28"
+          ],
+          [
+            "0x80054c38",
+            "initCollisionPoints__9DiceMoverFll",
+            "0x68"
+          ],
+          [
+            "0x80054e20",
+            "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0x140"
+          ],
+          [
+            "0x80054f88",
+            "init__9DiceMoverFv",
+            "0x8"
+          ],
+          [
+            "0x80054fc0",
+            "init__9DiceMoverFv",
+            "0x40"
+          ],
+          [
+            "0x80054fe4",
+            "init__9DiceMoverFv",
+            "0x64"
+          ],
+          [
+            "0x8005597c",
+            "applyCollision__9DiceMoverFv",
+            "0xec"
+          ],
+          [
+            "0x80055d48",
+            "checkVelocityChange__9DiceMoverFQ29JGeometry8TVec3<f>",
+            "0xd8"
+          ],
+          [
+            "0x80055e90",
+            "clear__23DiceMoverRotationBoundsFv",
+            "0x0"
+          ],
+          [
+            "0x80055efc",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0x4c"
+          ],
+          [
+            "0x80055f64",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xb4"
+          ],
+          [
+            "0x80055f9c",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xec"
+          ],
+          [
+            "0x80055fac",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xfc"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7130",
+        "bytes": "3f00000036800000",
+        "symbol": "lbl_807D7130",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x80054794",
+            "averageNormalComponents__13DiceMoverUtilFPfPfPfPfPfPf",
+            "0x64"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7134",
+        "bytes": "36800000bf800000",
+        "symbol": "lbl_807D7134",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x800559a8",
+            "applyCollision__9DiceMoverFv",
+            "0x118"
+          ],
+          [
+            "0x80055ce4",
+            "checkVelocityChange__9DiceMoverFQ29JGeometry8TVec3<f>",
+            "0x74"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7138",
+        "bytes": "bf80000040000000",
+        "symbol": "lbl_807D7138",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x80054d8c",
+            "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xac"
+          ],
+          [
+            "0x80054fec",
+            "init__9DiceMoverFv",
+            "0x6c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d713c",
+        "bytes": "400000003f7fbe77",
+        "symbol": "lbl_807D713C",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x80054fcc",
+            "init__9DiceMoverFv",
+            "0x4c"
+          ],
+          [
+            "0x80056114",
+            "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x74"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7140",
+        "bytes": "3f7fbe773cf5c28f",
+        "symbol": "lbl_807D7140",
+        "owners": [],
+        "site_count": 6,
+        "sites": [
+          [
+            "0x80054dc0",
+            "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xe0"
+          ],
+          [
+            "0x80055918",
+            "applyCollision__9DiceMoverFv",
+            "0x88"
+          ],
+          [
+            "0x800559cc",
+            "applyCollision__9DiceMoverFv",
+            "0x13c"
+          ],
+          [
+            "0x80055a54",
+            "applyCollision__9DiceMoverFv",
+            "0x1c4"
+          ],
+          [
+            "0x80055adc",
+            "applyCollision__9DiceMoverFv",
+            "0x24c"
+          ],
+          [
+            "0x80055fe0",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0x130"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7144",
+        "bytes": "3cf5c28fbe4ccccd",
+        "symbol": "lbl_807D7144",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x80054dbc",
+            "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xdc"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7148",
+        "bytes": "be4ccccd403fef9e",
+        "symbol": "lbl_807D7148",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x80054fc8",
+            "init__9DiceMoverFv",
+            "0x48"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d714c",
+        "bytes": "403fef9e3e800000",
+        "symbol": "lbl_807D714C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x800552e4",
+            "integrate__9DiceMoverFv",
+            "0xe4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7150",
+        "bytes": "3e8000003c23d70a",
+        "symbol": "lbl_807D7150",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x80055850",
+            "addGravity__9DiceMoverFv",
+            "0x20"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d7154",
+        "bytes": "3c23d70a3f7fbe77",
+        "symbol": "lbl_807D7154",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x80055fa8",
+            "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f",
+            "0xf8"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "unit": "Game/MapObj/ItemDice",
+    "external_sda_references": [
+      {
+        "address": "0x807dd7c0",
+        "bytes": "3f80000000000000",
+        "symbol": "lbl_807DD7C0",
+        "owners": [],
+        "site_count": 10,
+        "sites": [
+          [
+            "0x802b3208",
+            "initItemPose__16ItemDiceFunctionFP9LiveActorPCQ29JGeometry8TVec3<f>PQ29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>f",
+            "0x118"
+          ],
+          [
+            "0x802b3290",
+            "initItemPose__16ItemDiceFunctionFP9LiveActorPCQ29JGeometry8TVec3<f>PQ29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>f",
+            "0x1a0"
+          ],
+          [
+            "0x802b4714",
+            "receiveMsgPushImpl__8DiceBaseFP9HitSensorP9HitSensorf",
+            "0xc4"
+          ],
+          [
+            "0x802b4aac",
+            "setResultFrame__8ItemDiceFUl",
+            "0x2c"
+          ],
+          [
+            "0x802b4bc0",
+            "popSubItem__8ItemDiceFv",
+            "0x10"
+          ],
+          [
+            "0x802b4ed8",
+            "setResultFrame__12PositiveDiceFUl",
+            "0x28"
+          ],
+          [
+            "0x802b4fa0",
+            "popItem__12PositiveDiceFv",
+            "0x10"
+          ],
+          [
+            "0x802b5158",
+            "setResultFrame__9LuckyDiceFUl",
+            "0x28"
+          ],
+          [
+            "0x802b5298",
+            "shootItems__9LuckyDiceFl",
+            "0x58"
+          ],
+          [
+            "0x802b5350",
+            "shootItems__9LuckyDiceFl",
+            "0x110"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7c4",
+        "bytes": "0000000036800000",
+        "symbol": "lbl_807DD7C4",
+        "owners": [],
+        "site_count": 22,
+        "sites": [
+          [
+            "0x802b3054",
+            "calcFaceIndex__16ItemDiceFunctionFPA4_fPCQ29JGeometry8TVec3<f>",
+            "0xa4"
+          ],
+          [
+            "0x802b3070",
+            "calcFaceIndex__16ItemDiceFunctionFPA4_fPCQ29JGeometry8TVec3<f>",
+            "0xc0"
+          ],
+          [
+            "0x802b3098",
+            "calcFaceIndex__16ItemDiceFunctionFPA4_fPCQ29JGeometry8TVec3<f>",
+            "0xe8"
+          ],
+          [
+            "0x802b30b4",
+            "calcFaceIndex__16ItemDiceFunctionFPA4_fPCQ29JGeometry8TVec3<f>",
+            "0x104"
+          ],
+          [
+            "0x802b3288",
+            "initItemPose__16ItemDiceFunctionFP9LiveActorPCQ29JGeometry8TVec3<f>PQ29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>f",
+            "0x198"
+          ],
+          [
+            "0x802b3348",
+            "__ct__8DiceBaseFPCc",
+            "0x18"
+          ],
+          [
+            "0x802b34c8",
+            "init__8DiceBaseFRC12JMapInfoIter",
+            "0xf8"
+          ],
+          [
+            "0x802b34f4",
+            "init__8DiceBaseFRC12JMapInfoIter",
+            "0x124"
+          ],
+          [
+            "0x802b3588",
+            "init__8DiceBaseFRC12JMapInfoIter",
+            "0x1b8"
+          ],
+          [
+            "0x802b3700",
+            "exeSpin__8DiceBaseFv",
+            "0x90"
+          ],
+          [
+            "0x802b3908",
+            "exeSpin__8DiceBaseFv",
+            "0x298"
+          ],
+          [
+            "0x802b3a8c",
+            "exeThrow__8DiceBaseFv",
+            "0xfc"
+          ],
+          [
+            "0x802b458c",
+            "isSettled__8DiceBaseFv",
+            "0xbc"
+          ],
+          [
+            "0x802b4a60",
+            "setAnimFrame__8ItemDiceFv",
+            "0x20"
+          ],
+          [
+            "0x802b4b58",
+            "placeMainItem__8ItemDiceFv",
+            "0x8"
+          ],
+          [
+            "0x802b4e90",
+            "setAnimFrame__12PositiveDiceFv",
+            "0x20"
+          ],
+          [
+            "0x802b5110",
+            "setAnimFrame__9LuckyDiceFv",
+            "0x20"
+          ],
+          [
+            "0x802b5290",
+            "shootItems__9LuckyDiceFl",
+            "0x50"
+          ],
+          [
+            "0x802b52a4",
+            "shootItems__9LuckyDiceFl",
+            "0x64"
+          ],
+          [
+            "0x802b5328",
+            "shootItems__9LuckyDiceFl",
+            "0xe8"
+          ],
+          [
+            "0x802b5348",
+            "shootItems__9LuckyDiceFl",
+            "0x108"
+          ],
+          [
+            "0x802b5638",
+            "__sinit_\\ItemDice_cpp",
+            "0x8"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7c8",
+        "bytes": "3680000040000000",
+        "symbol": "lbl_807DD7C8",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x802b457c",
+            "isSettled__8DiceBaseFv",
+            "0xac"
+          ],
+          [
+            "0x802b476c",
+            "receiveMsgPushImpl__8DiceBaseFP9HitSensorP9HitSensorf",
+            "0x11c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7cc",
+        "bytes": "4000000040400000",
+        "symbol": "lbl_807DD7CC",
+        "owners": [],
+        "site_count": 7,
+        "sites": [
+          [
+            "0x802b31dc",
+            "initItemPose__16ItemDiceFunctionFP9LiveActorPCQ29JGeometry8TVec3<f>PQ29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>f",
+            "0xec"
+          ],
+          [
+            "0x802b3910",
+            "exeSpin__8DiceBaseFv",
+            "0x2a0"
+          ],
+          [
+            "0x802b420c",
+            "createMover__8DiceBaseFP9HitSensor",
+            "0x5c"
+          ],
+          [
+            "0x802b45b8",
+            "isSettled__8DiceBaseFv",
+            "0xe8"
+          ],
+          [
+            "0x802b4aa4",
+            "setResultFrame__8ItemDiceFUl",
+            "0x24"
+          ],
+          [
+            "0x802b4ee0",
+            "setResultFrame__12PositiveDiceFUl",
+            "0x30"
+          ],
+          [
+            "0x802b5168",
+            "setResultFrame__9LuckyDiceFUl",
+            "0x38"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7d0",
+        "bytes": "40400000bf800000",
+        "symbol": "lbl_807DD7D0",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x802b4ab4",
+            "setResultFrame__8ItemDiceFUl",
+            "0x34"
+          ],
+          [
+            "0x802b5160",
+            "setResultFrame__9LuckyDiceFUl",
+            "0x30"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7d4",
+        "bytes": "bf80000040490fdb",
+        "symbol": "lbl_807DD7D4",
+        "owners": [],
+        "site_count": 3,
+        "sites": [
+          [
+            "0x802b4bb8",
+            "popSubItem__8ItemDiceFv",
+            "0x8"
+          ],
+          [
+            "0x802b4f98",
+            "popItem__12PositiveDiceFv",
+            "0x8"
+          ],
+          [
+            "0x802b52ac",
+            "shootItems__9LuckyDiceFl",
+            "0x6c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7d8",
+        "bytes": "40490fdb42652ee0",
+        "symbol": "lbl_807DD7D8",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x802b4bd0",
+            "popSubItem__8ItemDiceFv",
+            "0x20"
+          ],
+          [
+            "0x802b4fb0",
+            "popItem__12PositiveDiceFv",
+            "0x20"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7dc",
+        "bytes": "42652ee041900000",
+        "symbol": "lbl_807DD7DC",
+        "owners": [],
+        "site_count": 4,
+        "sites": [
+          [
+            "0x802b32ec",
+            "initItemPose__16ItemDiceFunctionFP9LiveActorPCQ29JGeometry8TVec3<f>PQ29JGeometry64TRotation3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>f",
+            "0x1fc"
+          ],
+          [
+            "0x802b3718",
+            "exeSpin__8DiceBaseFv",
+            "0xa8"
+          ],
+          [
+            "0x802b3db8",
+            "calcAndSetBaseMtx__8DiceBaseFv",
+            "0x58"
+          ],
+          [
+            "0x802b53b4",
+            "shootItems__9LuckyDiceFl",
+            "0x174"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7e0",
+        "bytes": "4190000041200000",
+        "symbol": "lbl_807DD7E0",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b3354",
+            "__ct__8DiceBaseFPCc",
+            "0x24"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7e4",
+        "bytes": "41200000430e0000",
+        "symbol": "lbl_807DD7E4",
+        "owners": [],
+        "site_count": 7,
+        "sites": [
+          [
+            "0x802b3428",
+            "init__8DiceBaseFRC12JMapInfoIter",
+            "0x58"
+          ],
+          [
+            "0x802b346c",
+            "init__8DiceBaseFRC12JMapInfoIter",
+            "0x9c"
+          ],
+          [
+            "0x802b406c",
+            "receiveMsgPlayerAttack__8DiceBaseFUlP9HitSensorP9HitSensor",
+            "0x16c"
+          ],
+          [
+            "0x802b45dc",
+            "isSettled__8DiceBaseFv",
+            "0x10c"
+          ],
+          [
+            "0x802b4f30",
+            "makeResult__12PositiveDiceFUl",
+            "0x40"
+          ],
+          [
+            "0x802b51e4",
+            "makeResult__9LuckyDiceFUl",
+            "0x64"
+          ],
+          [
+            "0x802b543c",
+            "shootItems__9LuckyDiceFl",
+            "0x1fc"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7e8",
+        "bytes": "430e000043110000",
+        "symbol": "lbl_807DD7E8",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b34dc",
+            "init__8DiceBaseFRC12JMapInfoIter",
+            "0x10c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7ec",
+        "bytes": "4311000042340000",
+        "symbol": "lbl_807DD7EC",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b3598",
+            "init__8DiceBaseFRC12JMapInfoIter",
+            "0x1c8"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7f0",
+        "bytes": "423400003c8efa35",
+        "symbol": "lbl_807DD7F0",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b36fc",
+            "exeSpin__8DiceBaseFv",
+            "0x8c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7f4",
+        "bytes": "3c8efa353eb33333",
+        "symbol": "lbl_807DD7F4",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b3710",
+            "exeSpin__8DiceBaseFv",
+            "0xa0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7f8",
+        "bytes": "3eb333333f333333",
+        "symbol": "lbl_807DD7F8",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b39e8",
+            "exeThrow__8DiceBaseFv",
+            "0x58"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd7fc",
+        "bytes": "3f33333343480000",
+        "symbol": "lbl_807DD7FC",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b3a88",
+            "exeThrow__8DiceBaseFv",
+            "0xf8"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd800",
+        "bytes": "434800003c03126f",
+        "symbol": "lbl_807DD800",
+        "owners": [],
+        "site_count": 3,
+        "sites": [
+          [
+            "0x802b3aa0",
+            "exeThrow__8DiceBaseFv",
+            "0x110"
+          ],
+          [
+            "0x802b418c",
+            "resetToBaseTrans__8DiceBaseFv",
+            "0x2c"
+          ],
+          [
+            "0x802b41f8",
+            "createMover__8DiceBaseFP9HitSensor",
+            "0x48"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd804",
+        "bytes": "3c03126f41a00000",
+        "symbol": "lbl_807DD804",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b3ec4",
+            "receiveMsgPush__8DiceBaseFP9HitSensorP9HitSensor",
+            "0x44"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd808",
+        "bytes": "41a00000bf490fdb",
+        "symbol": "lbl_807DD808",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x802b4204",
+            "createMover__8DiceBaseFP9HitSensor",
+            "0x54"
+          ],
+          [
+            "0x802b5424",
+            "shootItems__9LuckyDiceFl",
+            "0x1e4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd80c",
+        "bytes": "bf490fdb42c80000",
+        "symbol": "lbl_807DD80C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b43b0",
+            "calcPushVec__8DiceBaseFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+            "0xa0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd810",
+        "bytes": "42c8000042480000",
+        "symbol": "lbl_807DD810",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b4400",
+            "calcPushVec__8DiceBaseFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+            "0xf0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd814",
+        "bytes": "424800003db2b8c3",
+        "symbol": "lbl_807DD814",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b445c",
+            "calcPushVec__8DiceBaseFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+            "0x14c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd818",
+        "bytes": "3db2b8c33a83126f",
+        "symbol": "lbl_807DD818",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b45c4",
+            "isSettled__8DiceBaseFv",
+            "0xf4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd81c",
+        "bytes": "3a83126f40800000",
+        "symbol": "lbl_807DD81C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b46a8",
+            "receiveMsgPushImpl__8DiceBaseFP9HitSensorP9HitSensorf",
+            "0x58"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd820",
+        "bytes": "4080000040c00000",
+        "symbol": "lbl_807DD820",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x802b4c90",
+            "setAnimFrame__18MultipleChoiceDiceFv",
+            "0x20"
+          ],
+          [
+            "0x802b5170",
+            "setResultFrame__9LuckyDiceFUl",
+            "0x40"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd824",
+        "bytes": "40c0000040a00000",
+        "symbol": "lbl_807DD824",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b4cc4",
+            "setResultFrame__18MultipleChoiceDiceFUl",
+            "0x14"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd828",
+        "bytes": "40a0000042200000",
+        "symbol": "lbl_807DD828",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b4ccc",
+            "setResultFrame__18MultipleChoiceDiceFUl",
+            "0x1c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd82c",
+        "bytes": "4220000040c90fdb",
+        "symbol": "lbl_807DD82C",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x802b4f38",
+            "makeResult__12PositiveDiceFUl",
+            "0x48"
+          ],
+          [
+            "0x802b51ec",
+            "makeResult__9LuckyDiceFUl",
+            "0x6c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd830",
+        "bytes": "40c90fdb42a00000",
+        "symbol": "lbl_807DD830",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x802b537c",
+            "shootItems__9LuckyDiceFl",
+            "0x13c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd834",
+        "bytes": "42a00000c2a00000",
+        "symbol": "lbl_807DD834",
+        "owners": [],
+        "site_count": 8,
+        "sites": [
+          [
+            "0x802b53e8",
+            "shootItems__9LuckyDiceFl",
+            "0x1a8"
+          ],
+          [
+            "0x802b5664",
+            "__sinit_\\ItemDice_cpp",
+            "0x34"
+          ],
+          [
+            "0x802b5688",
+            "__sinit_\\ItemDice_cpp",
+            "0x58"
+          ],
+          [
+            "0x802b56a8",
+            "__sinit_\\ItemDice_cpp",
+            "0x78"
+          ],
+          [
+            "0x802b56d0",
+            "__sinit_\\ItemDice_cpp",
+            "0xa0"
+          ],
+          [
+            "0x802b56e8",
+            "__sinit_\\ItemDice_cpp",
+            "0xb8"
+          ],
+          [
+            "0x802b5710",
+            "__sinit_\\ItemDice_cpp",
+            "0xe0"
+          ],
+          [
+            "0x802b5730",
+            "__sinit_\\ItemDice_cpp",
+            "0x100"
+          ]
+        ]
+      },
+      {
+        "address": "0x807dd838",
+        "bytes": "c2a0000000000000",
+        "symbol": "lbl_807DD838",
+        "owners": [],
+        "site_count": 7,
+        "sites": [
+          [
+            "0x802b5690",
+            "__sinit_\\ItemDice_cpp",
+            "0x60"
+          ],
+          [
+            "0x802b56b0",
+            "__sinit_\\ItemDice_cpp",
+            "0x80"
+          ],
+          [
+            "0x802b56c8",
+            "__sinit_\\ItemDice_cpp",
+            "0x98"
+          ],
+          [
+            "0x802b56f0",
+            "__sinit_\\ItemDice_cpp",
+            "0xc0"
+          ],
+          [
+            "0x802b5708",
+            "__sinit_\\ItemDice_cpp",
+            "0xd8"
+          ],
+          [
+            "0x802b5728",
+            "__sinit_\\ItemDice_cpp",
+            "0xf8"
+          ],
+          [
+            "0x802b5748",
+            "__sinit_\\ItemDice_cpp",
+            "0x118"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "unit": "Game/Enemy/Battan",
+    "external_sda_references": [
+      {
+        "address": "0x807d9c10",
+        "bytes": "3f80000000000000",
+        "symbol": "lbl_807D9C10",
+        "owners": [],
+        "site_count": 4,
+        "sites": [
+          [
+            "0x80159248",
+            "__ct__6BattanFPCc",
+            "0x58"
+          ],
+          [
+            "0x80159a74",
+            "exeBattanHalfTurn__6BattanFv",
+            "0x74"
+          ],
+          [
+            "0x8015ad88",
+            "moveBattanOnRail__6BattanFf",
+            "0xa8"
+          ],
+          [
+            "0x8015af44",
+            "appearBattanBreakParts__6BattanFv",
+            "0x64"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c14",
+        "bytes": "0000000036800000",
+        "symbol": "lbl_807D9C14",
+        "owners": [],
+        "site_count": 23,
+        "sites": [
+          [
+            "0x8015922c",
+            "__ct__6BattanFPCc",
+            "0x3c"
+          ],
+          [
+            "0x80159484",
+            "init__6BattanFRC12JMapInfoIter",
+            "0x1b4"
+          ],
+          [
+            "0x8015960c",
+            "init__6BattanFRC12JMapInfoIter",
+            "0x33c"
+          ],
+          [
+            "0x80159630",
+            "init__6BattanFRC12JMapInfoIter",
+            "0x360"
+          ],
+          [
+            "0x80159a6c",
+            "exeBattanHalfTurn__6BattanFv",
+            "0x6c"
+          ],
+          [
+            "0x8015a998",
+            "attackSensor__6BattanFP9HitSensorP9HitSensor",
+            "0xe8"
+          ],
+          [
+            "0x8015aa44",
+            "attackSensor__6BattanFP9HitSensorP9HitSensor",
+            "0x194"
+          ],
+          [
+            "0x8015ad34",
+            "moveBattanOnRail__6BattanFf",
+            "0x54"
+          ],
+          [
+            "0x8015ad74",
+            "moveBattanOnRail__6BattanFf",
+            "0x94"
+          ],
+          [
+            "0x8015adb4",
+            "moveBattanOnRail__6BattanFf",
+            "0xd4"
+          ],
+          [
+            "0x8015af60",
+            "appearBattanBreakParts__6BattanFv",
+            "0x80"
+          ],
+          [
+            "0x8015af6c",
+            "appearBattanBreakParts__6BattanFv",
+            "0x8c"
+          ],
+          [
+            "0x8015af90",
+            "appearBattanBreakParts__6BattanFv",
+            "0xb0"
+          ],
+          [
+            "0x8015b18c",
+            "calcBattanBreakPartPosition__6BattanFPQ29JGeometry8TVec3<f>l",
+            "0x5c"
+          ],
+          [
+            "0x8015b320",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x50"
+          ],
+          [
+            "0x8015b378",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0xa8"
+          ],
+          [
+            "0x8015b3d0",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x100"
+          ],
+          [
+            "0x8015b5a0",
+            "updateHitSensor__6BattanFP9HitSensor",
+            "0xf0"
+          ],
+          [
+            "0x8015b78c",
+            "__sinit_\\Battan_cpp",
+            "0xbc"
+          ],
+          [
+            "0x8015b7a0",
+            "__sinit_\\Battan_cpp",
+            "0xd0"
+          ],
+          [
+            "0x8015b7dc",
+            "__sinit_\\Battan_cpp",
+            "0x10c"
+          ],
+          [
+            "0x8015b7f0",
+            "__sinit_\\Battan_cpp",
+            "0x120"
+          ],
+          [
+            "0x8015b854",
+            "__sinit_\\Battan_cpp",
+            "0x184"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c18",
+        "bytes": "36800000b6800000",
+        "symbol": "lbl_807D9C18",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015adec",
+            "moveBattanOnRail__6BattanFf",
+            "0x10c"
+          ],
+          [
+            "0x8015af54",
+            "appearBattanBreakParts__6BattanFv",
+            "0x74"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c1c",
+        "bytes": "b68000003f000000",
+        "symbol": "lbl_807D9C1C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015af4c",
+            "appearBattanBreakParts__6BattanFv",
+            "0x6c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c20",
+        "bytes": "3f000000bf800000",
+        "symbol": "lbl_807D9C20",
+        "owners": [],
+        "site_count": 4,
+        "sites": [
+          [
+            "0x8015b344",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x74"
+          ],
+          [
+            "0x8015b420",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x150"
+          ],
+          [
+            "0x8015b434",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x164"
+          ],
+          [
+            "0x8015b468",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0x198"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c24",
+        "bytes": "bf8000003fc90fdb",
+        "symbol": "lbl_807D9C24",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x801595f4",
+            "init__6BattanFRC12JMapInfoIter",
+            "0x324"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c28",
+        "bytes": "3fc90fdbbfc90fdb",
+        "symbol": "lbl_807D9C28",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015af5c",
+            "appearBattanBreakParts__6BattanFv",
+            "0x7c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c2c",
+        "bytes": "bfc90fdb3f000000",
+        "symbol": "lbl_807D9C2C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015af64",
+            "appearBattanBreakParts__6BattanFv",
+            "0x84"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c30",
+        "bytes": "3f00000044480000",
+        "symbol": "lbl_807D9C30",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015ae1c",
+            "moveBattanOnRail__6BattanFf",
+            "0x13c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c34",
+        "bytes": "4448000043c80000",
+        "symbol": "lbl_807D9C34",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015945c",
+            "init__6BattanFRC12JMapInfoIter",
+            "0x18c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c38",
+        "bytes": "43c8000043480000",
+        "symbol": "lbl_807D9C38",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015aafc",
+            "receiveMsgPlayerAttack__6BattanFUlP9HitSensorP9HitSensor",
+            "0x3c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c3c",
+        "bytes": "4348000043fa0000",
+        "symbol": "lbl_807D9C3C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015aaf8",
+            "receiveMsgPlayerAttack__6BattanFUlP9HitSensorP9HitSensor",
+            "0x38"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c40",
+        "bytes": "43fa00003f800000",
+        "symbol": "lbl_807D9C40",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b3a0",
+            "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>",
+            "0xd0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c44",
+        "bytes": "3f80000042c80000",
+        "symbol": "lbl_807D9C44",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015a9f0",
+            "attackSensor__6BattanFP9HitSensorP9HitSensor",
+            "0x140"
+          ],
+          [
+            "0x8015aa78",
+            "attackSensor__6BattanFP9HitSensorP9HitSensor",
+            "0x1c8"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c48",
+        "bytes": "42c800003c23d70a",
+        "symbol": "lbl_807D9C48",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b604",
+            "updateHitSensor__6BattanFP9HitSensor",
+            "0x154"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c4c",
+        "bytes": "3c23d70a3dcccccd",
+        "symbol": "lbl_807D9C4C",
+        "owners": [],
+        "site_count": 3,
+        "sites": [
+          [
+            "0x801598b4",
+            "exeBattanWalk__6BattanFv",
+            "0xd4"
+          ],
+          [
+            "0x80159ce0",
+            "exeBattanRun__6BattanFv",
+            "0xf0"
+          ],
+          [
+            "0x8015ad9c",
+            "moveBattanOnRail__6BattanFf",
+            "0xbc"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c50",
+        "bytes": "3dcccccd43c80000",
+        "symbol": "lbl_807D9C50",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x80159a80",
+            "exeBattanHalfTurn__6BattanFv",
+            "0x80"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c54",
+        "bytes": "43c8000041200000",
+        "symbol": "lbl_807D9C54",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015a1a8",
+            "exeBattanDown__6BattanFv",
+            "0xb8"
+          ],
+          [
+            "0x8015b7d4",
+            "__sinit_\\Battan_cpp",
+            "0x104"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c58",
+        "bytes": "4120000042200000",
+        "symbol": "lbl_807D9C58",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015a1cc",
+            "exeBattanDown__6BattanFv",
+            "0xdc"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c5c",
+        "bytes": "4220000043160000",
+        "symbol": "lbl_807D9C5C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015a1d4",
+            "exeBattanDown__6BattanFv",
+            "0xe4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c60",
+        "bytes": "4316000041f00000",
+        "symbol": "lbl_807D9C60",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015ad70",
+            "moveBattanOnRail__6BattanFf",
+            "0x90"
+          ],
+          [
+            "0x8015b85c",
+            "__sinit_\\Battan_cpp",
+            "0x18c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c64",
+        "bytes": "41f0000042652ee1",
+        "symbol": "lbl_807D9C64",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015add4",
+            "moveBattanOnRail__6BattanFf",
+            "0xf4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c68",
+        "bytes": "42652ee143960000",
+        "symbol": "lbl_807D9C68",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015af68",
+            "appearBattanBreakParts__6BattanFv",
+            "0x88"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c6c",
+        "bytes": "4396000042480000",
+        "symbol": "lbl_807D9C6C",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015b238",
+            "calcBattanBreakPartPosition__6BattanFPQ29JGeometry8TVec3<f>l",
+            "0x108"
+          ],
+          [
+            "0x8015b284",
+            "calcBattanBreakPartPosition__6BattanFPQ29JGeometry8TVec3<f>l",
+            "0x154"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c70",
+        "bytes": "4248000044480000",
+        "symbol": "lbl_807D9C70",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015b5c4",
+            "updateHitSensor__6BattanFP9HitSensor",
+            "0x114"
+          ],
+          [
+            "0x8015b7e4",
+            "__sinit_\\Battan_cpp",
+            "0x114"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c74",
+        "bytes": "4448000044a28000",
+        "symbol": "lbl_807D9C74",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b750",
+            "__sinit_\\Battan_cpp",
+            "0x80"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c78",
+        "bytes": "44a2800044c80000",
+        "symbol": "lbl_807D9C78",
+        "owners": [],
+        "site_count": 3,
+        "sites": [
+          [
+            "0x8015b758",
+            "__sinit_\\Battan_cpp",
+            "0x88"
+          ],
+          [
+            "0x8015b76c",
+            "__sinit_\\Battan_cpp",
+            "0x9c"
+          ],
+          [
+            "0x8015b780",
+            "__sinit_\\Battan_cpp",
+            "0xb0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c7c",
+        "bytes": "44c8000044160000",
+        "symbol": "lbl_807D9C7C",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015b75c",
+            "__sinit_\\Battan_cpp",
+            "0x8c"
+          ],
+          [
+            "0x8015b770",
+            "__sinit_\\Battan_cpp",
+            "0xa0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c80",
+        "bytes": "4416000043e10000",
+        "symbol": "lbl_807D9C80",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b764",
+            "__sinit_\\Battan_cpp",
+            "0x94"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c84",
+        "bytes": "43e10000442f0000",
+        "symbol": "lbl_807D9C84",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b778",
+            "__sinit_\\Battan_cpp",
+            "0xa8"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c88",
+        "bytes": "442f0000c3c80000",
+        "symbol": "lbl_807D9C88",
+        "owners": [],
+        "site_count": 3,
+        "sites": [
+          [
+            "0x8015b784",
+            "__sinit_\\Battan_cpp",
+            "0xb4"
+          ],
+          [
+            "0x8015b7b4",
+            "__sinit_\\Battan_cpp",
+            "0xe4"
+          ],
+          [
+            "0x8015b7c8",
+            "__sinit_\\Battan_cpp",
+            "0xf8"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c8c",
+        "bytes": "c3c8000044034000",
+        "symbol": "lbl_807D9C8C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b794",
+            "__sinit_\\Battan_cpp",
+            "0xc4"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c90",
+        "bytes": "44034000c2c80000",
+        "symbol": "lbl_807D9C90",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b7a8",
+            "__sinit_\\Battan_cpp",
+            "0xd8"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c94",
+        "bytes": "c2c8000044548000",
+        "symbol": "lbl_807D9C94",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b7ac",
+            "__sinit_\\Battan_cpp",
+            "0xdc"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c98",
+        "bytes": "4454800043480000",
+        "symbol": "lbl_807D9C98",
+        "owners": [],
+        "site_count": 2,
+        "sites": [
+          [
+            "0x8015b7bc",
+            "__sinit_\\Battan_cpp",
+            "0xec"
+          ],
+          [
+            "0x8015b7d0",
+            "__sinit_\\Battan_cpp",
+            "0x100"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9c9c",
+        "bytes": "43480000c2480000",
+        "symbol": "lbl_807D9C9C",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b7c0",
+            "__sinit_\\Battan_cpp",
+            "0xf0"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9ca0",
+        "bytes": "c2480000c3147021",
+        "symbol": "lbl_807D9CA0",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b7f8",
+            "__sinit_\\Battan_cpp",
+            "0x128"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9ca4",
+        "bytes": "c314702142c80000",
+        "symbol": "lbl_807D9CA4",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b804",
+            "__sinit_\\Battan_cpp",
+            "0x134"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9ca8",
+        "bytes": "42c800004453ab85",
+        "symbol": "lbl_807D9CA8",
+        "owners": [],
+        "site_count": 4,
+        "sites": [
+          [
+            "0x8015b80c",
+            "__sinit_\\Battan_cpp",
+            "0x13c"
+          ],
+          [
+            "0x8015b820",
+            "__sinit_\\Battan_cpp",
+            "0x150"
+          ],
+          [
+            "0x8015b834",
+            "__sinit_\\Battan_cpp",
+            "0x164"
+          ],
+          [
+            "0x8015b848",
+            "__sinit_\\Battan_cpp",
+            "0x178"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9cac",
+        "bytes": "4453ab8543379810",
+        "symbol": "lbl_807D9CAC",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b810",
+            "__sinit_\\Battan_cpp",
+            "0x140"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9cb0",
+        "bytes": "43379810443526fa",
+        "symbol": "lbl_807D9CB0",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b818",
+            "__sinit_\\Battan_cpp",
+            "0x148"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9cb4",
+        "bytes": "443526fac36b0000",
+        "symbol": "lbl_807D9CB4",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b824",
+            "__sinit_\\Battan_cpp",
+            "0x154"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9cb8",
+        "bytes": "c36b0000440dd883",
+        "symbol": "lbl_807D9CB8",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b82c",
+            "__sinit_\\Battan_cpp",
+            "0x15c"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9cbc",
+        "bytes": "440dd883422c0000",
+        "symbol": "lbl_807D9CBC",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b838",
+            "__sinit_\\Battan_cpp",
+            "0x168"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9cc0",
+        "bytes": "422c000043c40000",
+        "symbol": "lbl_807D9CC0",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b840",
+            "__sinit_\\Battan_cpp",
+            "0x170"
+          ]
+        ]
+      },
+      {
+        "address": "0x807d9cc4",
+        "bytes": "43c400003f800000",
+        "symbol": "lbl_807D9CC4",
+        "owners": [],
+        "site_count": 1,
+        "sites": [
+          [
+            "0x8015b84c",
+            "__sinit_\\Battan_cpp",
+            "0x17c"
+          ]
+        ]
+      }
+    ]
+  }
+]

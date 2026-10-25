@@ -1,0 +1,198 @@
+throwJugemHeldTogezo__5JugemFRCQ29JGeometry8TVec3<f>  match=99.27885  size=416  (left=TARGET  right=OURS)
+   ...
+   d8   fdivs f2, f3, f2                             | fdivs f2, f3, f2
+   dc   fmuls f1, f1, f2                             | fmuls f1, f1, f2
+   e0 ~ fmuls f2, f4, f1                             | fmuls f3, f4, f1
+   e4 ~ fcmpo cr0, f2, f0                            | fcmpo cr0, f3, f0
+   e8   ble 0x3184                                   | ble 0x31e4
+   ec ~ frsqrte f4, f2                               | frsqrte f2, f3
+   f0   lfs f1, lbl_807DA8BC@sda21                   | lfs f1, @15966@sda21
+   f4   lfs f0, lbl_807DA8B8@sda21                   | lfs f0, @15967@sda21
+   f8 ~ fmuls f3, f4, f2                             | fmuls f3, f2, f3
+   fc ~ fmuls f2, f3, f4                             | fmuls f2, f3, f2
+  100   fsubs f1, f2, f1                             | fsubs f1, f2, f1
+  104 ~ fneg f4, f1                                  | fneg f2, f1
+  108 ~ fmuls f4, f4, f3                             | fmuls f2, f2, f3
+  10c ~ fmuls f4, f4, f0                             | fmuls f2, f2, f0
+  110   b 0x3188                                     | b 0x31e8
+  114 ~ fmr f4, f2                                   | fmr f2, f3
+  118   lfs f0, lbl_807DA934@sda21                   | lfs f0, @15968@sda21
+  11c   addi r3, r1, 0x8                             | addi r3, r1, 0x8
+  120   addi r4, r29, 0x44                           | addi r4, r29, 0x44
+  124 ~ fdivs f0, f0, f4                             | fdivs f0, f0, f2
+  128   fmuls f29, f5, f0                            | fmuls f29, f5, f0
+  12c   fmuls f30, f31, f0                           | fmuls f30, f31, f0
+calcJugemFollowPosition__5JugemFPQ29JGeometry8TVec3<f>f  match=99.89796  size=784  (left=TARGET  right=OURS)
+   ...
+   44   addi r3, r1, 0x9c                            | addi r3, r1, 0x9c
+   48   bl findJugemNearestRailPoint__FPQ29JGeometry8TVec3<f>P9LiveActorRCQ29JGeometry8TVec3<f> | bl findJugemNearestRailPoint__FPQ29JGeometry8TVec3<f>P9LiveActorRCQ29JGeometry8TVec3<f>
+   4c ~ mr r28, r3                                   | mr r27, r3
+   50   mr r3, r31                                   | mr r3, r31
+   54   addi r4, r1, 0x9c                            | addi r4, r1, 0x9c
+   ...
+   60   stw r0, 0x8(r1)                              | stw r0, 0x8(r1)
+   64   mr r3, r30                                   | mr r3, r30
+   68 ~ mr r4, r28                                   | mr r4, r27
+   6c   addi r5, r1, 0x8                             | addi r5, r1, 0x8
+   70   bl getRailPointArg0WithInit__2MRFPC9LiveActorlPl | bl getRailPointArg0WithInit__2MRFPC9LiveActorlPl
+   ...
+  218   bl __as__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __as__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+  21c   bl getPlayerPos__2MRFv                       | bl getPlayerPos__2MRFv
+  220 ~ mr r28, r3                                   | mr r29, r3
+  224   mr r4, r31                                   | mr r4, r31
+  228   addi r3, r1, 0x78                            | addi r3, r1, 0x78
+  22c   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+  230 ~ mr r4, r28                                   | mr r4, r29
+  234   addi r3, r1, 0x78                            | addi r3, r1, 0x78
+  238   bl __ami__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ami__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+updateJugemMoveAnimation__5JugemFv  match=92.646065  size=712  (left=TARGET  right=OURS)
+    0 ~ stwu r1, -0x80(r1)                           | stwu r1, -0x90(r1)
+    4   mflr r0                                      | mflr r0
+    8 ~ stw r0, 0x84(r1)                             | stw r0, 0x94(r1)
+    c +                                              | addi r11, r1, 0x80
+   10 ~ stfd f31, 0x70(r1)                           | stfd f31, 0x80(r1)
+   14 ~ psq_st f31, 0x78(r1), 0, qr0                 | psq_st f31, 0x88(r1), 0, qr0
+   18 R stw r31, 0x6c(r1)                            | bl _savegpr_29
+   1c +                                              | mr r29, r3
+   20 ~ lis r31, lbl_80688DA0@ha                     | lis r30, ...data.0@ha
+   24 ~ addi r31, r31, lbl_80688DA0@l                | addi r30, r30, ...data.0@l
+   28 - stw r30, 0x68(r1)                            |
+   2c - mr r30, r3                                   |
+   30   addi r3, r1, 0x2c                            | addi r3, r1, 0x2c
+   34 ~ addi r4, r30, 0x38                           | addi r4, r29, 0x38
+   38   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   3c ~ lwz r12, 0x0(r30)                            | lwz r12, 0x0(r29)
+   40 ~ mr r3, r30                                   | mr r3, r29
+   44   lwz r12, 0x40(r12)                           | lwz r12, 0x40(r12)
+   48   mtctr r12                                    | mtctr r12
+   ...
+   9c   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+   a0   bge 0x3bc4                                   | bge 0x3c24
+   a4 ~ mr r3, r30                                   | mr r3, r29
+   a8 ~ addi r4, r31, 0x190                          | addi r4, r30, 0x190
+   ac   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+   b0   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+   b4   beq 0x3ae8                                   | beq 0x3b48
+   b8 ~ addi r31, r31, 0x19c                         | addi r30, r30, 0x19c
+   bc   b 0x3b94                                     | b 0x3bf4
+   c0 ~ mr r3, r30                                   | mr r3, r29
+   c4 ~ addi r4, r31, 0x1a8                          | addi r4, r30, 0x1a8
+   c8   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+   cc   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+   d0   beq 0x3b04                                   | beq 0x3b64
+   d4 ~ addi r31, r31, 0x1b4                         | addi r30, r30, 0x1b4
+   d8   b 0x3b94                                     | b 0x3bf4
+   dc ~ mr r3, r30                                   | mr r3, r29
+   e0 ~ addi r4, r31, 0x1c4                          | addi r4, r30, 0x1c4
+   e4   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+   e8   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+   ec   beq 0x3b20                                   | beq 0x3b80
+   f0 ~ addi r31, r31, 0x1d0                         | addi r30, r30, 0x1d0
+   f4   b 0x3b94                                     | b 0x3bf4
+   f8 ~ mr r3, r30                                   | mr r3, r29
+   fc ~ addi r4, r31, 0x1e0                          | addi r4, r30, 0x1e0
+  100   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+  104   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  108   beq 0x3b3c                                   | beq 0x3b9c
+  10c ~ addi r31, r31, 0x1ec                         | addi r30, r30, 0x1ec
+  110   b 0x3b94                                     | b 0x3bf4
+  114 ~ mr r3, r30                                   | mr r3, r29
+  118 ~ addi r4, r31, 0x19c                          | addi r4, r30, 0x19c
+  11c   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+  120   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  124   bne 0x3cd8                                   | bne 0x3d3c
+  128 ~ mr r3, r30                                   | mr r3, r29
+  12c ~ addi r4, r31, 0x1b4                          | addi r4, r30, 0x1b4
+  130   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+  134   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  138   bne 0x3cd8                                   | bne 0x3d3c
+  13c ~ mr r3, r30                                   | mr r3, r29
+  140 ~ addi r4, r31, 0x1d0                          | addi r4, r30, 0x1d0
+  144   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+  148   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  14c   bne 0x3cd8                                   | bne 0x3d3c
+  150 ~ mr r3, r30                                   | mr r3, r29
+  154 ~ addi r4, r31, 0x1ec                          | addi r4, r30, 0x1ec
+  158   bl isBckPlaying__2MRFPC9LiveActorPCc         | bl isBckPlaying__2MRFPC9LiveActorPCc
+  15c   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  160   beq 0x3b90                                   | beq 0x3bf0
+  164   b 0x3cd8                                     | b 0x3d3c
+  168 ~ addi r31, r31, 0x1f8                         | addi r30, r30, 0x1f8
+  16c ~ mr r3, r30                                   | mr r3, r29
+  170 ~ mr r4, r31                                   | mr r4, r30
+  174   bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc | bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc
+  178 ~ lwz r3, 0x108(r30)                           | lwz r3, 0x108(r29)
+  17c ~ mr r4, r31                                   | mr r4, r30
+  180   bl isExistAnimInKeeper__2MRFPC9LiveActorPCc  | bl isExistAnimInKeeper__2MRFPC9LiveActorPCc
+  184   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  188   beq 0x3cd8                                   | beq 0x3d3c
+  18c ~ lwz r3, 0x108(r30)                           | lwz r3, 0x108(r29)
+  190 ~ mr r4, r31                                   | mr r4, r30
+  194   bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc | bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc
+  198   b 0x3cd8                                     | b 0x3d3c
+   ...
+  1ac   bl __ct__Q29JGeometry8TVec3<f>Ffff           | bl __ct__Q29JGeometry8TVec3<f>Ffff
+  1b0   lfs f1, lbl_807DA8B4@sda21                   | lfs f1, @15528@sda21
+  1b4 +                                              | mr r31, r3
+  1b8 +                                              | lfs f3, @15549@sda21
+  1bc   addi r3, r1, 0x14                            | addi r3, r1, 0x14
+  1c0 - lfs f3, lbl_807DA8B0@sda21                   |
+  1c4   fmr f2, f1                                   | fmr f2, f1
+  1c8   bl __ct__Q29JGeometry8TVec3<f>Ffff           | bl __ct__Q29JGeometry8TVec3<f>Ffff
+  1cc R addi r3, r1, 0x2c                            | mr r4, r3
+  1d0 R addi r4, r1, 0x14                            | mr r5, r31
+  1d4 ~ addi r5, r1, 0x8                             | addi r3, r1, 0x2c
+  1d8   bl diffAngleSignedHorizontal__2MRFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f> | bl diffAngleSignedHorizontal__2MRFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>
+  1dc   lfs f2, lbl_807DA958@sda21                   | lfs f2, @16105@sda21
+   ...
+  1f8   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+  1fc   bge 0x3c28                                   | bge 0x3c8c
+  200 ~ addi r31, r31, 0x190                         | addi r30, r30, 0x190
+  204   b 0x3c70                                     | b 0x3cd4
+  208   lfs f0, lbl_807DA960@sda21                   | lfs f0, @16107@sda21
+   ...
+  21c   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+  220   bge 0x3c4c                                   | bge 0x3cb0
+  224 ~ addi r31, r31, 0x1c4                         | addi r30, r30, 0x1c4
+  228   b 0x3c70                                     | b 0x3cd4
+  22c   lfs f0, lbl_807DA964@sda21                   | lfs f0, @16108@sda21
+   ...
+  23c   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+  240   bge 0x3c6c                                   | bge 0x3cd0
+  244 ~ addi r31, r31, 0x1a8                         | addi r30, r30, 0x1a8
+  248   b 0x3c70                                     | b 0x3cd4
+  24c ~ addi r31, r31, 0x1e0                         | addi r30, r30, 0x1e0
+  250 ~ cmpwi r31, 0x0                               | cmpwi r30, 0x0
+  254   beq 0x3cd8                                   | beq 0x3d3c
+  258 ~ mr r3, r30                                   | mr r3, r29
+  25c   bl getBckFrame__2MRFPC9LiveActor             | bl getBckFrame__2MRFPC9LiveActor
+  260   fmr f31, f1                                  | fmr f31, f1
+  264 ~ mr r3, r30                                   | mr r3, r29
+  268 ~ mr r4, r31                                   | mr r4, r30
+  26c   bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc | bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc
+  270   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  274   beq 0x3cd8                                   | beq 0x3d3c
+  278 ~ lwz r3, 0x108(r30)                           | lwz r3, 0x108(r29)
+  27c ~ mr r4, r31                                   | mr r4, r30
+  280   bl isExistAnimInKeeper__2MRFPC9LiveActorPCc  | bl isExistAnimInKeeper__2MRFPC9LiveActorPCc
+  284   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  288   beq 0x3cb8                                   | beq 0x3d1c
+  28c ~ lwz r3, 0x108(r30)                           | lwz r3, 0x108(r29)
+  290 ~ mr r4, r31                                   | mr r4, r30
+  294   bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc | bl tryStartActionNotPlaying__2MRFPC9LiveActorPCc
+  298   fmr f1, f31                                  | fmr f1, f31
+  29c ~ mr r3, r30                                   | mr r3, r29
+  2a0 ~ mr r4, r31                                   | mr r4, r30
+  2a4   bl setAllAnimFrame__2MRFPC9LiveActorPCcf     | bl setAllAnimFrame__2MRFPC9LiveActorPCcf
+  2a8   fmr f1, f31                                  | fmr f1, f31
+  2ac ~ lwz r3, 0x108(r30)                           | lwz r3, 0x108(r29)
+  2b0 ~ mr r4, r31                                   | mr r4, r30
+  2b4   bl setAllAnimFrame__2MRFPC9LiveActorPCcf     | bl setAllAnimFrame__2MRFPC9LiveActorPCcf
+  2b8 R lwz r0, 0x84(r1)                             | addi r11, r1, 0x80
+  2bc ~ psq_l f31, 0x78(r1), 0, qr0                  | psq_l f31, 0x88(r1), 0, qr0
+  2c0 ~ lfd f31, 0x70(r1)                            | lfd f31, 0x80(r1)
+  2c4 R lwz r31, 0x6c(r1)                            | bl _restgpr_29
+  2c8 ~ lwz r30, 0x68(r1)                            | lwz r0, 0x94(r1)
+  2cc   mtlr r0                                      | mtlr r0
+  2d0 ~ addi r1, r1, 0x80                            | addi r1, r1, 0x90
+  2d4   blr                                          | blr

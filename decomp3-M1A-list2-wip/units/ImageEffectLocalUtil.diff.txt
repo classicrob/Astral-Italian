@@ -1,0 +1,194 @@
+blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff  match=95.36487  size=592  (left=TARGET  right=OURS)
+   ...
+   4c   psq_st f24, 0xa8(r1), 0, qr0                 | psq_st f24, 0xa8(r1), 0, qr0
+   50   bl _savegpr_24                               | bl _savegpr_24
+   54 ~ fmr f28, f1                                  | fmr f29, f1
+   58   mr r24, r3                                   | mr r24, r3
+   5c   fmr f24, f2                                  | fmr f24, f2
+   ...
+   90   stw r27, 0x6c(r1)                            | stw r27, 0x6c(r1)
+   94   fmuls f1, f0, f24                            | fmuls f1, f0, f24
+   98 ~ lfd f30, lbl_8064CA10@l(r3)                  | lfd f31, @12068@l(r3)
+   9c   stw r30, 0x68(r1)                            | stw r30, 0x68(r1)
+   a0   lis r31, sSinCosTable__5JMath@ha             | lis r31, sSinCosTable__5JMath@ha
+   a4 ~ fmuls f29, f28, f2                           | fmuls f30, f29, f2
+   a8 ~ lfs f31, lbl_807E1470@sda21                  | lfs f24, @12063@sda21
+   ac   lfd f0, 0x68(r1)                             | lfd f0, 0x68(r1)
+   b0   addi r31, r31, sSinCosTable__5JMath@l        | addi r31, r31, sSinCosTable__5JMath@l
+   b4 ~ lfs f24, lbl_807E1474@sda21                  | lfs f25, @12062@sda21
+   b8   li r28, 0x0                                  | li r28, 0x0
+   bc ~ fsubs f0, f0, f30                            | fsubs f0, f0, f31
+   c0 ~ lfs f25, lbl_807E146C@sda21                  | lfs f26, @11993@sda21
+   c4 ~ lfs f26, lbl_807E1488@sda21                  | lfs f27, @12064@sda21
+   c8 ~ lfs f27, lbl_807E148C@sda21                  | lfs f28, @12065@sda21
+   cc   fdivs f0, f1, f0                             | fdivs f0, f1, f0
+   d0   fctiwz f0, f0                                | fctiwz f0, f0
+   ...
+   e8   lfd f0, 0x70(r1)                             | lfd f0, 0x70(r1)
+   ec   stw r27, 0x6c(r1)                            | stw r27, 0x6c(r1)
+   f0 ~ fsubs f0, f0, f30                            | fsubs f0, f0, f31
+   f4   stw r30, 0x68(r1)                            | stw r30, 0x68(r1)
+   f8 ~ fmuls f1, f0, f31                            | fmuls f1, f0, f24
+   fc   lfd f0, 0x68(r1)                             | lfd f0, 0x68(r1)
+  100 ~ fsubs f0, f0, f30                            | fsubs f0, f0, f31
+  104 ~ fmuls f1, f24, f1                            | fmuls f1, f25, f1
+  108   fdivs f2, f1, f0                             | fdivs f2, f1, f0
+  10c   fmr f0, f2                                   | fmr f0, f2
+  110 ~ fcmpo cr0, f2, f25                           | fcmpo cr0, f2, f26
+  114   bge 0x95c                                    | bge 0x7cc
+  118   fneg f0, f2                                  | fneg f0, f2
+  11c ~ fmuls f0, f0, f26                            | fmuls f0, f0, f27
+  120 ~ fcmpo cr0, f2, f25                           | fcmpo cr0, f2, f26
+  124   fctiwz f0, f0                                | fctiwz f0, f0
+  128 ~ stfd f0, 0x70(r1)                            | stfd f0, 0x78(r1)
+  12c ~ lwz r0, 0x74(r1)                             | lwz r0, 0x7c(r1)
+  130   clrlslwi r0, r0, 18, 3                       | clrlslwi r0, r0, 18, 3
+  134   add r3, r31, r0                              | add r3, r31, r0
+  138   lfs f1, 0x4(r3)                              | lfs f1, 0x4(r3)
+  13c   bge 0x9a0                                    | bge 0x810
+  140 ~ fmuls f0, f2, f27                            | fmuls f0, f2, f28
+  144   fctiwz f0, f0                                | fctiwz f0, f0
+  148 ~ stfd f0, 0x70(r1)                            | stfd f0, 0x78(r1)
+  14c ~ lwz r0, 0x74(r1)                             | lwz r0, 0x7c(r1)
+  150   clrlslwi r0, r0, 18, 3                       | clrlslwi r0, r0, 18, 3
+  154   lfsx f0, r31, r0                             | lfsx f0, r31, r0
+  158   fneg f0, f0                                  | fneg f0, f0
+  15c   b 0x9b8                                      | b 0x828
+  160 ~ fmuls f0, f2, f26                            | fmuls f0, f2, f27
+  164   fctiwz f0, f0                                | fctiwz f0, f0
+  168 ~ stfd f0, 0x70(r1)                            | stfd f0, 0x78(r1)
+  16c ~ lwz r0, 0x74(r1)                             | lwz r0, 0x7c(r1)
+  170   clrlslwi r0, r0, 18, 3                       | clrlslwi r0, r0, 18, 3
+  174   lfsx f0, r31, r0                             | lfsx f0, r31, r0
+  178 ~ fmuls f2, f29, f0                            | fmuls f1, f29, f1
+  17c   lfs f3, lbl_807E146C@sda21                   | lfs f3, @11993@sda21
+  180 ~ fmuls f1, f28, f1                            | fmuls f2, f30, f0
+  184   addi r3, r1, 0x38                            | addi r3, r1, 0x38
+  188   bl makeTrans__Q29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>Ffff | bl makeTrans__Q29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>Ffff
+   ...
+  194   li r5, 0x1                                   | li r5, 0x1
+  198   bl GXLoadTexMtxImm                           | bl GXLoadTexMtxImm
+  19c R cmpwi r28, 0x0                               | subic r0, r28, 0x1
+  1a0 - bne 0x9ec                                    |
+  1a4 - li r7, 0x0                                   |
+  1a8 - b 0x9f0                                      |
+  1ac - li r7, 0x1                                   |
+  1b0   mr r3, r24                                   | mr r3, r24
+  1b4   mr r4, r25                                   | mr r4, r25
+  1b8   mr r5, r26                                   | mr r5, r26
+  1bc   clrlwi r6, r29, 24                           | clrlwi r6, r29, 24
+  1c0 +                                              | subfe r7, r0, r28
+  1c4   li r8, 0x0                                   | li r8, 0x0
+  1c8   bl drawTexture__20ImageEffectLocalUtilFP10JUTTexturellUcQ220ImageEffectLocalUtil12ETexDrawType11_GXTexMapID | bl drawTexture__20ImageEffectLocalUtilFP10JUTTexturellUcQ220ImageEffectLocalUtil12ETexDrawType11_GXTexMapID
+drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf  match=99.83384  size=2648  (left=TARGET  right=OURS)
+   ...
+   38   mr r27, r5                                   | mr r27, r5
+   3c   stw r0, 0x88(r1)                             | stw r0, 0x88(r1)
+   40 ~ mr r30, r6                                   | mr r29, r6
+   44   mr r28, r7                                   | mr r28, r7
+   48   bl getFrameBufferWidth__2MRFv                | bl getFrameBufferWidth__2MRFv
+   4c   xoris r0, r3, 0x8000                         | xoris r0, r3, 0x8000
+   50   stw r0, 0x84(r1)                             | stw r0, 0x84(r1)
+   54 ~ lis r29, lbl_8064CA08@ha                     | lis r30, @11997@ha
+   58 ~ lfd f1, lbl_8064CA08@l(r29)                  | lfd f1, @11997@l(r30)
+   5c   lfd f0, 0x80(r1)                             | lfd f0, 0x80(r1)
+   60   fsubs f31, f0, f1                            | fsubs f31, f0, f1
+   ...
+   70   lfs f1, lbl_807E146C@sda21                   | lfs f1, @11993@sda21
+   74   fmr f4, f31                                  | fmr f4, f31
+   78 ~ lfd f2, lbl_8064CA08@l(r29)                  | lfd f2, @11997@l(r30)
+   7c   addi r3, r1, 0x40                            | addi r3, r1, 0x40
+   80   lfd f0, 0x88(r1)                             | lfd f0, 0x88(r1)
+   ...
+  1ac   li r3, 0x4                                   | li r3, 0x4
+  1b0   bl GXSetNumTevStages                         | bl GXSetNumTevStages
+  1b4 ~ mr r5, r30                                   | mr r5, r29
+  1b8   li r3, 0x0                                   | li r3, 0x0
+  1bc   li r4, 0x0                                   | li r4, 0x0
+   ...
+  234   li r8, 0x0                                   | li r8, 0x0
+  238   bl GXSetTevAlphaOp                           | bl GXSetTevAlphaOp
+  23c ~ mr r5, r30                                   | mr r5, r29
+  240   li r3, 0x1                                   | li r3, 0x1
+  244   li r4, 0x1                                   | li r4, 0x1
+   ...
+  2bc   li r8, 0x0                                   | li r8, 0x0
+  2c0   bl GXSetTevAlphaOp                           | bl GXSetTevAlphaOp
+  2c4 ~ mr r5, r30                                   | mr r5, r29
+  2c8   li r3, 0x2                                   | li r3, 0x2
+  2cc   li r4, 0x2                                   | li r4, 0x2
+   ...
+  344   li r8, 0x0                                   | li r8, 0x0
+  348   bl GXSetTevAlphaOp                           | bl GXSetTevAlphaOp
+  34c ~ mr r5, r30                                   | mr r5, r29
+  350   li r3, 0x3                                   | li r3, 0x3
+  354   li r4, 0x3                                   | li r4, 0x3
+   ...
+  3e4   li r3, 0x6                                   | li r3, 0x6
+  3e8   bl GXSetNumTevStages                         | bl GXSetNumTevStages
+  3ec ~ mr r5, r30                                   | mr r5, r29
+  3f0   li r3, 0x0                                   | li r3, 0x0
+  3f4   li r4, 0x0                                   | li r4, 0x0
+   ...
+  46c   li r8, 0x0                                   | li r8, 0x0
+  470   bl GXSetTevAlphaOp                           | bl GXSetTevAlphaOp
+  474 ~ mr r5, r30                                   | mr r5, r29
+  478   li r3, 0x1                                   | li r3, 0x1
+  47c   li r4, 0x1                                   | li r4, 0x1
+   ...
+  4f4   li r8, 0x0                                   | li r8, 0x0
+  4f8   bl GXSetTevAlphaOp                           | bl GXSetTevAlphaOp
+  4fc ~ mr r5, r30                                   | mr r5, r29
+  500   li r3, 0x2                                   | li r3, 0x2
+  504   li r4, 0x2                                   | li r4, 0x2
+   ...
+  57c   li r8, 0x0                                   | li r8, 0x0
+  580   bl GXSetTevAlphaOp                           | bl GXSetTevAlphaOp
+  584 ~ mr r5, r30                                   | mr r5, r29
+  588   li r3, 0x3                                   | li r3, 0x3
+  58c   li r4, 0x3                                   | li r4, 0x3
+   ...
+  80c   xoris r0, r3, 0x8000                         | xoris r0, r3, 0x8000
+  810   stw r0, 0x84(r1)                             | stw r0, 0x84(r1)
+  814 ~ lis r29, lbl_8064CA08@ha                     | lis r30, @11997@ha
+  818 ~ lfd f1, lbl_8064CA08@l(r29)                  | lfd f1, @11997@l(r30)
+  81c   lfd f0, 0x80(r1)                             | lfd f0, 0x80(r1)
+  820   fsubs f31, f0, f1                            | fsubs f31, f0, f1
+   ...
+  830   lfs f2, lbl_807E146C@sda21                   | lfs f2, @11993@sda21
+  834   fmr f1, f30                                  | fmr f1, f30
+  838 ~ lfd f4, lbl_8064CA08@l(r29)                  | lfd f4, @11997@l(r30)
+  83c   addi r3, r1, 0x10                            | addi r3, r1, 0x10
+  840   lfd f0, 0x88(r1)                             | lfd f0, 0x88(r1)
+   ...
+  8d0   bl GXLoadTexMtxImm                           | bl GXLoadTexMtxImm
+  8d4   mr r3, r26                                   | mr r3, r26
+  8d8 ~ mr r4, r30                                   | mr r4, r29
+  8dc   bl load__10JUTTextureF11_GXTexMapID          | bl load__10JUTTextureF11_GXTexMapID
+  8e0   li r3, 0x98                                  | li r3, 0x98
+   ...
+  8e8   li r5, 0x4                                   | li r5, 0x4
+  8ec   bl GXBegin                                   | bl GXBegin
+  8f0 ~ divw r30, r27, r31                           | divw r29, r27, r31
+  8f4 ~ mullw r0, r30, r31                           | mullw r0, r29, r31
+  8f8   subf r28, r0, r27                            | subf r28, r0, r27
+  8fc   bl getFrameBufferWidth__2MRFv                | bl getFrameBufferWidth__2MRFv
+   ...
+  904   stw r0, 0x84(r1)                             | stw r0, 0x84(r1)
+  908   xoris r0, r31, 0x8000                        | xoris r0, r31, 0x8000
+  90c ~ lfd f2, lbl_8064CA08@l(r29)                  | lfd f2, @11997@l(r30)
+  910   stw r0, 0x8c(r1)                             | stw r0, 0x8c(r1)
+  914   lfd f1, 0x80(r1)                             | lfd f1, 0x80(r1)
+   ...
+  940   xoris r6, r28, 0x8000                        | xoris r6, r28, 0x8000
+  944   lfd f1, 0x80(r1)                             | lfd f1, 0x80(r1)
+  948 ~ addi r0, r30, 0x1                            | addi r0, r29, 0x1
+  94c ~ lfd f3, lbl_8064CA08@l(r29)                  | lfd f3, @11997@l(r30)
+  950   xoris r5, r4, 0x8000                         | xoris r5, r4, 0x8000
+  954   lfd f0, 0x88(r1)                             | lfd f0, 0x88(r1)
+   ...
+  968   lis r3, 0xcc01                               | lis r3, 0xcc01
+  96c   lfd f1, 0x80(r1)                             | lfd f1, 0x80(r1)
+  970 ~ xoris r0, r30, 0x8000                        | xoris r0, r29, 0x8000
+  974   fdivs f4, f2, f0                             | fdivs f4, f2, f0
+  978   stw r4, 0x84(r1)                             | stw r4, 0x84(r1)

@@ -1,0 +1,106 @@
+exeFollow__19BellyDragonBodyPartFv  match=94.8  size=500  (left=TARGET  right=OURS)
+   ...
+  128   bl pullToMtxSide__19BellyDragonBodyPartFPA4_fbfff | bl pullToMtxSide__19BellyDragonBodyPartFPA4_fbfff
+  12c   b 0x7d4                                      | b 0x854
+  130 ~ lfs f1, lbl_807D775C@sda21                   | lfs f2, @11635@sda21
+  134 ~ lfs f4, lbl_807D7758@sda21                   | lfs f3, @11634@sda21
+  138   lfs f0, lbl_807D777C@sda21                   | lfs f0, @11638@sda21
+  13c +                                              | lwz r3, 0xa0(r31)
+  140 ~ fsubs f2, f1, f4                             | fsubs f2, f2, f3
+  144   lfs f1, lbl_807D7778@sda21                   | lfs f1, @11637@sda21
+  148 - lwz r3, 0xa0(r31)                            |
+  14c ~ lfs f3, 0x9c(r31)                            | lfs f4, 0x9c(r31)
+  150   fsubs f0, f0, f1                             | fsubs f0, f0, f1
+  154   lwz r12, 0x0(r3)                             | lwz r12, 0x0(r3)
+  158 ~ fmuls f2, f3, f2                             | fmuls f2, f4, f2
+  15c ~ lfs f30, 0x98(r3)                            | lfs f31, 0x98(r31)
+  160 +                                              | lwz r12, 0x40(r12)
+  164 ~ fmuls f0, f3, f0                             | fmuls f0, f4, f0
+  168 - lwz r12, 0x40(r12)                           |
+  16c - lfs f31, 0x98(r31)                           |
+  170 ~ fadds f29, f4, f2                            | fadds f29, f3, f2
+  174 +                                              | lfs f30, 0x98(r3)
+  178   fadds f28, f1, f0                            | fadds f28, f1, f0
+  17c   mtctr r12                                    | mtctr r12
+exeExitB__19BellyDragonBodyPartFv  match=98.52601  size=692  (left=TARGET  right=OURS)
+   ...
+   bc   bl pullToMtxSide__19BellyDragonBodyPartFPA4_fbfff | bl pullToMtxSide__19BellyDragonBodyPartFPA4_fbfff
+   c0   b 0xf04                                      | b 0xf84
+   c4 ~ lfs f0, lbl_807D775C@sda21                   | lfs f1, @11802@sda21
+   c8   mr r3, r30                                   | mr r3, r30
+   cc ~ lfs f5, lbl_807D7758@sda21                   | lfs f4, @11801@sda21
+   d0   li r4, 0x5a                                  | li r4, 0x5a
+   d4 ~ lfs f3, lbl_807D7778@sda21                   | lfs f0, @11805@sda21
+   d8 +                                              | lfs f3, @11804@sda21
+   dc ~ fsubs f2, f0, f5                             | fsubs f2, f1, f4
+   e0 - lfs f0, lbl_807D777C@sda21                   |
+   e4 ~ lfs f4, 0x9c(r30)                            | lfs f5, 0x9c(r30)
+   e8   fsubs f0, f0, f3                             | fsubs f0, f0, f3
+   ec   lfs f1, lbl_807D7768@sda21                   | lfs f1, @14087@sda21
+   f0 ~ fmuls f2, f4, f2                             | fmuls f2, f5, f2
+   f4 ~ fmuls f0, f4, f0                             | fmuls f0, f5, f0
+   f8 ~ fadds f2, f5, f2                             | fadds f2, f4, f2
+   fc   fadds f30, f3, f0                            | fadds f30, f3, f0
+  100   bl calcNerveEaseInValue__2MRFPC9LiveActorlff | bl calcNerveEaseInValue__2MRFPC9LiveActorlff
+   ...
+  250   mr r3, r30                                   | mr r3, r30
+  254   fsubs f1, f1, f31                            | fsubs f1, f1, f31
+  258 ~ fmuls f1, f1, f0                             | fmuls f1, f0, f1
+  25c   bl pullToMtx__19BellyDragonBodyPartFPA4_ff   | bl pullToMtx__19BellyDragonBodyPartFPA4_ff
+  260   mr r3, r30                                   | mr r3, r30
+__ct__15BellyDragonBodyFP11BellyDragonPQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>b  match=98.61826  size=1708  (left=TARGET  right=OURS)
+   ...
+   f8   lfs f2, lbl_807D7700@sda21                   | lfs f2, @13981@sda21
+   fc   li r4, -0x1                                  | li r4, -0x1
+  100 R lfs f1, lbl_807D7718@sda21                   | lbz r6, 0x0(r24)
+  104   li r5, 0x0                                   | li r5, 0x0
+  108   fmr f3, f2                                   | fmr f3, f2
+  10c R lbz r6, 0x0(r24)                             | lfs f1, @14454@sda21
+  110   bl __ct__19BellyDragonBodyPartFlP19BellyDragonBodyPartbfff | bl __ct__19BellyDragonBodyPartFlP19BellyDragonBodyPartbfff
+  114   mr r22, r3                                   | mr r22, r3
+   ...
+  1dc   bl getJointIndex__2MRFPC9LiveActorPCc        | bl getJointIndex__2MRFPC9LiveActorPCc
+  1e0   lis r4, lbl_80646DF0@ha                      | lis r4, @14022@ha
+  1e4 ~ lfs f28, lbl_807D771C@sda21                  | lfs f30, @14149@sda21
+  1e8   lfs f29, lbl_807D7720@sda21                  | lfs f29, @14275@sda21
+  1ec   clrlwi r27, r3, 16                           | clrlwi r27, r3, 16
+  1f0 ~ lfs f30, lbl_807D7700@sda21                  | lfs f28, @13981@sda21
+  1f4   addi r22, r29, 0xc4                          | addi r22, r29, 0xc4
+  1f8 ~ lfs f31, lbl_807D77F4@sda21                  | lfs f27, @14052@sda21
+  1fc   li r26, 0x0                                  | li r26, 0x0
+  200 +                                              | lfs f26, @14457@sda21
+  204 +                                              | li r23, 0x0
+  208 ~ lfd f26, lbl_80646DF0@l(r4)                  | lfd f31, @14022@l(r4)
+  20c - li r23, 0x0                                  |
+  210 - lfs f27, lbl_807D7724@sda21                  |
+  214   li r31, 0x10                                 | li r31, 0x10
+  218   b 0x259c                                     | b 0x261c
+   ...
+  230   stw r0, 0x5c(r1)                             | stw r0, 0x5c(r1)
+  234   lfd f0, 0x58(r1)                             | lfd f0, 0x58(r1)
+  238 ~ fsubs f0, f0, f26                            | fsubs f0, f0, f31
+  23c ~ fcmpo cr0, f0, f27                           | fcmpo cr0, f0, f26
+  240   cror eq, lt, eq                              | cror eq, lt, eq
+  244   bne 0x24a8                                   | bne 0x2528
+   ...
+  254   lfs f2, lbl_807D7704@sda21                   | lfs f2, @13980@sda21
+  258   lfd f0, 0x60(r1)                             | lfd f0, 0x60(r1)
+  25c ~ fsubs f0, f0, f26                            | fsubs f0, f0, f31
+  260 ~ fdivs f1, f0, f27                            | fdivs f1, f0, f26
+  264   bl getEaseInValue__2MRFffff                  | bl getEaseInValue__2MRFffff
+  268 ~ fsubs f2, f28, f29                           | fsubs f2, f30, f29
+  26c ~ fsubs f0, f30, f31                           | fsubs f0, f28, f27
+  270   fmuls f2, f1, f2                             | fmuls f2, f1, f2
+  274   fmuls f0, f1, f0                             | fmuls f0, f1, f0
+  278   fadds f24, f29, f2                           | fadds f24, f29, f2
+  27c ~ fadds f23, f31, f0                           | fadds f23, f27, f0
+  280   subi r0, r26, 0x7                            | subi r0, r26, 0x7
+  284   lfs f25, lbl_807D7700@sda21                  | lfs f25, @13981@sda21
+   ...
+  2a8   lfd f1, 0x58(r1)                             | lfd f1, 0x58(r1)
+  2ac   lfd f0, 0x60(r1)                             | lfd f0, 0x60(r1)
+  2b0 ~ fsubs f1, f1, f26                            | fsubs f1, f1, f31
+  2b4   lfs f2, lbl_807D7704@sda21                   | lfs f2, @13980@sda21
+  2b8 ~ fsubs f0, f0, f26                            | fsubs f0, f0, f31
+  2bc   fdivs f1, f1, f0                             | fdivs f1, f1, f0
+  2c0   bl getEaseInValue__2MRFffff                  | bl getEaseInValue__2MRFffff

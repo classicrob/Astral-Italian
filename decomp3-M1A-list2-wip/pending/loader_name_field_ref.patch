@@ -1,0 +1,47 @@
+--- src/JSystem/J3DGraphLoader/J3DModelLoader.cpp
++++ src/JSystem/J3DGraphLoader/J3DModelLoader.cpp
+@@ -441,7 +441,7 @@
+ 
+ void J3DModelLoader::readJoint(J3DJointBlock const* i_block) {
+     J3DJointFactory factory(*i_block);
+-    const J3DBlockOffset nameTable = i_block->mpNameTable;
++    const J3DBlockOffset& nameTable = i_block->mpNameTable;
+     mpModelData->getJointTree().mJointNum = i_block->mJointNum;
+     if (nameTable != NULL) {
+         mpModelData->getJointTree().mJointName = new JUTNameTab(JSUConvertOffsetToPtr< ResNTAB >(i_block, i_block->mpNameTable));
+@@ -534,7 +534,7 @@
+     mpShapeBlock = i_block;
+     J3DShapeTable* shape_table = mpModelData->getShapeTable();
+     J3DShapeFactory factory(*i_block);
+-    const J3DBlockOffset nameTable = i_block->mpNameTable;
++    const J3DBlockOffset& nameTable = i_block->mpNameTable;
+     shape_table->mShapeNum = i_block->mShapeNum;
+     if (nameTable != NULL) {
+         shape_table->mShapeName = new JUTNameTab(JSUConvertOffsetToPtr< ResNTAB >(i_block, i_block->mpNameTable));
+@@ -567,7 +567,7 @@
+ 
+ void J3DModelLoader_v26::readMaterialTable(J3DMaterialBlock const* i_block, u32 i_flags) {
+     J3DMaterialFactory factory(*i_block);
+-    const J3DBlockOffset nameTable = i_block->mpNameTable;
++    const J3DBlockOffset& nameTable = i_block->mpNameTable;
+     mpMaterialTable->mMaterialNum = i_block->mMaterialNum;
+     if (nameTable != NULL) {
+         mpMaterialTable->mMaterialName = new JUTNameTab(JSUConvertOffsetToPtr< ResNTAB >(i_block, i_block->mpNameTable));
+@@ -585,7 +585,7 @@
+ 
+ void J3DModelLoader_v21::readMaterialTable_v21(J3DMaterialBlock_v21 const* i_block, u32 i_flags) {
+     J3DMaterialFactory_v21 factory(*i_block);
+-    const J3DBlockOffset nameTable = i_block->mpNameTable;
++    const J3DBlockOffset& nameTable = i_block->mpNameTable;
+     mpMaterialTable->mMaterialNum = i_block->mMaterialNum;
+     if (nameTable != NULL) {
+         mpMaterialTable->mMaterialName = new JUTNameTab(JSUConvertOffsetToPtr< ResNTAB >(i_block, i_block->mpNameTable));
+@@ -636,7 +636,7 @@
+     J3DMaterialFactory factory(*i_block);
+     if (mpMaterialTable->mMaterialNum == 0) {
+         mpMaterialTable->field_0x1c = 1;
+-        const J3DBlockOffset nameTable = i_block->mpNameTable;
++        const J3DBlockOffset& nameTable = i_block->mpNameTable;
+         u16 materialNum = i_block->mMaterialNum;
+         mpMaterialTable->mMaterialNum = materialNum;
+         mpMaterialTable->mUniqueMatNum = materialNum;

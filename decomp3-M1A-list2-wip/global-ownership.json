@@ -1,0 +1,2028 @@
+[
+  {
+    "label": "ImageEffect prefix",
+    "start": "0x807e1468",
+    "end": "0x807e1470",
+    "constants": [
+      {
+        "address": "0x807e1468",
+        "bytes": "3f800000",
+        "owners": {
+          "Game/Screen/ImageEffectLocalUtil.cpp": 9
+        },
+        "sites": [
+          {
+            "site": "0x80476f40",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x130"
+          },
+          {
+            "site": "0x80476f78",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x168"
+          },
+          {
+            "site": "0x80476f80",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x170"
+          },
+          {
+            "site": "0x80476f98",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x188"
+          },
+          {
+            "site": "0x80477060",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc04227c8",
+            "function": "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff+0x80"
+          },
+          {
+            "site": "0x80477bf8",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x9C8"
+          },
+          {
+            "site": "0x80477c30",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0xA00"
+          },
+          {
+            "site": "0x80477c38",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0xA08"
+          },
+          {
+            "site": "0x80477c50",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227c8",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0xA20"
+          }
+        ]
+      },
+      {
+        "address": "0x807e146c",
+        "bytes": "00000000",
+        "owners": {
+          "Game/Screen/ImageEffectLocalUtil.cpp": 27
+        },
+        "sites": [
+          {
+            "site": "0x80476a2c",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc02227cc",
+            "function": "setupDrawTexture__20ImageEffectLocalUtilFv+0x4C"
+          },
+          {
+            "site": "0x80476bd4",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc02227cc",
+            "function": "setupDrawTexture__20ImageEffectLocalUtilFv+0x1F4"
+          },
+          {
+            "site": "0x80476f30",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x120"
+          },
+          {
+            "site": "0x80476f38",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x128"
+          },
+          {
+            "site": "0x80476f50",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x140"
+          },
+          {
+            "site": "0x80476f58",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x148"
+          },
+          {
+            "site": "0x80476f60",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x150"
+          },
+          {
+            "site": "0x80476f70",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x160"
+          },
+          {
+            "site": "0x80476f90",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x180"
+          },
+          {
+            "site": "0x80476fa0",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "sendTextureVertex__20ImageEffectLocalUtilFll+0x190"
+          },
+          {
+            "site": "0x804770a0",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc32227cc",
+            "function": "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff+0xC0"
+          },
+          {
+            "site": "0x8047715c",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc06227cc",
+            "function": "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff+0x17C"
+          },
+          {
+            "site": "0x804771b4",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc02227cc",
+            "function": "blurTexture__20ImageEffectLocalUtilFP10JUTTexturellUlff+0x1D4"
+          },
+          {
+            "site": "0x804772a0",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc02227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x70"
+          },
+          {
+            "site": "0x804779b0",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc02227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x780"
+          },
+          {
+            "site": "0x80477a60",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc04227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x830"
+          },
+          {
+            "site": "0x80477a94",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc02227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x864"
+          },
+          {
+            "site": "0x80477ab8",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc04227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x888"
+          },
+          {
+            "site": "0x80477ae0",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc02227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x8B0"
+          },
+          {
+            "site": "0x80477be0",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x9B0"
+          },
+          {
+            "site": "0x80477bec",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x9BC"
+          },
+          {
+            "site": "0x80477c08",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x9D8"
+          },
+          {
+            "site": "0x80477c10",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x9E0"
+          },
+          {
+            "site": "0x80477c18",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x9E8"
+          },
+          {
+            "site": "0x80477c28",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0x9F8"
+          },
+          {
+            "site": "0x80477c48",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0xA18"
+          },
+          {
+            "site": "0x80477c58",
+            "owner": "Game/Screen/ImageEffectLocalUtil.cpp",
+            "instruction": "0xc00227cc",
+            "function": "drawFourSampleTexture__20ImageEffectLocalUtilFP10JUTTexturell11_GXTexMapIDbf+0xA28"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Jugem prefix",
+    "start": "0x807da8b0",
+    "end": "0x807da8b8",
+    "constants": [
+      {
+        "address": "0x807da8b0",
+        "bytes": "3f800000",
+        "owners": {
+          "Game/Enemy/Jugem.cpp": 12
+        },
+        "sites": [
+          {
+            "site": "0x8019ad40",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc062bc10",
+            "function": "moveJugemKeepingHeight__FP9LiveActorRCQ29JGeometry8TVec3<f>bfffff+0xD0"
+          },
+          {
+            "site": "0x8019b044",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc002bc10",
+            "function": "__ct__5JugemFPCc+0x24"
+          },
+          {
+            "site": "0x8019c3f4",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc10",
+            "function": "exeDead__5JugemFv+0x44"
+          },
+          {
+            "site": "0x8019c61c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc10",
+            "function": "exeReBirth__5JugemFv+0x2C"
+          },
+          {
+            "site": "0x8019c62c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc10",
+            "function": "exeReBirth__5JugemFv+0x3C"
+          },
+          {
+            "site": "0x8019c64c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc10",
+            "function": "exeReBirth__5JugemFv+0x5C"
+          },
+          {
+            "site": "0x8019c928",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc10",
+            "function": "exeFallRecovery__5JugemFv+0x38"
+          },
+          {
+            "site": "0x8019e440",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc002bc10",
+            "function": "calcJugemFollowPosition__5JugemFPQ29JGeometry8TVec3<f>f+0x1F0"
+          },
+          {
+            "site": "0x8019e79c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc042bc10",
+            "function": "updateJugemMoveAnimation__5JugemFv+0x19C"
+          },
+          {
+            "site": "0x8019e7b0",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc062bc10",
+            "function": "updateJugemMoveAnimation__5JugemFv+0x1B0"
+          },
+          {
+            "site": "0x8019ea04",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc002bc10",
+            "function": "updateJugemCloudSway__5JugemFv+0x134"
+          },
+          {
+            "site": "0x8019ee90",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc10",
+            "function": "appear__10JugemCloudFv+0x20"
+          }
+        ]
+      },
+      {
+        "address": "0x807da8b4",
+        "bytes": "00000000",
+        "owners": {
+          "Game/Enemy/Jugem.cpp": 34
+        },
+        "sites": [
+          {
+            "site": "0x8019abf4",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "turnJugemFrontToTarget__FPQ29JGeometry8TVec3<f>P9LiveActorRCQ29JGeometry8TVec3<f>f+0x24"
+          },
+          {
+            "site": "0x8019ad38",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "moveJugemKeepingHeight__FP9LiveActorRCQ29JGeometry8TVec3<f>bfffff+0xC8"
+          },
+          {
+            "site": "0x8019af74",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc002bc14",
+            "function": "findJugemNearestRailPoint__FPQ29JGeometry8TVec3<f>P9LiveActorRCQ29JGeometry8TVec3<f>+0x24"
+          },
+          {
+            "site": "0x8019b038",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "__ct__5JugemFPCc+0x18"
+          },
+          {
+            "site": "0x8019b154",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "init__5JugemFRC12JMapInfoIter+0x54"
+          },
+          {
+            "site": "0x8019b174",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "init__5JugemFRC12JMapInfoIter+0x74"
+          },
+          {
+            "site": "0x8019b1d4",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "init__5JugemFRC12JMapInfoIter+0xD4"
+          },
+          {
+            "site": "0x8019b1f8",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "init__5JugemFRC12JMapInfoIter+0xF8"
+          },
+          {
+            "site": "0x8019b664",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "control__5JugemFv+0x74"
+          },
+          {
+            "site": "0x8019b964",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "exeFollow__5JugemFv+0x64"
+          },
+          {
+            "site": "0x8019ba1c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "exeApproach__5JugemFv+0x3C"
+          },
+          {
+            "site": "0x8019bc38",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "exePickTogezo__5JugemFv+0x38"
+          },
+          {
+            "site": "0x8019bda0",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "exeMoveUp__5JugemFv+0x50"
+          },
+          {
+            "site": "0x8019c290",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "exeBlowDown__5JugemFv+0x90"
+          },
+          {
+            "site": "0x8019c7a8",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "exeFallDownEaten__5JugemFv+0xD8"
+          },
+          {
+            "site": "0x8019c89c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "exeFallLand__5JugemFv+0x9C"
+          },
+          {
+            "site": "0x8019dc80",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "throwJugemHeldTogezo__5JugemFRCQ29JGeometry8TVec3<f>+0x40"
+          },
+          {
+            "site": "0x8019dcc4",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "throwJugemHeldTogezo__5JugemFRCQ29JGeometry8TVec3<f>+0x84"
+          },
+          {
+            "site": "0x8019dd04",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc002bc14",
+            "function": "throwJugemHeldTogezo__5JugemFRCQ29JGeometry8TVec3<f>+0xC4"
+          },
+          {
+            "site": "0x8019de94",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "tryJugemPickTogezo__5JugemFv+0xB4"
+          },
+          {
+            "site": "0x8019e01c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "calcJugemPickupPosition__5JugemFPQ29JGeometry8TVec3<f>l+0x3C"
+          },
+          {
+            "site": "0x8019e078",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "calcJugemPickupPosition__5JugemFPQ29JGeometry8TVec3<f>l+0x98"
+          },
+          {
+            "site": "0x8019e2d0",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "calcJugemFollowPosition__5JugemFPQ29JGeometry8TVec3<f>f+0x80"
+          },
+          {
+            "site": "0x8019e650",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "updateJugemMoveAnimation__5JugemFv+0x50"
+          },
+          {
+            "site": "0x8019e680",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc002bc14",
+            "function": "updateJugemMoveAnimation__5JugemFv+0x80"
+          },
+          {
+            "site": "0x8019e794",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "updateJugemMoveAnimation__5JugemFv+0x194"
+          },
+          {
+            "site": "0x8019e7a8",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "updateJugemMoveAnimation__5JugemFv+0x1A8"
+          },
+          {
+            "site": "0x8019ea28",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc002bc14",
+            "function": "updateJugemCloudSway__5JugemFv+0x158"
+          },
+          {
+            "site": "0x8019ead8",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc062bc14",
+            "function": "updateJugemCloudSway__5JugemFv+0x208"
+          },
+          {
+            "site": "0x8019f2d8",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "__sinit_\\Jugem_cpp+0xE8"
+          },
+          {
+            "site": "0x8019f2ec",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "__sinit_\\Jugem_cpp+0xFC"
+          },
+          {
+            "site": "0x8019f300",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "__sinit_\\Jugem_cpp+0x110"
+          },
+          {
+            "site": "0x8019f320",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc062bc14",
+            "function": "__sinit_\\Jugem_cpp+0x130"
+          },
+          {
+            "site": "0x8019f328",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bc14",
+            "function": "__sinit_\\Jugem_cpp+0x138"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Jugem suffix",
+    "start": "0x807da96c",
+    "end": "0x807da97c",
+    "constants": [
+      {
+        "address": "0x807da96c",
+        "bytes": "43340000",
+        "owners": {
+          "Game/Enemy/Jugem.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8019f2e0",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc042bccc",
+            "function": "__sinit_\\Jugem_cpp+0xF0"
+          }
+        ]
+      },
+      {
+        "address": "0x807da970",
+        "bytes": "42dc0000",
+        "owners": {
+          "Game/Enemy/Jugem.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8019f2e4",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc062bcd0",
+            "function": "__sinit_\\Jugem_cpp+0xF4"
+          }
+        ]
+      },
+      {
+        "address": "0x807da974",
+        "bytes": "428c0000",
+        "owners": {
+          "Game/Enemy/Jugem.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8019f314",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc022bcd4",
+            "function": "__sinit_\\Jugem_cpp+0x124"
+          }
+        ]
+      },
+      {
+        "address": "0x807da978",
+        "bytes": "c28c0000",
+        "owners": {
+          "Game/Enemy/Jugem.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8019f31c",
+            "owner": "Game/Enemy/Jugem.cpp",
+            "instruction": "0xc042bcd8",
+            "function": "__sinit_\\Jugem_cpp+0x12C"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "BellyDragon suffix",
+    "start": "0x807d7818",
+    "end": "0x807d781c",
+    "constants": [
+      {
+        "address": "0x807d7818",
+        "bytes": "42b40000",
+        "owners": {
+          "Game/Util/BellyDragonTU02.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8009148c",
+            "owner": "Game/Util/BellyDragonTU02.cpp",
+            "instruction": "0xc0228b78",
+            "function": "calcJoint__19BellyDragonBodyPartFPQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>RC19JointControllerInfo+0x22C"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "BellyDragon sbss2",
+    "start": "0x807e2fd8",
+    "end": "0x807e2fe0",
+    "constants": [
+      {
+        "address": "0x807e2fd8",
+        "bytes": null,
+        "owners": {
+          "Game/Util/BellyDragonTU02.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8009037c",
+            "owner": "Game/Util/BellyDragonTU02.cpp",
+            "instruction": "0xc0224338",
+            "function": "exeBindB__19BellyDragonBodyPartFv+0x3C"
+          }
+        ]
+      },
+      {
+        "address": "0x807e2fdc",
+        "bytes": null,
+        "owners": {
+          "Game/Util/BellyDragonTU02.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x80090310",
+            "owner": "Game/Util/BellyDragonTU02.cpp",
+            "instruction": "0xc022433c",
+            "function": "exeExitA__19BellyDragonBodyPartFv+0x120"
+          },
+          {
+            "site": "0x80090518",
+            "owner": "Game/Util/BellyDragonTU02.cpp",
+            "instruction": "0xc022433c",
+            "function": "exeBindB__19BellyDragonBodyPartFv+0x1D8"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "DiceMover sdata2",
+    "start": "0x807d7128",
+    "end": "0x807d7158",
+    "constants": [
+      {
+        "address": "0x807d7128",
+        "bytes": "3f800000",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 11
+        },
+        "sites": [
+          {
+            "site": "0x800546a4",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0428488",
+            "function": "normalizeComponents__13DiceMoverUtilFPfPfPf+0x44"
+          },
+          {
+            "site": "0x80054780",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028488",
+            "function": "averageNormalComponents__13DiceMoverUtilFPfPfPfPfPfPf+0x50"
+          },
+          {
+            "site": "0x80054ef0",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0228488",
+            "function": "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0x210"
+          },
+          {
+            "site": "0x80055edc",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028488",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0x2C"
+          },
+          {
+            "site": "0x80055f18",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028488",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0x68"
+          },
+          {
+            "site": "0x80055f88",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028488",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xD8"
+          },
+          {
+            "site": "0x80055ff0",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028488",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0x140"
+          },
+          {
+            "site": "0x80056138",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0828488",
+            "function": "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x98"
+          },
+          {
+            "site": "0x8005622c",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0428488",
+            "function": "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x18C"
+          },
+          {
+            "site": "0x800562e0",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0428488",
+            "function": "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x240"
+          },
+          {
+            "site": "0x80056394",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0428488",
+            "function": "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x2F4"
+          }
+        ]
+      },
+      {
+        "address": "0x807d712c",
+        "bytes": "00000000",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 16
+        },
+        "sites": [
+          {
+            "site": "0x80054930",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "setMtx__9DiceMoverFPA4_f+0x50"
+          },
+          {
+            "site": "0x80054958",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "setMtx__9DiceMoverFPA4_f+0x78"
+          },
+          {
+            "site": "0x80054ac4",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "calcRadius__9DiceMoverFv+0x14"
+          },
+          {
+            "site": "0x80054bf8",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "initCollisionPoints__9DiceMoverFll+0x28"
+          },
+          {
+            "site": "0x80054c38",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "initCollisionPoints__9DiceMoverFll+0x68"
+          },
+          {
+            "site": "0x80054e20",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0x140"
+          },
+          {
+            "site": "0x80054f88",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "init__9DiceMoverFv+0x8"
+          },
+          {
+            "site": "0x80054fc0",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc042848c",
+            "function": "init__9DiceMoverFv+0x40"
+          },
+          {
+            "site": "0x80054fe4",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc022848c",
+            "function": "init__9DiceMoverFv+0x64"
+          },
+          {
+            "site": "0x8005597c",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "applyCollision__9DiceMoverFv+0xEC"
+          },
+          {
+            "site": "0x80055d48",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "checkVelocityChange__9DiceMoverFQ29JGeometry8TVec3<f>+0xD8"
+          },
+          {
+            "site": "0x80055e90",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "clear__23DiceMoverRotationBoundsFv"
+          },
+          {
+            "site": "0x80055efc",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0x4C"
+          },
+          {
+            "site": "0x80055f64",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xB4"
+          },
+          {
+            "site": "0x80055f9c",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xEC"
+          },
+          {
+            "site": "0x80055fac",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002848c",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xFC"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7130",
+        "bytes": "3f000000",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x80054794",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0628490",
+            "function": "averageNormalComponents__13DiceMoverUtilFPfPfPfPfPfPf+0x64"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7134",
+        "bytes": "36800000",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x800559a8",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028494",
+            "function": "applyCollision__9DiceMoverFv+0x118"
+          },
+          {
+            "site": "0x80055ce4",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028494",
+            "function": "checkVelocityChange__9DiceMoverFQ29JGeometry8TVec3<f>+0x74"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7138",
+        "bytes": "bf800000",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x80054d8c",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc3c28498",
+            "function": "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xAC"
+          },
+          {
+            "site": "0x80054fec",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc0028498",
+            "function": "init__9DiceMoverFv+0x6C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d713c",
+        "bytes": "40000000",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x80054fcc",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc002849c",
+            "function": "init__9DiceMoverFv+0x4C"
+          },
+          {
+            "site": "0x80056114",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc022849c",
+            "function": "addRotation__20DiceMoverAccumulatorFPCQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x74"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7140",
+        "bytes": "3f7fbe77",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 6
+        },
+        "sites": [
+          {
+            "site": "0x80054dc0",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc3a284a0",
+            "function": "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xE0"
+          },
+          {
+            "site": "0x80055918",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc02284a0",
+            "function": "applyCollision__9DiceMoverFv+0x88"
+          },
+          {
+            "site": "0x800559cc",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc02284a0",
+            "function": "applyCollision__9DiceMoverFv+0x13C"
+          },
+          {
+            "site": "0x80055a54",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc02284a0",
+            "function": "applyCollision__9DiceMoverFv+0x1C4"
+          },
+          {
+            "site": "0x80055adc",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc02284a0",
+            "function": "applyCollision__9DiceMoverFv+0x24C"
+          },
+          {
+            "site": "0x80055fe0",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc00284a0",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0x130"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7144",
+        "bytes": "3cf5c28f",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x80054dbc",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc00284a4",
+            "function": "resolveCollision__9DiceMoverFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xDC"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7148",
+        "bytes": "be4ccccd",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x80054fc8",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc02284a8",
+            "function": "init__9DiceMoverFv+0x48"
+          }
+        ]
+      },
+      {
+        "address": "0x807d714c",
+        "bytes": "403fef9e",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x800552e4",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc3e284ac",
+            "function": "integrate__9DiceMoverFv+0xE4"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7150",
+        "bytes": "3e800000",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x80055850",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc02284b0",
+            "function": "addGravity__9DiceMoverFv+0x20"
+          }
+        ]
+      },
+      {
+        "address": "0x807d7154",
+        "bytes": "3c23d70a",
+        "owners": {
+          "Game/Util/DiceMover.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x80055fa8",
+            "owner": "Game/Util/DiceMover.cpp",
+            "instruction": "0xc3a284b4",
+            "function": "addCollision__20DiceMoverAccumulatorFPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>f+0xF8"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Battan sdata2",
+    "start": "0x807d9c10",
+    "end": "0x807d9cc8",
+    "constants": [
+      {
+        "address": "0x807d9c10",
+        "bytes": "3f800000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 4
+        },
+        "sites": [
+          {
+            "site": "0x80159248",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062af70",
+            "function": "__ct__6BattanFPCc+0x58"
+          },
+          {
+            "site": "0x80159a74",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062af70",
+            "function": "exeBattanHalfTurn__6BattanFv+0x74"
+          },
+          {
+            "site": "0x8015ad88",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042af70",
+            "function": "moveBattanOnRail__6BattanFf+0xA8"
+          },
+          {
+            "site": "0x8015af44",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc322af70",
+            "function": "appearBattanBreakParts__6BattanFv+0x64"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c14",
+        "bytes": "00000000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 23
+        },
+        "sites": [
+          {
+            "site": "0x8015922c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc082af74",
+            "function": "__ct__6BattanFPCc+0x3C"
+          },
+          {
+            "site": "0x80159484",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af74",
+            "function": "init__6BattanFRC12JMapInfoIter+0x1B4"
+          },
+          {
+            "site": "0x8015960c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af74",
+            "function": "init__6BattanFRC12JMapInfoIter+0x33C"
+          },
+          {
+            "site": "0x80159630",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af74",
+            "function": "init__6BattanFRC12JMapInfoIter+0x360"
+          },
+          {
+            "site": "0x80159a6c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "exeBattanHalfTurn__6BattanFv+0x6C"
+          },
+          {
+            "site": "0x8015a998",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "attackSensor__6BattanFP9HitSensorP9HitSensor+0xE8"
+          },
+          {
+            "site": "0x8015aa44",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "attackSensor__6BattanFP9HitSensorP9HitSensor+0x194"
+          },
+          {
+            "site": "0x8015ad34",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "moveBattanOnRail__6BattanFf+0x54"
+          },
+          {
+            "site": "0x8015ad74",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042af74",
+            "function": "moveBattanOnRail__6BattanFf+0x94"
+          },
+          {
+            "site": "0x8015adb4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af74",
+            "function": "moveBattanOnRail__6BattanFf+0xD4"
+          },
+          {
+            "site": "0x8015af60",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc3c2af74",
+            "function": "appearBattanBreakParts__6BattanFv+0x80"
+          },
+          {
+            "site": "0x8015af6c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "appearBattanBreakParts__6BattanFv+0x8C"
+          },
+          {
+            "site": "0x8015af90",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "appearBattanBreakParts__6BattanFv+0xB0"
+          },
+          {
+            "site": "0x8015b18c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "calcBattanBreakPartPosition__6BattanFPQ29JGeometry8TVec3<f>l+0x5C"
+          },
+          {
+            "site": "0x8015b320",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x50"
+          },
+          {
+            "site": "0x8015b378",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af74",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0xA8"
+          },
+          {
+            "site": "0x8015b3d0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af74",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x100"
+          },
+          {
+            "site": "0x8015b5a0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "updateHitSensor__6BattanFP9HitSensor+0xF0"
+          },
+          {
+            "site": "0x8015b78c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "__sinit_\\Battan_cpp+0xBC"
+          },
+          {
+            "site": "0x8015b7a0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "__sinit_\\Battan_cpp+0xD0"
+          },
+          {
+            "site": "0x8015b7dc",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042af74",
+            "function": "__sinit_\\Battan_cpp+0x10C"
+          },
+          {
+            "site": "0x8015b7f0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042af74",
+            "function": "__sinit_\\Battan_cpp+0x120"
+          },
+          {
+            "site": "0x8015b854",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af74",
+            "function": "__sinit_\\Battan_cpp+0x184"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c18",
+        "bytes": "36800000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015adec",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af78",
+            "function": "moveBattanOnRail__6BattanFf+0x10C"
+          },
+          {
+            "site": "0x8015af54",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc382af78",
+            "function": "appearBattanBreakParts__6BattanFv+0x74"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c1c",
+        "bytes": "b6800000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015af4c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc342af7c",
+            "function": "appearBattanBreakParts__6BattanFv+0x6C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c20",
+        "bytes": "3f000000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 4
+        },
+        "sites": [
+          {
+            "site": "0x8015b344",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042af80",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x74"
+          },
+          {
+            "site": "0x8015b420",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af80",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x150"
+          },
+          {
+            "site": "0x8015b434",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af80",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x164"
+          },
+          {
+            "site": "0x8015b468",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af80",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0x198"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c24",
+        "bytes": "bf800000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x801595f4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002af84",
+            "function": "init__6BattanFRC12JMapInfoIter+0x324"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c28",
+        "bytes": "3fc90fdb",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015af5c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc3a2af88",
+            "function": "appearBattanBreakParts__6BattanFv+0x7C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c2c",
+        "bytes": "bfc90fdb",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015af64",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc362af8c",
+            "function": "appearBattanBreakParts__6BattanFv+0x84"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c30",
+        "bytes": "3f000000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015ae1c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af90",
+            "function": "moveBattanOnRail__6BattanFf+0x13C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c34",
+        "bytes": "44480000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015945c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af94",
+            "function": "init__6BattanFRC12JMapInfoIter+0x18C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c38",
+        "bytes": "43c80000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015aafc",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042af98",
+            "function": "receiveMsgPlayerAttack__6BattanFUlP9HitSensorP9HitSensor+0x3C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c3c",
+        "bytes": "43480000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015aaf8",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022af9c",
+            "function": "receiveMsgPlayerAttack__6BattanFUlP9HitSensorP9HitSensor+0x38"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c40",
+        "bytes": "43fa0000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b3a0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afa0",
+            "function": "calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>+0xD0"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c44",
+        "bytes": "3f800000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015a9f0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afa4",
+            "function": "attackSensor__6BattanFP9HitSensorP9HitSensor+0x140"
+          },
+          {
+            "site": "0x8015aa78",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afa4",
+            "function": "attackSensor__6BattanFP9HitSensorP9HitSensor+0x1C8"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c48",
+        "bytes": "42c80000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b604",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afa8",
+            "function": "updateHitSensor__6BattanFP9HitSensor+0x154"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c4c",
+        "bytes": "3c23d70a",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 3
+        },
+        "sites": [
+          {
+            "site": "0x801598b4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002afac",
+            "function": "exeBattanWalk__6BattanFv+0xD4"
+          },
+          {
+            "site": "0x80159ce0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002afac",
+            "function": "exeBattanRun__6BattanFv+0xF0"
+          },
+          {
+            "site": "0x8015ad9c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002afac",
+            "function": "moveBattanOnRail__6BattanFf+0xBC"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c50",
+        "bytes": "3dcccccd",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x80159a80",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afb0",
+            "function": "exeBattanHalfTurn__6BattanFv+0x80"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c54",
+        "bytes": "43c80000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015a1a8",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afb4",
+            "function": "exeBattanDown__6BattanFv+0xB8"
+          },
+          {
+            "site": "0x8015b7d4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062afb4",
+            "function": "__sinit_\\Battan_cpp+0x104"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c58",
+        "bytes": "41200000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015a1cc",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afb8",
+            "function": "exeBattanDown__6BattanFv+0xDC"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c5c",
+        "bytes": "42200000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015a1d4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042afbc",
+            "function": "exeBattanDown__6BattanFv+0xE4"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c60",
+        "bytes": "43160000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015ad70",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002afc0",
+            "function": "moveBattanOnRail__6BattanFf+0x90"
+          },
+          {
+            "site": "0x8015b85c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062afc0",
+            "function": "__sinit_\\Battan_cpp+0x18C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c64",
+        "bytes": "41f00000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015add4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc3e2afc4",
+            "function": "moveBattanOnRail__6BattanFf+0xF4"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c68",
+        "bytes": "42652ee1",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015af68",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc3e2afc8",
+            "function": "appearBattanBreakParts__6BattanFv+0x88"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c6c",
+        "bytes": "43960000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015b238",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afcc",
+            "function": "calcBattanBreakPartPosition__6BattanFPQ29JGeometry8TVec3<f>l+0x108"
+          },
+          {
+            "site": "0x8015b284",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afcc",
+            "function": "calcBattanBreakPartPosition__6BattanFPQ29JGeometry8TVec3<f>l+0x154"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c70",
+        "bytes": "42480000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015b5c4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc002afd0",
+            "function": "updateHitSensor__6BattanFP9HitSensor+0x114"
+          },
+          {
+            "site": "0x8015b7e4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afd0",
+            "function": "__sinit_\\Battan_cpp+0x114"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c74",
+        "bytes": "44480000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b750",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afd4",
+            "function": "__sinit_\\Battan_cpp+0x80"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c78",
+        "bytes": "44a28000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 3
+        },
+        "sites": [
+          {
+            "site": "0x8015b758",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042afd8",
+            "function": "__sinit_\\Battan_cpp+0x88"
+          },
+          {
+            "site": "0x8015b76c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042afd8",
+            "function": "__sinit_\\Battan_cpp+0x9C"
+          },
+          {
+            "site": "0x8015b780",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042afd8",
+            "function": "__sinit_\\Battan_cpp+0xB0"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c7c",
+        "bytes": "44c80000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015b75c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062afdc",
+            "function": "__sinit_\\Battan_cpp+0x8C"
+          },
+          {
+            "site": "0x8015b770",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062afdc",
+            "function": "__sinit_\\Battan_cpp+0xA0"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c80",
+        "bytes": "44160000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b764",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afe0",
+            "function": "__sinit_\\Battan_cpp+0x94"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c84",
+        "bytes": "43e10000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b778",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afe4",
+            "function": "__sinit_\\Battan_cpp+0xA8"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c88",
+        "bytes": "442f0000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 3
+        },
+        "sites": [
+          {
+            "site": "0x8015b784",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062afe8",
+            "function": "__sinit_\\Battan_cpp+0xB4"
+          },
+          {
+            "site": "0x8015b7b4",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afe8",
+            "function": "__sinit_\\Battan_cpp+0xE4"
+          },
+          {
+            "site": "0x8015b7c8",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022afe8",
+            "function": "__sinit_\\Battan_cpp+0xF8"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c8c",
+        "bytes": "c3c80000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b794",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042afec",
+            "function": "__sinit_\\Battan_cpp+0xC4"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c90",
+        "bytes": "44034000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b7a8",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042aff0",
+            "function": "__sinit_\\Battan_cpp+0xD8"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c94",
+        "bytes": "c2c80000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b7ac",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062aff4",
+            "function": "__sinit_\\Battan_cpp+0xDC"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c98",
+        "bytes": "44548000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 2
+        },
+        "sites": [
+          {
+            "site": "0x8015b7bc",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042aff8",
+            "function": "__sinit_\\Battan_cpp+0xEC"
+          },
+          {
+            "site": "0x8015b7d0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042aff8",
+            "function": "__sinit_\\Battan_cpp+0x100"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9c9c",
+        "bytes": "43480000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b7c0",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062affc",
+            "function": "__sinit_\\Battan_cpp+0xF0"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9ca0",
+        "bytes": "c2480000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b7f8",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022b000",
+            "function": "__sinit_\\Battan_cpp+0x128"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9ca4",
+        "bytes": "c3147021",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b804",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022b004",
+            "function": "__sinit_\\Battan_cpp+0x134"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9ca8",
+        "bytes": "42c80000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 4
+        },
+        "sites": [
+          {
+            "site": "0x8015b80c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042b008",
+            "function": "__sinit_\\Battan_cpp+0x13C"
+          },
+          {
+            "site": "0x8015b820",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042b008",
+            "function": "__sinit_\\Battan_cpp+0x150"
+          },
+          {
+            "site": "0x8015b834",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042b008",
+            "function": "__sinit_\\Battan_cpp+0x164"
+          },
+          {
+            "site": "0x8015b848",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc042b008",
+            "function": "__sinit_\\Battan_cpp+0x178"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9cac",
+        "bytes": "4453ab85",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b810",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062b00c",
+            "function": "__sinit_\\Battan_cpp+0x140"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9cb0",
+        "bytes": "43379810",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b818",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022b010",
+            "function": "__sinit_\\Battan_cpp+0x148"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9cb4",
+        "bytes": "443526fa",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b824",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062b014",
+            "function": "__sinit_\\Battan_cpp+0x154"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9cb8",
+        "bytes": "c36b0000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b82c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022b018",
+            "function": "__sinit_\\Battan_cpp+0x15C"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9cbc",
+        "bytes": "440dd883",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b838",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062b01c",
+            "function": "__sinit_\\Battan_cpp+0x168"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9cc0",
+        "bytes": "422c0000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b840",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc022b020",
+            "function": "__sinit_\\Battan_cpp+0x170"
+          }
+        ]
+      },
+      {
+        "address": "0x807d9cc4",
+        "bytes": "43c40000",
+        "owners": {
+          "Game/Enemy/Battan.cpp": 1
+        },
+        "sites": [
+          {
+            "site": "0x8015b84c",
+            "owner": "Game/Enemy/Battan.cpp",
+            "instruction": "0xc062b024",
+            "function": "__sinit_\\Battan_cpp+0x17C"
+          }
+        ]
+      }
+    ]
+  }
+]

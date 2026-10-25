@@ -1,0 +1,60 @@
+
+TARGET
+.ctors size=0x4 base=0x80644450
+  objects: []
+.data size=0x500 base=0x806a2e28
+  0090 806a2eb8 'ItemDice'
+  009c 806a2ec4 'Body'
+  00a4 806a2ecc 'Shadow'
+  00ac 806a2ed4 'Thrown'
+  00b4 806a2edc 'Bound'
+  00bc 806a2ee4 'BoundLittle'
+  00c8 806a2ef0 'ThrownLv'
+  00d8 806a2f00 'Rolling'
+  00e0 806a2f08 'FixedGood'
+  00ec 806a2f14 'FixedBad'
+  00f8 806a2f20 'Explosion'
+  0104 806a2f2c 'VanishGood'
+  0110 806a2f38 'VanishBad'
+  011c 806a2f44 '弾ヒット'
+  0128 806a2f50 '直接ヒット'
+  0134 806a2f5c 'Trampled'
+  0140 806a2f68 'クリボー'
+  014c 806a2f74 '１ＵＰキノコ'
+  015c 806a2f84 'PositiveDice'
+  016c 806a2f94 'LuckyDice'
+  04f0 806a3318 'KinokoOneUp'
+  objects: [('sDiceSpheres', '0x0', '0x90'), ('lbl_806A2EB8', '0x90', '0xb0'), ('lbl_806A2F68', '0x140', '0xc'), ('lbl_806A2F74', '0x14c', '0x10'), ('lbl_806A2F84', '0x15c', '0xd'), ('gap_07_806A2F91_data', '0x169', '0x3'), ('lbl_806A2F94', '0x16c', '0xa'), ('gap_07_806A2F9E_data', '0x176', '0xa2'), ('__vt__9LuckyDice', '0x218', '0x88'), ('__vt__12PositiveDice', '0x2a0', '0x110'), ('__vt__8ItemDice', '0x3b0', '0x88'), ('__vt__8DiceBase', '0x438', '0x88'), ('__vt__Q211NrvItemDice15ItemDiceNrvLand', '0x4c0', '0x10'), ('__vt__Q211NrvItemDice16ItemDiceNrvThrow', '0x4d0', '0x10'), ('__vt__Q211NrvItemDice15ItemDiceNrvSpin', '0x4e0', '0x20')]
+
+OURS
+.ctors size=0x4 base=0x80644450
+  objects: []
+.rodata size=0x8 base=0x0
+  objects: [('@15205', '0x0', '0x8')]
+.data size=0x4fc base=0x806a2e28
+  0090 806a2eb8 'ItemDice'
+  009c 806a2ec4 'Body'
+  00a4 806a2ecc 'Shadow'
+  00ac 806a2ed4 'Thrown'
+  00b4 806a2edc 'Bound'
+  00bc 806a2ee4 'BoundLittle'
+  00c8 806a2ef0 'ThrownLv'
+  00d8 806a2f00 'Rolling'
+  00e0 806a2f08 'FixedGood'
+  00ec 806a2f14 'FixedBad'
+  00f8 806a2f20 'Explosion'
+  0104 806a2f2c 'VanishGood'
+  0110 806a2f38 'VanishBad'
+  011c 806a2f44 '弾ヒット'
+  0128 806a2f50 '直接ヒット'
+  0134 806a2f5c 'Trampled'
+  0140 806a2f68 'クリボー'
+  014c 806a2f74 '１ＵＰキノコ'
+  015c 806a2f84 'PositiveDice'
+  016c 806a2f94 'LuckyDice'
+  04f0 806a3318 'KinokoOneUp'
+  objects: [('sDiceSpheres', '0x0', '0x90'), ('@15197', '0x90', '0x9'), ('@15198', '0x9c', '0x5'), ('@15200', '0xa4', '0x7'), ('@15249', '0xac', '0x7'), ('@15253', '0xb4', '0x6'), ('@15254', '0xbc', '0xc'), ('@15255', '0xc8', '0x9'), ('@15256', '0xd8', '0x8'), ('@15267', '0xe0', '0xa'), ('@15268', '0xec', '0x9'), ('@15269', '0xf8', '0xa'), ('@15270', '0x104', '0xb'), ('@15271', '0x110', '0xa'), ('@15307', '0x11c', '0x9'), ('@15308', '0x128', '0xb'), ('@15309', '0x134', '0x9'), ('@15820', '0x140', '0x9'), ('@15821', '0x14c', '0xd'), ('@15909', '0x15c', '0xd'), ('@15940', '0x16c', '0xa'), ('__vt__8DiceBase', '0x438', '0x88'), ('__vt__8ItemDice', '0x3b0', '0x88'), ('@STRING@__ct__16BenefitItemOneUpFPCc', '0x4f0', '0xc'), ('__vt__16BenefitItemOneUp', '0x178', '0x9c'), ('__vt__12PositiveDice', '0x2a0', '0x88'), ('__vt__9LuckyDice', '0x218', '0x88'), ('__vt__18MultipleChoiceDice', '0x328', '0x88'), ('__vt__Q211NrvItemDice15ItemDiceNrvSpin', '0x4e0', '0x10'), ('__vt__Q211NrvItemDice16ItemDiceNrvThrow', '0x4d0', '0x10'), ('__vt__Q211NrvItemDice15ItemDiceNrvLand', '0x4c0', '0x10')]
+.sdata2 size=0x90 base=0x0
+  0040 00000040 '<囚5>ｳ33?333CH'
+  0064 00000064 '=ｲｸﾃ@@'
+  objects: [('@14889', '0x0', '0x4'), ('@14917', '0x4', '0x4'), ('@14918', '0x8', '0x4'), ('@14919', '0xc', '0x4'), ('@14956', '0x10', '0x4'), ('@14957', '0x14', '0x4'), ('@14958', '0x18', '0x4'), ('@14959', '0x1c', '0x4'), ('@14966', '0x20', '0x4'), ('@14967', '0x24', '0x4'), ('@14987', '0x28', '0x4'), ('@15177', '0x2c', '0x4'), ('@15196', '0x30', '0x4'), ('@15199', '0x34', '0x4'), ('@15201', '0x38', '0x4'), ('@15224', '0x3c', '0x4'), ('@15225', '0x40', '0x4'), ('@15250', '0x44', '0x4'), ('@15251', '0x48', '0x4'), ('@15252', '0x4c', '0x4'), ('@15292', '0x50', '0x4'), ('@15324', '0x54', '0x4'), ('@15336', '0x58', '0x4'), ('@15337', '0x5c', '0x4'), ('@15338', '0x60', '0x4'), ('@15363', '0x64', '0x4'), ('@15369', '0x68', '0x4'), ('@15779', '0x6c', '0x4'), ('@15789', '0x70', '0x4'), ('@15877', '0x74', '0x4'), ('@15888', '0x78', '0x4'), ('@15889', '0x7c', '0x4'), ('@15929', '0x80', '0x4'), ('@15993', '0x84', '0x4'), ('@15994', '0x88', '0x4'), ('@16014', '0x8c', '0x4')]

@@ -1,0 +1,39 @@
+--- src/Game/Util/BellyDragonTU02.cpp
++++ src/Game/Util/BellyDragonTU02.cpp
+@@ -7,6 +7,14 @@
+ 
+ namespace JMath {
+     void gekko_ps_copy12(void*, const void*);
++}
++
++namespace {
++    // Distinct original tuning objects shared by the Follow/ExitB interpolation.
++    extern const f32 sFollowPullStart;
++    extern const f32 sFollowPullEnd;
++    extern const f32 sFollowSideStart;
++    extern const f32 sFollowSideEnd;
+ }
+ 
+ namespace {
+@@ -164,8 +172,8 @@
+     } else {
+         f32 prevRadius = mPrev->mRadius;
+         f32 radius = mRadius;
+-        f32 pullRate = interpolate(0.015f, 0.025f, mRate);
+-        f32 sideRate = interpolate(0.01f, 0.015f, mRate);
++        f32 pullRate = interpolate(sFollowPullStart, sFollowPullEnd, mRate);
++        f32 sideRate = interpolate(sFollowSideStart, sFollowSideEnd, mRate);
+         pullToMtxSide(mPrev->getBaseMtx(), false, pullRate, sideRate, prevRadius + radius);
+     }
+     if (mNext != nullptr) {
+@@ -969,3 +977,10 @@
+         }
+     }
+ }
++
++namespace {
++    const f32 sFollowPullStart = 0.015f; // Original 807D7758.
++    const f32 sFollowPullEnd = 0.025f;  // Original 807D775C.
++    const f32 sFollowSideStart = 0.01f; // Original 807D7778.
++    const f32 sFollowSideEnd = 0.015f;  // Original 807D777C.
++}

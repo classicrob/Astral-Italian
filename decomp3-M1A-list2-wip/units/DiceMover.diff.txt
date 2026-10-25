@@ -1,0 +1,365 @@
+calcMtx__9DiceMoverFPQ29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>  match=99.4  size=80  (left=TARGET  right=OURS)
+   ...
+   2c   stfs f0, 0x8(r7)                             | stfs f0, 0x8(r7)
+   30   bdnz 0x41c                                   | bdnz 0x41c
+   34 ~ lfs f2, 0x4(r3)                              | lfs f0, 0xc(r3)
+   38   lfs f1, 0x8(r3)                              | lfs f1, 0x8(r3)
+   3c ~ lfs f0, 0xc(r3)                              | lfs f2, 0x4(r3)
+   40   stfs f2, 0xc(r4)                             | stfs f2, 0xc(r4)
+   44   stfs f1, 0x1c(r4)                            | stfs f1, 0x1c(r4)
+initCollisionPoints__9DiceMoverFll  match=95.789474  size=228  (left=TARGET  right=OURS)
+   ...
+   90   ble 0x640                                    | ble 0x640
+   94   lwz r0, 0x70(r29)                            | lwz r0, 0x70(r29)
+   98 ~ add r5, r31, r4                              | add r3, r31, r4
+   9c   lfsx f0, r31, r4                             | lfsx f0, r31, r4
+   a0   stfsx f0, r4, r0                             | stfsx f0, r4, r0
+   a4 ~ add r3, r0, r4                               | add r5, r0, r4
+   a8 +                                              | addi r4, r4, 0xc
+   ac ~ lfs f1, 0x4(r5)                              | lfs f0, 0x4(r3)
+   b0 - addi r4, r4, 0xc                             |
+   b4 ~ stfs f1, 0x4(r3)                             | stfs f0, 0x4(r5)
+   b8 ~ lfs f0, 0x8(r5)                              | lfs f0, 0x8(r3)
+   bc ~ stfs f0, 0x8(r3)                             | stfs f0, 0x8(r5)
+   c0   bdnz 0x614                                   | bdnz 0x614
+   c4   stw r30, 0x78(r29)                           | stw r30, 0x78(r29)
+integrate__9DiceMoverFv  match=96.88341  size=892  (left=TARGET  right=OURS)
+    0 ~ stwu r1, -0x120(r1)                          | stwu r1, -0x110(r1)
+    4   mflr r0                                      | mflr r0
+    8 ~ stw r0, 0x124(r1)                            | stw r0, 0x114(r1)
+    c ~ addi r11, r1, 0x100                          | addi r11, r1, 0xf0
+   10 ~ stfd f31, 0x110(r1)                          | stfd f31, 0x100(r1)
+   14 ~ psq_st f31, 0x118(r1), 0, qr0                | psq_st f31, 0x108(r1), 0, qr0
+   18 ~ stfd f30, 0x100(r1)                          | stfd f30, 0xf0(r1)
+   1c ~ psq_st f30, 0x108(r1), 0, qr0                | psq_st f30, 0xf8(r1), 0, qr0
+   20   bl _savegpr_23                               | bl _savegpr_23
+   24   mr r31, r3                                   | mr r31, r3
+   28 ~ addi r3, r1, 0x90                            | addi r3, r1, 0x2c
+   2c   addi r4, r31, 0x4                            | addi r4, r31, 0x4
+   30   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   34   li r0, 0x6                                   | li r0, 0x6
+   38 ~ addi r5, r1, 0x98                            | addi r5, r1, 0x94
+   3c   addi r4, r31, 0xc                            | addi r4, r31, 0xc
+   40   mtctr r0                                     | mtctr r0
+   ...
+   5c   addi r4, r31, 0x90                           | addi r4, r31, 0x90
+   60   bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   64 ~ lfs f30, 0x9c(r31)                           | lfs f13, 0x9c(r31)
+   68   addi r29, r31, 0x20                          | addi r29, r31, 0x20
+   6c ~ lfs f1, 0xa0(r1)                             | lfs f1, 0x9c(r1)
+   70   addi r30, r31, 0x30                          | addi r30, r31, 0x30
+   74 ~ lfs f13, 0xa0(r31)                           | lfs f30, 0xa0(r31)
+   78   addi r26, r31, 0x14                          | addi r26, r31, 0x14
+   7c ~ lfs f0, 0xa4(r1)                             | lfs f0, 0xa0(r1)
+   80 ~ fmuls f2, f30, f1                            | fmuls f2, f13, f1
+   84 ~ lfs f10, 0x20(r31)                           | lfs f11, 0x20(r31)
+   88   addi r27, r31, 0x24                          | addi r27, r31, 0x24
+   8c ~ fmuls f1, f13, f0                            | fmuls f1, f30, f0
+   90   lfs f0, 0x10(r31)                            | lfs f0, 0x10(r31)
+   94 ~ lfs f8, 0x30(r31)                            | lfs f10, 0x30(r31)
+   98 ~ lfs f11, 0xa4(r31)                           | lfs f9, 0x14(r31)
+   9c   addi r28, r31, 0x34                          | addi r28, r31, 0x34
+   a0   fadds f1, f2, f1                             | fadds f1, f2, f1
+   a4 ~ lfs f9, 0xa8(r31)                            | lfs f8, 0x24(r31)
+   a8   addi r23, r31, 0x18                          | addi r23, r31, 0x18
+   ac ~ lfs f7, 0x14(r31)                            | lfs f7, 0x34(r31)
+   b0   addi r24, r31, 0x28                          | addi r24, r31, 0x28
+   b4 ~ fadds f0, f0, f1                             | fadds f2, f0, f1
+   b8 ~ lfs f5, 0x24(r31)                            | lfs f0, 0xa4(r31)
+   bc   addi r25, r31, 0x38                          | addi r25, r31, 0x38
+   c0 ~ stfs f0, 0x10(r31)                           | stfs f2, 0x10(r31)
+   c4 ~ lfs f3, 0x34(r31)                            | lfs f1, 0xa8(r31)
+   c8 ~ lfs f1, 0xb0(r1)                             | lfs f3, 0xac(r1)
+   cc ~ lfs f0, 0xb4(r1)                             | lfs f2, 0xb0(r1)
+   d0 ~ fmuls f1, f30, f1                            | fmuls f5, f13, f3
+   d4 ~ lfs f6, 0xac(r31)                            | lfs f3, 0xb0(r31)
+   d8 ~ fmuls f0, f13, f0                            | fmuls f4, f30, f2
+   dc ~ lfs f4, 0xb0(r31)                            | lfs f2, 0xac(r31)
+   e0 ~ lfs f2, 0x18(r31)                            | lfs f6, 0x18(r31)
+   e4   lfs f31, lbl_807D714C@sda21                  | lfs f31, @5842@sda21
+   e8 ~ fadds f12, f1, f0                            | fadds f12, f5, f4
+   ec ~ lfs f1, 0x28(r31)                            | lfs f5, 0x28(r31)
+   f0 ~ lfs f0, 0x38(r31)                            | lfs f4, 0x38(r31)
+   f4 ~ fadds f10, f10, f12                          | fadds f11, f11, f12
+   f8 ~ stfs f10, 0x20(r31)                          | stfs f11, 0x20(r31)
+   fc ~ lfs f12, 0xc0(r1)                            | lfs f12, 0xbc(r1)
+  100 ~ lfs f10, 0xc4(r1)                            | lfs f11, 0xc0(r1)
+  104 ~ fmuls f12, f30, f12                          | fmuls f12, f13, f12
+  108 ~ fmuls f10, f13, f10                          | fmuls f11, f30, f11
+  10c ~ fadds f10, f12, f10                          | fadds f11, f12, f11
+  110 ~ fadds f8, f8, f10                            | fadds f10, f10, f11
+  114 ~ stfs f8, 0x30(r31)                           | stfs f10, 0x30(r31)
+  118 ~ lfs f10, 0xa4(r1)                            | lfs f11, 0xa0(r1)
+  11c ~ lfs f8, 0x9c(r1)                             | lfs f10, 0x98(r1)
+  120 ~ fmuls f10, f11, f10                          | fmuls f11, f0, f11
+  124 ~ fmuls f8, f9, f8                             | fmuls f10, f1, f10
+  128 ~ fadds f8, f10, f8                            | fadds f10, f11, f10
+  12c ~ fadds f7, f7, f8                             | fadds f9, f9, f10
+  130 ~ stfs f7, 0x14(r31)                           | stfs f9, 0x14(r31)
+  134 ~ lfs f8, 0xb4(r1)                             | lfs f10, 0xb0(r1)
+  138 ~ lfs f7, 0xac(r1)                             | lfs f9, 0xa8(r1)
+  13c ~ fmuls f8, f11, f8                            | fmuls f10, f0, f10
+  140 ~ fmuls f7, f9, f7                             | fmuls f9, f1, f9
+  144 ~ fadds f7, f8, f7                             | fadds f9, f10, f9
+  148 ~ fadds f5, f5, f7                             | fadds f8, f8, f9
+  14c ~ stfs f5, 0x24(r31)                           | stfs f8, 0x24(r31)
+  150 ~ lfs f7, 0xc4(r1)                             | lfs f9, 0xc0(r1)
+  154 ~ lfs f5, 0xbc(r1)                             | lfs f8, 0xb8(r1)
+  158 ~ fmuls f7, f11, f7                            | fmuls f9, f0, f9
+  15c ~ fmuls f5, f9, f5                             | fmuls f0, f1, f8
+  160 ~ fadds f5, f7, f5                             | fadds f0, f9, f0
+  164 ~ fadds f3, f3, f5                             | fadds f0, f7, f0
+  168 ~ stfs f3, 0x34(r31)                           | stfs f0, 0x34(r31)
+  16c ~ lfs f5, 0x9c(r1)                             | lfs f1, 0x98(r1)
+  170 ~ lfs f3, 0xa0(r1)                             | lfs f0, 0x9c(r1)
+  174 ~ fmuls f5, f6, f5                             | fmuls f1, f2, f1
+  178 ~ fmuls f3, f4, f3                             | fmuls f0, f3, f0
+  17c ~ fadds f3, f5, f3                             | fadds f0, f1, f0
+  180 ~ fadds f2, f2, f3                             | fadds f0, f6, f0
+  184 ~ stfs f2, 0x18(r31)                           | stfs f0, 0x18(r31)
+  188 ~ lfs f3, 0xac(r1)                             | lfs f1, 0xa8(r1)
+  18c ~ lfs f2, 0xb0(r1)                             | lfs f0, 0xac(r1)
+  190 ~ fmuls f3, f6, f3                             | fmuls f1, f2, f1
+  194 ~ fmuls f2, f4, f2                             | fmuls f0, f3, f0
+  198 ~ fadds f2, f3, f2                             | fadds f0, f1, f0
+  19c ~ fadds f1, f1, f2                             | fadds f0, f5, f0
+  1a0 ~ stfs f1, 0x28(r31)                           | stfs f0, 0x28(r31)
+  1a4 ~ lfs f2, 0xbc(r1)                             | lfs f1, 0xb8(r1)
+  1a8 ~ lfs f1, 0xc0(r1)                             | lfs f0, 0xbc(r1)
+  1ac ~ fmuls f2, f6, f2                             | fmuls f1, f2, f1
+  1b0 ~ fmuls f1, f4, f1                             | fmuls f0, f3, f0
+  1b4 ~ fadds f1, f2, f1                             | fadds f0, f1, f0
+  1b8 ~ fadds f0, f0, f1                             | fadds f0, f4, f0
+  1bc   stfs f0, 0x38(r31)                           | stfs f0, 0x38(r31)
+  1c0   mr r4, r29                                   | mr r4, r29
+   ...
+  2cc   blt 0xd70                                    | blt 0xd70
+  2d0   li r0, 0x6                                   | li r0, 0x6
+  2d4 ~ addi r5, r1, 0x2c                            | addi r5, r1, 0x34
+  2d8   addi r4, r31, 0xc                            | addi r4, r31, 0xc
+  2dc   mtctr r0                                     | mtctr r0
+   ...
+  2ec   stwu r0, 0x8(r5)                             | stwu r0, 0x8(r5)
+  2f0   bdnz 0xe90                                   | bdnz 0xe90
+  2f4 ~ addi r3, r1, 0x30                            | addi r3, r1, 0x38
+  2f8   addi r4, r31, 0x4                            | addi r4, r31, 0x4
+  2fc   bl setTrans__Q29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>FRCQ29JGeometry8TVec3<f> | bl setTrans__Q29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>FRCQ29JGeometry8TVec3<f>
+  300 ~ addi r3, r1, 0x30                            | addi r3, r1, 0x38
+  304   mr r4, r3                                    | mr r4, r3
+  308   bl invert__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>> | bl invert__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>
+  30c   li r0, 0x6                                   | li r0, 0x6
+  310 ~ addi r5, r1, 0x5c                            | addi r5, r1, 0x64
+  314 ~ addi r4, r1, 0x98                            | addi r4, r1, 0x94
+  318   mtctr r0                                     | mtctr r0
+  31c   lwz r3, 0x4(r4)                              | lwz r3, 0x4(r4)
+   ...
+  328   stwu r0, 0x8(r5)                             | stwu r0, 0x8(r5)
+  32c   bdnz 0xecc                                   | bdnz 0xecc
+  330 ~ addi r3, r1, 0x60                            | addi r3, r1, 0x68
+  334 ~ addi r4, r1, 0x90                            | addi r4, r1, 0x2c
+  338   bl setTrans__Q29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>FRCQ29JGeometry8TVec3<f> | bl setTrans__Q29JGeometry64TPosition3<Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>>FRCQ29JGeometry8TVec3<f>
+  33c   addi r3, r31, 0x40                           | addi r3, r31, 0x40
+  340 ~ addi r4, r1, 0x60                            | addi r4, r1, 0x68
+  344 ~ addi r5, r1, 0x30                            | addi r5, r1, 0x38
+  348   bl concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f> | bl concat__Q29JGeometry38TMatrix34<Q29JGeometry13SMatrix34C<f>>FRCQ29JGeometry13SMatrix34C<f>RCQ29JGeometry13SMatrix34C<f>
+  34c   lwz r3, 0xe4(r31)                            | lwz r3, 0xe4(r31)
+  350   bl clear__20DiceMoverAccumulatorFv           | bl clear__20DiceMoverAccumulatorFv
+  354 ~ addi r11, r1, 0x100                          | addi r11, r1, 0xf0
+  358 ~ psq_l f31, 0x118(r1), 0, qr0                 | psq_l f31, 0x108(r1), 0, qr0
+  35c ~ lfd f31, 0x110(r1)                           | lfd f31, 0x100(r1)
+  360 ~ psq_l f30, 0x108(r1), 0, qr0                 | psq_l f30, 0xf8(r1), 0, qr0
+  364 ~ lfd f30, 0x100(r1)                           | lfd f30, 0xf0(r1)
+  368   bl _restgpr_23                               | bl _restgpr_23
+  36c ~ lwz r0, 0x124(r1)                            | lwz r0, 0x114(r1)
+  370   mtlr r0                                      | mtlr r0
+  374 ~ addi r1, r1, 0x120                           | addi r1, r1, 0x110
+  378   blr                                          | blr
+applyCollision__9DiceMoverFv  match=91.49215  size=764  (left=TARGET  right=OURS)
+    0 ~ stwu r1, -0x130(r1)                          | stwu r1, -0x100(r1)
+    4   mflr r0                                      | mflr r0
+    8 ~ stw r0, 0x134(r1)                            | stw r0, 0x104(r1)
+    c ~ stfd f31, 0x120(r1)                          | stfd f31, 0xf0(r1)
+   10 ~ psq_st f31, 0x128(r1), 0, qr0                | psq_st f31, 0xf8(r1), 0, qr0
+   14 ~ stw r31, 0x11c(r1)                           | stw r31, 0xec(r1)
+   18 ~ stw r30, 0x118(r1)                           | stw r30, 0xe8(r1)
+   1c   mr r30, r3                                   | mr r30, r3
+   20   lwz r31, 0xe8(r3)                            | lwz r31, 0xe8(r3)
+   24 ~ addi r3, r1, 0xec                            | addi r3, r1, 0xbc
+   28   mr r4, r31                                   | mr r4, r31
+   2c   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   30 ~ addi r3, r1, 0xec                            | addi r3, r1, 0xbc
+   34   addi r4, r31, 0xc                            | addi r4, r31, 0xc
+   38   bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   3c   lwz r31, 0xe4(r30)                           | lwz r31, 0xe4(r30)
+   40 ~ addi r3, r1, 0xf8                            | addi r3, r1, 0xc8
+   44   mr r4, r31                                   | mr r4, r31
+   48   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   4c ~ addi r3, r1, 0xf8                            | addi r3, r1, 0xc8
+   50   addi r4, r31, 0xc                            | addi r4, r31, 0xc
+   54   bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   58 ~ addi r3, r1, 0x104                           | addi r3, r1, 0xd4
+   5c ~ addi r4, r1, 0xf8                            | addi r4, r1, 0xc8
+   60   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   64 ~ addi r3, r1, 0x104                           | addi r3, r1, 0xd4
+   68 ~ addi r4, r1, 0xec                            | addi r4, r1, 0xbc
+   6c   bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   70   addi r3, r30, 0x4                            | addi r3, r30, 0x4
+   74 ~ addi r4, r1, 0x104                           | addi r4, r1, 0xd4
+   78   bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   7c ~ addi r3, r1, 0xb0                            | addi r3, r1, 0x80
+   80   addi r4, r30, 0x90                           | addi r4, r30, 0x90
+   84   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   88   lfs f1, lbl_807D7140@sda21                   | lfs f1, @5732@sda21
+   8c ~ addi r3, r1, 0xb0                            | addi r3, r1, 0x80
+   90   bl scale__Q29JGeometry8TVec3<f>Ff            | bl scale__Q29JGeometry8TVec3<f>Ff
+   94   lwz r4, 0xe8(r30)                            | lwz r4, 0xe8(r30)
+   98 ~ addi r3, r1, 0xbc                            | addi r3, r1, 0x8c
+   9c   bl getVelocity__20DiceMoverAccumulatorCFv    | bl getVelocity__20DiceMoverAccumulatorCFv
+   a0   lwz r4, 0xe4(r30)                            | lwz r4, 0xe4(r30)
+   a4 ~ addi r3, r1, 0xc8                            | addi r3, r1, 0x98
+   a8   bl getVelocity__20DiceMoverAccumulatorCFv    | bl getVelocity__20DiceMoverAccumulatorCFv
+   ac ~ addi r4, r1, 0xc8                            | addi r4, r1, 0x98
+   b0 ~ addi r3, r1, 0xd4                            | addi r3, r1, 0xa4
+   b4   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   b8 ~ addi r3, r1, 0xd4                            | addi r3, r1, 0xa4
+   bc ~ addi r4, r1, 0xbc                            | addi r4, r1, 0x8c
+   c0   bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   c4 ~ addi r3, r1, 0xe0                            | addi r3, r1, 0xb0
+   c8 ~ addi r4, r1, 0xd4                            | addi r4, r1, 0xa4
+   cc   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   d0 ~ addi r3, r1, 0xe0                            | addi r3, r1, 0xb0
+   d4 ~ addi r4, r1, 0xb0                            | addi r4, r1, 0x80
+   d8   bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl add__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   dc   addi r3, r30, 0x90                           | addi r3, r30, 0x90
+   e0 ~ addi r4, r1, 0xe0                            | addi r4, r1, 0xb0
+   e4   bl __as__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __as__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   e8 ~ lfs f1, 0xb4(r30)                            | lfs f31, 0xb4(r30)
+   ec   lfs f0, lbl_807D712C@sda21                   | lfs f0, @5614@sda21
+   f0 ~ fcmpo cr0, f1, f0                            | fcmpo cr0, f31, f0
+   f4   ble 0x137c                                   | ble 0x12f4
+   f8   addi r3, r30, 0x90                           | addi r3, r30, 0x90
+   fc   bl squared__Q29JGeometry8TVec3<f>CFv         | bl squared__Q29JGeometry8TVec3<f>CFv
+  100 - lfs f31, 0xb4(r30)                           |
+  104   fmuls f0, f31, f31                           | fmuls f0, f31, f31
+  108   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+   ...
+  11c   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+  120   cror eq, lt, eq                              | cror eq, lt, eq
+  124 O bne 0x136c                                   | beq 0x12f4
+  128 O b 0x137c                                     | bl inv_sqrt__Q29JGeometry8TUtil<f>Ff
+  12c - bl inv_sqrt__Q29JGeometry8TUtil<f>Ff         |
+  130 ~ fmuls f1, f1, f31                            | fmuls f1, f31, f1
+  134   addi r3, r30, 0x90                           | addi r3, r30, 0x90
+  138   bl scale__Q29JGeometry8TVec3<f>Ff            | bl scale__Q29JGeometry8TVec3<f>Ff
+   ...
+  140   addi r3, r30, 0x9c                           | addi r3, r30, 0x9c
+  144   bl __ml__Q29JGeometry8TVec2<f>CFf            | bl __ml__Q29JGeometry8TVec2<f>CFf
+  148 ~ stw r4, 0x8c(r1)                             | stw r4, 0x5c(r1)
+  14c ~ stw r3, 0x88(r1)                             | stw r3, 0x58(r1)
+  150   lwz r4, 0xe8(r30)                            | lwz r4, 0xe8(r30)
+  154   addi r3, r4, 0x30                            | addi r3, r4, 0x30
+  158   addi r4, r4, 0x38                            | addi r4, r4, 0x38
+  15c   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  160 ~ stw r3, 0x90(r1)                             | stw r4, 0x64(r1)
+  164 ~ stw r4, 0x94(r1)                             | stw r3, 0x60(r1)
+  168 ~ lwz r5, 0xe4(r30)                            | lwz r4, 0xe4(r30)
+  16c - stw r4, 0x34(r1)                             |
+  170 ~ addi r4, r5, 0x38                            | addi r3, r4, 0x30
+  174 - stw r3, 0x30(r1)                             |
+  178 ~ addi r3, r5, 0x30                            | addi r4, r4, 0x38
+  17c   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  180 - stw r4, 0x2c(r1)                             |
+  184 ~ stw r4, 0x9c(r1)                             | stw r4, 0x6c(r1)
+  188 ~ addi r4, r1, 0x90                            | addi r4, r1, 0x60
+  18c ~ stw r3, 0x28(r1)                             | stw r3, 0x68(r1)
+  190 - stw r3, 0x98(r1)                             |
+  194 ~ addi r3, r1, 0x98                            | addi r3, r1, 0x68
+  198   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  19c ~ stw r4, 0xa4(r1)                             | stw r4, 0x74(r1)
+  1a0 ~ addi r4, r1, 0x88                            | addi r4, r1, 0x58
+  1a4 ~ stw r3, 0xa0(r1)                             | stw r3, 0x70(r1)
+  1a8 ~ addi r3, r1, 0xa0                            | addi r3, r1, 0x70
+  1ac   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  1b0 ~ stw r4, 0xac(r1)                             | stw r4, 0x7c(r1)
+  1b4 ~ addi r4, r1, 0xa8                            | addi r4, r1, 0x78
+  1b8 ~ stw r3, 0xa8(r1)                             | stw r3, 0x78(r1)
+  1bc   addi r3, r30, 0x9c                           | addi r3, r30, 0x9c
+  1c0   bl __as__Q29JGeometry8TVec2<f>FRCQ29JGeometry8TVec2<f> | bl __as__Q29JGeometry8TVec2<f>FRCQ29JGeometry8TVec2<f>
+   ...
+  1c8   addi r3, r30, 0xa4                           | addi r3, r30, 0xa4
+  1cc   bl __ml__Q29JGeometry8TVec2<f>CFf            | bl __ml__Q29JGeometry8TVec2<f>CFf
+  1d0 ~ stw r4, 0x64(r1)                             | stw r4, 0x34(r1)
+  1d4 ~ stw r3, 0x60(r1)                             | stw r3, 0x30(r1)
+  1d8   lwz r4, 0xe8(r30)                            | lwz r4, 0xe8(r30)
+  1dc   addi r3, r4, 0x40                            | addi r3, r4, 0x40
+  1e0   addi r4, r4, 0x48                            | addi r4, r4, 0x48
+  1e4   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  1e8 ~ stw r3, 0x68(r1)                             | stw r4, 0x3c(r1)
+  1ec ~ stw r4, 0x6c(r1)                             | stw r3, 0x38(r1)
+  1f0 ~ lwz r5, 0xe4(r30)                            | lwz r4, 0xe4(r30)
+  1f4 - stw r4, 0x24(r1)                             |
+  1f8 ~ addi r4, r5, 0x48                            | addi r3, r4, 0x40
+  1fc - stw r3, 0x20(r1)                             |
+  200 ~ addi r3, r5, 0x40                            | addi r4, r4, 0x48
+  204   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  208 ~ stw r4, 0x1c(r1)                             | stw r4, 0x44(r1)
+  20c - stw r4, 0x74(r1)                             |
+  210 ~ addi r4, r1, 0x68                            | addi r4, r1, 0x38
+  214 - stw r3, 0x18(r1)                             |
+  218 ~ stw r3, 0x70(r1)                             | stw r3, 0x40(r1)
+  21c ~ addi r3, r1, 0x70                            | addi r3, r1, 0x40
+  220   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  224 ~ stw r4, 0x7c(r1)                             | stw r4, 0x4c(r1)
+  228 ~ addi r4, r1, 0x60                            | addi r4, r1, 0x30
+  22c ~ stw r3, 0x78(r1)                             | stw r3, 0x48(r1)
+  230 ~ addi r3, r1, 0x78                            | addi r3, r1, 0x48
+  234   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  238 ~ stw r4, 0x84(r1)                             | stw r4, 0x54(r1)
+  23c ~ addi r4, r1, 0x80                            | addi r4, r1, 0x50
+  240 ~ stw r3, 0x80(r1)                             | stw r3, 0x50(r1)
+  244   addi r3, r30, 0xa4                           | addi r3, r30, 0xa4
+  248   bl __as__Q29JGeometry8TVec2<f>FRCQ29JGeometry8TVec2<f> | bl __as__Q29JGeometry8TVec2<f>FRCQ29JGeometry8TVec2<f>
+   ...
+  250   addi r3, r30, 0xac                           | addi r3, r30, 0xac
+  254   bl __ml__Q29JGeometry8TVec2<f>CFf            | bl __ml__Q29JGeometry8TVec2<f>CFf
+  258 ~ stw r4, 0x3c(r1)                             | stw r4, 0xc(r1)
+  25c ~ stw r3, 0x38(r1)                             | stw r3, 0x8(r1)
+  260   lwz r4, 0xe8(r30)                            | lwz r4, 0xe8(r30)
+  264   addi r3, r4, 0x50                            | addi r3, r4, 0x50
+  268   addi r4, r4, 0x58                            | addi r4, r4, 0x58
+  26c   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  270 ~ stw r3, 0x40(r1)                             | stw r4, 0x14(r1)
+  274 ~ stw r4, 0x44(r1)                             | stw r3, 0x10(r1)
+  278 ~ lwz r5, 0xe4(r30)                            | lwz r4, 0xe4(r30)
+  27c - stw r4, 0x14(r1)                             |
+  280 ~ addi r4, r5, 0x58                            | addi r3, r4, 0x50
+  284 - stw r3, 0x10(r1)                             |
+  288 ~ addi r3, r5, 0x50                            | addi r4, r4, 0x58
+  28c   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  290 - stw r4, 0xc(r1)                              |
+  294 ~ stw r4, 0x4c(r1)                             | stw r4, 0x1c(r1)
+  298 ~ addi r4, r1, 0x40                            | addi r4, r1, 0x10
+  29c - stw r3, 0x8(r1)                              |
+  2a0 ~ stw r3, 0x48(r1)                             | stw r3, 0x18(r1)
+  2a4 ~ addi r3, r1, 0x48                            | addi r3, r1, 0x18
+  2a8   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  2ac ~ stw r4, 0x54(r1)                             | stw r4, 0x24(r1)
+  2b0 ~ addi r4, r1, 0x38                            | addi r4, r1, 0x8
+  2b4 ~ stw r3, 0x50(r1)                             | stw r3, 0x20(r1)
+  2b8 ~ addi r3, r1, 0x50                            | addi r3, r1, 0x20
+  2bc   bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f> | bl __pl__Q29JGeometry8TVec2<f>CFRCQ29JGeometry8TVec2<f>
+  2c0 ~ stw r4, 0x5c(r1)                             | stw r4, 0x2c(r1)
+  2c4 ~ addi r4, r1, 0x58                            | addi r4, r1, 0x28
+  2c8 ~ stw r3, 0x58(r1)                             | stw r3, 0x28(r1)
+  2cc   addi r3, r30, 0xac                           | addi r3, r30, 0xac
+  2d0   bl __as__Q29JGeometry8TVec2<f>FRCQ29JGeometry8TVec2<f> | bl __as__Q29JGeometry8TVec2<f>FRCQ29JGeometry8TVec2<f>
+  2d4   lwz r3, 0xe8(r30)                            | lwz r3, 0xe8(r30)
+  2d8   bl clear__20DiceMoverAccumulatorFv           | bl clear__20DiceMoverAccumulatorFv
+  2dc ~ lwz r0, 0x134(r1)                            | lwz r0, 0x104(r1)
+  2e0 ~ psq_l f31, 0x128(r1), 0, qr0                 | psq_l f31, 0xf8(r1), 0, qr0
+  2e4 ~ lfd f31, 0x120(r1)                           | lfd f31, 0xf0(r1)
+  2e8 ~ lwz r31, 0x11c(r1)                           | lwz r31, 0xec(r1)
+  2ec ~ lwz r30, 0x118(r1)                           | lwz r30, 0xe8(r1)
+  2f0   mtlr r0                                      | mtlr r0
+  2f4 ~ addi r1, r1, 0x130                           | addi r1, r1, 0x100
+  2f8   blr                                          | blr

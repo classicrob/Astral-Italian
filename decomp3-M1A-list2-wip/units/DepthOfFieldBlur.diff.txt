@@ -1,0 +1,208 @@
+blurTexture__16DepthOfFieldBlurCFP10JUTTexturellf  match=95.83223  size=1812  (left=TARGET  right=OURS)
+   ...
+   28   lis r0, 0x4330                               | lis r0, 0x4330
+   2c   stw r0, 0x80(r1)                             | stw r0, 0x80(r1)
+   30 ~ mr r31, r4                                   | mr r30, r4
+   34   mr r28, r5                                   | mr r28, r5
+   38   mr r29, r6                                   | mr r29, r6
+   ...
+   44   xoris r0, r3, 0x8000                         | xoris r0, r3, 0x8000
+   48   stw r0, 0x84(r1)                             | stw r0, 0x84(r1)
+   4c ~ lis r30, lbl_8064C9B8@ha                     | lis r31, @3337@ha
+   50 ~ lfd f1, lbl_8064C9B8@l(r30)                  | lfd f1, @3337@l(r31)
+   54   lfd f0, 0x80(r1)                             | lfd f0, 0x80(r1)
+   58   fsubs f31, f0, f1                            | fsubs f31, f0, f1
+   ...
+   68   lfs f1, lbl_807E1344@sda21                   | lfs f1, @3331@sda21
+   6c   fmr f4, f31                                  | fmr f4, f31
+   70 ~ lfd f2, lbl_8064C9B8@l(r30)                  | lfd f2, @3337@l(r31)
+   74   addi r3, r1, 0x40                            | addi r3, r1, 0x40
+   78   lfd f0, 0x88(r1)                             | lfd f0, 0x88(r1)
+   ...
+  4cc   xoris r0, r3, 0x8000                         | xoris r0, r3, 0x8000
+  4d0   stw r0, 0x84(r1)                             | stw r0, 0x84(r1)
+  4d4 ~ lfd f1, lbl_8064C9B8@l(r30)                  | lfd f1, @3337@l(r31)
+  4d8   lfd f0, 0x80(r1)                             | lfd f0, 0x80(r1)
+  4dc   fsubs f31, f0, f1                            | fsubs f31, f0, f1
+   ...
+  4ec   lfs f2, lbl_807E1344@sda21                   | lfs f2, @3331@sda21
+  4f0   fmr f1, f30                                  | fmr f1, f30
+  4f4 ~ lfd f4, lbl_8064C9B8@l(r30)                  | lfd f4, @3337@l(r31)
+  4f8   addi r3, r1, 0x10                            | addi r3, r1, 0x10
+  4fc   lfd f0, 0x88(r1)                             | lfd f0, 0x88(r1)
+   ...
+  588   li r5, 0x1                                   | li r5, 0x1
+  58c   bl GXLoadTexMtxImm                           | bl GXLoadTexMtxImm
+  590 ~ mr r3, r31                                   | mr r3, r30
+  594   li r4, 0x0                                   | li r4, 0x0
+  598   bl load__10JUTTextureF11_GXTexMapID          | bl load__10JUTTextureF11_GXTexMapID
+   ...
+  5a4   li r5, 0x4                                   | li r5, 0x4
+  5a8   bl GXBegin                                   | bl GXBegin
+  5ac ~ divw r31, r29, r28                           | divw r30, r29, r28
+  5b0 ~ mullw r0, r31, r28                           | mullw r0, r30, r28
+  5b4   subf r29, r0, r29                            | subf r29, r0, r29
+  5b8   bl getFrameBufferWidth__2MRFv                | bl getFrameBufferWidth__2MRFv
+   ...
+  5c0   stw r0, 0x84(r1)                             | stw r0, 0x84(r1)
+  5c4   xoris r0, r28, 0x8000                        | xoris r0, r28, 0x8000
+  5c8 ~ lfd f2, lbl_8064C9B8@l(r30)                  | lfd f2, @3337@l(r31)
+  5cc   stw r0, 0x8c(r1)                             | stw r0, 0x8c(r1)
+  5d0   lfd f1, 0x80(r1)                             | lfd f1, 0x80(r1)
+   ...
+  5f4   addi r4, r29, 0x1                            | addi r4, r29, 0x1
+  5f8   stw r0, 0x8c(r1)                             | stw r0, 0x8c(r1)
+  5fc R xoris r6, r29, 0x8000                        | addi r0, r30, 0x1
+  600 ~ lfd f1, 0x80(r1)                             | lfd f4, @3337@l(r31)
+  604 R addi r0, r31, 0x1                            | xoris r5, r0, 0x8000
+  608 ~ lfd f3, lbl_8064C9B8@l(r30)                  | lfd f0, 0x88(r1)
+  60c ~ xoris r5, r4, 0x8000                         | xoris r6, r29, 0x8000
+  610 ~ lfd f0, 0x88(r1)                             | lfd f1, 0x80(r1)
+  614 ~ xoris r4, r0, 0x8000                         | xoris r0, r30, 0x8000
+  618 ~ fsubs f2, f1, f3                             | fsubs f0, f0, f4
+  61c ~ stw r6, 0x84(r1)                             | stw r5, 0x8c(r1)
+  620 ~ fsubs f0, f0, f3                             | fsubs f1, f1, f4
+  624   lis r3, 0xcc01                               | lis r3, 0xcc01
+  628 R lfd f1, 0x80(r1)                             | stw r6, 0x84(r1)
+  62c ~ xoris r0, r31, 0x8000                        | xoris r4, r4, 0x8000
+  630 ~ fdivs f4, f2, f0                             | fdivs f5, f1, f0
+  634 - stw r4, 0x84(r1)                             |
+  638 ~ lfd f0, 0x80(r1)                             | lfd f1, 0x80(r1)
+  63c +                                              | lfd f0, 0x88(r1)
+  640 +                                              | stw r4, 0x84(r1)
+  644 ~ stw r5, 0x8c(r1)                             | stw r0, 0x8c(r1)
+  648 ~ fsubs f2, f1, f3                             | fsubs f3, f1, f4
+  64c +                                              | fsubs f2, f0, f4
+  650 +                                              | lfd f0, 0x88(r1)
+  654 ~ lfd f1, 0x88(r1)                             | lfd f1, 0x80(r1)
+  658 R fsubs f0, f0, f3                             | fmuls f3, f3, f31
+  65c ~ fsubs f1, f1, f3                             | fsubs f0, f0, f4
+  660 - stw r0, 0x8c(r1)                             |
+  664 ~ fmuls f2, f2, f31                            | fmuls f2, f2, f5
+  668 - fmuls f6, f0, f4                             |
+  66c ~ stfs f2, -0x8000(r3)                         | stfs f3, -0x8000(r3)
+  670 - fmuls f5, f1, f31                            |
+  674 - lfd f1, 0x88(r1)                             |
+  678 - stfs f6, -0x8000(r3)                         |
+  67c - lfs f0, lbl_807E1344@sda21                   |
+  680 ~ fsubs f1, f1, f3                             | fsubs f1, f1, f4
+  684 ~ stfs f0, -0x8000(r3)                         | stfs f2, -0x8000(r3)
+  688 +                                              | fmuls f5, f0, f5
+  68c   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  690   stfs f0, -0x8000(r3)                         | stfs f0, -0x8000(r3)
+  694 ~ fmuls f1, f1, f4                             | fmuls f1, f1, f31
+  698   lfs f0, lbl_807E1340@sda21                   | lfs f0, @3331@sda21
+  69c   stfs f0, -0x8000(r3)                         | stfs f0, -0x8000(r3)
+  6a0 +                                              | lfs f0, @3304@sda21
+  6a4 +                                              | stfs f0, -0x8000(r3)
+  6a8 ~ stfs f2, -0x8000(r3)                         | stfs f3, -0x8000(r3)
+  6ac ~ stfs f1, -0x8000(r3)                         | stfs f5, -0x8000(r3)
+  6b0   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  6b4   stfs f0, -0x8000(r3)                         | stfs f0, -0x8000(r3)
+   ...
+  6c0   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  6c4   stfs f0, -0x8000(r3)                         | stfs f0, -0x8000(r3)
+  6c8 ~ stfs f5, -0x8000(r3)                         | stfs f1, -0x8000(r3)
+  6cc ~ stfs f6, -0x8000(r3)                         | stfs f2, -0x8000(r3)
+  6d0   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  6d4   stfs f0, -0x8000(r3)                         | stfs f0, -0x8000(r3)
+   ...
+  6e0   lfs f0, lbl_807E1340@sda21                   | lfs f0, @3304@sda21
+  6e4   stfs f0, -0x8000(r3)                         | stfs f0, -0x8000(r3)
+  6e8 ~ stfs f5, -0x8000(r3)                         | stfs f1, -0x8000(r3)
+  6ec ~ stfs f1, -0x8000(r3)                         | stfs f5, -0x8000(r3)
+  6f0   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  6f4   stfs f0, -0x8000(r3)                         | stfs f0, -0x8000(r3)
+drawFinal__16DepthOfFieldBlurCFv  match=97.559715  size=1708  (left=TARGET  right=OURS)
+   ...
+  280   lfs f1, lbl_807E1358@sda21                   | lfs f1, @3333@sda21
+  284   fsubs f0, f0, f3                             | fsubs f0, f0, f3
+  288 ~ fdivs f2, f2, f1                             | fdivs f3, f2, f1
+  28c ~ fdivs f3, f0, f1                             | fdivs f0, f0, f1
+  290   b 0xc48                                      | b 0xca8
+  294   xoris r0, r4, 0x8000                         | xoris r0, r4, 0x8000
+   ...
+  2b8   lfs f1, lbl_807E1358@sda21                   | lfs f1, @3333@sda21
+  2bc   fsubs f0, f0, f3                             | fsubs f0, f0, f3
+  2c0 ~ fdivs f2, f2, f1                             | fdivs f3, f2, f1
+  2c4 ~ fdivs f3, f0, f1                             | fdivs f0, f0, f1
+  2c8 ~ lfs f0, lbl_807E1340@sda21                   | lfs f2, @3304@sda21
+  2cc ~ fsubs f1, f0, f2                             | fsubs f1, f2, f3
+  2d0 ~ fsubs f2, f0, f3                             | fsubs f0, f2, f0
+  2d4   fmuls f1, f1, f1                             | fmuls f1, f1, f1
+  2d8 ~ fmuls f2, f2, f2                             | fmuls f0, f0, f0
+  2dc ~ fsubs f30, f0, f1                            | fsubs f31, f2, f1
+  2e0 ~ fsubs f29, f0, f2                            | fsubs f30, f2, f0
+  2e4   bl getNearZ__2MRFv                           | bl getNearZ__2MRFv
+  2e8   lfs f0, lbl_807E135C@sda21                   | lfs f0, @3384@sda21
+   ...
+  2f0   beq 0xcc4                                    | beq 0xd24
+  2f4   bl getFarZ__2MRFv                            | bl getFarZ__2MRFv
+  2f8 ~ fmr f31, f1                                  | fmr f29, f1
+  2fc   bl getNearZ__2MRFv                           | bl getNearZ__2MRFv
+  300   fmr f4, f1                                   | fmr f4, f1
+  304   lfs f2, lbl_807E135C@sda21                   | lfs f2, @3384@sda21
+  308 ~ fmr f1, f30                                  | fmr f1, f31
+  30c   lfs f3, lbl_807E1360@sda21                   | lfs f3, @3385@sda21
+  310 ~ fmr f5, f31                                  | fmr f5, f29
+  314   bl convertDepthForProjection__2MRFfffff      | bl convertDepthForProjection__2MRFfffff
+  318 ~ fmr f30, f1                                  | fmr f31, f1
+  31c   bl getFarZ__2MRFv                            | bl getFarZ__2MRFv
+  320 ~ fmr f31, f1                                  | fmr f29, f1
+  324   bl getNearZ__2MRFv                           | bl getNearZ__2MRFv
+  328   fmr f4, f1                                   | fmr f4, f1
+  32c   lfs f2, lbl_807E135C@sda21                   | lfs f2, @3384@sda21
+  330 ~ fmr f1, f29                                  | fmr f1, f30
+  334   lfs f3, lbl_807E1360@sda21                   | lfs f3, @3385@sda21
+  338 ~ fmr f5, f31                                  | fmr f5, f29
+  33c   bl convertDepthForProjection__2MRFfffff      | bl convertDepthForProjection__2MRFfffff
+  340 ~ fmr f29, f1                                  | fmr f30, f1
+  344 ~ fsubs f1, f29, f30                           | fsubs f1, f30, f31
+  348   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  34c   fcmpu cr0, f0, f1                            | fcmpu cr0, f0, f1
+   ...
+  36c   lfs f0, lbl_807E1364@sda21                   | lfs f0, @3387@sda21
+  370   li r5, 0x0                                   | li r5, 0x0
+  374 ~ fmuls f31, f2, f30                           | fmuls f31, f2, f31
+  378   b 0xd04                                      | b 0xd64
+  37c   fmuls f3, f3, f1                             | fmuls f3, f3, f1
+   ...
+  560   stw r3, 0x44(r1)                             | stw r3, 0x44(r1)
+  564   fdivs f4, f2, f0                             | fdivs f4, f2, f0
+  568 +                                              | lfd f0, 0x40(r1)
+  56c +                                              | stw r3, 0x3c(r1)
+  570 ~ stw r3, 0x3c(r1)                             | stw r0, 0x44(r1)
+  574 - lfd f0, 0x38(r1)                             |
+  578   fsubs f2, f1, f3                             | fsubs f2, f1, f3
+  57c +                                              | fsubs f1, f0, f3
+  580 ~ lfd f1, 0x40(r1)                             | lfd f0, 0x40(r1)
+  584 - fsubs f0, f0, f3                             |
+  588 - stw r0, 0x44(r1)                             |
+  58c - fsubs f1, f1, f3                             |
+  590   fmuls f2, f2, f29                            | fmuls f2, f2, f29
+  594 ~ fmuls f5, f0, f4                             | fmuls f5, f1, f4
+  598   stfs f2, -0x8000(r4)                         | stfs f2, -0x8000(r4)
+  59c R fmuls f1, f1, f29                            | fsubs f1, f0, f3
+  5a0   stfs f5, -0x8000(r4)                         | stfs f5, -0x8000(r4)
+  5a4   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  5a8 +                                              | fmuls f4, f1, f4
+  5ac   stfs f0, -0x8000(r4)                         | stfs f0, -0x8000(r4)
+  5b0   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+   ...
+  5b8   lfs f0, lbl_807E1340@sda21                   | lfs f0, @3304@sda21
+  5bc   stfs f0, -0x8000(r4)                         | stfs f0, -0x8000(r4)
+  5c0 ~ lfd f0, 0x40(r1)                             | lfd f0, 0x38(r1)
+  5c4   stfs f31, -0x8000(r4)                        | stfs f31, -0x8000(r4)
+  5c8   fsubs f0, f0, f3                             | fsubs f0, f0, f3
+  5cc   stfs f31, -0x8000(r4)                        | stfs f31, -0x8000(r4)
+  5d0   stfs f2, -0x8000(r4)                         | stfs f2, -0x8000(r4)
+  5d4 ~ fmuls f2, f0, f4                             | fmuls f1, f0, f29
+  5d8 ~ stfs f2, -0x8000(r4)                         | stfs f4, -0x8000(r4)
+  5dc   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  5e0   stfs f0, -0x8000(r4)                         | stfs f0, -0x8000(r4)
+   ...
+  620   stfs f31, -0x8000(r4)                        | stfs f31, -0x8000(r4)
+  624   stfs f1, -0x8000(r4)                         | stfs f1, -0x8000(r4)
+  628 ~ stfs f2, -0x8000(r4)                         | stfs f4, -0x8000(r4)
+  62c   lfs f0, lbl_807E1344@sda21                   | lfs f0, @3331@sda21
+  630   li r3, 0x1                                   | li r3, 0x1

@@ -1,0 +1,108 @@
+
+TARGET
+.ctors size=0x4 base=0x80644148
+  objects: []
+.rodata size=0x8 base=0x80648330
+  objects: [('lbl_80648330', '0x0', '0x8')]
+.data size=0x490 base=0x80688da0
+  0018 80688db8 'Jugem'
+  0020 80688dc0 '雲モデル'
+  002c 80688dcc 'Root'
+  0034 80688dd4 'トゲゾー'
+  0040 80688de0 'AllRoot'
+  0048 80688de8 'WristR'
+  0050 80688df0 'SupportFreeze'
+  0060 80688e00 'Wait'
+  0068 80688e08 'MoveUp'
+  0070 80688e10 'ThrowSign'
+  007c 80688e1c 'Throw'
+  0084 80688e24 'HitReaction'
+  0090 80688e30 'StarPieceReaction'
+  00a4 80688e44 '気絶開始（スターピース）'
+  00c0 80688e60 'BlowDown'
+  00cc 80688e6c 'PressDown'
+  00d8 80688e78 'Dead'
+  00e0 80688e80 'ReBirth'
+  00e8 80688e88 'FallDown'
+  00f4 80688e94 '墜落開始（雲たべられ）'
+  010c 80688eac 'FallLand'
+  0118 80688eb8 'FallRecovery'
+  0128 80688ec8 '墜落開始（踏まれ）'
+  013c 80688edc '墜落開始（ヒップドロップ）'
+  0158 80688ef8 'LandPressDown'
+  0168 80688f08 '吹っ飛び'
+  0174 80688f14 'ヨッシー舌アクセス'
+  0188 80688f28 '踏まれ'
+  0190 80688f30 'MoveLeft'
+  019c 80688f3c 'MoveEndLeft'
+  01a8 80688f48 'MoveRight'
+  01b4 80688f54 'MoveEndRight'
+  01c4 80688f64 'MoveFront'
+  01d0 80688f70 'MoveEndFront'
+  01e0 80688f80 'MoveBack'
+  01ec 80688f8c 'MoveEndBack'
+  01f8 80688f98 'Move'
+  0200 80688fa0 'JugemCloud'
+  020c 80688fac '出現'
+  0214 80688fb4 'Float'
+  021c 80688fbc 'Disappear'
+  objects: [('lbl_80688DA0', '0x0', '0x60'), ('lbl_80688E00', '0x60', '0x5'), ('gap_07_80688E05_data', '0x65', '0x3'), ('lbl_80688E08', '0x68', '0x7'), ('gap_07_80688E0F_data', '0x6f', '0x1'), ('lbl_80688E10', '0x70', '0xa'), ('gap_07_80688E1A_data', '0x7a', '0x2'), ('lbl_80688E1C', '0x7c', '0x6'), ('gap_07_80688E22_data', '0x82', '0x2'), ('lbl_80688E24', '0x84', '0xc'), ('lbl_80688E30', '0x90', '0x12'), ('gap_07_80688E42_data', '0xa2', '0x2'), ('lbl_80688E44', '0xa4', '0x1c'), ('lbl_80688E60', '0xc0', '0x9'), ('gap_07_80688E69_data', '0xc9', '0x3'), ('lbl_80688E6C', '0xcc', '0xa'), ('gap_07_80688E76_data', '0xd6', '0x2'), ('lbl_80688E78', '0xd8', '0x5'), ('gap_07_80688E7D_data', '0xdd', '0x3'), ('lbl_80688E80', '0xe0', '0x8'), ('lbl_80688E88', '0xe8', '0x9'), ('gap_07_80688E91_data', '0xf1', '0x3'), ('lbl_80688E94', '0xf4', '0x18'), ('lbl_80688EAC', '0x10c', '0x9'), ('gap_07_80688EB5_data', '0x115', '0x3'), ('lbl_80688EB8', '0x118', '0xd'), ('gap_07_80688EC5_data', '0x125', '0x3'), ('lbl_80688EC8', '0x128', '0x14'), ('lbl_80688EDC', '0x13c', '0x1c'), ('lbl_80688EF8', '0x158', '0xe'), ('gap_07_80688F06_data', '0x166', '0x2'), ('lbl_80688F08', '0x168', '0xc'), ('lbl_80688F14', '0x174', '0x14'), ('lbl_80688F28', '0x188', '0x78'), ('lbl_80688FA0', '0x200', '0xb'), ('gap_07_80688FAB_data', '0x20b', '0x1'), ('lbl_80688FAC', '0x20c', '0x8'), ('lbl_80688FB4', '0x214', '0x6'), ('gap_07_80688FBA_data', '0x21a', '0x2'), ('lbl_80688FBC', '0x21c', '0xa'), ('gap_07_80688FC6_data', '0x226', '0x2'), ('__vt__29JointControlDelegator<5Jugem>', '0x228', '0x18'), ('__vt__10JugemCloud', '0x240', '0x70'), ('__vt__5Jugem', '0x2b0', '0x70'), ('__vt__Q28NrvJugem21JugemNrvSupportFreeze', '0x320', '0x10'), ('__vt__Q28NrvJugem21JugemNrvLandPressDown', '0x330', '0x10'), ('__vt__Q28NrvJugem23JugemNrvFallDownHipDrop', '0x340', '0x10'), ('__vt__Q28NrvJugem23JugemNrvFallDownTrample', '0x350', '0x10'), ('__vt__Q28NrvJugem20JugemNrvFallRecovery', '0x360', '0x10'), ('__vt__Q28NrvJugem16JugemNrvFallLand', '0x370', '0x10'), ('__vt__Q28NrvJugem21JugemNrvFallDownEaten', '0x380', '0x10'), ('__vt__Q28NrvJugem13JugemNrvEaten', '0x390', '0x10'), ('__vt__Q28NrvJugem15JugemNrvReBirth', '0x3a0', '0x10'), ('__vt__Q28NrvJugem12JugemNrvDead', '0x3b0', '0x10'), ('__vt__Q28NrvJugem17JugemNrvPressDown', '0x3c0', '0x10'), ('__vt__Q28NrvJugem16JugemNrvBlowDown', '0x3d0', '0x10'), ('__vt__Q28NrvJugem25JugemNrvStarPieceReaction', '0x3e0', '0x10'), ('__vt__Q28NrvJugem19JugemNrvHitReaction', '0x3f0', '0x10'), ('__vt__Q28NrvJugem16JugemNrvThrowEnd', '0x400', '0x10'), ('__vt__Q28NrvJugem13JugemNrvThrow', '0x410', '0x10'), ('__vt__Q28NrvJugem17JugemNrvThrowSign', '0x420', '0x10'), ('__vt__Q28NrvJugem14JugemNrvMoveUp', '0x430', '0x10'), ('__vt__Q28NrvJugem18JugemNrvPickTogezo', '0x440', '0x10'), ('__vt__Q28NrvJugem16JugemNrvApproach', '0x450', '0x10'), ('__vt__Q28NrvJugem14JugemNrvFollow', '0x460', '0x10'), ('__vt__Q28NrvJugem14JugemNrvSearch', '0x470', '0x10'), ('__vt__Q28NrvJugem12JugemNrvWait', '0x480', '0x10')]
+.sdata2 size=0xb4 base=0x807da8b8
+  007c 807da934 '?LﾌﾍBH'
+  008c 807da944 '?s33Dz'
+  0094 807da94c 'It$'
+  objects: [('lbl_807DA8B8', '0x0', '0x4'), ('lbl_807DA8BC', '0x4', '0x4'), ('lbl_807DA8C0', '0x8', '0x4'), ('lbl_807DA8C4', '0xc', '0x4'), ('lbl_807DA8C8', '0x10', '0x4'), ('cChildRangeScale', '0x14', '0x4'), ('lbl_807DA8D0', '0x18', '0x4'), ('cReboundGravity', '0x1c', '0x4'), ('lbl_807DA8D8', '0x20', '0x4'), ('lbl_807DA8DC', '0x24', '0x4'), ('lbl_807DA8E0', '0x28', '0x4'), ('sFollowRange__19@unnamed@Jugem_cpp@', '0x2c', '0x4'), ('lbl_807DA8E8', '0x30', '0x4'), ('lbl_807DA8EC', '0x34', '0x4'), ('lbl_807DA8F0', '0x38', '0x4'), ('lbl_807DA8F4', '0x3c', '0x4'), ('lbl_807DA8F8', '0x40', '0x4'), ('lbl_807DA8FC', '0x44', '0x4'), ('lbl_807DA900', '0x48', '0x4'), ('lbl_807DA904', '0x4c', '0x4'), ('cHeight', '0x50', '0x4'), ('lbl_807DA90C', '0x54', '0x4'), ('lbl_807DA910', '0x58', '0x4'), ('lbl_807DA914', '0x5c', '0x4'), ('lbl_807DA918', '0x60', '0x4'), ('cFallSpeed', '0x64', '0x4'), ('lbl_807DA920', '0x68', '0x4'), ('lbl_807DA924', '0x6c', '0x4'), ('lbl_807DA928', '0x70', '0x4'), ('lbl_807DA92C', '0x74', '0x4'), ('cThrowAngle', '0x78', '0x4'), ('lbl_807DA934', '0x7c', '0x4'), ('lbl_807DA938', '0x80', '0x4'), ('lbl_807DA93C', '0x84', '0x4'), ('lbl_807DA940', '0x88', '0x4'), ('lbl_807DA944', '0x8c', '0x4'), ('cRayLength', '0x90', '0x4'), ('lbl_807DA94C', '0x94', '0x4'), ('lbl_807DA950', '0x98', '0x4'), ('cChildRange', '0x9c', '0x4'), ('lbl_807DA958', '0xa0', '0x4'), ('lbl_807DA95C', '0xa4', '0x4'), ('lbl_807DA960', '0xa8', '0x4'), ('lbl_807DA964', '0xac', '0x4'), ('lbl_807DA968', '0xb0', '0x4')]
+
+OURS
+.ctors size=0x4 base=0x80644148
+  objects: []
+.rodata size=0x18 base=0x80648330
+  objects: [('@16059', '0x0', '0x8'), ('@16206', '0x8', '0x8'), ('@16207', '0x10', '0x8')]
+.data size=0x490 base=0x80688da0
+  0018 80688db8 'Jugem'
+  0020 80688dc0 '雲モデル'
+  002c 80688dcc 'Root'
+  0034 80688dd4 'トゲゾー'
+  0040 80688de0 'AllRoot'
+  0048 80688de8 'WristR'
+  0050 80688df0 'SupportFreeze'
+  0060 80688e00 'Wait'
+  0068 80688e08 'MoveUp'
+  0070 80688e10 'ThrowSign'
+  007c 80688e1c 'Throw'
+  0084 80688e24 'HitReaction'
+  0090 80688e30 'StarPieceReaction'
+  00a4 80688e44 '気絶開始（スターピース）'
+  00c0 80688e60 'BlowDown'
+  00cc 80688e6c 'PressDown'
+  00d8 80688e78 'Dead'
+  00e0 80688e80 'ReBirth'
+  00e8 80688e88 'FallDown'
+  00f4 80688e94 '墜落開始（雲たべられ）'
+  010c 80688eac 'FallLand'
+  0118 80688eb8 'FallRecovery'
+  0128 80688ec8 '墜落開始（踏まれ）'
+  013c 80688edc '墜落開始（ヒップドロップ）'
+  0158 80688ef8 'LandPressDown'
+  0168 80688f08 '吹っ飛び'
+  0174 80688f14 'ヨッシー舌アクセス'
+  0188 80688f28 '踏まれ'
+  0190 80688f30 'MoveLeft'
+  019c 80688f3c 'MoveEndLeft'
+  01a8 80688f48 'MoveRight'
+  01b4 80688f54 'MoveEndRight'
+  01c4 80688f64 'MoveFront'
+  01d0 80688f70 'MoveEndFront'
+  01e0 80688f80 'MoveBack'
+  01ec 80688f8c 'MoveEndBack'
+  01f8 80688f98 'Move'
+  0200 80688fa0 'JugemCloud'
+  020c 80688fac '出現'
+  0214 80688fb4 'Float'
+  021c 80688fbc 'Disappear'
+  objects: [('@15614', '0x0', '0xc'), ('@15615', '0xc', '0xc'), ('@15641', '0x18', '0x6'), ('@15642', '0x20', '0x9'), ('@15643', '0x2c', '0x5'), ('@15644', '0x34', '0x9'), ('@15645', '0x40', '0x8'), ('@15646', '0x48', '0x7'), ('@15647', '0x50', '0xe'), ('@15672', '0x60', '0x5'), ('@15712', '0x68', '0x7'), ('@15717', '0x70', '0xa'), ('@15731', '0x7c', '0x6'), ('@15741', '0x84', '0xc'), ('@15746', '0x90', '0x12'), ('@15747', '0xa4', '0x19'), ('@15754', '0xc0', '0x9'), ('@15767', '0xcc', '0xa'), ('@15776', '0xd8', '0x5'), ('@15781', '0xe0', '0x8'), ('@15789', '0xe8', '0x9'), ('@15790', '0xf4', '0x17'), ('@15799', '0x10c', '0x9'), ('@15806', '0x118', '0xd'), ('@15813', '0x128', '0x13'), ('@15822', '0x13c', '0x1b'), ('@15827', '0x158', '0xe'), ('@15924', '0x168', '0x9'), ('@15932', '0x174', '0x13'), ('@15938', '0x188', '0x7'), ('@16096', '0x190', '0x9'), ('@16097', '0x19c', '0xc'), ('@16098', '0x1a8', '0xa'), ('@16099', '0x1b4', '0xd'), ('@16100', '0x1c4', '0xa'), ('@16101', '0x1d0', '0xd'), ('@16102', '0x1e0', '0x9'), ('@16103', '0x1ec', '0xc'), ('@16104', '0x1f8', '0x5'), ('@16156', '0x200', '0xb'), ('@16163', '0x20c', '0x5'), ('@16169', '0x214', '0x6'), ('@16173', '0x21c', '0xa'), ('__vt__5Jugem', '0x2b0', '0x70'), ('__vt__29JointControlDelegator<5Jugem>', '0x228', '0x14'), ('__vt__10JugemCloud', '0x240', '0x70'), ('__vt__Q28NrvJugem12JugemNrvWait', '0x480', '0x10'), ('__vt__Q28NrvJugem14JugemNrvSearch', '0x470', '0x10'), ('__vt__Q28NrvJugem14JugemNrvFollow', '0x460', '0x10'), ('__vt__Q28NrvJugem16JugemNrvApproach', '0x450', '0x10'), ('__vt__Q28NrvJugem18JugemNrvPickTogezo', '0x440', '0x10'), ('__vt__Q28NrvJugem14JugemNrvMoveUp', '0x430', '0x10'), ('__vt__Q28NrvJugem17JugemNrvThrowSign', '0x420', '0x10'), ('__vt__Q28NrvJugem13JugemNrvThrow', '0x410', '0x10'), ('__vt__Q28NrvJugem16JugemNrvThrowEnd', '0x400', '0x10'), ('__vt__Q28NrvJugem19JugemNrvHitReaction', '0x3f0', '0x10'), ('__vt__Q28NrvJugem25JugemNrvStarPieceReaction', '0x3e0', '0x10'), ('__vt__Q28NrvJugem16JugemNrvBlowDown', '0x3d0', '0x10'), ('__vt__Q28NrvJugem17JugemNrvPressDown', '0x3c0', '0x10'), ('__vt__Q28NrvJugem12JugemNrvDead', '0x3b0', '0x10'), ('__vt__Q28NrvJugem15JugemNrvReBirth', '0x3a0', '0x10'), ('__vt__Q28NrvJugem13JugemNrvEaten', '0x390', '0x10'), ('__vt__Q28NrvJugem21JugemNrvFallDownEaten', '0x380', '0x10'), ('__vt__Q28NrvJugem16JugemNrvFallLand', '0x370', '0x10'), ('__vt__Q28NrvJugem20JugemNrvFallRecovery', '0x360', '0x10'), ('__vt__Q28NrvJugem23JugemNrvFallDownTrample', '0x350', '0x10'), ('__vt__Q28NrvJugem23JugemNrvFallDownHipDrop', '0x340', '0x10'), ('__vt__Q28NrvJugem21JugemNrvLandPressDown', '0x330', '0x10'), ('__vt__Q28NrvJugem21JugemNrvSupportFreeze', '0x320', '0x10')]
+.sdata2 size=0xc8 base=0x807da8b8
+  0020 807da8d8 '?333>LﾌﾍBﾈ'
+  0040 807da8f8 '?s33?ﾀ'
+  0088 807da940 '=ﾌﾌﾍ=LﾌﾍCｴ'
+  objects: [('@15528', '0x0', '0x4'), ('@15547', '0x4', '0x4'), ('@15548', '0x8', '0x4'), ('@15549', '0xc', '0x4'), ('@15550', '0x10', '0x4'), ('@15576', '0x14', '0x4'), ('@15679', '0x18', '0x4'), ('@15685', '0x1c', '0x4'), ('@15686', '0x20', '0x4'), ('@15687', '0x24', '0x4'), ('sFollowRange__19@unnamed@Jugem_cpp@', '0xb4', '0x4'), ('@15688', '0x28', '0x4'), ('@15697', '0x2c', '0x4'), ('@15698', '0x30', '0x4'), ('@15699', '0x34', '0x4'), ('@15700', '0x38', '0x4'), ('@15701', '0x3c', '0x4'), ('@15732', '0x40', '0x4'), ('@15755', '0x44', '0x4'), ('@15756', '0x48', '0x4'), ('@15922', '0x4c', '0x4'), ('@15923', '0x50', '0x4'), ('@15965', '0x54', '0x4'), ('@15966', '0x58', '0x4'), ('@15967', '0x5c', '0x4'), ('@15968', '0x60', '0x4'), ('@15975', '0x64', '0x4'), ('@15985', '0x68', '0x4'), ('@16007', '0x6c', '0x4'), ('@16020', '0x70', '0x4'), ('@16095', '0x74', '0x4'), ('@16105', '0x78', '0x4'), ('@16106', '0x7c', '0x4'), ('@16107', '0x80', '0x4'), ('@16108', '0x84', '0x4'), ('@16117', '0x88', '0x4'), ('@16118', '0x8c', '0x4'), ('@16119', '0x90', '0x4'), ('@16139', '0x94', '0x4'), ('@16208', '0xb8', '0x4'), ('@16209', '0xbc', '0x4'), ('@16210', '0xc0', '0x4'), ('@16211', '0xc4', '0x4'), ('cReboundGravity', '0xa0', '0x4'), ('cHeight', '0xa8', '0x4'), ('cRayLength', '0xac', '0x4'), ('cFallSpeed', '0xb0', '0x4'), ('cThrowAngle', '0xa4', '0x4'), ('cChildRange', '0x98', '0x4'), ('cChildRangeScale', '0x9c', '0x4')]

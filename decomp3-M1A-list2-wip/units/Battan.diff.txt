@@ -1,0 +1,245 @@
+init__6BattanFRC12JMapInfoIter  match=94.547325  size=972  (left=TARGET  right=OURS)
+   ...
+   10   bl _savegpr_22                               | bl _savegpr_22
+   14   lis r31, lbl_80682E90@ha                     | lis r31, ...data.0@ha
+   18 ~ mr r29, r4                                   | mr r30, r4
+   1c ~ mr r28, r3                                   | mr r29, r3
+   20 ~ mr r3, r29                                   | mr r3, r30
+   24   addi r31, r31, lbl_80682E90@l                | addi r31, r31, ...data.0@l
+   28   bl isValidInfo__2MRFRC12JMapInfoIter         | bl isValidInfo__2MRFRC12JMapInfoIter
+   2c   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+   30   beq 0x11c                                    | beq 0x17c
+   34 ~ mr r3, r29                                   | mr r3, r30
+   38   bl isConnectedWithRail__2MRFRC12JMapInfoIter | bl isConnectedWithRail__2MRFRC12JMapInfoIter
+   3c ~ mr r3, r28                                   | mr r3, r29
+   40 ~ mr r4, r29                                   | mr r4, r30
+   44   addi r5, r31, 0x10c                          | addi r5, r31, 0x10c
+   48   li r6, 0x0                                   | li r6, 0x0
+   ...
+   50   li r3, 0x14                                  | li r3, 0x14
+   54   bl __nwa__FUl                                | bl __nwa__FUl
+   58 ~ stw r3, 0x94(r28)                            | stw r3, 0x94(r29)
+   5c   li r3, 0x14                                  | li r3, 0x14
+   60   bl __nwa__FUl                                | bl __nwa__FUl
+   64 - lis r4, lbl_80682F54@ha                      |
+   68 ~ li r30, 0x0                                  | li r23, 0x0
+   6c ~ stw r3, 0x98(r28)                            | stw r3, 0x98(r29)
+   70 ~ mr r26, r30                                  | mr r27, r23
+   74 R addi r25, r4, lbl_80682F54@l                 | addi r26, r31, 0xc4
+   78 ~ li r27, 0x0                                  | li r28, 0x0
+   7c ~ cmpwi r30, 0x0                               | cmpwi r23, 0x0
+   80 +                                              | add r22, r26, r28
+   84   beq 0x170                                    | beq 0x1d0
+   88 ~ subi r0, r30, 0x3                            | subi r0, r23, 0x3
+   8c   cmplwi r0, 0x1                               | cmplwi r0, 0x1
+   90   bgt 0x1d4                                    | bgt 0x230
+   ...
+   98   bl __nw__FUl                                 | bl __nw__FUl
+   9c   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+   a0 ~ mr r24, r3                                   | mr r25, r3
+   a4   beq 0x1b8                                    | beq 0x214
+   a8 - add r23, r25, r27                            |
+   ac - mr r3, r28                                   |
+   b0 ~ lwz r4, 0x8(r23)                             | lwz r4, 0x8(r22)
+   b4 +                                              | mr r3, r29
+   b8   bl getJointMtx__2MRFPC9LiveActorPCc          | bl getJointMtx__2MRFPC9LiveActorPCc
+   bc ~ lwz r5, 0x0(r23)                             | lwz r5, 0x0(r22)
+   c0   mr r8, r3                                    | mr r8, r3
+   c4 ~ lwz r6, 0x4(r23)                             | lwz r6, 0x4(r22)
+   c8 ~ mr r3, r24                                   | mr r3, r25
+   cc ~ mr r4, r28                                   | mr r4, r29
+   d0   li r7, 0x0                                   | li r7, 0x0
+   d4   li r9, 0x1e                                  | li r9, 0x1e
+   d8   bl __ct__24BattanKingCollisionPressFP9LiveActorPCcPCcP9HitSensorPA4_fl | bl __ct__24BattanKingCollisionPressFP9LiveActorPCcPCcP9HitSensorPA4_fl
+   dc ~ mr r24, r3                                   | mr r25, r3
+   e0 ~ lwz r3, 0x98(r28)                            | lwz r3, 0x98(r29)
+   e4 ~ slwi r22, r30, 2                             | slwi r24, r23, 2
+   e8 ~ stwx r24, r3, r22                            | stwx r25, r3, r24
+   ec ~ lwz r3, 0x98(r28)                            | lwz r3, 0x98(r29)
+   f0 ~ lwzx r3, r3, r22                             | lwzx r3, r3, r24
+   f4   bl initWithoutIter__7NameObjFv               | bl initWithoutIter__7NameObjFv
+   f8   b 0x1e0                                      | b 0x23c
+   fc ~ lwz r3, 0x98(r28)                            | lwz r3, 0x98(r29)
+  100 ~ slwi r22, r30, 2                             | slwi r24, r23, 2
+  104 ~ stwx r26, r3, r22                            | stwx r27, r3, r24
+  108   li r3, 0x98                                  | li r3, 0x98
+  10c   bl __nw__FUl                                 | bl __nw__FUl
+  110   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  114 ~ mr r24, r3                                   | mr r25, r3
+  118   beq 0x228                                    | beq 0x280
+  11c - add r23, r25, r27                            |
+  120 - mr r3, r28                                   |
+  124 ~ lwz r4, 0x8(r23)                             | lwz r4, 0x8(r22)
+  128 +                                              | mr r3, r29
+  12c   bl getJointMtx__2MRFPC9LiveActorPCc          | bl getJointMtx__2MRFPC9LiveActorPCc
+  130 ~ lwz r5, 0x0(r23)                             | lwz r5, 0x0(r22)
+  134   mr r8, r3                                    | mr r8, r3
+  138 ~ lwz r6, 0x4(r23)                             | lwz r6, 0x4(r22)
+  13c ~ mr r3, r24                                   | mr r3, r25
+  140 ~ mr r4, r28                                   | mr r4, r29
+  144   li r7, 0x0                                   | li r7, 0x0
+  148   li r9, 0x1e                                  | li r9, 0x1e
+  14c   bl __ct__19BattanKingCollisionFP9LiveActorPCcPCcP9HitSensorPA4_fl | bl __ct__19BattanKingCollisionFP9LiveActorPCcPCcP9HitSensorPA4_fl
+  150 ~ mr r24, r3                                   | mr r25, r3
+  154 ~ lwz r3, 0x94(r28)                            | lwz r3, 0x94(r29)
+  158 ~ stwx r24, r3, r22                            | stwx r25, r3, r24
+  15c ~ lwz r3, 0x94(r28)                            | lwz r3, 0x94(r29)
+  160 ~ lwzx r3, r3, r22                             | lwzx r3, r3, r24
+  164   bl initWithoutIter__7NameObjFv               | bl initWithoutIter__7NameObjFv
+  168 ~ addi r30, r30, 0x1                           | addi r23, r23, 0x1
+  16c ~ addi r27, r27, 0xc                           | addi r28, r28, 0xc
+  170 ~ cmpwi r30, 0x5                               | cmpwi r23, 0x5
+  174   blt 0x15c                                    | blt 0x1b8
+  178 ~ mr r3, r28                                   | mr r3, r29
+  17c   bl moveCoordAndTransToNearestRailPos__2MRFP9LiveActor | bl moveCoordAndTransToNearestRailPos__2MRFP9LiveActor
+  180 ~ mr r4, r28                                   | mr r4, r29
+  184 ~ addi r3, r28, 0xa4                           | addi r3, r29, 0xa4
+  188   bl calcFrontVec__2MRFPQ29JGeometry8TVec3<f>PC9LiveActor | bl calcFrontVec__2MRFPQ29JGeometry8TVec3<f>PC9LiveActor
+  18c   addi r3, r1, 0x1c                            | addi r3, r1, 0x1c
+  190 ~ addi r4, r28, 0xa4                           | addi r4, r29, 0xa4
+  194   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+  198   lfs f1, lbl_807D9C34@sda21                   | lfs f1, @13733@sda21
+  19c ~ mr r3, r28                                   | mr r3, r29
+  1a0   addi r4, r1, 0x1c                            | addi r4, r1, 0x1c
+  1a4 ~ addi r5, r28, 0x14                           | addi r5, r29, 0x14
+  1a8   li r6, 0x0                                   | li r6, 0x0
+  1ac   li r7, 0x0                                   | li r7, 0x0
+  1b0   bl calcMovingDirectionAlongRail__2MRFP9LiveActorPQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>fbPb | bl calcMovingDirectionAlongRail__2MRFP9LiveActorPQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>fbPb
+  1b4 ~ addi r3, r28, 0xa4                           | addi r3, r29, 0xa4
+  1b8   addi r4, r1, 0x1c                            | addi r4, r1, 0x1c
+  1bc   bl dot__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f> | bl dot__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>
+   ...
+  1c4   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+  1c8   bge 0x2a8                                    | bge 0x300
+  1cc ~ mr r3, r28                                   | mr r3, r29
+  1d0   bl reverseRailDirection__2MRFP9LiveActor     | bl reverseRailDirection__2MRFP9LiveActor
+  1d4   li r3, 0x18                                  | li r3, 0x18
+   ...
+  1dc   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  1e0   beq 0x2c4                                    | beq 0x31c
+  1e4 ~ mr r4, r28                                   | mr r4, r29
+  1e8   li r5, 0x0                                   | li r5, 0x0
+  1ec   bl __ct__15SupportTicoStopFP9LiveActorP19AnimScaleController | bl __ct__15SupportTicoStopFP9LiveActorP19AnimScaleController
+  1f0 ~ stw r3, 0x90(r28)                            | stw r3, 0x90(r29)
+  1f4   li r3, 0x9c                                  | li r3, 0x9c
+  1f8   bl __nw__FUl                                 | bl __nw__FUl
+  1fc   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  200 ~ mr r24, r3                                   | mr r25, r3
+  204   beq 0x310                                    | beq 0x368
+  208 ~ lwz r12, 0x0(r28)                            | lwz r12, 0x0(r29)
+  20c ~ mr r3, r28                                   | mr r3, r29
+  210   lwz r12, 0x40(r12)                           | lwz r12, 0x40(r12)
+  214   mtctr r12                                    | mtctr r12
+  218   bctrl                                        | bctrl
+  21c   mr r7, r3                                    | mr r7, r3
+  220 ~ mr r3, r24                                   | mr r3, r25
+  224 ~ mr r4, r28                                   | mr r4, r29
+  228   addi r5, r31, 0x114                          | addi r5, r31, 0x114
+  22c   addi r6, r31, 0x128                          | addi r6, r31, 0x128
+  230   addi r8, r31, 0x134                          | addi r8, r31, 0x134
+  234   bl __ct__10BreakModelFP9LiveActorPCcPCcPA4_fPCc | bl __ct__10BreakModelFP9LiveActorPCcPCcPA4_fPCc
+  238 ~ mr r24, r3                                   | mr r25, r3
+  23c ~ stw r24, 0x9c(r28)                           | stw r25, 0x9c(r29)
+  240 ~ mr r3, r24                                   | mr r3, r25
+  244   bl initWithoutIter__7NameObjFv               | bl initWithoutIter__7NameObjFv
+  248   li r3, 0x10                                  | li r3, 0x10
+  24c   bl __nwa__FUl                                | bl __nwa__FUl
+  250 ~ stw r3, 0xa0(r28)                            | stw r3, 0xa0(r29)
+  254   li r22, 0x0                                  | li r22, 0x0
+  258 ~ li r30, 0x0                                  | li r28, 0x0
+  25c   li r3, 0x90                                  | li r3, 0x90
+  260   bl __nw__FUl                                 | bl __nw__FUl
+   ...
+  26c   addi r4, r31, 0x13c                          | addi r4, r31, 0x13c
+  270   bl __ct__9LiveActorFPCc                      | bl __ct__9LiveActorFPCc
+  274 ~ lwz r6, 0xa0(r28)                            | lwz r6, 0xa0(r29)
+  278   addi r4, r31, 0x158                          | addi r4, r31, 0x158
+  27c   li r5, 0x0                                   | li r5, 0x0
+  280 ~ stwx r3, r6, r30                             | stwx r3, r6, r28
+  284 ~ lwz r3, 0xa0(r28)                            | lwz r3, 0xa0(r29)
+  288 ~ lwzx r3, r3, r30                             | lwzx r3, r3, r28
+  28c   bl initActor__2MRFP9LiveActorPCcb            | bl initActor__2MRFP9LiveActorPCcb
+  290 ~ lwz r3, 0xa0(r28)                            | lwz r3, 0xa0(r29)
+  294 ~ lwzx r3, r3, r30                             | lwzx r3, r3, r28
+  298   bl initWithoutIter__7NameObjFv               | bl initWithoutIter__7NameObjFv
+  29c ~ lwz r3, 0xa0(r28)                            | lwz r3, 0xa0(r29)
+  2a0 ~ lwzx r3, r3, r30                             | lwzx r3, r3, r28
+  2a4   lwz r12, 0x0(r3)                             | lwz r12, 0x0(r3)
+  2a8   lwz r12, 0x38(r12)                           | lwz r12, 0x38(r12)
+   ...
+  2b0   bctrl                                        | bctrl
+  2b4   addi r22, r22, 0x1                           | addi r22, r22, 0x1
+  2b8 ~ addi r30, r30, 0x4                           | addi r28, r28, 0x4
+  2bc   cmpwi r22, 0x4                               | cmpwi r22, 0x4
+  2c0   blt 0x330                                    | blt 0x388
+   ...
+  300   stw r5, 0x0(r3)                              | stw r5, 0x0(r3)
+  304   lwz r5, 0x14(r1)                             | lwz r5, 0x14(r1)
+  308 ~ stw r28, 0x4(r3)                             | stw r29, 0x4(r3)
+  30c   lwz r0, 0x18(r1)                             | lwz r0, 0x18(r1)
+  310   stw r6, 0x8(r3)                              | stw r6, 0x8(r3)
+  314   stw r5, 0xc(r3)                              | stw r5, 0xc(r3)
+  318   stw r0, 0x10(r3)                             | stw r0, 0x10(r3)
+  31c ~ mr r3, r28                                   | mr r3, r29
+  320   bl setBinderCollisionPartsFilter__2MRFP9LiveActorP24CollisionPartsFilterBase | bl setBinderCollisionPartsFilter__2MRFP9LiveActorP24CollisionPartsFilterBase
+  324 ~ mr r3, r28                                   | mr r3, r29
+  328   li r4, 0x7                                   | li r4, 0x7
+  32c   bl declareStarPiece__2MRFPC7NameObjl         | bl declareStarPiece__2MRFPC7NameObjl
+  330   lfs f0, lbl_807D9C24@sda21                   | lfs f0, @13739@sda21
+  334 ~ mr r3, r29                                   | mr r3, r30
+  338   stfs f0, 0xc(r1)                             | stfs f0, 0xc(r1)
+  33c   addi r4, r1, 0xc                             | addi r4, r1, 0xc
+   ...
+  350   cror eq, gt, eq                              | cror eq, gt, eq
+  354   bne 0x430                                    | bne 0x488
+  358 ~ stfs f1, 0xbc(r28)                           | stfs f1, 0xbc(r29)
+  35c ~ mr r3, r29                                   | mr r3, r30
+  360   addi r4, r1, 0xc                             | addi r4, r1, 0xc
+  364   bl getJMapInfoArg1NoInit__2MRFRC12JMapInfoIterPf | bl getJMapInfoArg1NoInit__2MRFRC12JMapInfoIterPf
+   ...
+  374   cror eq, gt, eq                              | cror eq, gt, eq
+  378   bne 0x454                                    | bne 0x4ac
+  37c ~ stfs f1, 0xc0(r28)                           | stfs f1, 0xc0(r29)
+  380   li r0, 0x0                                   | li r0, 0x0
+  384   stb r0, 0x8(r1)                              | stb r0, 0x8(r1)
+  388 ~ mr r3, r29                                   | mr r3, r30
+  38c   addi r4, r1, 0x8                             | addi r4, r1, 0x8
+  390   bl getJMapInfoArg2WithInit__2MRFRC12JMapInfoIterPb | bl getJMapInfoArg2WithInit__2MRFRC12JMapInfoIterPb
+  394   lbz r0, 0x8(r1)                              | lbz r0, 0x8(r1)
+  398 ~ mr r3, r28                                   | mr r3, r29
+  39c   li r4, sInstance__Q29NrvBattan13BattanNrvWait@sda21 | li r4, sInstance__Q29NrvBattan13BattanNrvWait@sda21
+  3a0   li r5, 0x0                                   | li r5, 0x0
+  3a4   cntlzw r0, r0                                | cntlzw r0, r0
+  3a8   srwi r0, r0, 5                               | srwi r0, r0, 5
+  3ac ~ stb r0, 0xc9(r28)                            | stb r0, 0xc9(r29)
+  3b0   bl initNerve__9LiveActorFPC5Nervel           | bl initNerve__9LiveActorFPC5Nervel
+  3b4 ~ mr r3, r28                                   | mr r3, r29
+  3b8 ~ mr r4, r29                                   | mr r4, r30
+  3bc   bl useStageSwitchSyncAppear__2MRFP9LiveActorRC12JMapInfoIter | bl useStageSwitchSyncAppear__2MRFP9LiveActorRC12JMapInfoIter
+  3c0   addi r11, r1, 0x50                           | addi r11, r1, 0x50
+calcBattanPlayerPushDirection__6BattanFPQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>  match=99.66102  size=472  (left=TARGET  right=OURS)
+   ...
+   68   addi r5, r1, 0x8                             | addi r5, r1, 0x8
+   6c   bl PSMTXMultVec                              | bl PSMTXMultVec
+   70 ~ lfs f3, 0x0(r28)                             | lfs f2, 0x0(r28)
+   74 ~ lfs f2, lbl_807D9C20@sda21                   | lfs f3, @14065@sda21
+   78 ~ fneg f0, f3                                  | fneg f0, f2
+   7c   lfs f1, 0x8(r1)                              | lfs f1, 0x8(r1)
+   80   lfs f31, 0x10(r1)                            | lfs f31, 0x10(r1)
+   84 ~ fmuls f0, f2, f0                             | fmuls f0, f3, f0
+   88   fcmpo cr0, f0, f1                            | fcmpo cr0, f0, f1
+   8c   cror eq, lt, eq                              | cror eq, lt, eq
+   90   bne 0x2180                                   | bne 0x21e0
+   94 ~ fmuls f0, f2, f3                             | fmuls f0, f3, f2
+   98   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+   9c   blt 0x2188                                   | blt 0x21e8
+   ...
+   d0   lfs f1, lbl_807D9C40@sda21                   | lfs f1, @14154@sda21
+   d4   fneg f0, f1                                  | fneg f0, f1
+   d8 ~ fmuls f0, f2, f0                             | fmuls f0, f3, f0
+   dc   fcmpo cr0, f0, f31                           | fcmpo cr0, f0, f31
+   e0   cror eq, lt, eq                              | cror eq, lt, eq
+   e4   bne 0x21d4                                   | bne 0x2234
+   e8 ~ fmuls f0, f2, f1                             | fmuls f0, f3, f1
+   ec   fcmpo cr0, f31, f0                           | fcmpo cr0, f31, f0
+   f0   blt 0x21dc                                   | blt 0x223c

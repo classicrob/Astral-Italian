@@ -1,0 +1,10 @@
+
+TARGET
+.data size=0x188 base=0x80706c78
+  objects: [('__vt__73J3DMtxCalcNoAnm<27J3DMtxCalcCalcTransformMaya,24J3DMtxCalcJ3DSysInitMaya>', '0x0', '0x2c'), ('__vt__83J3DMtxCalcNoAnm<32J3DMtxCalcCalcTransformSoftimage,29J3DMtxCalcJ3DSysInitSoftimage>', '0x2c', '0x2c'), ('__vt__75J3DMtxCalcNoAnm<28J3DMtxCalcCalcTransformBasic,25J3DMtxCalcJ3DSysInitBasic>', '0x58', '0x2c'), ('__vt__18J3DModelLoader_v21', '0x84', '0x44'), ('__vt__18J3DModelLoader_v26', '0xc8', '0x44'), ('__vt__14J3DModelLoader', '0x10c', '0x44'), ('__vt__19J3DMtxCalcNoAnmBase', '0x150', '0x2c'), ('__vt__10J3DTexture', '0x17c', '0xc')]
+
+OURS
+.data size=0x1b4 base=0x80706c78
+  objects: [('__vt__14J3DModelLoader', '0x10c', '0x44'), ('__vt__18J3DModelLoader_v21', '0x84', '0x44'), ('__vt__18J3DModelLoader_v26', '0xc8', '0x44'), ('__vt__10J3DTexture', '0x17c', '0xc'), ('__vt__75J3DMtxCalcNoAnm<28J3DMtxCalcCalcTransformBasic,25J3DMtxCalcJ3DSysInitBasic>', '0x58', '0x2c'), ('__vt__83J3DMtxCalcNoAnm<32J3DMtxCalcCalcTransformSoftimage,29J3DMtxCalcJ3DSysInitSoftimage>', '0x2c', '0x2c'), ('__vt__73J3DMtxCalcNoAnm<27J3DMtxCalcCalcTransformMaya,24J3DMtxCalcJ3DSysInitMaya>', '0x0', '0x2c'), ('__vt__10J3DMtxCalc', '0x188', '0x2c'), ('__vt__19J3DMtxCalcNoAnmBase', '0x150', '0x2c')]
+.sdata2 size=0x4 base=0x0
+  objects: [('@11741', '0x0', '0x4')]

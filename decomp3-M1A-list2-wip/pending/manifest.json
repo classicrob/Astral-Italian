@@ -1,0 +1,50 @@
+[
+  {
+    "unit": "Game/Util/DiceMover",
+    "tag": "dice_translation_setter",
+    "reason": "Target 80054A94/98/9C loads x/y/z into f2/f1/f0. Existing scalar translation setter preserves the three values and avoids the failed declaration-order-only trial.",
+    "tested": false
+  },
+  {
+    "unit": "Game/Util/DiceMover",
+    "tag": "dice_point_set",
+    "reason": "Use existing fieldwise TVec3::set<T> for the actual point copy; target inline scalar loads/stores, no assignment/PS copy identity change allowed.",
+    "tested": false
+  },
+  {
+    "unit": "JSystem/J3DGraphLoader/J3DModelLoader",
+    "tag": "loader_name_field_ref",
+    "reason": "Five target count/name pairs use r0 for the block name offset and r3/r4 for the count. Preserve the typed 32-bit native offset representation and test field-reference lifetime; no pointer casts or header edits.",
+    "tested": false
+  },
+  {
+    "unit": "JSystem/J3DGraphLoader/J3DModelLoader",
+    "tag": "loader_shape_branch_store",
+    "reason": "Alternative genuine branch-local initialization scope: same count store before any allocation/call in either path. Target80537250 lwz r0,14(r29),80537254 lhz r3,8(r29),80537258 cmpwi r0,0,8053725C sth r3,7C(r31).",
+    "tested": false
+  },
+  {
+    "unit": "Game/Enemy/BattanKing",
+    "tag": "king_const_parts",
+    "reason": "Descriptor arrays are read-only in source. Test original independent table-address materialization; all strings/table bytes already present, so do not insert padding/orphan text.",
+    "tested": false
+  },
+  {
+    "unit": "Game/Enemy/Battan",
+    "tag": "battan_const_parts",
+    "reason": "Descriptor arrays are read-only in source. Test original independent table-address materialization; all strings/table bytes already present, so do not insert padding/orphan text.",
+    "tested": false
+  },
+  {
+    "unit": "Game/Util/BellyDragonTU02",
+    "tag": "belly_named_follow",
+    "reason": "DOL exeFollow8008FF20/24/28/34 and exeExitB80090624/2C/34/40 read shared distinct 7758/775C/7778/777C parameter objects. Recover object identity rather than literal-reference temporaries; preserve FP operations and grouping. Definitions after consumer, no volatile.",
+    "tested": false
+  },
+  {
+    "unit": "Game/Util/BellyDragonTU02",
+    "tag": "belly_named_pair",
+    "reason": "DOL exeFollow8008FF20/24/28/34 and exeExitB80090624/2C/34/40 read shared distinct 7758/775C/7778/777C parameter objects. Recover object identity rather than literal-reference temporaries; preserve FP operations and grouping. Definitions after consumer, no volatile.",
+    "tested": false
+  }
+]

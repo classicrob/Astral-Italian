@@ -1,0 +1,13 @@
+--- src/Game/Util/DiceMover.cpp
++++ src/Game/Util/DiceMover.cpp
+@@ -134,9 +134,7 @@
+         TVec3f* points = reinterpret_cast<TVec3f*>(data);
+         for (s32 i = 0; i < count; ++i) {
+             TVec3f* dst = &mCollisionPoints[i];
+-            dst->x = points[i].x;
+-            dst->y = points[i].y;
+-            dst->z = points[i].z;
++            dst->set<f32>(points[i]);
+         }
+         mCollisionPointCount = count;
+         calcRadius();

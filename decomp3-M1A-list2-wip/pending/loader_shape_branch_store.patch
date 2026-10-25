@@ -1,0 +1,15 @@
+--- src/JSystem/J3DGraphLoader/J3DModelLoader.cpp
++++ src/JSystem/J3DGraphLoader/J3DModelLoader.cpp
+@@ -535,10 +535,11 @@
+     J3DShapeTable* shape_table = mpModelData->getShapeTable();
+     J3DShapeFactory factory(*i_block);
+     const J3DBlockOffset nameTable = i_block->mpNameTable;
+-    shape_table->mShapeNum = i_block->mShapeNum;
+     if (nameTable != NULL) {
++        shape_table->mShapeNum = i_block->mShapeNum;
+         shape_table->mShapeName = new JUTNameTab(JSUConvertOffsetToPtr< ResNTAB >(i_block, i_block->mpNameTable));
+     } else {
++        shape_table->mShapeNum = i_block->mShapeNum;
+         shape_table->mShapeName = NULL;
+     }
+     shape_table->mShapeNodePointer = new J3DShape*[shape_table->mShapeNum];

@@ -1,0 +1,11 @@
+--- src/Game/Enemy/BattanKing.cpp
++++ src/Game/Enemy/BattanKing.cpp
+@@ -42,7 +42,7 @@
+         const char* mJointName;
+     };
+ 
+-    CollisionPartsInfo sCollisionPartsInfo[5] = {
++    const CollisionPartsInfo sCollisionPartsInfo[5] = {
+         {"コリジョン[体　]", "BattanKing", "BattanKingBody"},
+         {"コリジョン[左腕]", "BattanKingArmL", "ArmL"},
+         {"コリジョン[右腕]", "BattanKingArmR", "ArmR"},

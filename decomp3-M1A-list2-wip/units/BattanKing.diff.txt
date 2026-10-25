@@ -1,0 +1,238 @@
+moveAndTurnToPlayer__10BattanKingFPCf  match=41.142857  size=28  (left=TARGET  right=OURS)
+    0   mr r5, r4                                    | mr r5, r4
+    4 +                                              | lfs f1, 0x0(r4)
+    8 +                                              | lfs f2, 0x4(r5)
+    c   addi r4, r3, 0x19c                           | addi r4, r3, 0x19c
+   10 ~ lfs f1, 0x0(r5)                              | lfs f3, 0x8(r5)
+   14 ~ lfs f2, 0x4(r5)                              | lfs f4, 0xc(r5)
+   18 - lfs f3, 0x8(r5)                              |
+   1c - lfs f4, 0xc(r5)                              |
+   20   b moveAndTurnToPlayer__2MRFP9LiveActorPQ29JGeometry8TVec3<f>ffff | b moveAndTurnToPlayer__2MRFP9LiveActorPQ29JGeometry8TVec3<f>ffff
+calcVolumeMtx__FPA4_fP9LiveActorPC21BattanKingVolumeParamRCQ29JGeometry8TVec3<f>  match=84.36735  size=196  (left=TARGET  right=OURS)
+   ...
+   10   bl _savegpr_28                               | bl _savegpr_29
+   14   lwz r12, 0x0(r4)                             | lwz r12, 0x0(r4)
+   18 ~ mr r28, r3                                   | mr r29, r3
+   1c   mr r3, r4                                    | mr r3, r4
+   20 ~ mr r29, r5                                   | mr r30, r5
+   24   lwz r12, 0x40(r12)                           | lwz r12, 0x40(r12)
+   28 ~ mr r30, r6                                   | mr r31, r6
+   2c   mtctr r12                                    | mtctr r12
+   30   bctrl                                        | bctrl
+   34 ~ psq_l f0, 0x0(r3), 0, qr0                    | psq_l f5, 0x0(r3), 0, qr0
+   38 ~ addi r31, r1, 0x8                            | addi r4, r30, 0xc
+   3c ~ psq_l f1, 0x8(r3), 0, qr0                    | psq_l f4, 0x8(r3), 0, qr0
+   40 - addi r4, r29, 0xc                            |
+   44 ~ psq_l f2, 0x10(r3), 0, qr0                   | psq_l f3, 0x10(r3), 0, qr0
+   48 ~ psq_l f3, 0x18(r3), 0, qr0                   | psq_l f2, 0x18(r3), 0, qr0
+   4c ~ psq_l f4, 0x20(r3), 0, qr0                   | psq_l f1, 0x20(r3), 0, qr0
+   50 ~ psq_l f5, 0x28(r3), 0, qr0                   | psq_l f0, 0x28(r3), 0, qr0
+   54 R mr r3, r31                                   | addi r3, r1, 0x8
+   58 ~ psq_st f5, 0x28(r28), 0, qr0                 | psq_st f0, 0x28(r29), 0, qr0
+   5c ~ psq_st f0, 0x0(r28), 0, qr0                  | psq_st f5, 0x0(r29), 0, qr0
+   60 ~ psq_st f1, 0x8(r28), 0, qr0                  | psq_st f4, 0x8(r29), 0, qr0
+   64 ~ psq_st f2, 0x10(r28), 0, qr0                 | psq_st f3, 0x10(r29), 0, qr0
+   68 ~ psq_st f3, 0x18(r28), 0, qr0                 | psq_st f2, 0x18(r29), 0, qr0
+   6c ~ psq_st f4, 0x20(r28), 0, qr0                 | psq_st f1, 0x20(r29), 0, qr0
+   70   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   74 +                                              | addi r4, r1, 0x8
+   78 ~ psq_l f0, 0x0(r31), 0, qr0                   | psq_l f2, 0x0(r31), 0, qr0
+   7c - mr r3, r28                                   |
+   80 ~ psq_l f1, 0x0(r30), 0, qr0                   | psq_l f3, 0x0(r4), 0, qr0
+   84 ~ mr r4, r31                                   | mr r3, r29
+   88 ~ psq_l f2, 0x8(r31), 1, qr0                   | psq_l f1, 0x8(r4), 1, qr0
+   8c - ps_add f0, f0, f1                            |
+   90 ~ psq_l f3, 0x8(r30), 1, qr0                   | psq_l f0, 0x8(r31), 1, qr0
+   94 ~ ps_add f1, f2, f3                            | ps_add f2, f3, f2
+   98 +                                              | ps_add f0, f1, f0
+   9c ~ psq_st f0, 0x0(r31), 0, qr0                  | psq_st f2, 0x0(r4), 0, qr0
+   a0 ~ psq_st f1, 0x8(r31), 1, qr0                  | psq_st f0, 0x8(r4), 1, qr0
+   a4   bl addTransMtxLocal__2MRFPA4_fRCQ29JGeometry8TVec3<f> | bl addTransMtxLocal__2MRFPA4_fRCQ29JGeometry8TVec3<f>
+   a8 ~ mr r3, r28                                   | mr r3, r29
+   ac ~ mr r4, r29                                   | mr r4, r30
+   b0   bl preScaleMtx__2MRFPA4_fRCQ29JGeometry8TVec3<f> | bl preScaleMtx__2MRFPA4_fRCQ29JGeometry8TVec3<f>
+   b4   addi r11, r1, 0x30                           | addi r11, r1, 0x30
+init__10BattanKingFRC12JMapInfoIter  match=99.27835  size=1552  (left=TARGET  right=OURS)
+   ...
+   3c   li r3, 0x14                                  | li r3, 0x14
+   40   bl __nwa__FUl                                | bl __nwa__FUl
+   44 - lis r4, lbl_8066C178@ha                      |
+   48   stw r3, 0x94(r29)                            | stw r3, 0x94(r29)
+   4c R li r23, 0x0                                  | addi r26, r31, 0xe0
+   50 ~ li r28, 0x0                                  | li r23, 0x0
+   54 R addi r26, r4, lbl_8066C178@l                 | li r28, 0x0
+   58   li r27, 0x0                                  | li r27, 0x0
+   5c   li r3, 0x98                                  | li r3, 0x98
+   ...
+  230   bl __nw__FUl                                 | bl __nw__FUl
+  234   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+  238 ~ mr r26, r3                                   | mr r24, r3
+  23c   beq 0x428                                    | beq 0x414
+  240   addi r4, r31, 0x1a4                          | addi r4, r31, 0x1a4
+   ...
+  24c   lis r3, __vt__12PattanHolder@ha              | lis r3, __vt__12PattanHolder@ha
+  250   addi r3, r3, __vt__12PattanHolder@l          | addi r3, r3, __vt__12PattanHolder@l
+  254 ~ stw r3, 0x0(r26)                             | stw r3, 0x0(r24)
+  258 ~ stw r26, 0x198(r29)                          | stw r24, 0x198(r29)
+  25c ~ addi r27, r31, 0x1b0                         | addi r26, r31, 0x1b0
+  260 ~ li r28, 0x0                                  | li r23, 0x0
+  264   b 0x470                                      | b 0x45c
+  268   li r3, 0xe0                                  | li r3, 0xe0
+   ...
+  274   mr r25, r3                                   | mr r25, r3
+  278   beq 0x458                                    | beq 0x444
+  27c ~ mr r4, r27                                   | mr r4, r26
+  280   bl __ct__6PattanFPCc                         | bl __ct__6PattanFPCc
+  284   mr r25, r3                                   | mr r25, r3
+  288   mr r3, r25                                   | mr r3, r25
+  28c   bl initWithoutIter__7NameObjFv               | bl initWithoutIter__7NameObjFv
+  290 ~ mr r3, r26                                   | mr r3, r24
+  294   mr r4, r25                                   | mr r4, r25
+  298   bl registerActor__14LiveActorGroupFP9LiveActor | bl registerActor__14LiveActorGroupFP9LiveActor
+  29c ~ addi r28, r28, 0x1                           | addi r23, r23, 0x1
+  2a0 ~ lwz r0, 0x14(r26)                            | lwz r0, 0x14(r24)
+  2a4 ~ cmpw r28, r0                                 | cmpw r23, r0
+  2a8   blt 0x438                                    | blt 0x424
+  2ac   lwz r3, 0x198(r29)                           | lwz r3, 0x198(r29)
+control__10BattanKingFv  match=96.41848  size=736  (left=TARGET  right=OURS)
+   ...
+   64   cmpwi r3, 0x0                                | cmpwi r3, 0x0
+   68   beq 0xa04                                    | beq 0x994
+   6c - lwz r4, lbl_807D75E8@sda21                   |
+   70   mr r3, r30                                   | mr r3, r30
+   74 +                                              | li r4, 0x50
+   78   bl calcNerveEaseOutRate__2MRFPC9LiveActorl   | bl calcNerveEaseOutRate__2MRFPC9LiveActorl
+   7c   lfs f3, lbl_807D7624@sda21                   | lfs f3, @14307@sda21
+   80   lfs f2, lbl_807D7618@sda21                   | lfs f2, @14308@sda21
+   84   lfs f0, lbl_807D75DC@sda21                   | lfs f0, @14082@sda21
+   88 ~ fmuls f2, f3, f2                             | fmuls f2, f2, f3
+   8c   fmuls f1, f2, f1                             | fmuls f1, f2, f1
+   90   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+   ...
+  1ac   li r29, 0x0                                  | li r29, 0x0
+  1b0   stw r28, 0x10(r1)                            | stw r28, 0x10(r1)
+  1b4 ~ addi r4, r1, 0x10                            | addi r3, r1, 0x14
+  1b8 ~ addi r3, r1, 0x14                            | addi r4, r1, 0x10
+  1bc   bl __ct__6Color8F8_GXColor                   | bl __ct__6Color8F8_GXColor
+  1c0   lwz r5, 0xcc(r30)                            | lwz r5, 0xcc(r30)
+   ...
+  1cc   bl setColor__12VolumeDrawerFRC6Color8        | bl setColor__12VolumeDrawerFRC6Color8
+  1d0   lwz r3, 0xcc(r30)                            | lwz r3, 0xcc(r30)
+  1d4 R lwz r4, lbl_807D7608@sda21                   | li r4, 0x4
+  1d8   lwzx r3, r3, r29                             | lwzx r3, r3, r29
+  1dc   bl setDrawPasses__12VolumeDrawerFl           | bl setDrawPasses__12VolumeDrawerFl
+   ...
+  210   bl calcVolumeMtx__FPA4_fP9LiveActorPC21BattanKingVolumeParamRCQ29JGeometry8TVec3<f> | bl calcVolumeMtx__FPA4_fP9LiveActorPC21BattanKingVolumeParamRCQ29JGeometry8TVec3<f>
+  214   lwz r0, lbl_807D7614@sda21                   | lwz r0, sEarthquakeColor__15BattanKingParam@sda21
+  218 ~ addi r4, r1, 0x8                             | addi r3, r1, 0xc
+  21c   stw r0, 0x8(r1)                              | stw r0, 0x8(r1)
+  220 ~ addi r3, r1, 0xc                             | addi r4, r1, 0x8
+  224   bl __ct__6Color8F8_GXColor                   | bl __ct__6Color8F8_GXColor
+  228   mr r4, r3                                    | mr r4, r3
+  22c   lwz r3, 0xe0(r30)                            | lwz r3, 0xe0(r30)
+  230   bl setColor__12VolumeDrawerFRC6Color8        | bl setColor__12VolumeDrawerFRC6Color8
+  234 - lwz r3, 0xe0(r30)                            |
+  238 R lwz r4, lbl_807D7610@sda21                   | lwz r3, 0xe0(r30)
+  23c +                                              | li r4, 0x1
+  240   bl setDrawPasses__12VolumeDrawerFl           | bl setDrawPasses__12VolumeDrawerFl
+  244   lwz r3, 0xe0(r30)                            | lwz r3, 0xe0(r30)
+   ...
+  290   li r27, 0x0                                  | li r27, 0x0
+  294   b 0xbc8                                      | b 0xb54
+  298 - lwz r3, 0x198(r30)                           |
+  29c   mr r4, r27                                   | mr r4, r27
+  2a0   bl getActor__14LiveActorGroupCFi             | bl getActor__14LiveActorGroupCFi
+   ...
+  2c4   lwz r0, 0x18(r3)                             | lwz r0, 0x18(r3)
+  2c8   cmpw r27, r0                                 | cmpw r27, r0
+  2cc ~ blt 0xba0                                    | blt 0xb30
+  2d0   addi r11, r1, 0x40                           | addi r11, r1, 0x40
+  2d4   bl _restgpr_27                               | bl _restgpr_27
+spawnPattans__10BattanKingFv  match=98.01923  size=416  (left=TARGET  right=OURS)
+   ...
+   60   lfs f31, lbl_807D7630@sda21                  | lfs f31, @14550@sda21
+   64   lfd f30, lbl_80646DE8@l(r4)                  | lfd f30, @14553@l(r4)
+   68 +                                              | addi r27, r3, 0x44
+   6c   xoris r30, r26, 0x8000                       | xoris r30, r26, 0x8000
+   70 - addi r27, r3, 0x44                           |
+   74   li r25, 0x0                                  | li r25, 0x0
+   78   lis r29, 0x4330                              | lis r29, 0x4330
+   ...
+   b4   xoris r0, r25, 0x8000                        | xoris r0, r25, 0x8000
+   b8   stw r0, 0x54(r1)                             | stw r0, 0x54(r1)
+   bc ~ addi r3, r1, 0x8                             | addi r3, r1, 0x14
+   c0   addi r4, r31, sOrigin944__13BattanKingVec@l  | addi r4, r31, sOrigin944__13BattanKingVec@l
+   c4   stw r29, 0x50(r1)                            | stw r29, 0x50(r1)
+   ...
+   e8   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+   ec   fmr f1, f29                                  | fmr f1, f29
+   f0 ~ addi r3, r1, 0x8                             | addi r3, r1, 0x14
+   f4   mr r4, r3                                    | mr r4, r3
+   f8   mr r5, r27                                   | mr r5, r27
+   ...
+  118   bl PSMTXCopy                                 | bl PSMTXCopy
+  11c   addi r3, r1, 0x20                            | addi r3, r1, 0x20
+  120 ~ addi r4, r1, 0x8                             | addi r4, r1, 0x14
+  124   bl addTransMtxLocal__2MRFPA4_fRCQ29JGeometry8TVec3<f> | bl addTransMtxLocal__2MRFPA4_fRCQ29JGeometry8TVec3<f>
+  128   addi r3, r1, 0x20                            | addi r3, r1, 0x20
+   ...
+  138   addi r3, r28, 0x44                           | addi r3, r28, 0x44
+  13c   bl __as__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __as__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+  140 ~ addi r3, r1, 0x14                            | addi r3, r1, 0x8
+  144   addi r4, r24, 0x19c                          | addi r4, r24, 0x19c
+  148   bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f> | bl __ct__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>
+  14c   mr r4, r28                                   | mr r4, r28
+  150 ~ addi r3, r1, 0x14                            | addi r3, r1, 0x8
+  154   li r5, 0x0                                   | li r5, 0x0
+  158   bl calcVecToPlayerH__2MRFPQ29JGeometry8TVec3<f>PC9LiveActorPCQ29JGeometry8TVec3<f> | bl calcVecToPlayerH__2MRFPQ29JGeometry8TVec3<f>PC9LiveActorPCQ29JGeometry8TVec3<f>
+  15c   mr r3, r28                                   | mr r3, r28
+  160 ~ addi r4, r1, 0x14                            | addi r4, r1, 0x8
+  164   bl appearPattanByJump__FP9LiveActorPCQ29JGeometry8TVec3<f> | bl appearPattanByJump__FP9LiveActorPCQ29JGeometry8TVec3<f>
+  168   addi r25, r25, 0x1                           | addi r25, r25, 0x1
+calcPlayerPush__10BattanKingFPQ29JGeometry8TVec3<f>  match=97.5969  size=516  (left=TARGET  right=OURS)
+   ...
+   78   bl PSMTXMultVec                              | bl PSMTXMultVec
+   7c   lis r3, sRange95C__13BattanKingVec@ha        | lis r3, sRange95C__13BattanKingVec@ha
+   80 ~ lfs f2, lbl_807D75E0@sda21                   | lfs f3, @14647@sda21
+   84 ~ lfs f3, sRange95C__13BattanKingVec@l(r3)     | lfs f2, sRange95C__13BattanKingVec@l(r3)
+   88   lfs f1, 0x8(r1)                              | lfs f1, 0x8(r1)
+   8c ~ fneg f0, f3                                  | fneg f0, f2
+   90   lfs f31, 0x10(r1)                            | lfs f31, 0x10(r1)
+   94 ~ fmuls f0, f2, f0                             | fmuls f0, f3, f0
+   98   fcmpo cr0, f0, f1                            | fcmpo cr0, f0, f1
+   9c   cror eq, lt, eq                              | cror eq, lt, eq
+   a0   bne 0x2b30                                   | bne 0x2a80
+   a4 ~ fmuls f0, f2, f3                             | fmuls f0, f3, f2
+   a8   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+   ac   blt 0x2b38                                   | blt 0x2a88
+   b0 ~ li r0, 0x0                                   | li r3, 0x0
+   b4   b 0x2b94                                     | b 0x2ae8
+   b8   lfs f0, lbl_807D75DC@sda21                   | lfs f0, @14082@sda21
+   ...
+   d4   fcmpo cr0, f1, f0                            | fcmpo cr0, f1, f0
+   d8   blt 0x2b64                                   | blt 0x2ab4
+   dc ~ li r0, 0x0                                   | li r3, 0x0
+   e0   b 0x2b94                                     | b 0x2ae8
+   e4 ~ lfs f1, lbl_807D7600@sda21                   | lfs f2, @12848@sda21
+   e8 +                                              | lfs f1, 0x10(r1)
+   ec ~ fneg f0, f1                                  | fneg f0, f2
+   f0 ~ fmuls f0, f2, f0                             | fmuls f0, f3, f0
+   f4 ~ fcmpo cr0, f0, f31                           | fcmpo cr0, f0, f1
+   f8   cror eq, lt, eq                              | cror eq, lt, eq
+   fc   bne 0x2b88                                   | bne 0x2adc
+  100 ~ fmuls f0, f2, f1                             | fmuls f0, f3, f2
+  104 ~ fcmpo cr0, f31, f0                           | fcmpo cr0, f1, f0
+  108   blt 0x2b90                                   | blt 0x2ae4
+  10c ~ li r0, 0x0                                   | li r3, 0x0
+  110   b 0x2b94                                     | b 0x2ae8
+  114 ~ li r0, 0x1                                   | li r3, 0x1
+  118   lfs f0, lbl_807D75DC@sda21                   | lfs f0, @14082@sda21
+  11c   fcmpo cr0, f31, f0                           | fcmpo cr0, f31, f0
+  120   cror eq, gt, eq                              | cror eq, gt, eq
+  124 ~ mfcr r29                                     | mfcr r0
+  128 ~ cmpwi r0, 0x0                                | cmpwi r3, 0x0
+  12c ~ extrwi r29, r29, 1, 2                        | extrwi r0, r0, 1, 2
+  130 ~ stb r29, 0x1cd(r27)                          | stb r0, 0x1cd(r27)
+  134 +                                              | mr r29, r0
+  138   bne 0x2bbc                                   | bne 0x2b14
+  13c   li r3, 0x0                                   | li r3, 0x0

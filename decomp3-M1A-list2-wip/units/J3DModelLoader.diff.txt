@@ -1,0 +1,142 @@
+readInformation__14J3DModelLoaderFPC17J3DModelInfoBlockUl  match=96.88  size=300  (left=TARGET  right=OURS)
+   ...
+   cc   addi r3, r3, __vt__73J3DMtxCalcNoAnm<27J3DMtxCalcCalcTransformMaya,24J3DMtxCalcJ3DSysInitMaya>@l | addi r3, r3, __vt__73J3DMtxCalcNoAnm<27J3DMtxCalcCalcTransformMaya,24J3DMtxCalcJ3DSysInitMaya>@l
+   d0   stw r3, 0x0(r29)                             | stw r3, 0x0(r29)
+   d4 ~ lwz r3, 0x4(r30)                             | lwz r5, 0x14(r31)
+   d8 ~ lwz r5, 0x14(r31)                            | lwz r3, 0x4(r30)
+   dc +                                              | cmpwi r5, 0x0
+   e0   stw r29, 0x24(r3)                            | stw r29, 0x24(r3)
+   e4 ~ lwz r4, 0xc(r31)                             | lwz r4, 0x10(r31)
+   e8 - cmpwi r5, 0x0                                |
+   ec   lwz r3, 0x4(r30)                             | lwz r3, 0x4(r30)
+   f0 ~ lwz r0, 0x10(r31)                            | lwz r0, 0xc(r31)
+   f4 ~ stw r4, 0x98(r3)                             | stw r0, 0x98(r3)
+   f8   lwz r3, 0x4(r30)                             | lwz r3, 0x4(r30)
+   fc ~ stw r0, 0x88(r3)                             | stw r4, 0x88(r3)
+  100   bne 0xc88                                    | bne 0xab8
+  104   li r0, 0x0                                   | li r0, 0x0
+readVertex__14J3DModelLoaderFPC14J3DVertexBlock  match=95.97315  size=596  (left=TARGET  right=OURS)
+   ...
+   1c   add r0, r4, r0                               | add r0, r4, r0
+   20   lwz r5, 0xc(r4)                              | lwz r5, 0xc(r4)
+   24 +                                              | cmpwi r5, 0x0
+   28   stw r0, 0x14(r3)                             | stw r0, 0x14(r3)
+   2c - cmpwi r5, 0x0                                |
+   30   bne 0xd38                                    | bne 0xb28
+   34   li r0, 0x0                                   | li r0, 0x0
+   ...
+   3c   add r0, r4, r5                               | add r0, r4, r5
+   40   lwz r5, 0x10(r4)                             | lwz r5, 0x10(r4)
+   44 +                                              | cmpwi r5, 0x0
+   48   stw r0, 0x18(r3)                             | stw r0, 0x18(r3)
+   4c - cmpwi r5, 0x0                                |
+   50   bne 0xd54                                    | bne 0xb44
+   54   li r0, 0x0                                   | li r0, 0x0
+   ...
+   5c   add r0, r4, r5                               | add r0, r4, r5
+   60   lwz r5, 0x14(r4)                             | lwz r5, 0x14(r4)
+   64 - stw r0, 0x1c(r3)                             |
+   68   cmpwi r5, 0x0                                | cmpwi r5, 0x0
+   6c +                                              | stw r0, 0x1c(r3)
+   70   bne 0xd70                                    | bne 0xb60
+   74   li r5, 0x0                                   | li r5, 0x0
+readDraw__14J3DModelLoaderFPC12J3DDrawBlock  match=80.73913  size=184  (left=TARGET  right=OURS)
+    0   stwu r1, -0x10(r1)                           | stwu r1, -0x10(r1)
+    4   mflr r0                                      | mflr r0
+    8 - lwz r6, 0xc(r4)                              |
+    c   stw r0, 0x14(r1)                             | stw r0, 0x14(r1)
+   10 - lhz r0, 0x8(r4)                              |
+   14 - cmpwi r6, 0x0                                |
+   18   stw r31, 0xc(r1)                             | stw r31, 0xc(r1)
+   1c ~ lwz r7, 0x4(r3)                              | lwz r6, 0x4(r3)
+   20 +                                              | lwz r7, 0xc(r4)
+   24 +                                              | lhz r5, 0x2e(r6)
+   28 ~ lhz r5, 0x2e(r7)                             | lhz r0, 0x8(r4)
+   2c +                                              | cmpwi r7, 0x0
+   30   subf r0, r5, r0                              | subf r0, r5, r0
+   34 ~ sth r0, 0x44(r7)                             | sth r0, 0x44(r6)
+   38   bne 0x1028                                   | bne 0xe18
+   3c   li r0, 0x0                                   | li r0, 0x0
+   40   b 0x102c                                     | b 0xe1c
+   44 ~ add r0, r4, r6                               | add r0, r4, r7
+   48   lwz r5, 0x10(r4)                             | lwz r5, 0x10(r4)
+   4c +                                              | cmpwi r5, 0x0
+   50 ~ stw r0, 0x48(r7)                             | stw r0, 0x48(r6)
+   54 - cmpwi r5, 0x0                                |
+   58   bne 0x1044                                   | bne 0xe34
+   5c   li r0, 0x0                                   | li r0, 0x0
+   60   b 0x1048                                     | b 0xe38
+   64   add r0, r4, r5                               | add r0, r4, r5
+   68 ~ stw r0, 0x4c(r7)                             | stw r0, 0x4c(r6)
+   6c ~ li r6, 0x0                                   | li r7, 0x0
+   70 ~ lhz r5, 0x44(r7)                             | lhz r5, 0x44(r6)
+   74   b 0x1070                                     | b 0xe60
+   78 ~ lwz r4, 0x48(r7)                             | lwz r4, 0x48(r6)
+   7c ~ clrlwi r0, r6, 16                            | clrlwi r0, r7, 16
+   80   lbzx r0, r4, r0                              | lbzx r0, r4, r0
+   84   cmplwi r0, 0x1                               | cmplwi r0, 0x1
+   88   beq 0x107c                                   | beq 0xe6c
+   8c ~ addi r6, r6, 0x1                             | addi r7, r7, 0x1
+   90 ~ clrlwi r0, r6, 16                            | clrlwi r0, r7, 16
+   94   cmplw r0, r5                                 | cmplw r0, r5
+   98   blt 0x1058                                   | blt 0xe48
+   9c ~ sth r6, 0x46(r7)                             | sth r7, 0x46(r6)
+   a0 ~ lhz r0, 0x44(r7)                             | lhz r0, 0x44(r6)
+   a4   lwz r31, 0x4(r3)                             | lwz r31, 0x4(r3)
+   a8   slwi r3, r0, 1                               | slwi r3, r0, 1
+readJoint__14J3DModelLoaderFPC13J3DJointBlock  match=99.649124  size=228  (left=TARGET  right=OURS)
+   ...
+   1c   addi r3, r1, 0x8                             | addi r3, r1, 0x8
+   20   bl __ct__15J3DJointFactoryFRC13J3DJointBlock | bl __ct__15J3DJointFactoryFRC13J3DJointBlock
+   24 ~ lwz r0, 0x14(r30)                            | lwz r4, 0x14(r30)
+   28   lwz r3, 0x4(r29)                             | lwz r3, 0x4(r29)
+   2c ~ lhz r4, 0x8(r30)                             | lhz r0, 0x8(r30)
+   30 ~ cmpwi r0, 0x0                                | cmpwi r4, 0x0
+   34 ~ sth r4, 0x2c(r3)                             | sth r0, 0x2c(r3)
+   38   beq 0x1124                                   | beq 0xf14
+   3c   li r3, 0x10                                  | li r3, 0x10
+readShape__14J3DModelLoaderFPC13J3DShapeBlockUl  match=99.72603  size=292  (left=TARGET  right=OURS)
+   ...
+   28   addi r3, r1, 0x8                             | addi r3, r1, 0x8
+   2c   bl __ct__15J3DShapeFactoryFRC13J3DShapeBlock | bl __ct__15J3DShapeFactoryFRC13J3DShapeBlock
+   30 ~ lwz r0, 0x14(r29)                            | lwz r3, 0x14(r29)
+   34 ~ lhz r3, 0x8(r29)                             | lhz r0, 0x8(r29)
+   38 ~ cmpwi r0, 0x0                                | cmpwi r3, 0x0
+   3c ~ sth r3, 0x7c(r31)                            | sth r0, 0x7c(r31)
+   40   beq 0x1708                                   | beq 0x14f8
+   44   li r3, 0x10                                  | li r3, 0x10
+readMaterialTable__18J3DModelLoader_v26FPC16J3DMaterialBlockUl  match=99.74683  size=316  (left=TARGET  right=OURS)
+   ...
+   20   addi r3, r1, 0x8                             | addi r3, r1, 0x8
+   24   bl __ct__18J3DMaterialFactoryFRC16J3DMaterialBlock | bl __ct__18J3DMaterialFactoryFRC16J3DMaterialBlock
+   28 ~ lwz r0, 0x14(r29)                            | lwz r4, 0x14(r29)
+   2c   lwz r3, 0x8(r30)                             | lwz r3, 0x8(r30)
+   30 ~ lhz r4, 0x8(r29)                             | lhz r0, 0x8(r29)
+   34 ~ cmpwi r0, 0x0                                | cmpwi r4, 0x0
+   38 ~ sth r4, 0x4(r3)                              | sth r0, 0x4(r3)
+   3c   beq 0x1908                                   | beq 0x16f8
+   40   li r3, 0x10                                  | li r3, 0x10
+readMaterialTable_v21__18J3DModelLoader_v21FPC20J3DMaterialBlock_v21Ul  match=99.74683  size=316  (left=TARGET  right=OURS)
+   ...
+   20   addi r3, r1, 0x8                             | addi r3, r1, 0x8
+   24   bl __ct__22J3DMaterialFactory_v21FRC20J3DMaterialBlock_v21 | bl __ct__22J3DMaterialFactory_v21FRC20J3DMaterialBlock_v21
+   28 ~ lwz r0, 0x14(r29)                            | lwz r4, 0x14(r29)
+   2c   lwz r3, 0x8(r30)                             | lwz r3, 0x8(r30)
+   30 ~ lhz r4, 0x8(r29)                             | lhz r0, 0x8(r29)
+   34 ~ cmpwi r0, 0x0                                | cmpwi r4, 0x0
+   38 ~ sth r4, 0x4(r3)                              | sth r0, 0x4(r3)
+   3c   beq 0x1a48                                   | beq 0x1838
+   40   li r3, 0x10                                  | li r3, 0x10
+readMaterialDL__14J3DModelLoaderFPC18J3DMaterialDLBlockUl  match=99.76636  size=428  (left=TARGET  right=OURS)
+   ...
+   38   li r0, 0x1                                   | li r0, 0x1
+   3c   sth r0, 0x1c(r3)                             | sth r0, 0x1c(r3)
+   40 ~ lwz r0, 0x20(r28)                            | lwz r4, 0x20(r28)
+   44   lwz r3, 0x8(r30)                             | lwz r3, 0x8(r30)
+   48 ~ lhz r4, 0x8(r28)                             | lhz r0, 0x8(r28)
+   4c ~ cmpwi r0, 0x0                                | cmpwi r4, 0x0
+   50 ~ sth r4, 0x4(r3)                              | sth r0, 0x4(r3)
+   54   lwz r3, 0x8(r30)                             | lwz r3, 0x8(r30)
+   58 ~ sth r4, 0x6(r3)                              | sth r0, 0x6(r3)
+   5c   beq 0x1db8                                   | beq 0x1ba8
+   60   li r3, 0x10                                  | li r3, 0x10

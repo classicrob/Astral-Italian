@@ -261,6 +261,7 @@ Meta parseSidecar(const std::string& text) {
             p.marker=state(*marker);
             require(p.id==meta.inputPhases.size() && first==p.marker.inputFrame && first>0 &&
                     p.endInputFrame>first && p.endInputFrame<=meta.seams, "unordered/out-of-prefix schema2 phase");
+            require(!p.open || p.endInputFrame==meta.seams,"schema2 open phase must cover the declared prefix end");
             require(p.marker.kind=="controller-normal" || p.marker.kind=="scenario-foreground", "unknown schema2 phase kind");
             if (!meta.inputPhases.empty())
                 require(!meta.inputPhases.back().open && first>=meta.inputPhases.back().endInputFrame, "overlapping schema2 phases");

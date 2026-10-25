@@ -30,6 +30,8 @@ void Session::initializePhases(const std::filesystem::path& dir, std::uint64_t r
     std::ifstream kpd(dir/"route.kpd",std::ios::binary);
     if (!kpd) throw H::ReplayError("cannot open schema2 route.kpd");
     mReplay=std::make_unique<H::Replay>(kpd,true);
+    if (mMeta.complete && mReplay->frames()!=mMeta.seams+1)
+        throw H::ReplayError("schema2 complete KPD header does not cover exactly the recorded seams plus open loop");
     mReplay->requireNeutralControlsOutside(ranges,rows);
     mReplay->keepSegments(ranges);
     if (std::ifstream actions(dir/"route.actions"); actions) {

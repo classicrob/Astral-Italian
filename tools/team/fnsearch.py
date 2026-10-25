@@ -62,30 +62,37 @@ def run(argv, cwd, timeout=30):
     return dict(returncode=proc.returncode, stdout=stdout, stderr=stderr, seconds=time.monotonic()-start)
 
 
-def compiler_edge(root, output):
+def compiler_edge(root, output, cache=None):
     """Expand only the configured edge/rule, following Ninja variable scope."""
-    text = re.sub(r'\$\r?\n[ \t]*', '', (root / 'build.ninja').read_text())
-    globals_, rules, edges = {}, {}, {}
-    scope = globals_
-    for line in text.splitlines():
-        if not line.strip() or line.lstrip().startswith('#'): continue
-        if line.startswith('rule '):
-            scope = rules.setdefault(line[5:].strip(), {})
-        elif line.startswith('build '):
-            match = re.fullmatch(r'build (.+?): (\S+)(?: (.*))?', line)
-            if not match: raise ValueError('unsupported Ninja build syntax')
-            outs, rule, ins = match.groups()
-            edge = {'rule': rule, 'in': (ins or '').split('|')[0].strip(), 'out': outs.split('|')[0].strip()}
-            scope = edge
-            for out in edge['out'].split(): edges[out] = edge
-        elif line[0].isspace():
-            match = re.fullmatch(r'\s+(\w+)\s*=\s*(.*)', line)
-            if match: scope[match[1]] = match[2]
-        else:
-            match = re.fullmatch(r'(\w+)\s*=\s*(.*)', line)
-            if match: globals_[match[1]] = match[2]
-            elif line.startswith(('include ', 'subninja ')): raise ValueError('Ninja include/subninja unsupported')
-            scope = globals_
+    path = root / 'build.ninja'
+    stamp = path.stat()
+    key = (str(root.resolve()), stamp.st_mtime_ns, stamp.st_size)
+    if cache is not None and key in cache:
+        globals_, rules, edges = cache[key]
+    else:
+        text = re.sub(r'\$\r?\n[ \t]*', '', (root / 'build.ninja').read_text())
+        globals_, rules, edges = {}, {}, {}
+        scope = globals_
+        for line in text.splitlines():
+            if not line.strip() or line.lstrip().startswith('#'): continue
+            if line.startswith('rule '):
+                scope = rules.setdefault(line[5:].strip(), {})
+            elif line.startswith('build '):
+                match = re.fullmatch(r'build (.+?): (\S+)(?: (.*))?', line)
+                if not match: raise ValueError('unsupported Ninja build syntax')
+                outs, rule, ins = match.groups()
+                edge = {'rule': rule, 'in': (ins or '').split('|')[0].strip(), 'out': outs.split('|')[0].strip()}
+                scope = edge
+                for out in edge['out'].split(): edges[out] = edge
+            elif line[0].isspace():
+                match = re.fullmatch(r'\s+(\w+)\s*=\s*(.*)', line)
+                if match: scope[match[1]] = match[2]
+            else:
+                match = re.fullmatch(r'(\w+)\s*=\s*(.*)', line)
+                if match: globals_[match[1]] = match[2]
+                elif line.startswith(('include ', 'subninja ')): raise ValueError('Ninja include/subninja unsupported')
+                scope = globals_
+        if cache is not None: cache[key] = (globals_, rules, edges)
     if output not in edges: raise ValueError('no configured compile edge: ' + output)
     edge = edges[output]
     if edge['rule'] not in ('mwcc', 'mwcc_sjis', 'mwcc_extab', 'mwcc_sjis_extab'):

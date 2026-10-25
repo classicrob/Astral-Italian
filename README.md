@@ -8,7 +8,7 @@
 
 ![Code 96.16%](https://img.shields.io/badge/code-96.16%25-2185d0)
 ![Functions 98.96%](https://img.shields.io/badge/functions-98.96%25-2185d0)
-![Data 75.10%](https://img.shields.io/badge/data-75.10%25-2185d0)
+![Data 86.35%](https://img.shields.io/badge/data-86.35%25-2185d0)
 ![Fuzzy 99.8%](https://img.shields.io/badge/fuzzy-99.8%25-2185d0)
 
 ![Decompilation progress by source unit; area is code size, colour is matched code percentage](docs/images/progress-treemap.svg)
@@ -25,11 +25,16 @@ included. You need your own disc.**
 
 As of **2026-10-25**:
 
-- **96.16% matched code** (6,028,536 / 6,269,292 bytes), **98.96% matched
-  functions** (49,830 / 50,352), **75.10% matched data** (1,277,600 /
+- **96.16% matched code** (6,028,644 / 6,269,292 bytes), **98.96% matched
+  functions** (49,831 / 50,352), **86.35% matched data** (1,468,907 /
   1,701,146 bytes) and **99.82% fuzzy match**. Matched code is different
   from fully completed/linked code, currently **1.50%**. These are local
   objdiff report numbers, not upstream's decomp.dev statistics.
+  All data credit is objdiff-exact; none comes from linker-behaviour
+  arguments. The unmatched code that remains is mostly register and
+  stack-slot differences; a triage of every remaining function, with the 72
+  most likely to matter checked against the original, found no further
+  behaviour differences.
 - **5.4.2** is the default frozen build; **5.4.1** and **5.3.2** are the
   fallbacks. A packaged tester release (0.1.0) built from 5.4.2 is being
   prepared.
@@ -43,7 +48,7 @@ As of **2026-10-25**:
   experimental and not yet confirmed on hardware. There is no native Windows
   or Linux port.
 
-Progress comes from the objdiff report for main at batch 59 (`b0cf56fb`),
+Progress comes from the objdiff report for main at batch 70 (`cfb9c299`),
 the same report used for the treemap. Play coverage and build status were
 checked against team reports and frozen-build receipts; [PLAY.md](PLAY.md)
 describes the launcher.

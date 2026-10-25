@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <mutex>
 #include <thread>
 
 #include <petari/kpad_replay.hpp>
@@ -39,26 +38,20 @@ bool hookHeld(int mod, void*) {
     return answer;
 }
 
-// The recorded controller connection (probe state and device type per channel) is applied from a host thread, as the headless
-// driver's worker does each frame (replayConnection needs a non-game thread); the same thread completes pending WPAD commands
-// every 5 ms (serviceReplayCommands). The game thread publishes the connection of the loop about to run at every seam.
+// Connection/extension changes are applied synchronously by the native KPAD
+// hook, before the corresponding sample return. This thread only completes
+// asynchronous WPAD commands; a delayed wake cannot change tape connection state.
+bool hookConnection(s32 channel, s32* error, u32* device, void*) {
+    if (const auto* record = gSession->connection(static_cast<std::uint32_t>(channel))) {
+        *error = record->probeError; *device = record->device; return true;
+    }
+    return false;
+}
 struct Feeder {
-    std::mutex mutex;
-    std::int32_t error[4] = {-2, -2, -2, -2};
-    std::uint32_t device[4] = {253, 253, 253, 253};
     std::atomic<bool> stop{false};
     std::thread thread;
-    void publish() {
-        std::lock_guard<std::mutex> lock(mutex);
-        for (std::uint32_t ch = 0; ch < 4; ++ch)
-            if (const auto* record = gSession->connection(ch)) { error[ch] = record->probeError; device[ch] = record->device; }
-    }
     void run() {
         while (!stop.load()) {
-            std::int32_t e[4];
-            std::uint32_t d[4];
-            { std::lock_guard<std::mutex> lock(mutex); for (int i = 0; i < 4; ++i) { e[i] = error[i]; d[i] = device[i]; } }
-            for (std::uint32_t ch = 0; ch < 4; ++ch) Input::replayConnection(static_cast<std::int32_t>(ch), e[ch], d[ch]);
             Input::serviceReplayCommands();
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
@@ -124,11 +117,10 @@ bool configure(const std::string& dir, std::string* error) {
         if (error) *error = e.what();
         return false;
     }
-    Input::setKpadReplayHooks({hookRead, nullptr});
+    Input::setKpadReplayHooks({hookRead, nullptr, hookConnection});
     Input::setModReplayHooks({hookPress, hookHeld, nullptr});
     std::atexit([] { writeReport(); });  // a window closed early still leaves the report of what was replayed
     gFeeder = new Feeder;
-    gFeeder->publish();
     gFeeder->thread = std::thread([] { gFeeder->run(); });
     std::atexit(stopFeeder);
     return true;
@@ -148,7 +140,6 @@ Step seam(const SeamState& state) {
                         gSession->seams() - 1, gSession->finished() && !gSession->gaveUp());
     if (!wasDone && gSession->currentSegment() != before)
         std::fprintf(stderr, "PETARI TAPE PLAY: %s\n", gSession->segmentLine(before).c_str());
-    if (gFeeder) gFeeder->publish();
     if (step.kind == Step::Kind::Finished || step.kind == Step::Kind::GaveUp) writeReport();
     if (!observed && gObservation.completed) writeReport(true);
     return step;
@@ -157,7 +148,6 @@ Step seam(const SeamState& state) {
 Step beforeRead(const TapePhase::State& state) {
     if (!gSession || gSession->meta().schema!=2) return {};
     const auto step=gSession->beforeRead(state);
-    if (gFeeder) gFeeder->publish();
     return step;
 }
 

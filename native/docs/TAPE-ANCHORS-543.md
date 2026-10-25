@@ -155,3 +155,105 @@ their exact original fixtures/mods/replay_env. Omit `--stage` for boot-launched
 routes and omit `--require-pointer-evidence` for non-pointer cases. These audits
 must cover each scene/overlay/resume in the table. Retain all RESULT, launch,
 process, native report, route, KPD/actions, read-map and PREP/build bindings.
+
+## Detached M1 map proof driver
+
+`tools/port/run_tape_anchors543.py --plan-only --out NEW_OWNED_DIR` freezes the
+Python harness and records a finite 16-arm plan without preparing apps or
+launching a process. After SOL A's explicit release message, save that release
+as a receipt and launch from bash at nice0:
+
+```sh
+python3 -B tools/port/run_tape_anchors543.py --detach \
+  --out "$TAPE_PROOF_OUT" --release-receipt "$TAPE_RELEASE_RECEIPT"
+```
+
+The child uses nohup + setsid, detached stdio, and no outer heavy lock. Every arm
+acquires heavy then native, proves the quiet/load precondition, and uses only
+B's perfm1b Metal namespace. All five perf copies retain exact original/PREP,
+resource and source hashes; references remain labelled test instruments and
+legacy controls remain legacy-v1 observations. A legacy failure is retained,
+never replaced. A failed strict conversion or schema2 dependency stops the plan
+without a retry. Both byte and xattr inventories of the certified fixture and
+its private ditto copy must match; no attributes are removed or rewritten.
+
+Conversions observe90s. Since the resulting complete schema2 tape also contains
+that recorded neutral tail, schema2 replays observe120s to retain the entire
+strict prefix followed by a positive neutral post-roll. This is explicit in the
+plan and receipt; >=90s, pointer30/3 and warm audio50reports/0underruns remain
+unchanged. Converted tapes are never trimmed. Only the initial qualified captures
+serve as canonical tapes for the matrix and reciprocal/candidate replay.
+
+
+## Production-setting matrix and retained legacy controls
+
+Every schema-2 conversion/replay launch explicitly records
+`PETARI_PIPELINE_DIAG=0` and `PETARI_TRACE_BOOT=0`. Neither is inherited.
+`TRACE_BOOT=1` enables pipeline diagnostics even when `DIAG=0`; comparing these
+settings as if they were identical would be incorrect. A warm arm requires a
+successful fresh arm on the exact same prepared executable and bundle path,
+normal exit, a finished strict native replay, and these same production settings.
+The prior launch, RESULT, process, native report and cache hashes are bound into
+the warm launch. Every schema-2 warm arm retains the real-audio gate.
+
+The completed frozen controls are retained at
+`port53/m1g/solb/solb-543-legacy-controls-r2/`. They are legacy-v1 observations,
+not schema-2 acceptance. Three stop at route row544 with map init End383:
+frozen072 fresh and frozen002 fresh/warm. Frozen072 warm finishes strict replay
+at init End382, but fails overall on 900 audio underrun frames (86 reports,
+the nonzero report at process52.827s). Its prime was the failed short fresh arm;
+that cache pairing is not eligible for the schema-2 matrix. No control is rerun
+or relabelled. The command/env/source/report comparison is retained in
+`HARNESS-COMPARISON.json` there. These production-diagnostics-off observations
+show the legacy fixed-load-frame assumption is timing-sensitive on frozen5.4.1
+as well as5.4.2; A's earlier diagnostics-on controls are a different setting.
+
+After the metadata-corrected builds and their tests are approved, plan with
+`--schema2-only` and explicit `--candidate-dir`, `--reference072-dir` and
+`--reference002-dir`. This creates only the twelve conversion/matrix/reciprocal/
+candidate arms; the four completed legacy controls are not repeated. A failed
+conversion or fresh replay stops the driver before any dependent warm arm.
+
+
+## Synchronous replay connection boundary (r3 finding)
+
+The first production-setting conversion completed native state/pointer replay,
+but the actual-read audit found device CORE0 at read11/0 where the source said
+FREESTYLE1. All sample bytes/count/error/probe matched; exactly1 of17264 read
+payloads differed. The capture remains unqualified at
+`port53/m1g/solb/solb-543-tape-proof-r3/`; no subsequent arm ran.
+
+`KpadReplayHooks::connection` is an optional synchronous provider. Main-app tape
+replay installs it. After the pre-read marker has selected the input phase, the
+raw KPAD hook obtains that frame's connection and applies real WPAD state and
+callbacks under `Interrupts`, before sample consumption/copy. The actual-read
+observer continues querying live WPAD state; canonical metadata is never used
+as an observation. Neutral gaps/post-roll select the same neutral connection as
+the sample reader. The old null-provider headless API remains unchanged.
+
+The live GameRead path already invokes `tickChannel`'s connection/extension
+callbacks on the KPAD/game thread under `Interrupts`. Synchronous replay uses
+the same context. CORE connect produces the connect callback; later extension
+attach produces the extension callback, in the same order and with the same
+arguments as live GameRead. Re-registering a callback is observed once on the
+next read. The host command service can complete commands, but cannot apply a
+stale connection snapshot or move a recorded disconnect to a different read.
+
+Lock order: the pre-read observer/phase logic finishes, then the raw KPAD hook
+acquires the single native OS interrupt lock for WPAD changes/callbacks and
+releases it before samples return. There is no separate WPAD mutex. Raw replay
+returns before entering `KPADiRead` and its `readLocked` section. Nested SDK
+`OSDisableInterrupts` calls reuse the current disabled state. The command thread
+takes only the interrupt lock and never reads the tape/session. There is no
+feeder publish mutex, cross-thread wait, CV, join or sleep in a read. The only
+5ms sleep left is command service outside the game thread.
+
+`native_tape_connection` tests actual WPADProbe before sample return and actual
+post-read capture, a deliberately delayed/stale feeder, callback order and
+arguments against live GameRead, extension detach/remote detach, late callback
+registration, neutral state, nested interrupts and null-provider/live-off paths.
+The native tape parser also directly rejects same-channel attach+detach within
+one untimestamped frame before playback. `test_tape_anchors543.sh` builds/runs
+these five native targets on the server; no M1 compiler is used. The source test
+removes only the opt-in replay block and binds the remaining original input body
+to the preserved002 hash, keeping the live/default-null implementation exact.

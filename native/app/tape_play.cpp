@@ -758,7 +758,13 @@ bool Session::held(int mod) {
     return it != mActions.end() && it->second.second;
 }
 
-const H::Read* Session::connection(std::uint32_t channel) const { return mReplay->connection(channel); }
+const H::Read* Session::connection(std::uint32_t channel) const {
+    if (channel >= 4) return nullptr;
+    // Must select the SAME source as read(), including neutral post-roll and
+    // stopped replay, not the last recorded frame's stale connection.
+    if (mDone || !mError.empty()) return &mReplay->neutral(channel, 1);
+    return mReplay->connection(channel);
+}
 
 void Observation::update(double elapsed, std::uint64_t row, bool replaySucceeded) {
     if (requestedSeconds <= 0 || completed) return;

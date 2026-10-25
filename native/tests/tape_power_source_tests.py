@@ -14,6 +14,11 @@ def body(text,name):
 
 
 class PowerSource(unittest.TestCase):
+    def test_replay_capture_inherits_policy_from_parsed_tape_only(self):
+        source=body((ROOT/'native/app/tape_play_hooks.cpp').read_text(),'bool configure(')
+        self.assertIn('if (gCaptureReplay) TapeRecord::setNeutralTailPolicy(gSession->meta().neutralTailPolicy)',source)
+        self.assertNotIn('PETARI_TAPE_NEUTRAL',source)
+
     def test_real_callback_is_between_record_and_actual_flag_acknowledgement(self):
         source=body((ROOT/'native/app/platform_host.cpp').read_text(),'void requestQuit()')
         names=['TapeRecord::powerRequest()','TapePlay::beforePowerRequest()',

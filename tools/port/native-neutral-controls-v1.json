@@ -1,5 +1,6 @@
 {
   "policy": "native-neutral-controls-v1",
+  "binding": "schema-2 sidecar neutral_tail_policy under native-post-seam-power-v1; native producer selects at initialization; strict captures inherit the parsed source, never a harness override; missing means single-bootstrap-v1",
   "origin": "native scripted schema-2 recording only; explicit plan, launch and proof lineage",
   "tolerance": 0,
   "buttons": "core hold/trig/release and extension button masks exactly zero",

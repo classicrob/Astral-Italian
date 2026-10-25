@@ -10,7 +10,7 @@ import struct
 import subprocess
 import time
 from replay_tape import parse_kpd,parse_actions
-from tape_phase_audit import need,validate,power_events,has_control,POWER_PROTOCOL,bootstrap,payload
+from tape_phase_audit import need,validate,power_events,has_control,POWER_PROTOCOL,bootstrap,payload,bound_neutral_policy
 
 POLICY='native-neutral-controls-v1'
 LEGACY_POLICY='single-bootstrap-v1'
@@ -20,6 +20,7 @@ def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def audit_tail(meta,reads,policy=LEGACY_POLICY):
+    need(bound_neutral_policy(meta)==policy,'tape neutral-tail policy differs from requested audit policy')
     events=power_events(meta)
     need(len(events)==2,'tail needs explicit begin and power')
     first,last=events[0]['before_input_frame'],events[1]['after_route_row']
@@ -59,6 +60,7 @@ def audit_recording(out):
     need(env.get('PETARI_SMOKE_IGNORE_PHYSICAL')=='1' and env.get('PETARI_INPUT_SCRIPT_RECORD_TAIL_SECONDS')=='180','native isolation/tail settings missing')
     need(process['exit']==0 and process['timed_out'] is False and process['seconds']>=90,'native recording did not exit normally after unchanged wall gate')
     need(meta.get('complete') is True and meta.get('session_control_protocol')==POWER_PROTOCOL and meta.get('marker_error')=='' and meta.get('session_control_error')=='','native recording incomplete/rejected')
+    need(bound_neutral_policy(meta)==POLICY,'native recorder did not bind native-neutral-controls-v1 in the tape')
     need(meta.get('lossy_samples')==meta.get('unencodable_samples')==0,'native recording lossy')
     frames,reads=parse_kpd((out/'route.kpd').read_bytes());rows=list(csv.DictReader((out/'route.csv').open()))
     need(frames==meta['seams']+1 and len(rows)==meta['seams'] and meta['kpd_reads']==len(reads) and meta['kpd_samples']==sum(len(r['samples']) for r in reads),'native KPD/CSV counters disagree')

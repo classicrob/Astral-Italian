@@ -56,7 +56,7 @@ POWER_BOUNDARY = 'after-route-seam-before-next-update'
 def load_meta(path):
     text=Path(path).read_text()
     value=json.loads(text)
-    if any(k in value for k in ('session_control_protocol','session_events','session_control_error')):
+    if any(k in value for k in ('session_control_protocol','session_events','session_control_error','neutral_tail_policy')):
         def unique(items):
             result={}
             for k,v in items:
@@ -67,7 +67,17 @@ def load_meta(path):
     return value
 
 
+def bound_neutral_policy(meta):
+    policy=meta.get('neutral_tail_policy','single-bootstrap-v1')
+    need(type(policy) is str and policy in ('single-bootstrap-v1','native-neutral-controls-v1'),'unknown neutral-tail policy')
+    if 'neutral_tail_policy' in meta:
+        need(meta.get('schema')==2 and meta.get('session_control_protocol')==POWER_PROTOCOL,
+             'neutral-tail policy lacks schema2 versioned session protocol')
+    return policy
+
+
 def power_events(meta):
+    bound_neutral_policy(meta)
     if 'session_control_protocol' not in meta:
         need('session_events' not in meta and 'session_control_error' not in meta,'unversioned session controls')
         return []
@@ -106,6 +116,7 @@ def event_offset(report,event):
 
 
 def audit_session_controls(source_meta,meta,source_rows,rows,reads,report,neutral_policy="single-bootstrap-v1"):
+    need(bound_neutral_policy(meta)==neutral_policy,'captured tape neutral policy differs from bound audit policy')
     events=power_events(meta)
     if not events:return None
     tail=next((e for e in events if e['kind']=='neutral-tail-begin'),None)
@@ -115,6 +126,9 @@ def audit_session_controls(source_meta,meta,source_rows,rows,reads,report,neutra
         audit_tail(meta,reads,neutral_policy)
     if source_meta.get('session_control_protocol'):
         original=power_events(source_meta);control=report.get('session_control') or {}
+        need(bound_neutral_policy(source_meta)==neutral_policy,'source/capture neutral policy differs')
+        if neutral_policy=='native-neutral-controls-v1':
+            need(control.get('neutral_tail_policy')==neutral_policy,'native player did not attest bound native policy')
         need(len(events)==len(original)==len(control.get('events',[])),'captured control count differs')
         for want,seen,native in zip(original,events,control['events']):
             offset=event_offset(report,want)

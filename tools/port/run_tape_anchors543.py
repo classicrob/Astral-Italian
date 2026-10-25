@@ -25,7 +25,7 @@ if not (HERE/'common.py').exists():
     sys.path.insert(0, str(HERE.parents[1]/'gate53/m1gates'))
 import common
 from capture_schema2_tape import inventory, PRODUCTION_PIPELINE_ENV
-from tape_phase_audit import audit_native, load_meta, power_events, POWER_PROTOCOL
+from tape_phase_audit import audit_native, load_meta, power_events, POWER_PROTOCOL,bound_neutral_policy
 
 ROOT = Path.home()/'MacioGalaxy2-gamedata/port53/m1g'
 OWN = 'dev.petari.Petari.perfm1b'
@@ -108,6 +108,7 @@ def qualified_tape(tape, source_schema=None, require_power=False,neutral_policy=
          proof.get('actual_payloads_independently_checked') is True,
          'canonical source lacks strict actual-read/connection qualification')
     if require_power:
+        need(bound_neutral_policy(metadata)==neutral_policy,'qualified tape policy differs from bound lineage')
         need(proof.get('neutral_tail_policy','single-bootstrap-v1')==neutral_policy,'canonical neutral policy lineage differs')
         controls=power_events(metadata)
         need(metadata.get('session_control_protocol')==POWER_PROTOCOL and len(controls)==2 and
@@ -162,10 +163,11 @@ def plan(out, controls_only=False, candidate=None, reference072=None, reference0
                                    ('candidate',candidate,'server-candidate')]:
             build_metadata=json.loads((directory/'BUILD.json').read_text())
             if power_protocol:
-                need((build_metadata.get('build_host')=='M1' or (native_script and key=='ref072' and build_metadata.get('build_host')=='SERVER')) and build_metadata.get('native_tests_passed') is True,
-                     'power proof requires tested M1 builds')
+                need(build_metadata.get('build_host') in ('M1','SERVER') and build_metadata.get('native_tests_passed') is True,
+                     'power proof requires exact-source tested M1 or PORT-authorised SERVER builds')
                 if key=='candidate':need(build_metadata.get('candidate_suite_passed') is True,'candidate requires the PORT-defined candidate admission suite')
-                kind=('server-instrumented-reference' if native_script and key=='ref072' and build_metadata.get('build_host')=='SERVER' else 'M1-instrumented-reference') if key.startswith('ref') else 'M1-candidate'
+                prefix='server' if build_metadata.get('build_host')=='SERVER' else 'M1'
+                kind=prefix+('-instrumented-reference' if key.startswith('ref') else '-candidate')
             builds[key]=(directory,kind,build_metadata['source'])
     out.mkdir(parents=True);harness=out/'harness';harness.mkdir()
     sources=[Path(__file__),HERE/'capture_schema2_tape.py',HERE/'tape_phase_audit.py',HERE/'replay_tape.py',HERE/'native_tape_record543.py',HERE/'native-neutral-controls-v1.json',HERE/'worldmap-native543.script',Path(common.__file__),Path(common.__file__).with_name('promotion54m.py')]

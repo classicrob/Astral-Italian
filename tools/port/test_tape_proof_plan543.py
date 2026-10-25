@@ -16,7 +16,7 @@ class ProofBindings(unittest.TestCase):
             base=Path(temporary);builds=[]
             for name in ('candidate','ref072','ref002'):
                 d=base/name;d.mkdir();builds.append(d)
-                (d/'BUILD.json').write_text(json.dumps(dict(source=name,build_host='SERVER' if name=='ref072' else 'M1',
+                (d/'BUILD.json').write_text(json.dumps(dict(source=name,build_host='SERVER',
                     native_tests_passed=True,candidate_suite_passed=True)))
             out=base/'plan'
             plan(out,candidate=builds[0],reference072=builds[1],reference002=builds[2],schema2_only=True,power_protocol=True,native_script=True)
@@ -29,6 +29,13 @@ class ProofBindings(unittest.TestCase):
             self.assertFalse(any(a['kind'] in ('legacy','conversion') or 'tape-worldmap-54v2' in a['tape'] for a in spec['arms']))
             self.assertIn('native-neutral-controls-v1.json',spec['source_hashes'])
             self.assertEqual(spec['builds']['ref072']['kind'],'server-instrumented-reference')
+            self.assertEqual(spec['builds']['ref002']['kind'],'server-instrumented-reference')
+            self.assertEqual(spec['builds']['candidate']['kind'],'server-candidate')
+            for i,field in ((0,'candidate_suite_passed'),(0,'native_tests_passed'),(1,'native_tests_passed'),(2,'native_tests_passed')):
+                path=builds[i]/'BUILD.json';original=path.read_text();bad=json.loads(original);bad[field]=False;path.write_text(json.dumps(bad))
+                with self.subTest(build=i,field=field),self.assertRaises(RuntimeError):
+                    plan(base/f'reject-{i}-{field}',candidate=builds[0],reference072=builds[1],reference002=builds[2],schema2_only=True,power_protocol=True,native_script=True)
+                path.write_text(original)
 
     def test_power_conversion_native_report_is_bound_to_legacy_source(self):
         root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'

@@ -154,6 +154,8 @@ Meta parseSidecar(const std::string& text) {
         if (!v || v->type != Json::Type::Number || v->number < 0) throw H::ReplayError(std::string("bad tape sidecar: missing ") + key);
         return static_cast<std::uint64_t>(v->number);
     };
+    if (meta.schema != 2 && root.find("neutral_tail_policy"))
+        throw H::ReplayError("neutral-tail policy requires schema2 session-control protocol");
     meta.seams = number(root, "seams");
     if (const Json* v = root.find("complete")) meta.complete = v->boolean;
     if (const Json* v = root.find("exe_sha256")) meta.exeSha256 = v->text;
@@ -302,6 +304,8 @@ Meta parseSidecar(const std::string& text) {
             require(string(root,"session_control_protocol")==TapePower::kProtocol,"unsupported session-control protocol");
             require(string(root,"session_control_error").empty(),"recorder rejected session-control ordering");
             meta.powerProtocol=true;
+            if (root.find("neutral_tail_policy"))
+                meta.neutralTailPolicy=TapeNeutral::parse(string(root,"neutral_tail_policy"));
             const auto* events=root.find("session_events");
             require(events && events->type==Json::Type::Array && events->items.size()<=2,"missing/ambiguous session events");
             for (const auto& j:events->items) {
@@ -330,7 +334,8 @@ Meta parseSidecar(const std::string& text) {
             if (meta.complete) require(!meta.sessionEvents.empty() && meta.sessionEvents.back().kind=="power-request",
                 "complete power session missing power-request event");
         } else {
-            require(!root.find("session_events") && !root.find("session_control_error"),"session events lack versioned protocol");
+            require(!root.find("session_events") && !root.find("session_control_error") && !root.find("neutral_tail_policy"),
+                    "session events/policy lack versioned protocol");
         }
     }
     return meta;
@@ -965,6 +970,7 @@ std::string Session::reportJson() const {
     if (mMeta.powerProtocol) {
         const auto required=mMeta.seams-mMeta.sessionEvents.back().beforeInputFrame;
         out << ",\n  \"session_control\":{\"protocol\":" << jsonString(TapePower::kProtocol)
+            << ",\"neutral_tail_policy\":" << jsonString(TapeNeutral::name(mMeta.neutralTailPolicy))
             << ",\"events_required\":" << mMeta.sessionEvents.size() << ",\"events_delivered\":" << mControlActualRows.size()
             << ",\"power_callback_verified\":" << (mPowerDelivered ? "true":"false")
             << ",\"power_reached_early\":" << (mEarlyPower ? "true":"false")

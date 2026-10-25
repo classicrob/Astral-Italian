@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from tape_phase_audit import POWER_PROTOCOL, POWER_BOUNDARY, power_events, load_meta, event_offset, audit_inputs, validate, bootstrap
+from tape_phase_audit import POWER_PROTOCOL, POWER_BOUNDARY, power_events, load_meta, event_offset, audit_inputs, validate, bootstrap,bound_neutral_policy
 from test_tape_phase_audit import marker
 
 
@@ -19,6 +19,21 @@ def fixture():
 
 
 class PowerAudit(unittest.TestCase):
+    def test_policy_is_versioned_and_bound_in_the_tape(self):
+        self.assertEqual(bound_neutral_policy(fixture()),'single-bootstrap-v1')
+        native=dict(fixture(),neutral_tail_policy='native-neutral-controls-v1')
+        self.assertEqual(bound_neutral_policy(native),'native-neutral-controls-v1')
+        for policy in ('unknown-v1',None,42):
+            with self.subTest(policy=policy),self.assertRaises(ValueError):
+                power_events(dict(fixture(),neutral_tail_policy=policy))
+        for field in ('session_control_protocol','schema'):
+            bad=native.copy();bad.pop(field)
+            with self.subTest(field=field),self.assertRaises(ValueError):power_events(bad)
+        with tempfile.TemporaryDirectory(prefix='power-policy-json-unit-') as temp:
+            path=Path(temp)/'meta.json';text=json.dumps(native)
+            path.write_text(text.replace('"neutral_tail_policy":','"neutral_tail_policy":"single-bootstrap-v1","neutral_tail_policy":'))
+            with self.assertRaises(ValueError):load_meta(path)
+
     def test_unpaired_final_open_loop_read_is_rejected_only_for_power_protocol(self):
         meta=fixture()
         meta.update(marker_protocol='game-scene-pre-read-v1',marker_error='',

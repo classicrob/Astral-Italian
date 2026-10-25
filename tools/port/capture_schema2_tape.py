@@ -106,6 +106,8 @@ def main(argv=None):
     need(0 < a.observe_seconds < a.bound <= 1800, 'invalid finite observation/bound')
     need(0<=a.post_roll_seconds<a.bound and a.minimum_recorded_neutral_seconds>=150,'invalid neutral-tail bound')
     meta = load_meta(a.tape/'route.tape.json')
+    from tape_phase_audit import bound_neutral_policy
+    need(bound_neutral_policy(meta)==a.neutral_tail_policy,'source tape policy differs from requested proof lineage')
     need(meta.get('schema', 1) in (1, 2), 'unknown tape schema')
     need(meta.get('complete') is True or a.allow_incomplete, 'incomplete source needs explicit --allow-incomplete')
     if meta.get('schema') == 2:

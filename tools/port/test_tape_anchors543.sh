@@ -1,5 +1,5 @@
 #!/bin/bash
-# M1 only for 5.4.3: caller owns m1-heavy then native; no game launch.
+# Caller owns host build lock then native (PORT also runs on SERVER); no game launch.
 set -euo pipefail
 if [ "$#" -ne 1 ]; then
   echo 'usage: bash tools/port/test_tape_anchors543.sh CONFIGURED_TEST_BUILD_DIR' >&2
@@ -11,6 +11,9 @@ cmake --build "$test_build" --target petari_tape_input_observer_tests petari_tap
 python3 -B "$repo_dir/native/tests/tape_observer_source_tests.py"
 python3 -B "$repo_dir/native/tests/tape_power_source_tests.py"
 python3 -B "$repo_dir/tools/port/test_tape_power_audit.py"
+if [ -f "$repo_dir/tools/port/test_native_tape_record543.py" ]; then
+  python3 -B "$repo_dir/tools/port/test_native_tape_record543.py"
+fi
 python3 -B "$repo_dir/tools/port/test_tape_phase_audit.py"
 python3 -B "$repo_dir/native/tests/replay_tape_tests.py"
 python3 -B "$repo_dir/tools/port/test_normal_tape_gate.py"

@@ -285,8 +285,6 @@ SimpleMirrorObj::~SimpleMirrorObj() {
 SimpleMirrorReflectionObj::~SimpleMirrorReflectionObj() {
 }
 
-SimpleSeesawObj::~SimpleSeesawObj() {
-}
 
 SimpleMapObjPush::~SimpleMapObjPush() {
 }

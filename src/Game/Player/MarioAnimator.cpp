@@ -104,6 +104,39 @@ namespace {
     char animName806DC378[] = "ラン";
 }
 
+// Original unreferenced writable literals, 0x806DC380 and 0x806DC388.
+char animName806DC380[] = "FootL";
+char animName806DC388[] = "FootR";
+
+namespace {
+    char animName806DC390[] = "泥低速歩行";
+    char animName806DC39C[] = "泥高速歩行";
+    char animName806DC3A8[] = "ハチ匍匐前進";
+    char animName806DC3B8[] = "ハチ匍匐ウエイト";
+    char animName806DC3CC[] = "鈍行";
+    char animName806DC3D4[] = "歩行";
+    char animName806DC3E0[] = "AllRoot";
+    char animName806DC3E8[] = "Center";
+    char animName806DC3F0[] = "ArmR1";
+    char animName806DC3F8[] = "Spine1";
+    char animName806DC400[] = "DamageWait";
+    char animName806DC40C[] = "しゃがみ基本";
+    char animName806DC41C[] = "崖ふんばり";
+    char animName806DC428[] = "落下";
+    char animName806DC430[] = "幅とび";
+    char animName806DC438[] = "SquatWalk";
+    char animName806DC444[] = "がんばり走り";
+    char animName806DC454[] = "スライダー尻";
+    char animName806DC464[] = "坂すべり下向きあおむけ";
+    char animName806DC47C[] = "BeeCreepWalk";
+    char animName806DC48C[] = "Walk";
+    char animName806DC494[] = "氷上慣性走行";
+    char animName806DC4A4[] = "壁押し";
+    char animName806DC4AC[] = "ハード着地";
+    char animName806DC4B8[] = "PartsControl";
+    char animName806DC4C8[] = "MarioPos";
+}
+
 MarioAnimator::MarioAnimator(MarioActor* pActor) : mActor(pActor), mExtraAnimationEnabled(false) {
     init();
 }
@@ -256,7 +289,7 @@ bool MarioAnimator::isLandingAnimationRun() const {
         return true;
     }
 
-    if (isAnimationRun("ハード着地")) {
+    if (isAnimationRun(animName806DC4AC)) {
         return true;
     }
 
@@ -356,7 +389,7 @@ void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
 
         if (strcmp(currentBck, queuedAnimation) != 0) {
             shouldStart = true;
-            if (MR::strcasecmp("DamageWait", getPlayer()->_970) == 0) {
+            if (MR::strcasecmp(animName806DC400, getPlayer()->_970) == 0) {
                 if (mActor->mHealth == 1) {
                     shouldStart = false;
                 }
@@ -412,7 +445,7 @@ void MarioAnimator::setHand() {
     scale.y = 1.0f;
     scale.z = 1.0f;
     XanimeCore* core = mXanimePlayer->mCore;
-    u8 armR = MR::getJointIndex(actor, "ArmR1");
+    u8 armR = MR::getJointIndex(actor, animName806DC3F0);
     XjointTransform* armRJoint = core->getJointTransform(armR);
     armRJoint->mScaleModifier = scale;
     core = mXanimePlayer->mCore;
@@ -830,7 +863,7 @@ u16 MarioAnimator::getUpperJointID() const {
     return MR::getJointIndex(mActor, animName806DC100);
 }
 
-const char* jname_chest = "Spine1";
+const char* jname_chest = animName806DC3F8;
 #pragma push
 #pragma opt_propagation off
 // NONMATCHING: string-pool materialization, saved registers, and scheduling.
@@ -1357,7 +1390,7 @@ void MarioAnimator::fn_803E0A60() {
 
 void MarioAnimator::fn_803E0AF0() {
     getPlayer()->_71D = getPlayer()->mTargetWalkSpeedIndex;
-    if (isWalkOrWaitingMotion() || isAnimationRun("しゃがみ基本")) _14 = walkStateTable[getPlayer()->mTargetWalkSpeedIndex];
+    if (isWalkOrWaitingMotion() || isAnimationRun(animName806DC40C)) _14 = walkStateTable[getPlayer()->mTargetWalkSpeedIndex];
     else _15 = 0xFF;
     if (((getPlayer()->mDrawStates.mWord >> 21) & 1U)) { fn_803E0C20(); return; }
     fn_803E0D30();
@@ -1385,15 +1418,15 @@ void MarioAnimator::fn_803E0C90() {
 }
 
 void MarioAnimator::fn_803E0CE0() {
-    if (isAnimationStop()) getPlayer()->MarioModule::changeAnimation("崖ふんばり", static_cast<const char*>(nullptr));
+    if (isAnimationStop()) getPlayer()->MarioModule::changeAnimation(animName806DC41C, static_cast<const char*>(nullptr));
 }
 
 void MarioAnimator::fn_803E0D30() {
-    if (isAnimationRun("崖ふんばり")) {
+    if (isAnimationRun(animName806DC41C)) {
         if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
-            getPlayer()->MarioModule::stopAnimation("崖ふんばり", "落下");
+            getPlayer()->MarioModule::stopAnimation(animName806DC41C, animName806DC428);
             getPlayer()->_414 = 15;
-        } else getPlayer()->MarioModule::stopAnimation("崖ふんばり", static_cast<const char*>(nullptr));
+        } else getPlayer()->MarioModule::stopAnimation(animName806DC41C, static_cast<const char*>(nullptr));
     }
 }
 
@@ -1405,7 +1438,7 @@ void MarioAnimator::fn_803E0DC0() {
 
 void MarioAnimator::fn_803E0E90() {
     if (_14 == 0) getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
-    else if (!isAnimationRun("幅とび")) getPlayer()->startBas("SquatWalk", false, 0.0f, 79.0f);
+    else if (!isAnimationRun(animName806DC430)) getPlayer()->startBas(animName806DC438, false, 0.0f, 79.0f);
     else getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
 }
 
@@ -1429,10 +1462,10 @@ void MarioAnimator::fn_803E0F80() {
 void MarioAnimator::fn_803E1020() { if (isAnimationStop()) mCurrBck = mXanimePlayer->getCurrentBckName(); }
 
 void MarioAnimator::fn_803E1060() {
-    if (isAnimationRun(animName806DC108) || isAnimationRun("がんばり走り")) setTilt();
+    if (isAnimationRun(animName806DC108) || isAnimationRun(animName806DC444)) setTilt();
     else resetTilt();
-    if (isAnimationRun("スライダー尻")) setHipSliderTilt();
-    if (isAnimationRun("坂すべり下向きあおむけ", 3)) setHipSlipTilt();
+    if (isAnimationRun(animName806DC454)) setHipSliderTilt();
+    if (isAnimationRun(animName806DC464, 3)) setHipSlipTilt();
 }
 
 // NONMATCHING: equivalent short-circuit branch layout.
@@ -1460,19 +1493,19 @@ void MarioAnimator::fn_803E11F0() { getPlayer()->decideWalkSpeed(); getPlayer()-
 void MarioAnimator::fn_803E1230() {
     getPlayer()->decideWalkSpeed();
     getPlayer()->decideWalkAnimation();
-    if (mActor->mBeeWallWalk) updateWalkBas("BeeCreepWalk", 59.0f);
-    else updateWalkBas("Walk", 59.0f);
+    if (mActor->mBeeWallWalk) updateWalkBas(animName806DC47C, 59.0f);
+    else updateWalkBas(animName806DC48C, 59.0f);
 }
 
 void MarioAnimator::fn_803E12B0() {
-    if (isAnimationRun("氷上慣性走行")) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
-    else if (isAnimationRun("壁押し", 0)) {
+    if (isAnimationRun(animName806DC494)) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+    else if (isAnimationRun(animName806DC4A4, 0)) {
         getPlayer()->decideWalkSpeed();
         getPlayer()->checkWallPush();
     } else {
         if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Turning) >> 28) || ((getPlayer()->mMovementStates.mLowWord >> 27) & 1U)) getPlayer()->decideWalkSpeed();
-        else if (!isAnimationRun("ハード着地")) {
-            if (isAnimationRun("がんばり走り")) {
+        else if (!isAnimationRun(animName806DC4AC)) {
+            if (isAnimationRun(animName806DC444)) {
                 if (getPlayer()->_8F0 < 1.0f) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
             } else _15 = 0;
         }
@@ -1491,7 +1524,7 @@ void MarioAnimator::fn_803E13D0() {
     if (_6C) {
         mXanimePlayerUpper->calcAnm(MR::getJointIndex(mActor, animName806DC100));
         XanimePlayer* upper = mXanimePlayerUpper;
-        upper->overWriteMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
+        upper->overWriteMtxCalc(MR::getJointIndex(mActor, animName806DC4B8));
         if (getPlayer()->isPlayerModeYoshi()) {
             u16 index = mActor->getYoshi()->fn_8040F440();
             getYoshiUpperAnimationPlayer()->calcAnm(index);
@@ -1506,7 +1539,7 @@ void MarioAnimator::fn_803E13D0() {
     if (getPlayer()->isPlayerModeYoshi()) {
         mXanimePlayer->clearAnm(MR::getJointIndex(mActor, animName806DC100));
         XanimePlayer* upper = mXanimePlayerUpper;
-        upper->clearMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
+        upper->clearMtxCalc(MR::getJointIndex(mActor, animName806DC4B8));
         mXanimePlayerExtra->calcAnm(0);
     }
 }
@@ -1514,7 +1547,7 @@ void MarioAnimator::fn_803E13D0() {
 void MarioAnimator::fn_803E1570() {
     mXanimePlayer->clearAnm(MR::getJointIndex(mActor, animName806DC100));
     XanimePlayer* upper = mXanimePlayerUpper;
-    upper->clearMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
+    upper->clearMtxCalc(MR::getJointIndex(mActor, animName806DC4B8));
     if (getPlayer()->isPlayerModeYoshi()) {
         u16 index = mActor->getYoshi()->fn_8040F440();
         getYoshiAnimationPlayer()->clearAnm(index);
@@ -1543,7 +1576,7 @@ void MarioAnimator::fn_803E1620() {
         MtxPtr matrix = mActor->getBaseMtx();
         PSMTXCopy(matrix, static_cast<J3DModel*>(mActor->fn_803BBA20())->getBaseTRMtx());
     } else {
-        MtxPtr matrix = MR::getJointMtx(renderActor, "MarioPos");
+        MtxPtr matrix = MR::getJointMtx(renderActor, animName806DC4C8);
         PSMTXCopy(matrix, static_cast<J3DModel*>(mActor->fn_803BBA20())->getBaseTRMtx());
     }
     mXanimePlayerExtra->mCore->mCalcMode = 1;
@@ -1591,24 +1624,24 @@ void MarioAnimator::fn_803DEC10() {
     }
 }
 void MarioAnimator::fn_803DF0F0() {
-    mXanimePlayer->changeTrackAnimation(0,"泥低速歩行");mXanimePlayer->changeTrackAnimation(1,"泥低速歩行");
+    mXanimePlayer->changeTrackAnimation(0,animName806DC390);mXanimePlayer->changeTrackAnimation(1,animName806DC390);
     if (mActor->mMario->isPlayerModeYoshi()) {
-        getYoshiAnimationPlayer()->changeTrackAnimation(0,"泥低速歩行");getYoshiAnimationPlayer()->changeTrackAnimation(1,"泥高速歩行");
-        mXanimePlayerExtra->changeTrackAnimation(0,"泥低速歩行");mXanimePlayerExtra->changeTrackAnimation(1,"泥高速歩行");
+        getYoshiAnimationPlayer()->changeTrackAnimation(0,animName806DC390);getYoshiAnimationPlayer()->changeTrackAnimation(1,animName806DC39C);
+        mXanimePlayerExtra->changeTrackAnimation(0,animName806DC390);mXanimePlayerExtra->changeTrackAnimation(1,animName806DC39C);
     }
 }
 void MarioAnimator::fn_803DF1B0() {
-    mXanimePlayer->changeTrackAnimation(0,"ハチ匍匐前進");mXanimePlayer->changeTrackAnimation(1,"ハチ匍匐前進");mXanimePlayer->changeTrackAnimation(2,"ハチ匍匐前進");mXanimePlayer->changeTrackAnimation(3,"ハチ匍匐ウエイト");
+    mXanimePlayer->changeTrackAnimation(0,animName806DC3A8);mXanimePlayer->changeTrackAnimation(1,animName806DC3A8);mXanimePlayer->changeTrackAnimation(2,animName806DC3A8);mXanimePlayer->changeTrackAnimation(3,animName806DC3B8);
     if (mActor->mMario->isPlayerModeYoshi()) {
-        getYoshiAnimationPlayer()->changeTrackAnimation(0,"ハチ匍匐前進");getYoshiAnimationPlayer()->changeTrackAnimation(1,"ハチ匍匐前進");getYoshiAnimationPlayer()->changeTrackAnimation(2,"ハチ匍匐前進");getYoshiAnimationPlayer()->changeTrackAnimation(3,"ハチ匍匐ウエイト");
-        mXanimePlayerExtra->changeTrackAnimation(0,"ハチ匍匐前進");mXanimePlayerExtra->changeTrackAnimation(1,"ハチ匍匐前進");mXanimePlayerExtra->changeTrackAnimation(2,"ハチ匍匐前進");mXanimePlayerExtra->changeTrackAnimation(3,"ハチ匍匐ウエイト");
+        getYoshiAnimationPlayer()->changeTrackAnimation(0,animName806DC3A8);getYoshiAnimationPlayer()->changeTrackAnimation(1,animName806DC3A8);getYoshiAnimationPlayer()->changeTrackAnimation(2,animName806DC3A8);getYoshiAnimationPlayer()->changeTrackAnimation(3,animName806DC3B8);
+        mXanimePlayerExtra->changeTrackAnimation(0,animName806DC3A8);mXanimePlayerExtra->changeTrackAnimation(1,animName806DC3A8);mXanimePlayerExtra->changeTrackAnimation(2,animName806DC3A8);mXanimePlayerExtra->changeTrackAnimation(3,animName806DC3B8);
     }
 }
 void MarioAnimator::fn_803DF2D0() {
-    mXanimePlayer->changeTrackAnimation(0,"鈍行");mXanimePlayer->changeTrackAnimation(1,"歩行");
+    mXanimePlayer->changeTrackAnimation(0,animName806DC3CC);mXanimePlayer->changeTrackAnimation(1,animName806DC3D4);
     if (mActor->mMario->isPlayerModeYoshi()) {
-        getYoshiAnimationPlayer()->changeTrackAnimation(0,"鈍行");getYoshiAnimationPlayer()->changeTrackAnimation(1,"歩行");
-        mXanimePlayerExtra->changeTrackAnimation(0,"鈍行");mXanimePlayerExtra->changeTrackAnimation(1,"歩行");
+        getYoshiAnimationPlayer()->changeTrackAnimation(0,animName806DC3CC);getYoshiAnimationPlayer()->changeTrackAnimation(1,animName806DC3D4);
+        mXanimePlayerExtra->changeTrackAnimation(0,animName806DC3CC);mXanimePlayerExtra->changeTrackAnimation(1,animName806DC3D4);
     }
 }
 void MarioAnimator::fn_803DF8E0() {
@@ -1622,7 +1655,7 @@ inline void clearYoshiWorldOffset(MarioAnimator* animator) {
 }
 
 void MarioAnimator::fn_803DF9D0() {
-    setYoshiJointMatrix("AllRoot",nullptr);setYoshiJointOffset("Center",TVec3f(0.0f,0.0f,0.0f));
+    setYoshiJointMatrix(animName806DC3E0,nullptr);setYoshiJointOffset(animName806DC3E8,TVec3f(0.0f,0.0f,0.0f));
     clearYoshiWorldOffset(this);
     for (s32 i=0;i<MR::getJointNum(mActor);++i) mXanimePlayer->mCore->mJointList[i]=mXanimePlayerExtra->mCore->mJointList[i];
 }

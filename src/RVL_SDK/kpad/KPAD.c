@@ -1631,7 +1631,7 @@ void KPADSetObjInterval(f32 interval) {
 
 // NONMATCHING: GPR/stack allocation, integer ring-offset strength reduction, and data order; canonical board globals and target ordering documented separately.
 void KPADInitEx(KPADUnifiedWpadStatus* uniBuf, u32 length) {
-    s32 chan;
+    u32 chan;
     KPADInsideStatus* kp;
     u32 idx;
     BOOL enabled;

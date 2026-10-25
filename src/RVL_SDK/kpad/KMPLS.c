@@ -196,8 +196,6 @@ void calc_mpls_dir(KMPLSState* state) {
     Vec originalZ;
     Vec originalY = state->sample.direction.Y;
     Vec originalX = state->sample.direction.X;
-    f32 xAfterYx, xAfterYy, xAfterYz;
-    f32 yAfterXx, yAfterXy, yAfterXz;
     f32 x = state->rotationStep * state->sample.angularVelocity.x;
     f32 y = state->rotationStep * state->sample.angularVelocity.y;
     f32 z;
@@ -217,23 +215,23 @@ void calc_mpls_dir(KMPLSState* state) {
     state->sample.direction.Z.x = (state->sample.direction.Z.x - stepX * originalY.x) + stepY * originalX.x;
     state->sample.direction.Z.y = (state->sample.direction.Z.y - stepX * originalY.y) + stepY * originalX.y;
     state->sample.direction.Z.z = (state->sample.direction.Z.z - stepX * originalY.z) + stepY * originalX.z;
-    xAfterYx = state->sample.direction.X.x - stepY * originalZ.x;
-    xAfterYy = state->sample.direction.X.y - stepY * originalZ.y;
-    xAfterYz = state->sample.direction.X.z - stepY * originalZ.z;
-    yAfterXx = state->sample.direction.Y.x + stepX * originalZ.x;
-    yAfterXy = state->sample.direction.Y.y + stepX * originalZ.y;
-    yAfterXz = state->sample.direction.Y.z + stepX * originalZ.z;
+    state->sample.direction.X.x = state->sample.direction.X.x - stepY * originalZ.x;
+    state->sample.direction.X.y = state->sample.direction.X.y - stepY * originalZ.y;
+    state->sample.direction.X.z = state->sample.direction.X.z - stepY * originalZ.z;
+    state->sample.direction.Y.x = state->sample.direction.Y.x + stepX * originalZ.x;
+    state->sample.direction.Y.y = state->sample.direction.Y.y + stepX * originalZ.y;
+    state->sample.direction.Y.z = state->sample.direction.Y.z + stepX * originalZ.z;
     z = state->rotationStep * state->sample.angularVelocity.z;
     degreesZ = state->degreesPerSample * z;
     degreesZ *= degreesZ;
     stepZ = 1.0f + 0.0001f * degreesZ;
     stepZ *= state->radiansPerSample * z;
-    state->sample.direction.X.x = xAfterYx + stepZ * originalY.x;
-    state->sample.direction.X.y = xAfterYy + stepZ * originalY.y;
-    state->sample.direction.X.z = xAfterYz + stepZ * originalY.z;
-    state->sample.direction.Y.x = yAfterXx - stepZ * originalX.x;
-    state->sample.direction.Y.y = yAfterXy - stepZ * originalX.y;
-    state->sample.direction.Y.z = yAfterXz - stepZ * originalX.z;
+    state->sample.direction.X.x = state->sample.direction.X.x + stepZ * originalY.x;
+    state->sample.direction.X.y = state->sample.direction.X.y + stepZ * originalY.y;
+    state->sample.direction.X.z = state->sample.direction.X.z + stepZ * originalY.z;
+    state->sample.direction.Y.x = state->sample.direction.Y.x - stepZ * originalX.x;
+    state->sample.direction.Y.y = state->sample.direction.Y.y - stepZ * originalX.y;
+    state->sample.direction.Y.z = state->sample.direction.Y.z - stepZ * originalX.z;
     __KMPLS_normalize_directionXYZ(&state->sample.direction, 2.999f);
 }
 
@@ -366,8 +364,8 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 } else {
                     s32 low = raw - threshold[0];
                     s32 high = raw + threshold[0];
-                    u32 index = (state->historyHead - 1) & 255;
-                    u32 stop = (state->historyHead - historyWindow) & 255;
+                    s32 index = (state->historyHead - 1) & 255;
+                    s32 stop = (state->historyHead - historyWindow) & 255;
                     f32 confidence;
                     f32 average;
                     state->sample.angularVelocity.x = (f32)raw;
@@ -428,8 +426,8 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 } else {
                     s32 low = raw - threshold[1];
                     s32 high = raw + threshold[1];
-                    u32 index = (state->historyHead - 1) & 255;
-                    u32 stop = (state->historyHead - historyWindow) & 255;
+                    s32 index = (state->historyHead - 1) & 255;
+                    s32 stop = (state->historyHead - historyWindow) & 255;
                     f32 confidence;
                     f32 average;
                     state->sample.angularVelocity.y = (f32)raw;
@@ -490,8 +488,8 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
                 } else {
                     s32 low = raw - threshold[2];
                     s32 high = raw + threshold[2];
-                    u32 index = (state->historyHead - 1) & 255;
-                    u32 stop = (state->historyHead - historyWindow) & 255;
+                    s32 index = (state->historyHead - 1) & 255;
+                    s32 stop = (state->historyHead - historyWindow) & 255;
                     f32 confidence;
                     f32 average;
                     state->sample.angularVelocity.z = (f32)raw;
@@ -551,7 +549,10 @@ void read_mpls(s32 chan, s32 ringEnd, s32 count) {
         state->sample.angle.z += state->samplePeriod * state->sample.angularVelocity.z;
         calc_mpls_dir(state);
         if (kmplsWork->samplingCallback) {
-            KPADMPLSStatus sample = state->sample;
+            KPADMPLSStatus sample;
+            sample.angularVelocity = state->sample.angularVelocity;
+            sample.angle = state->sample.angle;
+            sample.direction = state->sample.direction;
             kmplsWork->samplingCallback(chan, &sample);
         }
     } while (--count);

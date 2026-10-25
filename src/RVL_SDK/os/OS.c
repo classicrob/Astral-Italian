@@ -549,7 +549,8 @@ void OSInit(void) {
 
     if (arenaAddr == NULL) {
         void* tmp = BootInfo->arenaHi;
-        arenaAddr = tmp == NULL ? defaultArenaHi : tmp;
+        if (tmp != NULL) defaultArenaHi = tmp;
+        arenaAddr = defaultArenaHi;
     }
 
     OSSetMEM1ArenaHi(arenaAddr);

@@ -477,7 +477,7 @@ static BOOL nandInspectPermission(const u8 perm) {
   }
 }
 
-BOOL nandCheckCharacter(char character);
+BOOL nandCheckCharacter(s32 character);
 
 // Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/nand/nand.c
 BOOL nandCheckPathName(const char* path) {
@@ -493,7 +493,7 @@ BOOL nandCheckPathName(const char* path) {
         u32 i;
         if (nandIsRelativePath(path)) {
             for (i = 0; i < len; i++) {
-                if (!nandCheckCharacter(path[i])) {
+                if (!nandCheckCharacter((u8)path[i])) {
                     return 0;
                 }
             }
@@ -518,7 +518,7 @@ BOOL nandCheckPathName(const char* path) {
 }
 
 // Ported from zeldaret/tp@c8fa8c9e2aab72cf4e5db0e5d1c84a9ea6ee6eb0:libs/revolution/src/nand/nand.c
-BOOL nandCheckCharacter(char character) {
+BOOL nandCheckCharacter(s32 character) {
     u32 i;
     const char legal_characters[66] = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b',
@@ -530,7 +530,7 @@ BOOL nandCheckCharacter(char character) {
     };
 
     for (i = 0; i < sizeof(legal_characters); i++) {
-        if (character == legal_characters[i]) {
+        if ((s8)character == legal_characters[i]) {
             return TRUE;
         }
     }

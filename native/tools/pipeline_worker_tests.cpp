@@ -1,4 +1,5 @@
 // Exercise the production worker body using controlled CPU-only compile jobs.
+#include <petari/gpu_trace.hpp>
 #include "../gx/pipeline_profile.hpp"
 #include <atomic>
 #include <condition_variable>

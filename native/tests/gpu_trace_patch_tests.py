@@ -69,6 +69,11 @@ class TracePatchTests(unittest.TestCase):
         self.assertNotIn('CFTypeRef', host)
         worker = (ROOT / 'native/gx/pipeline_worker.inc').read_text()
         self.assertNotIn('#include <petari/gpu_trace', worker)
+        fixture = (ROOT / 'native/tools/pipeline_worker_tests.cpp').read_text()
+        self.assertEqual(fixture.count('#include <petari/gpu_trace.hpp>'), 1)
+        before_fixture = fixture[:fixture.index('#include <petari/gpu_trace.hpp>')]
+        self.assertEqual(before_fixture.count('{'), before_fixture.count('}'))
+        self.assertLess(fixture.index('#include <petari/gpu_trace.hpp>'), fixture.index('namespace absl'))
         pipeline = load('trace_pipeline', ROOT / 'native/gx/patch_aurora_pipeline.py')
         source = (Path(sys.argv[1]) / 'lib/gfx/pipeline_cache.cpp').read_text()
         sys.path.insert(0, str(ROOT / 'native/gx'))

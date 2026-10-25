@@ -5,9 +5,36 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from run_tape_anchors543 import tape_binding, verify_tape_binding, qualified_tape
+from run_tape_anchors543 import tape_binding, verify_tape_binding, qualified_tape, plan
 
 class ProofBindings(unittest.TestCase):
+    def test_power_plan_has_one_conversion_and_no_failed_reference_legacy_dependency(self):
+        root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
+        with tempfile.TemporaryDirectory(prefix='power-plan-unit-',dir=root) as temporary:
+            base=Path(temporary)
+            builds=[]
+            for name in ('candidate','ref072','ref002'):
+                directory=base/name;directory.mkdir();builds.append(directory)
+                (directory/'BUILD.json').write_text(json.dumps(dict(source=name,build_host='M1',
+                    native_tests_passed=True,full_ctest_passed=True)))
+            out=base/'plan'
+            plan(out,candidate=builds[0],reference072=builds[1],reference002=builds[2],
+                 schema2_only=True,power_protocol=True)
+            spec=json.loads((out/'PLAN.json').read_text())
+            self.assertTrue(spec['power_protocol'])
+            self.assertEqual(len(spec['arms']),11)
+            self.assertEqual([a['name'] for a in spec['arms'] if a['kind']=='conversion'],['convert-ref072'])
+            self.assertTrue(all(a['observe_seconds']==90 for a in spec['arms']))
+            self.assertTrue(all('M1' in b['kind'] for b in spec['builds'].values()))
+            for a in spec['arms']:
+                if a['name'].startswith('reciprocal'):
+                    self.assertEqual(a['tape'],str(out/'runs/matrix-ref002-fresh'))
+            (builds[0]/'BUILD.json').write_text(json.dumps(dict(source='bad',build_host='M1',
+                native_tests_passed=True,full_ctest_passed=False)))
+            with self.assertRaises(RuntimeError):
+                plan(base/'bad',candidate=builds[0],reference072=builds[1],reference002=builds[2],
+                     schema2_only=True,power_protocol=True)
+
     def test_canonical_and_reciprocal_admission_fail_closed(self):
         root=Path.home()/'MacioGalaxy2-gamedata/port53/m1g/solb'
         with tempfile.TemporaryDirectory(prefix='tape-proof-plan-unit-',dir=root) as temporary:
@@ -25,6 +52,7 @@ class ProofBindings(unittest.TestCase):
             write(result)
             verify_tape_binding(binding)
             self.assertEqual(qualified_tape(tape)['binding'],binding)
+            with self.assertRaises((RuntimeError,ValueError)):qualified_tape(tape,require_power=True)
             with self.assertRaises(RuntimeError):qualified_tape(tape,source_schema=2)
             result['input_proof']['source_schema']=2;write(result)
             self.assertEqual(qualified_tape(tape,source_schema=2)['source_schema'],2)

@@ -49,6 +49,15 @@ class Tests(unittest.TestCase):
         for required in ("constructor", "mach_timebase_info", "startupPassed", "petari_au_guard_leave()>=3"):
             self.assertIn(required, startup)
 
+    def test_clock_mode_probe_is_control_only_and_fails_closed(self):
+        control=(ROOT / "audio/output_au_control.cpp").read_text()
+        self.assertIn("r.observe ? probeObserverClock()",control)
+        self.assertIn("r.observe && observerClockPermitted(clockProbe)",control)
+        self.assertIn('r.observe ? "unavailable" : "disabled"',control)
+        render=(ROOT / "audio/output_au_render.cpp").read_text()
+        self.assertNotIn("probeObserverClock",render)
+        self.assertNotIn("mach_vm_read",render)
+
 
 if __name__ == "__main__":
     unittest.main()

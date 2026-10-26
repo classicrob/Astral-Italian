@@ -96,6 +96,16 @@ logged. The current OS mach_absolute_time fast path must still pass the actual
 Release/callee no-trap check before measurement. No prior trace instrument's
 qualification transfers.
 
+PORT subsequently approved one narrow OS consistency-loop exception, recorded
+in the design's clock-contract amendment. An observer-requested sink open now
+probes the commpage mode on the control thread; only successful one-byte mode3
+readback enables callback timestamps. Other modes/errors report
+`[audio-au-observer-clock] clock=unavailable`, leave callback observation off,
+and fail the observer validator. An off arm does not perform the probe. This
+does not promote an uninspected OS image or waive any other callback rule.
+The original e766d161 codegen refusal and its signing evidence remain retained;
+the mode-gated rebuilt app needs fresh exact-binary codegen and equivalence.
+
 ## Device-switch restriction
 
 **No default-device setter/helper is implemented or linked.** Public CoreAudio
@@ -174,6 +184,13 @@ helper at 0x3b10 when unarmed, then calls the original timebase function.
 This is the local M1 guard binary; Darwin 27 server startup confirmation is
 pending PORT's retest. No production callback, sink or acceptance predicate
 changes in this test-only repair.
+
+Mode-gate source receipt: `port53/m1g/build-reports/sola-output-au-source-r14/RESULT.json`:
+PASS, seven syntax checks and all five CPU fixture groups. Real local startup
+probe: mode3, read_error0, read_bytes1. All 21 relevant Python checks pass
+(output source6/report5 + GPU patch10). The earlier r13 missing-header compile
+stop is retained. This source validation does not qualify the old app or
+replace the mandatory rebuilt-app codegen/overhead sequence.
 
 PORT server build/test request: normal build542 app/weak-import, the seven new
 ctests, then existing audio/DSP/pacing/boot/present, workgroup/history, GPU trace

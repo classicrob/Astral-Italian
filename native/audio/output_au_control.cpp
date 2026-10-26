@@ -289,9 +289,17 @@ bool open(Runtime& r,Generation& g) {
     while(capacity<base+maximum+4096) capacity*=2;
     if(!g.render.ring.configure(capacity,base,channels)) return false;
     g.render.maxFrames=maximum; g.render.scratch.reset(new float[std::size_t(maximum)*channels]{});
-    g.render.mute=r.mute; g.render.observing=r.observe;
+    const auto clockProbe=r.observe ? probeObserverClock() : ObserverClockProbe{};
+    g.render.mute=r.mute; g.render.observing=r.observe && observerClockPermitted(clockProbe);
+    std::fprintf(stderr,"[audio-au-observer-clock] generation=%llu requested=%d enabled=%d clock=%s "
+        "mode=%u read_error=%d read_bytes=%llu commpage=0xfffffc090 exception=os-commpage-mode3-consistency-reread\n",
+        (unsigned long long)g.render.generation,int(r.observe),int(g.render.observing),
+        g.render.observing ? "mach_absolute_time" : (r.observe ? "unavailable" : "disabled"),
+        clockProbe.mode,clockProbe.readError,(unsigned long long)clockProbe.readBytes);
     g.render.hostTicksPerFrame=1e9*double(timeDenom)/timeNumer/g.rate;
-    g.render.gapTriggerTicks=ticksForUs(20000); g.render.clock=observerClock; g.render.publish=publishRenderEvent;
+    g.render.gapTriggerTicks=ticksForUs(20000);
+    g.render.clock=g.render.observing ? observerClock : nullptr;
+    g.render.publish=g.render.observing ? publishRenderEvent : nullptr;
     g.openSite="producer-converter";
     if(!g.converter.open(r.guestRate,g.rate,channels,4096) || !g.converter.prewarm()) { g.openError=g.converter.error(); return false; }
     g.ledger.guestRate=r.guestRate; g.ledger.deviceRate=g.rate;

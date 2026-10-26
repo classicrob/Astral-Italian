@@ -10,6 +10,8 @@ def good():
     return ("[audio-backend] driver=coreaudio sink=output-au subtype=DefaultOutput\n"
             + "[audio] level 100/200 frames, largest request 186, underrun 0 frames,\n" * 50
             + "[audio-workgroup] errors=0 over175ms=0 history_invalid=0 observing=0 adopted=1 qualifying=1\n"
+            + "[audio-au-observer-clock] generation=1 requested=0 enabled=0 clock=disabled mode=255 read_error=0 read_bytes=0 "
+              "exception=os-commpage-mode3-consistency-reread\n"
             + "[audio-au] generation=1 final=1 device_rate=44100 guest_rate=32000 "
               "underrun_unit=guest-equivalent-cumulative-ceil raw_shortfall_device_frames=0 faults=0 timeline_faults=0 "
               "host_timeline_faults=0 invalid_timestamps=0 overloads=0 healthy=1 ring_min_ms=42 callbacks=100 requested_device_frames=100 "
@@ -45,11 +47,20 @@ class Tests(unittest.TestCase):
                    "clipped=0 retention_unknown=0 rejected=0 rejected_omitted=0\n"
                    "[audio-workgroup-history] event seq=1 mach=2500 kind=43 thread=0 value=256 steady_ns=123 ticket=1 object=1\n"
                    "[audio-workgroup-history] end rows=1\n")
-        text = prefix + good().replace("observing=0", "observing=1") + history
+        text = prefix + good().replace("observing=0", "observing=1").replace("requested=0 enabled=0 clock=disabled mode=255 read_error=0 read_bytes=0",
+            "requested=1 enabled=1 clock=mach_absolute_time mode=3 read_error=0 read_bytes=1") + history
         self.assertTrue(M.evaluate(text, True)["evidence_valid"])
         for a, b in (("drops=0", "drops=1"), ("retention_unknown=0", "retention_unknown=1"),
                      ("end rows=1", "end rows=0"), ("steady_ns=123", "steady_ns=0")):
             self.assertFalse(M.evaluate(text.replace(a, b), True)["evidence_valid"])
+
+    def test_unavailable_clock_cannot_silently_pass_an_observer_arm(self):
+        text=good().replace("observing=0", "observing=1").replace("requested=0 enabled=0 clock=disabled mode=255",
+            "requested=1 enabled=0 clock=unavailable mode=0")
+        result=M.evaluate(text,True)
+        self.assertFalse(result["evidence_valid"])
+        self.assertIn("observer clock unavailable or mode mismatch",result["errors"])
+        self.assertFalse(M.evaluate(good().replace("[audio-au-observer-clock]", "[missing-clock]"),False)["evidence_valid"])
 
 
 if __name__ == "__main__":

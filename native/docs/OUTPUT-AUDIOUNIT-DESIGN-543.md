@@ -184,6 +184,42 @@ do not recreate r3's wall-clock drift error. Off means one cached flag and no
 clock/trace TLS/helper work before it. This instrument needs its own codegen
 and overhead qualification; ccd/e2/AQ verdicts do not transfer.
 
+### PORT clock-contract amendment after the e766d161 codegen stop
+
+There is ONE explicit exception to the prohibition on unbounded retries:
+the **OS commpage mode-3 `mach_absolute_time` consistency re-read**, only while
+the observer is enabled. On the inspected M1 macOS 15.1, the actual loaded
+arm64e libsystem_kernel UUID is `7A22548F-CBA9-3F17-8BA4-488E9EC688E7`.
+It loads the offset at image offset 0x12c0, reads the counter with MRS at
+0x12c4, reloads at 0x12c8 and compares at 0x12cc, then branches from 0x12d0
+to 0x12c0 if the offset changed. PORT explicitly approved this lock-free OS
+consistency loop; it is not permission for an application spin-wait, another
+retry loop, or a syscall. The mode-0 svc fallback is outside the exception.
+The actual bytes, UUID, runtime mode and addresses are retained under
+`m1g/campaigns/sola-543-output-au-e766-r1/codegen/`; no stall is attributed to
+the consistency re-read merely because it exists.
+
+At each sink generation's open, if observation is requested, the control
+thread performs a fallible self-task read of the Apple Silicon commpage mode
+byte at 0xfffffc090. ONLY a successful complete one-byte read of mode 3 permits
+the callback clock. Other modes, partial/error reads and unsupported targets
+publish `clock=unavailable` and leave the callback's observer flag false and
+clock/publisher pointers null. Audio keeps rendering; that diagnostic arm
+fails validation rather than silently claiming observer coverage. No commpage
+or Mach probe occurs in the render callback, and the off path remains
+clock-free. This address/mode interpretation is valid only with the mandatory
+loaded-library codegen check on each measurement target; a new layout does
+not inherit qualification from the numeric mode alone.
+
+Tests cover accepted mode 3, modes 0/1/2/4/unknown, failed/partial probes,
+and actual guarded rendering without clock/publisher calls when unavailable.
+The actual system observer clock in the render fixture is exercised only
+when its real startup probe permits it; otherwise the observer branch and
+actual publisher use the fixture clock with that limitation printed. The
+independent exact-app/OS codegen check still applies. The original binary's
+refused result is preserved; a rebuilt app must be rechecked and may receive
+`passed=true` only with this named exception and the implemented mode gate.
+
 Keep `[audio]` report count and **zero**-underrun acceptance. Publish exact
 device-frame shortfalls, plus explicitly labeled source-equivalent accounting
 with a persistent fractional remainder and a nonzero final remainder exposed

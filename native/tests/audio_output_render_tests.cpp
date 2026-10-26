@@ -43,6 +43,24 @@ int main() {
     escape=std::malloc(23); std::free(escape); escape=nullptr;
     pthread_mutex_lock(&mutex); pthread_mutex_unlock(&mutex);
     assert(petari_au_guard_leave()>=4);
+    // The SAME permission predicate used at every production sink open.
+    // Unavailable/partial/error paths retain audio, but cannot call any clock
+    // or publisher in render, even for a requested observer.
+    for(const auto probe:std::array<ObserverClockProbe,8>{{{0,0,1},{1,0,1},{2,0,1},{3,0,1},
+            {4,0,1},{3,1,1},{3,0,0},{255,0,1}}}) {
+        RenderOwner owner; RenderData d;
+        configure(owner,d,observerClockPermitted(probe));
+        const bool expected=probe.mode==3 && probe.readError==0 && probe.readBytes==1;
+        assert(d.observing==expected);
+        std::array<float,256> l{},r{}; Buffers b;
+        b.buffers[0]={1,1024,l.data()}; b.buffers[1]={1,1024,r.data()};
+        AudioTimeStamp t{}; t.mFlags=kAudioTimeStampSampleTimeValid|kAudioTimeStampHostTimeValid;
+        AudioUnitRenderActionFlags f=0;const auto before=ticks;const auto eventsBefore=eventCount;
+        assert(guarded(owner,b,t,256,f)==noErr);
+        if(expected) assert(ticks>before && eventCount>eventsBefore);
+        else assert(ticks==before && eventCount==eventsBefore);
+    }
+    ticks=100; eventCount=0;
     for(bool on:{false,true}) {
         RenderOwner owner; RenderData d; configure(owner,d,on);
         std::array<float,512> left{},right{},outL{},outR{};
@@ -94,7 +112,14 @@ int main() {
     mach_timebase_info_data_t timebase{}; assert(mach_timebase_info(&timebase)==KERN_SUCCESS);
     configureObserverClock(timebase.numer,timebase.denom,0);
     RenderOwner owner; RenderData d; configure(owner,d,true);
-    d.publish=publishRenderEvent; d.clock=observerClock; d.gapTriggerTicks=0;
+    const auto actualProbe=probeObserverClock();
+    d.publish=publishRenderEvent;
+    // No use of an unapproved system clock on another OS/mode. Observer
+    // branch + actual publisher remain tested with the fixture clock there;
+    // the actual system clock is exercised only when its start probe permits.
+    d.clock=observerClockPermitted(actualProbe) ? observerClock : clockRead; d.gapTriggerTicks=0;
+    std::printf("actual observer clock mode=%u read_error=%d bytes=%llu permitted=%d\n",
+        actualProbe.mode,actualProbe.readError,(unsigned long long)actualProbe.readBytes,int(observerClockPermitted(actualProbe)));
     std::array<float,256> l{},r{};
     Buffers b; b.buffers[0]={1,1024,l.data()}; b.buffers[1]={1,1024,r.data()};
     AudioTimeStamp time{}; time.mFlags=kAudioTimeStampSampleTimeValid|kAudioTimeStampHostTimeValid; AudioUnitRenderActionFlags flags=0;

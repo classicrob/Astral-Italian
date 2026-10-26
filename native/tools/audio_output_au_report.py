@@ -23,6 +23,7 @@ def evaluate(lines, observation=True):
     final = None
     finals = {}
     previous = {}
+    clock_probes = {}
     backend = False
     config = None
     dump = None
@@ -45,6 +46,16 @@ def evaluate(lines, observation=True):
                 backend = f.get("driver") == "coreaudio" and f.get("subtype") == "DefaultOutput"
             elif line.startswith("[audio-au-fault]") or line.startswith("[audio-au-recovery]"):
                 errors.add("native sink fault/recovery in uninterrupted arm")
+            elif line.startswith("[audio-au-observer-clock] "):
+                gen = int(f["generation"])
+                require(gen not in clock_probes, "duplicate observer clock probe")
+                clock_probes[gen] = f
+                require(f["requested"] == str(int(observation)), "clock observer request mismatch")
+                require(f["enabled"] == str(int(observation)), "observer clock unavailable or mode mismatch")
+                if observation:
+                    require(f["clock"] == "mach_absolute_time" and f["mode"] == "3" and
+                            f["read_error"] == "0" and f["read_bytes"] == "1" and
+                            f["exception"] == "os-commpage-mode3-consistency-reread", "unapproved observer clock path")
             elif line.startswith("[audio] level"):
                 match = re.search(r", underrun (\d+) frames,", line)
                 require(match is not None, "malformed audio counter")
@@ -145,6 +156,7 @@ def evaluate(lines, observation=True):
     require(guest_missing == 0, "source-equivalent underrun frames")
     require(statuses > 0 and bool(finals), "missing native statuses/final generations")
     require(set(previous) == set(finals), "generation without final counters")
+    require(set(previous) == set(clock_probes), "generation without observer clock provenance")
     require(final is not None, "missing runtime footer")
     require(dump is None, "incomplete history dump")
     require(wg_final is not None and wg_final.get("adopted") == "1" and wg_final.get("qualifying") == "1", "workgroup adoption not qualified")
@@ -153,6 +165,7 @@ def evaluate(lines, observation=True):
     return {"evidence_valid": not errors, "acceptance_claimed": False,
             "audio_reports": reports, "positive_reports": positives, "guest_equivalent_frames": guest_missing,
             "ring_min_ms": minimum_ms if math.isfinite(minimum_ms) else None, "history_dumps": dumps,
+            "observer_clock_probes": clock_probes,
             "history_unique_rows": unique_rows, "longest_consecutive_render_gaps": longest,
             "retained_shortfalls": shortfall_rows, "errors": sorted(errors),
             "limitations": "Join duration/binary/cache/codegen/latency bindings; callback actor is logical, not sampled QoS/CPU."}

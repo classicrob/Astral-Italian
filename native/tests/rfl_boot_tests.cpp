@@ -201,7 +201,13 @@ void testDamagedResource(const Bytes& resourceBytes) {
     Work work;
     check(RFLInitResAsync(work.data, resource.data, resource.size, FALSE) == RFLErrcode_Fatal && !RFLAvailable(),
           "a damaged RFL_Res.dat is refused before RFL starts");
-    check(RFLInitResAsync(work.data, nullptr, 0, FALSE) == RFLErrcode_Fatal, "no resource: fatal, as on the Wii");
+    // RFL_System.c rejects null arguments before the GALAXY_NATIVE validator;
+    // these are WrongParam on the Wii too, unlike a non-null malformed resource.
+    check(RFLInitResAsync(work.data, nullptr, 0, FALSE) == RFLErrcode_WrongParam,
+          "no resource: wrong parameter, as on the Wii");
+    const Resource valid(resourceBytes);
+    check(RFLInitResAsync(nullptr, valid.data, valid.size, FALSE) == RFLErrcode_WrongParam,
+          "no work buffer: wrong parameter, as on the Wii");
 }
 
 }  // namespace

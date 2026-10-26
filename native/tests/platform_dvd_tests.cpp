@@ -253,7 +253,16 @@ void testFstMount() {
     check(DVDConvertPathToEntrynum("/AudioRes") == 1, "directory entry number");
     check(DVDConvertPathToEntrynum("/AudioRes/Wave.aw") == 3, "file entry number");
     check(DVDConvertPathToEntrynum("/StageData/HeavensDoorGalaxy/HeavensDoorGalaxy.arc") == 10, "nested file entry number");
-    check(DVDConvertPathToEntrynum("/stagedata/astrogalaxy/ASTROGALAXY.ARC") == 7, "lookup is ASCII case-insensitive");
+    // sampleDisc's entry 7 is MarioFaceShipGalaxy.arc. SDK dvdfs.c::isSame
+    // folds both operands; a differently named absent stage must still miss.
+    check(DVDConvertPathToEntrynum("/stagedata/mariofaceshipgalaxy/MARIOFACESHIPGALAXY.ARC") == 7,
+          "lookup is ASCII case-insensitive");
+    check(DVDConvertPathToEntrynum("/sTaGeDaTa/MaRiOfAcEsHiPgAlAxY/MarioFaceShipGalaxy.arc") == 7,
+          "mixed-case parent names resolve the existing file");
+    check(DVDConvertPathToEntrynum("/StageData/MarioFaceShipGalaxy/mArIoFaCeShIpGaLaXy.aRc") == 7,
+          "mixed-case file name resolves the existing file");
+    check(DVDConvertPathToEntrynum("/stagedata/astrogalaxy/ASTROGALAXY.ARC") == -1,
+          "case folding does not invent an absent AstroGalaxy entry");
     check(DVDConvertPathToEntrynum("StageData/./MarioFaceShipGalaxy/../empty.bin") == 8, "'.' and '..' components");
     check(DVDConvertPathToEntrynum("/StageData/") == 5, "trailing slash names a directory");
     check(DVDConvertPathToEntrynum("/opening.bnr/") == -1, "trailing slash does not match a file");

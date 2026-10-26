@@ -17,6 +17,8 @@ PROTOCOL='petari-pipeline-cache-v2'
 TITLE_SECONDS=120
 TITLE_POST_COMPLETE_SECONDS=30
 TITLE_FINAL_SEAM_ALLOWANCE_SECONDS=1
+QUIET_WAIT_SECONDS=600
+QUIET_POLL_SECONDS=10
 STAGE_FRAMES=1800
 FAULT=re.compile(r'FATAL|AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:|unhandled tcg')
 
@@ -209,15 +211,16 @@ def cpu_seconds(value):
     for field in fields:total=total*60+float(field)
     return total+days*86400
 
-def quiet(path):
-    def sample():
-        p=subprocess.run(['/bin/ps','-axo','pid=,comm=,time='],capture_output=True,text=True,check=True)
-        rows=[]
-        for line in p.stdout.splitlines():
-            fields=line.strip().split()
-            if len(fields)>=3:rows.append(dict(pid=int(fields[0]),command=' '.join(fields[1:-1]),cpu_seconds=cpu_seconds(fields[-1])))
-        return dict(load=os.getloadavg(),processes=rows)
-    start=sample();time.sleep(10);stop=sample();before={r['pid']:r for r in start['processes']}
+def quiet_snapshot():
+    p=subprocess.run(['/bin/ps','-axo','pid=,comm=,time='],capture_output=True,text=True,check=True,timeout=10)
+    rows=[]
+    for line in p.stdout.splitlines():
+        fields=line.strip().split()
+        if len(fields)>=3:rows.append(dict(pid=int(fields[0]),command=' '.join(fields[1:-1]),cpu_seconds=cpu_seconds(fields[-1])))
+    return dict(load=os.getloadavg(),processes=rows)
+
+def quiet_check(start,stop):
+    before={r['pid']:r for r in start['processes']}
     compiler_names={'clang','clang++','cc1','ld','ld64','make','ninja','xcodebuild'}
     active=[r for r in stop['processes'] if Path(r['command']).name in compiler_names]
     metal=[]
@@ -225,9 +228,47 @@ def quiet(path):
         if 'MTLCompilerService' in r['command']:
             delta=r['cpu_seconds']-before[r['pid']]['cpu_seconds'] if r['pid'] in before else None
             metal.append(dict(pid=r['pid'],delta_seconds=delta,idle=delta is not None and 0<=delta<.05))
-    result=dict(first=start,second=stop,active_compilers=active,metal_cpu_deltas=metal,
+    return dict(first=start,second=stop,active_compilers=active,metal_cpu_deltas=metal,
         passed=max(start['load'][:2]+stop['load'][:2])<=8 and not active and all(r['idle'] for r in metal))
-    write(path,result);need(result['passed'],'quiet precondition failed; no arm launched')
+
+def quiet(path):
+    """Wait before launch, never retry a launched arm. Preserve every snapshot.
+
+    Pair consecutive snapshots >=10s apart; both load1/load5 readings must be
+    <=8, with the existing compiler and strict <.05s Metal CPU-delta predicate.
+    """
+    started=time.monotonic();deadline=started+QUIET_WAIT_SECONDS
+    result=dict(policy='bounded-prelaunch-quiet-v1',status='waiting',passed=False,
+        wait_limit_seconds=QUIET_WAIT_SECONDS,poll_seconds=QUIET_POLL_SECONDS,
+        load_1_and_5_limit=8,metal_cpu_delta_exclusive_limit_seconds=.05,
+        samples=[],checks=[],elapsed_seconds=0.)
+    try:
+        previous=quiet_snapshot();previous_at=time.monotonic()
+        result['initial_snapshot']=previous
+        result['samples'].append(dict(elapsed_seconds=previous_at-started,**previous))
+        write(path,result)
+        while True:
+            remaining=deadline-time.monotonic()
+            if remaining<=0:break
+            time.sleep(min(QUIET_POLL_SECONDS,remaining))
+            current=quiet_snapshot();now=time.monotonic()
+            result['samples'].append(dict(elapsed_seconds=now-started,**current))
+            check=quiet_check(previous,current)
+            check.update(sample_interval_seconds=now-previous_at,
+                first_sample_index=len(result['samples'])-2,second_sample_index=len(result['samples'])-1)
+            check['passed']=check['passed'] and now-previous_at>=QUIET_POLL_SECONDS and now<=deadline
+            result['checks'].append(check)
+            result.update(check,elapsed_seconds=now-started)
+            if check['passed']:
+                result['status']='ready';write(path,result);return result
+            write(path,result)
+            previous,previous_at=current,now
+        result.update(status='timeout',passed=False,elapsed_seconds=time.monotonic()-started)
+        write(path,result)
+    except Exception as exc:
+        result.update(status='sampling-error',passed=False,error=str(exc),elapsed_seconds=time.monotonic()-started)
+        write(path,result);raise
+    raise RuntimeError('quiet precondition timeout after bounded wait; no arm launched')
 
 def prepare_build(directory,out,own_id,expected):
     directory=Path(directory).resolve()
@@ -357,6 +398,9 @@ def main():
             fixture=str(args.fixture.resolve()),fixture_inventory=fixture_inventory,disc=str(args.disc.resolve()),machine=brand,nice=0,
             title_minimum_native_seconds=TITLE_SECONDS,title_post_global_100_seconds=TITLE_POST_COMPLETE_SECONDS,
             title_final_seam_allowance_seconds=TITLE_FINAL_SEAM_ALLOWANCE_SECONDS,
+            quiet_policy=dict(wait_limit_seconds=QUIET_WAIT_SECONDS,poll_seconds=QUIET_POLL_SECONDS,
+                load_1_and_5_limit=8,metal_cpu_delta_exclusive_limit_seconds=.05,
+                consecutive_samples=2,no_launched_arm_retries=True),
             stage=args.stage,stage_frames=STAGE_FRAMES,script_sha256=sha(root/'neutral.script'),script_source_sha256=sha(__file__),
             order=['A-cold-title','A-cold-stage','A-warm-stage','A-warm-title','B-stage','B-title','negative-stage','negative-title'],
             gates='exact pixels; accepted recipes; full-key hits; zero aggregate new stores/misses on B (stronger than only warmed-set check); negative misses/stores',

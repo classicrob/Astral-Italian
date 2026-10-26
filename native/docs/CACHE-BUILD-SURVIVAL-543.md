@@ -7,7 +7,11 @@ the real app, then stopped on an incorrect runner timing predicate: it treated
 the title observer's minimum as an exact total duration. All original outputs
 remain preserved as failures. The tools-only timing correction uses the same
 three r3 builds below and a new output directory; no rebuild is needed. It makes
-no runtime survival claim. PORT chooses the quiet build/proof window;
+no runtime survival claim. Round4 passed A-cold-title and stopped before the next
+launch on its one-shot quiet check: the preceding cold compile work had raised
+load averages. The runner now waits boundedly for the same quiet predicate;
+neither a failed arm nor an old receipt is retried or overwritten.
+PORT chooses the quiet build/proof window;
 SOL A retains the M1 measurement slot. All results, failures and caches remain.
 No rerun loop, cache clearing, host input, AX driver or TCC request is used.
 
@@ -41,7 +45,7 @@ quiet window (the runner rejects inherited nice5):
 ```sh
 bash tools/port/server_cache_survival543.sh \
   /absolute/A_BUILD_DIR /absolute/B_BUILD_DIR /absolute/NEGATIVE_BUILD_DIR \
-  "$HOME/MacioGalaxy2-gamedata/port53/m1g/cache-survival-543-r4" \
+  "$HOME/MacioGalaxy2-gamedata/port53/m1g/cache-survival-543-r5" \
   "$HOME/MacioGalaxy2-gamedata/SB4E01-extracted" \
   "$HOME/MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture"
 ```
@@ -49,7 +53,15 @@ bash tools/port/server_cache_survival543.sh \
 The new output path must be below `port53/m1g` and must not exist. The wrapper
 uses server-heavy -> native per preparation/arm, not an outer cohort lock. Each
 arm requires nice0, load1/load5 <=8, no compiler, and MTLCompilerService CPU delta
-<0.05s over10s. It never kills foreign processes. An arm failure stops the chain;
+<0.05s over10s. Before launching it polls every10s for up to600s, under the same
+heavy->native locks. Both consecutive load samples must pass, every resident
+Metal service must have a nonnegative CPU delta strictly below0.05s, and the
+launch-side snapshot must have no compiler. A newly seen Metal PID needs a
+second sample. `quiet.json` is updated after every snapshot with all raw process
+lists/load samples, pair checks, CPU deltas, elapsed time and ready/timeout/error
+status. The PLAN binds the wait policy. Timeout fails before Popen; this wait
+does not retry any launched arm or weaken a readiness threshold.
+It never kills foreign processes. An arm failure stops the chain;
 a timeout stops/reaps only its owned Popen PID and is a failure.
 
 The runner makes signed perf copies sharing one fresh random bundle ID. It

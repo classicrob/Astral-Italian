@@ -2,6 +2,7 @@
 """Proof scorer negatives only; no app, GPU, personal HOME or user-cache access."""
 from pathlib import Path
 import copy,hashlib,importlib.util,json,sqlite3,struct,tempfile,unittest,zlib
+from unittest import mock
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('proof',ROOT/'tools/port/cache_build_survival543.py')
 p=importlib.util.module_from_spec(spec);spec.loader.exec_module(p)
@@ -118,5 +119,51 @@ class ProofTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):p.cache_snapshot(self.root)
     def test_cpu_time_parsing(self):
         self.assertEqual(p.cpu_seconds('01:02.50'),62.5);self.assertEqual(p.cpu_seconds('1-01:02:03'),90123)
+    def snapshot(self,load=1,processes=()):return dict(load=[load,load,99],processes=list(processes))
+    def wait_quiet(self,snapshots,limit=600):
+        now=[0.]
+        def sleep(seconds):now[0]+=seconds
+        with mock.patch.object(p,'QUIET_WAIT_SECONDS',limit),mock.patch.object(p,'quiet_snapshot',side_effect=snapshots),\
+             mock.patch.object(p.time,'monotonic',side_effect=lambda:now[0]),mock.patch.object(p.time,'sleep',side_effect=sleep):
+            return p.quiet(self.root/'quiet.json')
+    def test_quiet_waits_for_two_low_load_samples_and_keeps_history(self):
+        result=self.wait_quiet([self.snapshot(x) for x in (12,9.98,8,8)])
+        self.assertTrue(result['passed']);self.assertEqual(result['status'],'ready')
+        self.assertEqual(result['elapsed_seconds'],30);self.assertEqual(len(result['samples']),4)
+        self.assertEqual([c['passed'] for c in result['checks']],[False,False,True])
+        self.assertEqual(result,json.loads((self.root/'quiet.json').read_text()))
+    def test_quiet_strict_metal_cpu_predicate_and_new_service(self):
+        def metal(used):return dict(pid=42,command='MTLCompilerService',cpu_seconds=used)
+        result=self.wait_quiet([self.snapshot(processes=[metal(x)]) for x in (0,.05,.05)])
+        self.assertFalse(result['checks'][0]['passed']);self.assertEqual(result['elapsed_seconds'],20)
+        result=self.wait_quiet([self.snapshot(),self.snapshot(processes=[metal(0)]),self.snapshot(processes=[metal(0)])])
+        self.assertIsNone(result['checks'][0]['metal_cpu_deltas'][0]['delta_seconds'])
+        self.assertEqual(result['elapsed_seconds'],20)
+    def test_quiet_compiler_blocks_until_gone(self):
+        compiler=dict(pid=9,command='/usr/bin/clang',cpu_seconds=0)
+        result=self.wait_quiet([self.snapshot(),self.snapshot(processes=[compiler]),self.snapshot()])
+        self.assertEqual(result['checks'][0]['active_compilers'],[compiler])
+        self.assertEqual(result['elapsed_seconds'],20)
+    def test_quiet_timeout_preserves_every_sample_without_launch(self):
+        with mock.patch.object(p.subprocess,'Popen') as launch:
+            with self.assertRaisesRegex(RuntimeError,'timeout.*no arm launched'):
+                self.wait_quiet([self.snapshot(9)]*4,limit=30)
+            launch.assert_not_called()
+        result=json.loads((self.root/'quiet.json').read_text())
+        self.assertEqual(result['status'],'timeout');self.assertFalse(result['passed'])
+        self.assertEqual(result['elapsed_seconds'],30);self.assertEqual(len(result['samples']),4)
+        self.assertEqual(len(result['checks']),3)
+    def test_quiet_sampling_failure_preserves_prior_wait(self):
+        with self.assertRaisesRegex(RuntimeError,'ps failed'):
+            self.wait_quiet([self.snapshot(9),RuntimeError('ps failed')])
+        result=json.loads((self.root/'quiet.json').read_text())
+        self.assertEqual(result['status'],'sampling-error');self.assertFalse(result['passed'])
+        self.assertEqual(len(result['samples']),1);self.assertEqual(result['error'],'ps failed')
+    def test_quiet_partial_deadline_interval_cannot_pass(self):
+        with self.assertRaisesRegex(RuntimeError,'timeout'):
+            self.wait_quiet([self.snapshot(9),self.snapshot(1),self.snapshot(1)],limit=15)
+        result=json.loads((self.root/'quiet.json').read_text())
+        self.assertFalse(result['passed']);self.assertEqual(result['elapsed_seconds'],15)
+        self.assertEqual(result['checks'][-1]['sample_interval_seconds'],5)
 
 if __name__=='__main__':unittest.main()

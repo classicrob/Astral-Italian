@@ -59,6 +59,16 @@ def link_control(row,target,control_object,exe):
     need(replaced==1,'main fixture object not uniquely replaced')
     need(removed==(1 if target=='petari_input_tests' else 0),'unexpected baseline SDK wrapper linkage')
     return out,cwd
+def unavailable_checks(log):
+    result=[]
+    for line in log.splitlines():
+        if line.startswith('NOT RUN '):
+            name,separator,reason=line[len('NOT RUN '):].partition(': ')
+            need(bool(separator and name and reason),'malformed NOT RUN record')
+            need(all(row['name']!=name for row in result),'duplicate NOT RUN record')
+            result.append(dict(name=name,status='NOT_RUN',executed=False,passed=False,reason=reason,raw_line=line))
+    return result
+
 def production_scope(fixes):
     allowed=set();blobs={}
     for fix in fixes:
@@ -164,7 +174,8 @@ def main():
         evidence=br or bl or bc
         text=Path(evidence['log']).read_text(errors='replace')
         before_expected=evidence['exit']!=0 and not evidence['timed_out'] and all(s in text for s in expected)
-        pair=dict(test=test,before_fixture_sha256=before_sha,after_fixture_sha256=after_sha,
+        unavailable=unavailable_checks(Path(fr['log']).read_text(errors='replace'))
+        pair=dict(test=test,unavailable_checks=unavailable,after_scope='executed checks only; unavailable checks never credited',before_fixture_sha256=before_sha,after_fixture_sha256=after_sha,
             before_compile=bc,before_link=bl,before_run=br,after_run=fr,
             main_failure_matches=before_expected,after_passed=fr['exit']==0 and not fr['timed_out'])
         pair['passed']=pair['main_failure_matches'] and pair['after_passed'];results.append(pair)

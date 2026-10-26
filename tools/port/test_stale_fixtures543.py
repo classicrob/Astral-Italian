@@ -10,6 +10,17 @@ spec=importlib.util.spec_from_file_location('proof',Path(__file__).with_name('ch
 proof=importlib.util.module_from_spec(spec);spec.loader.exec_module(proof)
 
 class BaselineControlTests(unittest.TestCase):
+    def test_unavailable_never_becomes_an_executed_or_passing_check(self):
+        line='NOT RUN native_skip_donor_integration: UNAVAILABLE IN SMG2; native/STUBS.md; docs/port/HOOK_TRANSFER.md'
+        row=proof.unavailable_checks(line)[0]
+        self.assertEqual(row['status'],'NOT_RUN')
+        self.assertFalse(row['executed']);self.assertFalse(row['passed'])
+        self.assertIn('STUBS.md',row['reason']);self.assertIn('HOOK_TRANSFER.md',row['reason'])
+        with self.assertRaisesRegex(RuntimeError,'duplicate'):
+            proof.unavailable_checks(line+'\n'+line)
+        with self.assertRaisesRegex(RuntimeError,'malformed'):
+            proof.unavailable_checks('NOT RUN missing-reason')
+
     def test_production_scope_refuses_unknown_or_different_shipping_blob(self):
         with self.assertRaisesRegex(RuntimeError,'unapproved'):
             proof.production_scope(['unknown'])

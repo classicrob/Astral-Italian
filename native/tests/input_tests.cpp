@@ -2373,6 +2373,7 @@ void testSkipMachine() {
 }
 
 void testSkipThroughKpad() {
+#ifdef PETARI_TEST_DONOR_SKIP
     // The game's own WPadButton on channel 0 (WPadButton::update calls petari_skip_pad).
     namespace Skip = PetariNative::Skip;
     Rig rig;
@@ -2450,6 +2451,10 @@ void testSkipThroughKpad() {
     petari_skip_set_context(0);
     Skip::resetForTesting();
     PetariNative::Mods::resetForTesting();
+#else
+    std::puts("NOT RUN native_skip_donor_integration: UNAVAILABLE IN SMG2; donor game hooks absent; "
+              "native/STUBS.md:23-24 and docs/port/HOOK_TRANSFER.md:131,173");
+#endif
 }
 
 // --- Point to move mod (petari/point_move.hpp) ------------------------------
@@ -3029,6 +3034,14 @@ void testEditorPick() {
 
 int main(int argc, char** argv) {
     __OSThreadInit();
+    if (argc == 2 && std::strcmp(argv[1], "--donor-skip-integration") == 0) {
+        testSkipThroughKpad();
+#ifdef PETARI_TEST_DONOR_SKIP
+        return 0;
+#else
+        return 77; // CTest SKIPPED, never a feature PASS.
+#endif
+    }
     if (argc == 2 && std::strcmp(argv[1], "--small-ring-shake-characterization") == 0) {
         characterizeSmallRingShakeStall();
         std::puts("CHARACTERIZATION complete; no acceptance verdict");
@@ -3098,6 +3111,6 @@ int main(int argc, char** argv) {
     testAlarmClock();
     testCalibrationThreads();
     testScreenSaver();
-    std::printf("native input tests passed (%d checks)\n", checks);
+    std::printf("native input executed checks passed (%d checks)\n", checks);
     return 0;
 }

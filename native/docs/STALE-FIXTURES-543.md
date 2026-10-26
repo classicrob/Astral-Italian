@@ -294,3 +294,13 @@ cutscene-skip port would need scene-context producers and each game end path, no
 only a WPadButton call. Adding just that call could hide A without ending the
 cutscene and would not repair the missing feature. No new production fix, fake
 fixture hook, assertion change, M1 build or native run has been made.
+
+PORT approved the unavailable-feature reporting: pure Machine checks stay gated;
+the donor body is kept behind PETARI_TEST_DONOR_SKIP (default OFF). The ordinary
+native_input log emits `NOT RUN native_skip_donor_integration: UNAVAILABLE IN SMG2`
+with STUBS/HOOK_TRANSFER references. The separate CTest
+native_skip_donor_integration invokes `--donor-skip-integration` and returns 77,
+with SKIP_RETURN_CODE=77, so it is reported SKIPPED rather than Passed. Paired
+proof records this component as status NOT_RUN, executed=false, passed=false;
+it credits only the checks actually executed. This is an explicit deferred
+feature/backlog item, not an accepted SMG2 integration or a lowered hold threshold.

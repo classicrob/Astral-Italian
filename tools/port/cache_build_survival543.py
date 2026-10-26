@@ -77,6 +77,8 @@ def one(pattern,text,label):
 def log_evidence(text):
     recipe,backend,device,artifact=one(r'\[pipeline compatibility\] recipe=(\w+) backend=(\w+) device=(\w+) artifact=(\w+)',text,'device context')
     counts=one(r'\[pipeline artifacts\] hits=(\d+) misses=(\d+) rejected=(\d+) stored=(\d+)',text,'artifact counters')
+    closed=one(r'\[pipeline artifacts close\] persistence=(-?\d+) checkpoint=(-?\d+) close=(-?\d+)',text,'artifact close')
+    need(all(int(status)==0 for status in closed),'artifact checkpoint/close failed')
     recipes=re.findall(r'\[pipeline recipes\] type=(\d+) accepted=(\d+) rejected=(\d+) ABI=(\w+)',text)
     need(recipes and all(r[3]==recipe for r in recipes),'recipe acceptance evidence missing/foreign')
     prep=one(r'\[gx frontend pre-present\] ([^\n]+)',text,'frontend prep')
@@ -86,6 +88,7 @@ def log_evidence(text):
     need(not FAULT.search(text),'native fault')
     return dict(recipe=recipe,backend=backend,device=device,artifact=artifact,
         counters=dict(zip(('hits','misses','rejected','stored'),map(int,counts))),
+        artifact_close=dict(zip(('persistence','checkpoint','close'),map(int,closed))),
         recipe_accepted=sum(int(x[1]) for x in recipes),recipe_rejected=sum(int(x[2]) for x in recipes),
         prep=fields,splash_duration_ms=float(one(r'\[gx boot splash frames\][^\n]* elapsed_ms=([\d.]+)',text,'splash duration')),
         observed_artifact_path=one(r'\[pipeline artifacts open\] path=(.+) namespace='+artifact+r' legacy=not-adopted',text,'artifact path'))

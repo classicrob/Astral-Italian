@@ -29,9 +29,12 @@ void cache_prune() {
 }
 void cache_shutdown() {
     std::lock_guard lock(cache_mutex);
-    std::fprintf(stderr,"[pipeline artifacts] hits=%llu misses=%llu rejected=%llu stored=%llu\n",
-        (unsigned long long)artifactCache.hits,(unsigned long long)artifactCache.misses,
-        (unsigned long long)artifactCache.rejected,(unsigned long long)artifactCache.stores);
-    artifactCache.close();
+    artifactCache.finish();
 }
 } // namespace aurora::webgpu
+
+// The game's normal power exit uses _Exit and deliberately skips full renderer
+// teardown. Finish only the artifact cache; no worker join or game lock here.
+extern "C" void petari_gx_pipeline_artifacts_finish() {
+    aurora::webgpu::cache_shutdown();
+}

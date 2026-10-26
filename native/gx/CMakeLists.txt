@@ -880,6 +880,11 @@ if(_petari_build_testing)
     target_compile_features(petari_pipeline_artifact_raw_tests PRIVATE cxx_std_20)
     target_link_libraries(petari_pipeline_artifact_raw_tests PRIVATE petari_pipeline_cache_identity)
     add_test(NAME native_pipeline_artifact_raw COMMAND petari_pipeline_artifact_raw_tests)
+    add_executable(petari_pipeline_artifact_shutdown_tests EXCLUDE_FROM_ALL
+        "${CMAKE_SOURCE_DIR}/native/tests/pipeline_artifact_shutdown_tests.cpp")
+    target_compile_features(petari_pipeline_artifact_shutdown_tests PRIVATE cxx_std_20)
+    target_link_libraries(petari_pipeline_artifact_shutdown_tests PRIVATE petari_pipeline_cache_identity)
+    add_test(NAME native_pipeline_artifact_shutdown COMMAND petari_pipeline_artifact_shutdown_tests)
     add_test(NAME native_pipeline_cache_patch COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_patch_tests.py" "${aurora_SOURCE_DIR}")
 endif()

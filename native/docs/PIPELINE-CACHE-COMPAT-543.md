@@ -109,6 +109,26 @@ One bounded startup report records recipe/backend/device identities, accepted /
 rejected / migrated rows and reasons; end-of-run counters expose artifact hits,
 misses and rejected corrupt entries. Build SHA remains separate provenance.
 
+### Terminal artifact report on the real application exit
+
+The normal power/quit/restart path ends in `Host::leave` and `_Exit`, which skips
+Aurora teardown and C++ destructors. Both that path and the explicit immediate
+window-close path call `petari_gx_pipeline_artifacts_finish` before `_Exit`.
+It shares `cache_shutdown` with full Aurora teardown: under the existing Dawn
+cache mutex, the artifact cache becomes terminal, closes its SQLite connection
+(including SQLite's clean-close WAL checkpoint) and flushes exactly one final
+counter report. An in-flight callback finishes before this operation; callbacks
+that arrive later cannot reopen a DB, store bytes or change the final counters.
+No renderer worker join, game/interrupt lock, device teardown, UI or compatibility
+identity change is involved. The existing recipe writer's separate lifecycle is
+unchanged. Crash/abort/SIGKILL paths do not manufacture a clean-exit report.
+
+`native_pipeline_artifact_shutdown` exercises the same terminal operation in a
+child that uses `_Exit`, verifies one report, no remaining WAL/SHM, durable bytes,
+repeated/concurrent shutdown callers, uninitialized exit and refused late reads /
+stores/reopens. All cache files and HOME are private. The production patch test
+checks that both real exit paths and Aurora teardown use this operation.
+
 ## Files, migration and seed-pack behavior
 
 Suggested new names are `pipeline_cache.v2.<recipe_abi>.db` and

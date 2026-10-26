@@ -35,6 +35,16 @@ class PatchTests(unittest.TestCase):
         for forbidden in ('GLOB','native/app/CMakeLists.txt','pipeline-seeds','pipeline_worker','boot_splash'):
             self.assertNotIn(forbidden,section)
         self.assertIn('file(SHA256 "${_petari_dawn_library}"',section)
+    def test_real_exit_and_aurora_share_terminal_shutdown(self):
+        host=(ROOT/'native/app/platform_host.cpp').read_text()
+        for begin,end in [('void leave(', '// The smoke watchdog'),('void forceQuit()', '}  // namespace')]:
+            body=host[host.index(begin):host.index(end,host.index(begin))]
+            self.assertEqual(body.count('petari_gx_pipeline_artifacts_finish();'),1)
+            self.assertLess(body.index('petari_gx_pipeline_artifacts_finish();'),body.index('std::_Exit'))
+        text=(ROOT/'native/gx/aurora_dawn_cache.inc').read_text()
+        self.assertIn('extern "C" void petari_gx_pipeline_artifacts_finish() {\n    aurora::webgpu::cache_shutdown();\n}',text)
+        shutdown=text[text.index('void cache_shutdown()'):text.index('} // namespace aurora::webgpu')]
+        self.assertIn('std::lock_guard lock(cache_mutex);\n    artifactCache.finish();',shutdown)
 
 if __name__=='__main__':
     AURORA=Path(sys.argv.pop(1));unittest.main()

@@ -46,6 +46,7 @@ class ProofTests(unittest.TestCase):
     def log(self):
         return ('[pipeline compatibility] recipe=r backend=b device=d artifact=a\n'
             '[pipeline artifacts] hits=30 misses=0 rejected=0 stored=0\n'
+            '[pipeline artifacts close] persistence=0 checkpoint=0 close=0\n'
             '[pipeline recipes] type=1 accepted=20 rejected=0 ABI=r\n'
             '[gx frontend pre-present] version=3 result=ready keys=54 completed=54 pending=0 failed=0 manifest_errors=0 elapsed_ms=88 cap_ms=7000 presented_frames=3\n'
             '[gx boot splash frames] presented=3 elapsed_ms=100\n'
@@ -55,6 +56,10 @@ class ProofTests(unittest.TestCase):
         for line in self.log().splitlines(True):
             with self.assertRaises(RuntimeError):p.log_evidence(self.log().replace(line,''))
         with self.assertRaises(RuntimeError):p.log_evidence(self.log()+'[pipeline artifacts] hits=30 misses=0 rejected=0 stored=0\n')
+    def test_close_failure_or_duplicate_blocks(self):
+        for field in ('persistence','checkpoint','close'):
+            with self.assertRaises(RuntimeError):p.log_evidence(self.log().replace(field+'=0',field+'=5'))
+        with self.assertRaises(RuntimeError):p.log_evidence(self.log()+'[pipeline artifacts close] persistence=0 checkpoint=0 close=0\n')
     def png(self,name,change=False):
         def chunk(kind,body):return struct.pack('>I',len(body))+kind+body+struct.pack('>I',zlib.crc32(kind+body)&0xffffffff)
         rows=bytearray()

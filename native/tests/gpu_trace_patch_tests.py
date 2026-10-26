@@ -70,6 +70,9 @@ def committed_source(revision, path):
 MONITOR_PATH = 'native/platform/os/os_thread.cpp'
 TRACE_ONLY_REVISION = 'e2f71c485c794bd9283f58f962a1baff08045379'
 APPROVED_MONITOR_REVISION = '0970356053d0d1f3a52bba72711151f6b339a365'
+APPROVED_WORKGROUP_REVISION = '472665264e094e3b31c9483089a190a46175c27b'
+WORKGROUP_PATHS = {'native/platform/os/os_thread.cpp', 'native/platform/os/os_internal.hpp',
+                   'native/platform/os/os_interrupts.cpp', 'native/audio/sdl_sink.cpp'}
 
 class TracePatchTests(unittest.TestCase):
     def test_pinned_frame_worker_present(self):
@@ -137,7 +140,22 @@ class TracePatchTests(unittest.TestCase):
                 self.assertEqual(re.sub(r'\s+', '', original), operation_tokens(trace_only),
                                  'original trace-only OS hook-erasure proof')
                 original = committed_source(APPROVED_MONITOR_REVISION, path)
+            if path in WORKGROUP_PATHS:
+                # The separately approved functional workgroup arm is not trace
+                # code. Pin it exactly; do not erase it by a name/pattern.
+                # Keep the old trace-only erasure proof independently below.
+                original = committed_source(APPROVED_WORKGROUP_REVISION, path)
             self.assertEqual(operation_tokens(original), operation_tokens(changed), path)
+
+    def test_workgroup_baseline_retains_original_trace_erasure(self):
+        for path in WORKGROUP_PATHS:
+            base = APPROVED_MONITOR_REVISION if path == MONITOR_PATH else '7fcc610c'
+            self.assertEqual(operation_tokens(committed_source(base, path)),
+                             operation_tokens(committed_source('de3dfa77', path)), path)
+        baseline = committed_source(APPROVED_WORKGROUP_REVISION, MONITOR_PATH)
+        expected = operation_tokens(baseline)
+        self.assertNotEqual(expected, operation_tokens(baseline.replace('AudioWorkgroup::guestSafePoint',
+                                                                       'AudioWorkgroup::rendererSafePoint')))
 
     def test_monitor_baseline_rejects_ungated_changes(self):
         approved = committed_source(APPROVED_MONITOR_REVISION, MONITOR_PATH)
@@ -154,7 +172,7 @@ class TracePatchTests(unittest.TestCase):
 
     def test_interrupt_wait_erasure_does_not_hide_a_changed_fallback(self):
         path = 'native/platform/os/os_internal.hpp'
-        approved = committed_source(APPROVED_MONITOR_REVISION, path)
+        approved = committed_source(APPROVED_WORKGROUP_REVISION, path)
         changed = (ROOT / path).read_text()
         self.assertEqual(operation_tokens(approved), operation_tokens(changed))
         changed = changed.replace('        cv.wait(lock, predicate);', '        cv.wait(lock, [] { return true; });')
@@ -173,16 +191,17 @@ class TracePatchTests(unittest.TestCase):
     def test_audio_trace_preserves_ring_arguments_and_off_fallback(self):
         path = 'native/audio/sdl_sink.cpp'
         changed = (ROOT / path).read_text()
-        original = committed_source(TRACE_ONLY_REVISION, path)
+        original = committed_source(APPROVED_WORKGROUP_REVISION, path)
         self.assertEqual(operation_tokens(original), operation_tokens(changed))
         wrong = changed.replace('Audio::read(ring, buffer, static_cast<std::size_t>(count))',
                                 'Audio::read(ring, buffer, static_cast<std::size_t>(count + 1))')
         self.assertNotEqual(operation_tokens(original), operation_tokens(wrong))
         helper = (ROOT / 'native/include/petari/gpu_trace_audio.hpp').read_text()
-        self.assertIn('} else {\n        ring.read(output, count);\n    }', helper)
+        self.assertIn('} else {\n        copied = ring.read(output, count);\n    }', helper)
+        self.assertIn('return copied;', helper)
         self.assertIn('return ring.takeUnderrunFrames();', helper)
         self.assertIn('[[gnu::noinline]] inline std::uint64_t reportEnabled', helper)
-        guarded = helper[helper.index('inline void read('):helper.index('template<class Ring>\n[[gnu::noinline]]', helper.index('inline void read('))]
+        guarded = helper[helper.index('inline std::size_t read('):helper.index('template<class Ring>\n[[gnu::noinline]]', helper.index('inline std::size_t read('))]
         self.assertLess(guarded.index('enabled.load'), guarded.index('invokeEnabled'))
         self.assertLess(guarded.index('invokeEnabled'), guarded.index('nowNs()'))
         self.assertNotIn('std::fwrite', helper)

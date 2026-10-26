@@ -7,6 +7,7 @@ namespace PetariNative::Platform::AudioWorkgroup::Backend {
 struct Policy {
     thread_extended_policy_data_t extended{};
     thread_time_constraint_policy_data_t realtime{};
+    thread_time_constraint_policy_data_t actual{};
     bool wasRealtime = false, saved = false, changed = false;
 };
 struct Api {

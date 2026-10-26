@@ -3,6 +3,12 @@
 #include <petari/platform/audio_workgroup.hpp>
 
 namespace PetariNative::Platform::AudioWorkgroup::Protocol {
+// Public Mach thread_policy.h documents this kernel normalization. Keep the
+// requested Audio::setRealtimeAudioThread constants; validate the effective
+// readback honestly rather than claim the smaller requested computation.
+constexpr std::uint32_t effectiveComputation(std::uint32_t requested, std::uint32_t constraint) {
+    return requested < constraint/2 ? constraint/2 : requested;
+}
 // This ledger is the DSP production cycle, NOT an AIInitDMA cycle: the latter
 // registers a previous mixed buffer and can occur before this work completes.
 struct Cycle {

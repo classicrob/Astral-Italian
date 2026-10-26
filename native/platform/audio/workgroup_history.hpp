@@ -18,7 +18,8 @@ class Recorder {
         std::atomic<std::uint64_t> version{0}, sequence{0}, mach{0}, thread{0}, value{0}, kind{0};
     };
     std::array<Cell,Capacity> cells{};
-    std::atomic<std::uint64_t> next{1}, lost{0}, triggerAt{0}, triggerCount{0};
+    std::atomic<std::uint64_t> next{1}, lost{0}, triggerAt{0}, triggerEnd{1}, triggerCount{0};
+    static constexpr std::uint64_t kPublishing = UINT64_MAX;
 public:
     void prepare() { for(auto& cell:cells) cell.mach.fetch_add(0,std::memory_order_relaxed); }
     void push(std::uint64_t mach, unsigned kind, std::uint64_t thread, std::uint64_t value) {
@@ -33,7 +34,11 @@ public:
         c.writer.clear(std::memory_order_release);
     }
     void trigger(std::uint64_t ns) {
-        std::uint64_t empty=0; triggerAt.compare_exchange_strong(empty,ns,std::memory_order_acq_rel);
+        std::uint64_t empty=0;
+        if(triggerAt.compare_exchange_strong(empty,kPublishing,std::memory_order_acq_rel)) {
+            triggerEnd.store(next.load(std::memory_order_seq_cst),std::memory_order_relaxed);
+            triggerAt.store(ns,std::memory_order_release);
+        }
         triggerCount.fetch_add(1,std::memory_order_relaxed);
     }
     struct Dump {
@@ -42,11 +47,16 @@ public:
         unsigned count=0;
     };
     bool take(std::uint64_t preTicks, Dump& out) {
-        out={}; out.trigger=triggerAt.exchange(0,std::memory_order_acq_rel);
-        if(!out.trigger) return false;
+        out.trigger=0; out.triggersSincePrevious=0; out.drops=0;
+        out.unstable=0; out.clipped=0; out.count=0;
+        auto stamp=triggerAt.load(std::memory_order_acquire);
+        if(!stamp || stamp==kPublishing ||
+            !triggerAt.compare_exchange_strong(stamp,kPublishing,std::memory_order_acq_rel)) return false;
+        out.trigger=stamp;
+        const auto end=triggerEnd.load(std::memory_order_relaxed);
         out.triggersSincePrevious=triggerCount.exchange(0,std::memory_order_relaxed);
+        triggerAt.store(0,std::memory_order_release);
         out.drops=lost.load(std::memory_order_acquire);
-        const auto end=next.load(std::memory_order_seq_cst);
         const auto first=end>Capacity ? end-Capacity : 1;
         const auto begin=out.trigger>preTicks ? out.trigger-preTicks : 0;
         for(auto seq=first;seq<end;++seq) {

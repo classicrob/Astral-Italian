@@ -4,6 +4,8 @@
 #include <initializer_list>
 using namespace PetariNative::Platform::AudioWorkgroup;
 int main() {
+    assert(Protocol::effectiveComputation(500,2000)==1000);
+    assert(Protocol::effectiveComputation(1500,2000)==1500);
     Protocol::Cycle c;
     Origin a{{0x1000, 1}, 1, 1000000000};
     assert(c.begin(a, 1, 7, 32000, 1000000000, 0x2000, 0x3000));

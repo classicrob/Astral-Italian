@@ -179,6 +179,8 @@ if(BUILD_TESTING)
     set_tests_properties(native_audio_workgroup_backend PROPERTIES TIMEOUT 20)
     add_test(NAME native_audio_workgroup_report COMMAND "${Python3_EXECUTABLE}" -I
         "${PETARI_REPO_ROOT}/native/tests/audio_workgroup_report_tests.py")
+    add_test(NAME native_audio_workgroup_source COMMAND "${Python3_EXECUTABLE}" -I
+        "${PETARI_REPO_ROOT}/native/tests/audio_workgroup_source_tests.py")
     add_executable(petari_crash_demo ${PETARI_REPO_ROOT}/native/tests/petari_crash_demo.cpp
         ${PETARI_REPO_ROOT}/native/app/test_crash.cpp)
     target_include_directories(petari_crash_demo PRIVATE ${PETARI_REPO_ROOT}/native/app)

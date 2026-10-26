@@ -40,6 +40,8 @@ int promote(Policy& saved) {
     const auto ticks = [&](std::uint64_t ns) { return static_cast<std::uint32_t>(ns * tb.denom / tb.numer); };
     // Same event-driven budget as existing Audio::setRealtimeAudioThread.
     thread_time_constraint_policy_data_t wanted{0, ticks(500000), ticks(2000000), TRUE};
+    auto expected = wanted;
+    expected.computation = Protocol::effectiveComputation(wanted.computation,wanted.constraint);
     result = thread_policy_set(self, THREAD_TIME_CONSTRAINT_POLICY,
         reinterpret_cast<thread_policy_t>(&wanted), THREAD_TIME_CONSTRAINT_POLICY_COUNT);
     if (result != KERN_SUCCESS) return result;
@@ -49,8 +51,9 @@ int promote(Policy& saved) {
     result = thread_policy_get(self, THREAD_TIME_CONSTRAINT_POLICY,
         reinterpret_cast<thread_policy_t>(&actual), &count, &defaults);
     if (result != KERN_SUCCESS) return result;
-    return !defaults && actual.period == wanted.period && actual.computation == wanted.computation &&
-        actual.constraint == wanted.constraint && actual.preemptible == wanted.preemptible ? 0 : EPROTO;
+    saved.actual = actual;
+    return !defaults && actual.period == expected.period && actual.computation == expected.computation &&
+        actual.constraint == expected.constraint && actual.preemptible == expected.preemptible ? 0 : EPROTO;
 }
 int restore(Policy& saved) {
     if (!saved.changed) return 0;
@@ -101,10 +104,11 @@ std::atomic<bool> paused{false};
 std::atomic<void (*)()> wakeGuest{nullptr}, wakeRenderer{nullptr};
 std::atomic<std::uint64_t> errors{0}, cycles{0}, finished{0}, cancelled{0}, late{0}, samples{0},
     guestJoins{0}, rendererJoins{0}, leaves{0}, sessions{0}, completedSessions{0}, worstLate{0}, lastGeneration{0}, registrations{0},
-    guestHost{0}, rendererHost{0},
+    guestHost{0}, rendererHost{0}, guestEffectiveComputation{0}, rendererEffectiveComputation{0},
+    publishedCallback{0}, guestMach{0}, rendererMach{0},
     batonAssigned{0}, batonWorst{0}, batonOver20{0}, batonOver175{0};
 std::atomic<int> lastError{0};
-History::Recorder<16384,4096> history;
+History::Recorder<16384,8192> history;
 std::atomic<std::uint64_t> callbackLast{0}, callbackWorst{0}, callbackOver20{0}, historyInvalid{0};
 std::uint64_t observerStartedMach = 0;
 std::once_flag historyPrepared;
@@ -125,7 +129,12 @@ std::uint64_t toUs(std::uint64_t ticks) { return static_cast<std::uint64_t>(__ui
 int apiError(int result) { return result == -1 ? errno : result; }
 void maxValue(std::atomic<std::uint64_t>& dst, std::uint64_t value) {
     auto previous = dst.load(std::memory_order_relaxed);
-    while (value > previous && !dst.compare_exchange_weak(previous, value, std::memory_order_relaxed)) {}
+    for(unsigned attempt=0;attempt<4;++attempt) {
+        if(value<=previous || dst.compare_exchange_strong(previous,value,std::memory_order_relaxed)) return;
+    }
+    lastSite.store("stats-contention",std::memory_order_relaxed);
+    lastError.store(EAGAIN,std::memory_order_relaxed);
+    errors.fetch_add(1,std::memory_order_relaxed); // bounded diagnostic contention, never wait/spin
 }
 void fail(const char* site, int error = EPROTO) {
     lastSite.store(site, std::memory_order_relaxed); lastError.store(error, std::memory_order_relaxed);
@@ -197,8 +206,14 @@ struct Member {
         }
         session->members.fetch_add(1, std::memory_order_acq_rel);
         const auto physical = reinterpret_cast<std::uintptr_t>(pthread_self());
-        if (isGuest) { guestHost.store(physical); guestJoined.store(current, std::memory_order_release); ++guestJoins; }
-        else { rendererHost.store(physical); ++rendererJoins; }
+        if (isGuest) {
+            guestHost.store(physical); guestEffectiveComputation.store(toUs(policy.actual.computation));
+            guestMach.store(pthread_mach_thread_np(pthread_self()));
+            guestJoined.store(current, std::memory_order_release); ++guestJoins;
+        } else {
+            rendererHost.store(physical); rendererEffectiveComputation.store(toUs(policy.actual.computation)); ++rendererJoins;
+            rendererMach.store(pthread_mach_thread_np(pthread_self()));
+        }
     }
 };
 // Helpers using this TLS are out of line. No reference is touched by off-path wrappers.
@@ -258,6 +273,7 @@ void startSink(Identity identity, bool coreAudio, unsigned sourceRate) {
         guestPointer.store(identity.thread, std::memory_order_relaxed);
         guestGeneration.store(identity.generation, std::memory_order_relaxed);
         lastGeneration.store(identity.generation, std::memory_order_relaxed);
+        publishedCallback.store(callbackIdentity,std::memory_order_relaxed);
         callbackLast.store(0,std::memory_order_relaxed);
         batonAssigned.store(0,std::memory_order_relaxed);
         activeEpoch.store(session->epoch, std::memory_order_release);
@@ -389,10 +405,15 @@ void noteRegistration(Identity id, std::uint64_t generation, unsigned frames, st
 void report(std::FILE* out) {
     if (!enabled.load(std::memory_order_relaxed)) return;
     // Cumulative status; reporter only. No per-mutex or per-cycle streaming.
-    std::lock_guard<std::mutex> lock(registry().control);
-    History::Recorder<16384,4096>::Dump dump;
-    const bool hasDump = observing.load(std::memory_order_relaxed) && history.take(ticksPerSecond()*2,dump);
-    if (hasDump && (dump.drops || dump.unstable || dump.clipped)) ++historyInvalid;
+    static std::mutex writerLock;
+    std::lock_guard<std::mutex> lock(writerLock);
+    using Dump = History::Recorder<16384,8192>::Dump;
+    static Dump* dump = nullptr; // reporter-owned scratch, not an RT-thread stack
+    if (observing.load(std::memory_order_relaxed) && !dump) {
+        PetariNative::HostAllocationScope host; dump = new Dump;
+    }
+    const bool hasDump = observing.load(std::memory_order_relaxed) && history.take(ticksPerSecond()*2,*dump);
+    if (hasDump && (dump->drops || dump->unstable || dump->clipped)) ++historyInvalid;
     const auto e = errors.load();
     const auto count = sessions.load();
     const bool adopted = count && guestJoins.load() == count && rendererJoins.load() == count &&
@@ -401,21 +422,25 @@ void report(std::FILE* out) {
     if (!wroteConfig) {
         wroteConfig = true;
         std::fprintf(out,"[audio-workgroup-config] schema=1 clock=mach_absolute_time tick_hz=%llu "
-            "history_capacity=16384 dump_limit=4096 observer_started_mach=%llu pre_ticks=%llu history_kind=1:cycle,2:subframe,3:finish,"
+            "history_capacity=16384 dump_limit=8192 observer_started_mach=%llu pre_ticks=%llu history_kind=1:cycle,2:subframe,3:finish,"
             "4:assigned,5:resumed,6:callback,7:shortfall,8:trigger,9:shape,10:left,11:right,12:queued,"
             "13:deadline,14:registration,15:registration_frames,16:registration_address\n",
             (unsigned long long)ticksPerSecond(),(unsigned long long)observerStartedMach,
             (unsigned long long)(ticksPerSecond()*2));
     }
-    std::fprintf(out, "[audio-workgroup] mode=async epoch=%llu guest=%llx host_generation=%llu "
-        "guest_host=%llx renderer_host=%llx required_policy=RT-0-500us-2000us policy_readback=on-adoption-only "
+    std::fprintf(out, "[audio-workgroup] mode=async epoch=%llu guest=%llx host_generation=%llu callback=%llx "
+        "guest_mach=%llu renderer_mach=%llu "
+        "guest_host=%llx renderer_host=%llx requested_policy=RT-0-500us-2000us policy_readback=on-adoption-only "
+        "guest_effective_computation_us=%llu renderer_effective_computation_us=%llu "
         "sessions=%llu completed_sessions=%llu guest_joins=%llu renderer_joins=%llu leaves=%llu cycles=%llu completed=%llu cancelled=%llu "
         "samples=%llu registrations=%llu late=%llu worst_late_us=%llu errors=%llu last_site=%s last_error=%d "
         "assigned_resume_max_us=%llu over20ms=%llu over175ms=%llu observing=%d callback_gap_max_us=%llu "
         "callback_over20ms=%llu history_invalid=%llu paused=%d adopted=%d qualifying=%d\n",
         (unsigned long long)activeEpoch.load(), (unsigned long long)guestPointer.load(),
-        (unsigned long long)lastGeneration.load(), (unsigned long long)guestHost.load(),
-        (unsigned long long)rendererHost.load(), (unsigned long long)count, (unsigned long long)completedSessions.load(),
+        (unsigned long long)lastGeneration.load(), (unsigned long long)publishedCallback.load(),
+        (unsigned long long)guestMach.load(), (unsigned long long)rendererMach.load(), (unsigned long long)guestHost.load(),
+        (unsigned long long)rendererHost.load(), (unsigned long long)guestEffectiveComputation.load(),
+        (unsigned long long)rendererEffectiveComputation.load(), (unsigned long long)count, (unsigned long long)completedSessions.load(),
         (unsigned long long)guestJoins.load(),
         (unsigned long long)rendererJoins.load(), (unsigned long long)leaves.load(),
         (unsigned long long)cycles.load(), (unsigned long long)finished.load(),
@@ -428,18 +453,18 @@ void report(std::FILE* out) {
         (unsigned long long)callbackOver20.load(), (unsigned long long)historyInvalid.load(),
         paused.load(), adopted, adopted && !batonOver175.load() && !historyInvalid.load());
     if (hasDump) {
-        // Reporter-thread stack, maximum 4096 records per report (at most once
+        // Reporter-owned scratch, maximum 8192 records per report (at most once
         // per second in the live reporter). Nothing is streamed per mutex.
             std::fprintf(out,"[audio-workgroup-history] begin trigger_mach=%llu clock=mach_absolute_time rows=%u "
                 "triggers_since_previous=%llu drops=%llu unstable=%llu clipped=%llu\n",
-                (unsigned long long)dump.trigger,dump.count,(unsigned long long)dump.triggersSincePrevious,
-                (unsigned long long)dump.drops,(unsigned long long)dump.unstable,(unsigned long long)dump.clipped);
-            for(unsigned n=0;n<dump.count;++n) { const auto& r=dump.events[n];
+                (unsigned long long)dump->trigger,dump->count,(unsigned long long)dump->triggersSincePrevious,
+                (unsigned long long)dump->drops,(unsigned long long)dump->unstable,(unsigned long long)dump->clipped);
+            for(unsigned n=0;n<dump->count;++n) { const auto& r=dump->events[n];
                 std::fprintf(out,"[audio-workgroup-history] event seq=%llu mach=%llu kind=%u thread=%llx value=%llu\n",
                     (unsigned long long)r.sequence,(unsigned long long)r.mach,r.kind,
                     (unsigned long long)r.thread,(unsigned long long)r.value);
             }
-            std::fprintf(out,"[audio-workgroup-history] end rows=%u\n",dump.count);
+            std::fprintf(out,"[audio-workgroup-history] end rows=%u\n",dump->count);
     }
 }
 #ifdef PETARI_AUDIO_WORKGROUP_TESTING

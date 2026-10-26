@@ -6,8 +6,12 @@ pthread and native DSP renderer. This arm is disabled unless
 Pacer, buffer sizes, sample values, game priorities or K/R mode. It adds RT
 policy to the two named host roles, then joins them to an application-owned
 `AudioWorkIntervalCreate` group. Each successful adoption includes exact Mach
-time-constraint policy readback (period 0, computation 500 us, constraint 2 ms,
-preemptible). Readback is at adoption, not continuous proof against later
+time-constraint policy readback. The request mirrors existing audio: period 0,
+computation 500 us, constraint 2 ms, preemptible. The SDK's thread_policy.h and
+[XNU implementation](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/kern/thread_policy.c)
+document normalization of computation to at least constraint/2: effective
+computation is therefore 1 ms, which is checked and reported separately. The
+request constants are unchanged. Readback is at adoption, not continuous proof against later
 kernel demotion. Device workgroups and SDL dependency patches remain deferred.
 
 ## Source contract
@@ -66,7 +70,7 @@ an explicit drop. Observations and workgroup TLS helpers are behind cached
 flags; TLS helpers are out of line. Off-probe/codegen proof is still required.
 
 Triggers: assigned-to-resume >20 ms, callback entry gap >20 ms, actual ring-read
-shortfall. The reporter dumps up to 4,096 events from the preceding two seconds
+shortfall. The reporter dumps up to 8,192 events from the preceding two seconds
 at most once per periodic report, plus a final shutdown dump. Trigger count is
 an interval aggregate, not an atomic snapshot of a particular event window.
 Overwrites, unstable payloads and clipping are explicit and invalidate that

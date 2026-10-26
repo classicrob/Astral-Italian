@@ -7,7 +7,7 @@ spec = importlib.util.spec_from_file_location("report", Path(__file__).resolve()
 report = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(report)
 BASE = "[audio-backend] driver=coreaudio\n" + "[audio] level 2/3 frames, largest request 4, underrun 0 frames, AI replayed 0 blocks\n" * 50
-STATUS = "[audio-workgroup] mode=async errors=0 over175ms=0 history_invalid=0 observing=1 adopted=1 qualifying=1 guest=1000 host_generation=7 guest_host=2000 renderer_host=3000 completed=1 samples=560 sessions=1\n"
+STATUS = "[audio-workgroup] mode=async errors=0 over175ms=0 history_invalid=0 observing=1 adopted=1 qualifying=1 guest=1000 host_generation=7 guest_host=2000 renderer_host=3000 completed=1 samples=560 sessions=1 guest_effective_computation_us=1000 renderer_effective_computation_us=1000\n"
 CONFIG = "[audio-workgroup-config] schema=1 clock=mach_absolute_time pre_ticks=2000\n"
 DUMP = "[audio-workgroup-history] begin trigger_mach=3000 rows=1 drops=0 unstable=0 clipped=0\n[audio-workgroup-history] event seq=1 mach=2000 kind=4 thread=3000 value=20\n[audio-workgroup-history] end rows=1\n"
 

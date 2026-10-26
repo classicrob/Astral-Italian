@@ -38,7 +38,8 @@ def evaluate(text, mode="async", observation=True):
             final = statuses[-1]
             require(final.get("adopted") == "1", "workgroup not adopted for every session")
             require(final.get("qualifying") == "1", "workgroup arm refused")
-            for key in ("guest", "host_generation", "guest_host", "renderer_host", "completed", "samples", "sessions"):
+            for key in ("guest", "host_generation", "guest_host", "renderer_host", "completed", "samples", "sessions",
+                        "guest_effective_computation_us", "renderer_effective_computation_us"):
                 try:
                     require(int(final.get(key, "0"), 16 if key in ("guest", "guest_host", "renderer_host") else 10) > 0,
                             f"missing/nonpositive {key}")
@@ -83,7 +84,7 @@ def evaluate(text, mode="async", observation=True):
             try:
                 declared = int(fields(line)["rows"])
                 require(pending is not None and rows == declared == int(pending["rows"]), "history row count mismatch")
-                require(rows <= 4096, "history dump exceeds bound")
+                require(rows <= 8192, "history dump exceeds bound")
             except (KeyError, ValueError, TypeError):
                 errors.append("invalid history footer")
             pending = None

@@ -36,7 +36,13 @@ os_workgroup_interval_t create() {
     return reinterpret_cast<os_workgroup_interval_t>(new int(1));
 }
 void release(os_workgroup_interval_t group) { ++released; delete reinterpret_cast<int*>(group); }
-int promote(WG::Backend::Policy& saved) { ++promoted; saved.changed = true; return policyError.load(); }
+int promote(WG::Backend::Policy& saved) {
+    ++promoted; saved.changed = true;
+    mach_timebase_info_data_t tb{}; mach_timebase_info(&tb);
+    saved.actual = {0,static_cast<std::uint32_t>(1000000ull*tb.denom/tb.numer),
+        static_cast<std::uint32_t>(2000000ull*tb.denom/tb.numer),TRUE};
+    return policyError.load();
+}
 int restore(WG::Backend::Policy& saved) {
     if (saved.changed) { ++restored; saved.changed = false; }
     return restoreError.load();

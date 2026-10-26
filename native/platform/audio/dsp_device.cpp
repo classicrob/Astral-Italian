@@ -294,7 +294,7 @@ void runPendingCommands(Device& d) {
 }
 
 void handleMail(Device& d, QueuedMail packet) {
-    const auto mail = packet.value;
+    auto mail = packet.value;
     switch (d.state) {
     case MailState::Waiting:
         if (mail & 0x80000000) {

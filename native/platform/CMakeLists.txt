@@ -82,6 +82,7 @@ add_library(petari_platform_os STATIC
     os/monitor_wait.cpp
     os/interrupt_trace.cpp
     audio/audio_workgroup.cpp
+    audio/audio_workgroup_rt.cpp
     os/os_alarm.cpp
     os/os_time.cpp
     os/os_report.cpp

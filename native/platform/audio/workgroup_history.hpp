@@ -9,7 +9,9 @@ enum class Kind : unsigned { Cycle=1, Subframe, Finish, Assigned, Resumed, Callb
     AQEntry, AQExit, DeviceLockRequest, DeviceLockAcquired, DeviceLockReleased,
     GetBegin, GetLockRequest, GetLockAcquired, FillEntry, FillExit, ConvertBegin, ConvertEnd, GetEnd,
     PutBegin, PutLockRequest, PutLockAcquired, PutLockReleased, PutEnd, AQFormat,
-    AQQos, AQQosDetail, AQSchedule, AQMachPriority, AQCpu, AQSampleErrors, AQMachPolicy };
+    AQQos, AQQosDetail, AQSchedule, AQMachPriority, AQCpu, AQSampleErrors, AQMachPolicy,
+    AUEntry, AUExit, AURingBefore, AURingAfter, AUShortfall, AUSampleTime, AUHostTime,
+    AUConverterOutput, AUTrigger, AUConverterInput, AUConsumed, AUSourceEnqueued };
 struct Event {
     std::uint64_t sequence=0, mach=0, thread=0, value=0;
     unsigned kind=0;

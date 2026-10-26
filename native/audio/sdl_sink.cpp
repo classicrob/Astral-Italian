@@ -1,4 +1,5 @@
 #include <petari/audio_sdl.hpp>
+#include <petari/audio_output_au.hpp>
 #include <petari/gpu_trace_audio.hpp>
 #include <petari/host_allocation.hpp>
 #include <petari/platform/audio.hpp>
@@ -32,6 +33,7 @@
 #include "paced_ring.hpp"
 
 namespace {
+bool outputAUSelected=false; // chosen only by install(), before AI start
 SDL_AudioStream* device;
 bool initialized;
 std::atomic<bool> running{false};
@@ -486,12 +488,20 @@ void start(std::uint32_t rate, void*) {
 namespace PetariNative::AudioSDL {
 void install() {
     submitted.store(0);
-    Platform::Audio::setSink({start, stop, nullptr});
+    const char* selector=std::getenv("PETARI_AUDIO_SINK");
+    outputAUSelected=selector && !std::strcmp(selector,"output-au");
+    if(selector && *selector && std::strcmp(selector,"sdl") && !outputAUSelected) {
+        std::fputs("[audio] refused unknown PETARI_AUDIO_SINK\n",stderr); std::abort();
+    }
+    if(outputAUSelected) Platform::Audio::setSink({
+        +[](std::uint32_t rate,void*) { AudioOutputAU::start(rate,SDL_GetHintBoolean("PETARI_SMOKE_BACKGROUND",false)); },
+        +[](void*) { AudioOutputAU::stop(); },nullptr});
+    else Platform::Audio::setSink({start, stop, nullptr});
 }
 void shutdown() {
     Platform::Audio::shutdown();
 }
-bool outputMuted() { return device && SDL_GetAudioStreamGain(device) == 0.0f; }
-bool active() { return running.load() && !failed.load(); }
-std::uint64_t submittedFrames() { return submitted.load(); }
+bool outputMuted() { return outputAUSelected ? AudioOutputAU::outputMuted() : device && SDL_GetAudioStreamGain(device) == 0.0f; }
+bool active() { return outputAUSelected ? AudioOutputAU::active() : running.load() && !failed.load(); }
+std::uint64_t submittedFrames() { return outputAUSelected ? AudioOutputAU::submittedFrames() : submitted.load(); }
 }

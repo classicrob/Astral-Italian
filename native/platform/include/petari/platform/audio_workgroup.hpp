@@ -48,4 +48,9 @@ void noteRegistration(Identity, std::uint64_t generation, unsigned frames, std::
 // Patched SDL's C callback; called only after its cached observer-pointer check.
 // Native fill hooks check observing before calling. No TLS or queries off-path.
 void noteTransport(unsigned boundary, const void* object, std::int64_t value);
+// RT-safe output-AU publisher: precomputed timestamps / logical generation,
+// bounded history stores only. No TLS, identity query, clock or framework call.
+void noteOutputRender(unsigned kind, std::uint64_t mach, std::uint64_t steadyNs,
+    std::uint64_t ticket, std::uint64_t generation, std::uint64_t value) noexcept;
+void setOutputAUObservation(bool); // control only; labels transport provenance
 }

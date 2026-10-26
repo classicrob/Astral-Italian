@@ -496,10 +496,54 @@ if(_petari_build_testing)
     endif()
 endif()
 
-add_library(petari_audio_sdl STATIC "${CMAKE_SOURCE_DIR}/native/audio/sdl_sink.cpp")
+add_library(petari_audio_sdl STATIC "${CMAKE_SOURCE_DIR}/native/audio/sdl_sink.cpp"
+    "${CMAKE_SOURCE_DIR}/native/audio/output_au_control.cpp"
+    "${CMAKE_SOURCE_DIR}/native/audio/output_au_render.cpp"
+    "${CMAKE_SOURCE_DIR}/native/audio/output_au_converter.cpp")
 target_link_libraries(petari_audio_sdl PUBLIC petari_platform_audio PRIVATE SDL3::SDL3 petari_host_runtime)
 petari_link_audio_frameworks(petari_audio_sdl)
+target_link_libraries(petari_audio_sdl PRIVATE "-framework AudioToolbox" "-framework IOKit" "-framework CoreFoundation")
 if(_petari_build_testing)
+    add_executable(petari_audio_output_core_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_core_tests.cpp")
+    target_compile_features(petari_audio_output_core_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_audio_output_core_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_audio_output_core_tests PRIVATE Threads::Threads)
+    add_test(NAME native_audio_output_core COMMAND petari_audio_output_core_tests)
+    add_executable(petari_audio_output_converter_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_converter_tests.cpp"
+        "${CMAKE_SOURCE_DIR}/native/audio/output_au_converter.cpp")
+    target_compile_features(petari_audio_output_converter_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_audio_output_converter_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_audio_output_converter_tests PRIVATE "-framework AudioToolbox")
+    add_test(NAME native_audio_output_converter COMMAND petari_audio_output_converter_tests)
+    # dyld deliberately exempts an interposer's OWN image. Keep the guard in
+    # its own dylib so the executable/render TU is actually intercepted; the
+    # fixture's positive self-test refuses an inert guard.
+    add_library(petari_audio_output_rt_guard SHARED "${CMAKE_SOURCE_DIR}/native/tests/audio_output_rt_guard.cpp")
+    target_compile_features(petari_audio_output_rt_guard PRIVATE cxx_std_17)
+    target_link_libraries(petari_audio_output_rt_guard PRIVATE "-framework AudioToolbox" "-framework CoreAudio")
+    set_target_properties(petari_audio_output_rt_guard PROPERTIES MACOSX_RPATH ON INSTALL_NAME_DIR "@rpath" BUILD_WITH_INSTALL_NAME_DIR ON)
+    add_executable(petari_audio_output_render_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_render_tests.cpp"
+        "${CMAKE_SOURCE_DIR}/native/audio/output_au_render.cpp"
+        "${CMAKE_SOURCE_DIR}/native/platform/audio/audio_workgroup_rt.cpp")
+    target_include_directories(petari_audio_output_render_tests PRIVATE "${CMAKE_SOURCE_DIR}/native/platform/include")
+    target_compile_features(petari_audio_output_render_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_audio_output_render_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_audio_output_render_tests PRIVATE petari_audio_output_rt_guard Threads::Threads "-framework AudioToolbox")
+    set_target_properties(petari_audio_output_render_tests PROPERTIES BUILD_WITH_INSTALL_RPATH ON INSTALL_RPATH "@loader_path")
+    add_test(NAME native_audio_output_render COMMAND petari_audio_output_render_tests)
+    add_executable(petari_audio_output_control_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_control_tests.cpp"
+        "${CMAKE_SOURCE_DIR}/native/audio/output_au_control.cpp" "${CMAKE_SOURCE_DIR}/native/audio/output_au_render.cpp"
+        "${CMAKE_SOURCE_DIR}/native/audio/output_au_converter.cpp")
+    target_include_directories(petari_audio_output_control_tests PRIVATE "${CMAKE_SOURCE_DIR}/native/include" "${CMAKE_SOURCE_DIR}/native/platform/include")
+    target_compile_definitions(petari_audio_output_control_tests PRIVATE PETARI_OUTPUT_AU_TESTING=1)
+    target_compile_options(petari_audio_output_control_tests PRIVATE -UNDEBUG)
+    target_compile_features(petari_audio_output_control_tests PRIVATE cxx_std_17)
+    target_link_libraries(petari_audio_output_control_tests PRIVATE Threads::Threads "-framework AudioToolbox" "-framework CoreAudio" "-framework IOKit" "-framework CoreFoundation")
+    add_test(NAME native_audio_output_control COMMAND petari_audio_output_control_tests)
+    add_test(NAME native_audio_output_source COMMAND "${Python3_EXECUTABLE}" -I
+        "${CMAKE_SOURCE_DIR}/native/tests/audio_output_source_tests.py")
+    add_test(NAME native_audio_output_report COMMAND "${Python3_EXECUTABLE}" -I
+        "${CMAKE_SOURCE_DIR}/native/tests/audio_output_report_tests.py")
     FetchContent_GetProperties(SDL SOURCE_DIR _petari_audio_sdl_source)
     add_executable(petari_audio_transport_sdl_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_transport_sdl_tests.cpp")
     target_link_libraries(petari_audio_transport_sdl_tests PRIVATE SDL3::SDL3)

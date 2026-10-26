@@ -145,8 +145,12 @@ public:
     explicit Pacer(std::uint32_t rate) : mRate(rate) {}
     // elapsedSeconds: real time since the previous tick.
     std::size_t allowance(double elapsedSeconds, const PacedRing& ring) {
+        return allowance(elapsedSeconds, ring.level() < ring.lowWater());
+    }
+    // A device-rate sink supplies the SAME low-water decision in time units.
+    std::size_t allowance(double elapsedSeconds, bool belowLowWater) {
         const double credited = std::min(std::max(elapsedSeconds, 0.0), kMaxCreditSeconds);
-        const double speed = ring.level() < ring.lowWater() ? kCatchUp : kTrim;
+        const double speed = belowLowWater ? kCatchUp : kTrim;
         const double frames = speed * mRate * credited + mCarry;
         const std::size_t whole = static_cast<std::size_t>(frames);
         mCarry = frames - static_cast<double>(whole);

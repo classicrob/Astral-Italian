@@ -2,6 +2,7 @@
 #include "workgroup_protocol.hpp"
 #include "workgroup_backend.hpp"
 #include "workgroup_history.hpp"
+#include "workgroup_history_store.hpp"
 #include <AudioToolbox/AudioWorkInterval.h>
 #include <mach/mach_time.h>
 #include <mach/mach.h>
@@ -113,9 +114,10 @@ std::atomic<int> lastError{0};
 using FlightHistory = History::Recorder<32768,24576>;
 static_assert(static_cast<unsigned>(History::Kind::AQEntry)==17 && static_cast<unsigned>(History::Kind::AQFormat)==35 &&
     static_cast<unsigned>(History::Kind::AQMachPolicy)==42,"SDL/history numeric ABI");
-FlightHistory history;
+auto& history=History::audioHistory;
 std::atomic<std::uint64_t> callbackLast{0}, callbackWorst{0}, callbackOver20{0}, historyInvalid{0};
 std::atomic<std::uint64_t> transportTickets{0}, aqEntries{0}, aqWorst{0}, aqFormat{0};
+std::atomic<bool> outputAUObservation{false};
 // Only touched inside outlined trace-on helpers. A callback ticket joins all
 // nested device/stream/fill/put boundaries, without assuming a device==stream.
 struct TransportContext { std::uint64_t ticket=0, lastAQ=0, device=0; };
@@ -466,6 +468,7 @@ __attribute__((noinline)) void noteTransport(unsigned boundary, const void* obje
     }
     if(kind==History::Kind::AQExit) transport.ticket=0;
 }
+void setOutputAUObservation(bool value) { outputAUObservation.store(value,std::memory_order_release); }
 void report(std::FILE* out) {
     if (!enabled.load(std::memory_order_relaxed)) return;
     // Cumulative status; reporter only. No per-mutex or per-cycle streaming.
@@ -494,14 +497,19 @@ void report(std::FILE* out) {
             "19:device_lock_request,20:device_lock_acquired,21:device_lock_released,22:get_begin,23:get_lock_request,24:get_lock_acquired,"
             "25:fill_entry,26:fill_exit,27:convert_begin,28:convert_end,29:get_end,30:put_begin,31:put_lock_request,32:put_lock_acquired,"
             "33:put_lock_released,34:put_end,35:aq_format,36:aq_qos,37:aq_qos_detail,38:aq_schedule,39:aq_mach_priority,"
-            "40:aq_cpu,41:aq_sample_errors,42:aq_mach_policy\n",
+            "40:aq_cpu,41:aq_sample_errors,42:aq_mach_policy,43:au_entry,44:au_exit,45:au_ring_before,46:au_ring_after,"
+            "47:au_shortfall,48:au_sample_time,49:au_host_time,50:au_converter_output,51:au_trigger,52:au_converter_input,"
+            "53:au_consumed,54:au_source_enqueued\n",
             (unsigned long long)ticksPerSecond(),(unsigned long long)observerStartedMach,
             (unsigned long long)(ticksPerSecond()*2),(unsigned long long)(ticksPerSecond()/2));
     }
-    if(observing.load(std::memory_order_relaxed))
+    if(observing.load(std::memory_order_relaxed) && !outputAUObservation.load(std::memory_order_acquire))
         std::fprintf(out,"[audio-transport] schema=1 clock=steady_clock_ns observer=patched-SDL-3.4.10 "
             "aq_entries=%llu aq_gap_max_us=%llu format_packed=%llu producer=SPSC-no-SDL-put put_thread=fill-callback\n",
             (unsigned long long)aqEntries.load(),(unsigned long long)aqWorst.load(),(unsigned long long)aqFormat.load());
+    if(observing.load(std::memory_order_relaxed) && outputAUObservation.load(std::memory_order_acquire))
+        std::fputs("[audio-transport] schema=2 clock=steady_clock_ns observer=output-AudioUnit "
+            "callback_actor=logical-0 producer_actor=logical-1 physical_thread=unknown callback_queries=0 producer=converter-SPSC\n",out);
     std::fprintf(out, "[audio-workgroup] mode=async epoch=%llu guest=%llx host_generation=%llu callback=%llx "
         "guest_mach=%llu renderer_mach=%llu "
         "guest_host=%llx renderer_host=%llx requested_policy=RT-0-500us-2000us policy_readback=on-adoption-only "

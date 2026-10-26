@@ -1,10 +1,14 @@
 # Output AudioUnit sink — design for PORT review
 
-Status: **design only, awaiting PORT review**. No implementation, native build,
-device switch or app run accompanies this note. This supersedes the proposed
+Status: **approved by PORT after 3fc03a50; implementation is opt-in and awaits
+server build, production codegen and measurement review**. This supersedes the proposed
 AQ-count discriminator as the next implementation direction; every retained
 AQ/WG failure remains a failure. SOL A owns the native audio implementation;
 server builds and subsequent measurement starts remain separately reviewed.
+Implementation and the later device-switch binding are documented in
+[OUTPUT-AUDIOUNIT-IMPLEMENTATION-543.md](OUTPUT-AUDIOUNIT-IMPLEMENTATION-543.md).
+The historical design below is retained; its proposed automated default-device
+helper is superseded by the manual-only check in that implementation note.
 
 ## Decision and evidence
 

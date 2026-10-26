@@ -13,7 +13,7 @@ ROOT=Path(__file__).resolve().parents[2]
 # Explicitly approved independent production repairs. These are NOT a main
 # production control; baseline fixtures use the same repaired objects as fixed.
 PRODUCTION_FIXES={
-    '0dce0d67b370d772aa1b9db43e5b8f1cedc74253':('native/platform/dvd/dvd_host.cpp',),
+    '610ded6eb47f5ef4ab5cc35f3bc01f00a17c5c86':('native/platform/dvd/dvd_host.cpp',),
     'ec0d1424ad15fedff82f683cdb6ef356270cff5a':('native/input/remote_model.cpp','native/input/remote_model.hpp'),
 }
 CASES=[
@@ -63,7 +63,7 @@ def production_scope(fixes):
     allowed=set();blobs={}
     for fix in fixes:
         need(fix in PRODUCTION_FIXES,'unapproved production-fix commit')
-        need(git('rev-parse',fix+'^').decode().strip()==BASE,'production fix not based on pinned main')
+        need(git('merge-base',BASE,fix).decode().strip()==BASE,'production fix not based on pinned main')
         allowed.update(git('diff','--name-only',BASE,fix).decode().splitlines())
         for path in PRODUCTION_FIXES[fix]:
             expected=git('show',fix+':'+path)

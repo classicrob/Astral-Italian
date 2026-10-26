@@ -15,7 +15,7 @@ class BaselineControlTests(unittest.TestCase):
             proof.production_scope(['unknown'])
         fix=next(iter(proof.PRODUCTION_FIXES))
         def git(*args):
-            if args[0]=='rev-parse':return (proof.BASE+'\n').encode()
+            if args[0]=='merge-base':return (proof.BASE+'\n').encode()
             if args[0]=='diff':return b'native/platform/dvd/dvd_host.cpp\n'
             if args[0]=='show':return b'approved' if args[1].startswith(fix+':') else b'different'
             self.fail(args)
@@ -26,7 +26,7 @@ class BaselineControlTests(unittest.TestCase):
     def test_production_scope_keeps_an_explicit_approved_hash_binding(self):
         fix=next(iter(proof.PRODUCTION_FIXES))
         def git(*args):
-            if args[0]=='rev-parse':return (proof.BASE+'\n').encode()
+            if args[0]=='merge-base':return (proof.BASE+'\n').encode()
             if args[0]=='diff':return b'native/platform/dvd/dvd_host.cpp\n'
             if args[0]=='show':return b'exact approved source'
             self.fail(args)
@@ -34,6 +34,12 @@ class BaselineControlTests(unittest.TestCase):
             allowed,blobs=proof.production_scope([fix])
         self.assertEqual(allowed,{'native/platform/dvd/dvd_host.cpp'})
         self.assertEqual(blobs,{'native/platform/dvd/dvd_host.cpp':proof.hashlib.sha256(b'exact approved source').hexdigest()})
+
+    def test_production_scope_refuses_a_different_base(self):
+        fix=next(iter(proof.PRODUCTION_FIXES))
+        with mock.patch.object(proof,'git',return_value=b'different-base\n'):
+            with self.assertRaisesRegex(RuntimeError,'pinned main'):
+                proof.production_scope([fix])
 
     def test_compile_uses_exact_baseline_and_preserves_fixture_relative_includes(self):
         row={'directory':'/private/build','file':'/checkout/native/tests/input_tests.cpp',

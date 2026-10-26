@@ -146,7 +146,7 @@ it on an integrated checkout containing the two separately approved repairs,
 repeat these explicit options on **both** --prepare and --run:
 
 ```sh
---production-fix 0dce0d67b370d772aa1b9db43e5b8f1cedc74253 --production-fix ec0d1424ad15fedff82f683cdb6ef356270cff5a
+--production-fix 610ded6eb47f5ef4ab5cc35f3bc01f00a17c5c86 --production-fix ec0d1424ad15fedff82f683cdb6ef356270cff5a
 ```
 
 Only these exact pinned commits are accepted. Each must be based on the pinned
@@ -160,3 +160,13 @@ on the **same repaired production objects**, NOT a before/after production
 comparison. Each repair's separate production regression test is also required:
 native_dvd_host_path and native_input_stick. The original six proof outcomes and
 all actual old server receipts remain distinct.
+
+PORT's separate server build of input ec0d1424 reports native_input_stick PASS
+(actual SDK circle-clamp vectors), with tape play/record PASS. The full input
+executables on that independent branch still hit main's known Rig lifecycle;
+they need this fixture branch in the combined checkout. DVD's first new target
+failed to compile because mkdtemp lacked its POSIX include; 610ded6e adds unistd.h
+without changing production. Its compile/run remains pending on the server.
+The explicit production-fix DVD pin above is updated to that tested-source fix
+line; ancestry is checked against the same pinned main, allowing its two commits.
+No M1 compiler ran: the attempted nonblocking lock check refused before launch.

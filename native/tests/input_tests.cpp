@@ -109,21 +109,30 @@ void extensionCallback(s32 chan, s32 type) {
 
 // One game: KPAD, the game's WPad for channel 0, frame stepping.
 struct Rig {
+    enum class Buffer { Internal16, WPadHolder136 };
     WPadReadDataInfo* info;
     WPad* pad;
     long frames = 0;
     long reports = 0;
     In::Clock clock;
 
-    explicit Rig(bool connect = true, In::Clock selectedClock = In::Clock::Manual) : clock(selectedClock) {
+    explicit Rig(bool connect = true, In::Clock selectedClock = In::Clock::Manual,
+                 Buffer buffer = Buffer::Internal16) : clock(selectedClock) {
         resetInputFixture();
         PSC::reset();
         In::setClock(clock);
         gCallbacks.clear();
-        // As WPadHolder's constructor: allocator, KPADInit, pads, callbacks,
-        // sensor bar level.
+        // Allocator, SDK init, pads, callbacks and sensor bar as WPadHolder.
         WPADRegisterAllocator(nullptr, nullptr);
-        KPADInit();
+        if (buffer == Buffer::WPadHolder136) {
+            // Same persistent storage shape as WPadHolder: 120 external reports
+            // per channel, in addition to the SDK's 16 internal reports. Keep
+            // storage alive across fixture teardown; the next SDK init resets it.
+            alignas(32) static KPADUnifiedWpadStatus samples[WPAD_MAX_CONTROLLERS * 120]{};
+            KPADInitEx(samples, WPAD_MAX_CONTROLLERS * 120);
+        } else {
+            KPADInit();
+        }
         info = new WPadReadDataInfo[WPAD_MAX_CONTROLLERS];
         pad = new WPad(0);
         pad->setReadInfo(&info[0]);
@@ -1124,39 +1133,73 @@ void testShakeTapsAlwaysSwing() {
     }
 }
 
-// Investigation 2026-10-01, continued: a harness dive's F press (a 6-frame tap
-// during a ground pound) sometimes never reached the game at all, mostly on the
-// first run after a build. The shake plays in real time at 200 Hz; a game frame
-// that stalls through it (a first-time shader compile when the dive's assets
-// appear) reads nothing of it: before the fix, stalls of 6-11 frames lost the
-// press. A flick the game did not read in time now plays again once the game
-// reads: a press during a stall of any length swings exactly once.
+// Continuous-device-report stress. Match WPadHolder's 120 external + 16
+// internal samples, rather than letting the fixture overwrite the four-report
+// flick in an internal-only ring before the first resumed read.
+int manualShakeAcrossStall(int stallFrames, Rig::Buffer buffer) {
+    Rig rig(true, In::Clock::Manual, buffer);
+    rig.frames_(30);
+    SwingCounter counter;
+    auto run = [&](int count) {
+        for (int i = 0; i < count; ++i) {
+            rig.frame();
+            counter.update(*rig.pad);
+        }
+    };
+    run(20);
+    press(In::Key::F);
+    // Manual mode deliberately advances device time without game reads.
+    for (int i = 0; i < stallFrames; ++i) {
+        const long target = (rig.frames + 1) * 10 / 3;
+        In::pumpReports(static_cast<int>(target - rig.reports));
+        rig.reports = target;
+        ++rig.frames;
+        if (i == 0) lift(In::Key::F);
+    }
+    run(60);
+    return counter.swingEdges;
+}
+
 void testShakeSurvivesStall() {
     for (int stallFrames : {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 20, 30, 40}) {
-        Rig rig;
-        rig.frames_(30);
+        const int edges = manualShakeAcrossStall(stallFrames, Rig::Buffer::WPadHolder136);
+        check(edges == 1, "F pressed as the game stalls " + std::to_string(stallFrames) +
+                          " frames: one swing when it resumes (" + std::to_string(edges) +
+                          "; Manual, WPadHolder 136-sample ring)");
+    }
+}
+
+void testGameReadShakeStall() {
+    // The shipped keyboard clock advances only at KPAD reads. Even a complete
+    // press+release during a host pause must survive and swing EXACTLY once.
+    for (int stallFrames : {1, 5, 40}) {
+        Rig rig(true, In::Clock::GameRead, Rig::Buffer::WPadHolder136);
+        rig.frames_(50);
         SwingCounter counter;
-        auto run = [&](int count) {
-            for (int i = 0; i < count; ++i) {
-                rig.frame();
-                counter.update(*rig.pad);
-            }
-        };
-        run(20);
+        const auto readFrame = In::gameFrame();
         press(In::Key::F);
-        // The game stalls: reports keep coming, nobody reads them.
-        for (int i = 0; i < stallFrames; ++i) {
-            const long target = (rig.frames + 1) * 10 / 3;
-            In::pumpReports(static_cast<int>(target - rig.reports));
-            rig.reports = target;
-            ++rig.frames;
-            if (i == 0) {
-                lift(In::Key::F);
-            }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        lift(In::Key::F);
+        std::this_thread::sleep_for(std::chrono::milliseconds(stallFrames * 1000 / 60));
+        check(In::gameFrame() == readFrame, "GameRead host pause advances no input frames");
+        for (int i = 0; i < 60; ++i) {
+            rig.frame();
+            counter.update(*rig.pad);
         }
-        run(60);
-        check(counter.swingEdges == 1, "F pressed as the game stalls " + std::to_string(stallFrames) +
-                                           " frames: one swing when it resumes (" + std::to_string(counter.swingEdges) + ")");
+        check(counter.swingEdges == 1, "GameRead F press+release during " + std::to_string(stallFrames) +
+                                      " host frames without reads: exactly one swing on resume (" +
+                                      std::to_string(counter.swingEdges) + ")");
+    }
+}
+
+void characterizeSmallRingShakeStall() {
+    // Deliberately unlike the shipped clock AND WPadHolder's buffer. Preserve
+    // this observation, with no passing expectation and no CTest registration.
+    // In particular the five-frame case can lose its flick after ring overflow.
+    std::puts("CHARACTERIZATION ONLY: Manual clock, internal-only 16-sample ring; not an acceptance check");
+    for (int stallFrames : {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 20, 30, 40}) {
+        const int edges = manualShakeAcrossStall(stallFrames, Rig::Buffer::Internal16);
+        std::printf("CHARACTERIZATION Manual ring_samples=16 stall_frames=%d swing_edges=%d\n", stallFrames, edges);
     }
 }
 
@@ -2986,8 +3029,20 @@ void testEditorPick() {
 
 int main(int argc, char** argv) {
     __OSThreadInit();
+    if (argc == 2 && std::strcmp(argv[1], "--small-ring-shake-characterization") == 0) {
+        characterizeSmallRingShakeStall();
+        std::puts("CHARACTERIZATION complete; no acceptance verdict");
+        return 0;
+    }
+    if (argc == 2 && std::strcmp(argv[1], "--shake-stall-only") == 0) {
+        testGameReadShakeStall();
+        testShakeSurvivesStall();
+        std::printf("native game-shaped shake-stall tests passed (%d checks)\n", checks);
+        return 0;
+    }
     if (argc == 2 && std::strcmp(argv[1], "--game-read-only") == 0) {
         testGameReadClock();
+        testGameReadShakeStall();
         std::printf("native game-read input tests passed (%d checks)\n", checks);
         return 0;
     }
@@ -3006,6 +3061,7 @@ int main(int argc, char** argv) {
     }
     testBindings();
     testGameReadClock();
+    testGameReadShakeStall();
     testControlsSummary();
     testConnection();
     testLastDevice();

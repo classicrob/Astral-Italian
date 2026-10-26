@@ -170,3 +170,70 @@ without changing production. Its compile/run remains pending on the server.
 The explicit production-fix DVD pin above is updated to that tested-source fix
 line; ancestry is checked against the same pinned main, allowing its two commits.
 No M1 compiler ran: the attempted nonblocking lock check refused before launch.
+
+## Combined server r3: stall fixture and overlay fixture
+
+PORT's local combined checkout `202bc5ed` contained fixtures 95a828ec, DVD
+610ded6e and input ec0d1424. Quiet receipt passed. The separate production
+regressions native_dvd_host_path and native_input_stick both PASS. The paired
+proof remains 4/6 (audio, RFL, game-read input, startup); the repaired directory
+and radial assertions pass before these next failures. Evidence is preserved at
+server `port53/m1g/stale-fixtures-543-r3-combined` and
+`win54/build-records/stale-fixtures-543-r3-combined`. The build rc2 came from a
+nonexistent requested target name, not a failed actual target.
+
+### Input: wrong clock AND ring size for a live-stall claim
+
+The original stall fixture used Clock::Manual and explicitly called pumpReports
+while withholding game reads. The shipping default is Clock::GameRead
+(wpad_host.cpp:147,1450-1456); no reports advance without a KPAD read. Its host
+alarm is installed only for explicit Clock::Alarm (:1407-1411). Headless keyboard
+also selects GameRead (headless/main.cpp:439). refreshRaw retains press edges
+(remote_model.cpp:269-277), and updateOutput consumes them on later virtual
+reports (:564-569). The source therefore does not establish a lost live press.
+
+There is also a concrete buffer mismatch: Rig called KPADInit, implemented as
+KPADInitEx(nullptr,0) by native/input/smg2_extensions.cpp:16-17. That leaves the
+16-sample internal ring (kpad.h:29; KPAD.c:1687-1689). WPadHolder.cpp:57-58 actually
+supplies 120 external samples per channel, in addition to those 16. KPAD.c:1763-1776
+wraps and caps the pending count at that combined capacity.
+
+In the five-frame case, press begins after frame80/report266. The first resumed
+read at frame86/report286 sees 20 new reports. The fixture's 16-slot ring has
+lost all four 3g impulse samples (remote_model.cpp:27-35); only the return remains.
+KPAD's 0.15 filter (WPadAcceleration.cpp:15-17; KPAD.c:280-306) then has a newest
+x value about .9861, below the 1g WPadHVSwing threshold (WPadHVSwing.cpp:14-19).
+An intermediate retained value briefly exceeds 1, but WPad is not updated at that
+intermediate sample. With all 20 samples retained, newest x is about 1.0926.
+These values are a source-formula reconstruction, not a new native measurement.
+The model's read-within-21-reports heuristic then marks the small-ring case seen
+(remote_model.cpp:690-695), so that lost small-ring impulse is not replayed.
+
+PORT approved test-only changes: the gated Manual stall test now uses persistent
+120/channel external storage and retains the exact-one-swing expectation at all
+18 original stall lengths. A new GameRead test presses AND releases F while no
+reads occur (1/5/40 nominal host frames), verifies no input-frame advance, and
+requires exactly one swing after resume. It runs in native_game_read_input and
+native_input, and is also available together with the game-buffer Manual stress
+as `petari_input_tests --shake-stall-only`. A failure still stops the chain.
+
+The old Manual/internal-16 stress remains as
+`petari_input_tests --small-ring-shake-characterization`: it prints every original
+stall length and observed swing count as CHARACTERIZATION, has no passing
+expectation, no CTest registration and no acceptance verdict. No waveform,
+replay heuristic, input clock or shipping code is changed to satisfy this case.
+
+### DVD overlay: another stale Astro path
+
+sampleDisc contains MarioFaceShipGalaxy, but the first overlay path still named
+`stagedata/ASTROGALAXY/astrogalaxy.ARC`. applyOverlay correctly creates missing
+parents (dvd_fst.cpp:370-373), counts a new file as added (:396-399), and only
+counts an existing file as replaced (:400-401). This predicts 2 replacements,
+3 additions and 5 new entries for the wrong path. The fixture expects 3/2 and
+3 new entries, and then asserts that the original MarioFaceShip file grew,
+confirming the replacement path is stale. PORT approved correcting that overlay
+path to `stagedata/MARIOFACESHIPGALAXY/mariofaceshipgalaxy.ARC`. All existing
+count, growth, readback and offset assertions remain unchanged.
+
+These new test-only corrections await PORT's next server run. No native M1 job,
+compiler attempt, production change or old-receipt reclassification is involved.

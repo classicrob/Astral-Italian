@@ -660,7 +660,7 @@ void testOverlay() {
 
     PDVD::MountOptions options{tmp.path};
     options.overlay = {
-        {"stagedata/ASTROGALAXY/astrogalaxy.ARC", mods.path / "bigger.arc", "ModA"},  // other case, grows
+        {"stagedata/MARIOFACESHIPGALAXY/mariofaceshipgalaxy.ARC", mods.path / "bigger.arc", "ModA"},  // other case, grows
         {"opening.bnr", mods.path / "same.bnr", "ModA"},                              // same size
         {"AudioRes/Seq.arc", mods.path / "smaller.bin", "ModB"},                      // shrinks
         {"StageData/NewGalaxy/NewGalaxy.arc", mods.path / "added.arc", "ModB"},       // new dir + file

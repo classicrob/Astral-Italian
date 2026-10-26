@@ -112,3 +112,29 @@ PORT approved null-resource -> WrongParam and an additional null-work-buffer
 WrongParam negative. No resource validator, SDK, or production change. These
 approved corrections still need the incremental server before/after run; no
 native execution was done on the audio-reserved M1.
+
+## Server paired proof r2: remaining production issues
+
+PORT ran `489398d5` with a passed quiet receipt (load 6.5 / 6.8), preserved at
+server `port53/m1g/stale-fixtures-543-r2` and
+`win54/build-records/stale-fixtures-543-r2`.
+
+Four of six checks are now repaired: native_platform_audio, native_rfl_boot,
+native_game_read_input, native_pipeline_startup. The new DVD lookup checks pass.
+The complete paired proof still FAILS; neither remaining failure is waived.
+
+- **DVD host-path contract:** the next original assertion fails. The native-only
+  hostPathForEntry helper promises empty for directories (header
+  native/platform/include/petari/platform/dvd.hpp:63-66), but dvd_host.cpp:613-618
+  omits the isDir guard and returns the directory path stored by the disc-FST
+  loader. Entry 1 remains AudioRes; adding lookup assertions did not change the
+  sample FST or its entry numbers. The invalid entry 99 is already guarded.
+  Directory-scan and overlay loaders store empty directory paths, so the helper
+  also varies by mount mode. This is a production defect, assigned separately to
+  port/543-dvd-host-path. Its original assertion remains unchanged here.
+- **Input radial encoding:** the unchanged Alt+W+D assertion still fails at
+  length 0.616026. Native code independently inverts a cross clamp per axis,
+  whereas the real SDK selects the circular clamp by default. This is a separate
+  gameplay-feel defect, assigned to port/543-input-radial. The repair, its
+  derived quantization limits and SDK-decoded tests belong to that production
+  branch, not this fixture-only branch. This assertion is not waived here.

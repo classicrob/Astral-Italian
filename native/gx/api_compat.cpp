@@ -75,7 +75,8 @@ void GXSetMisc(GXMiscToken token, u32 value) {
 
 static u32 __GXGetNumXfbLines(u32 efbHt, u32 iScale) {
     if (efbHt == 0 || iScale == 0) {
-        std::fprintf(stderr, "Invalid GX display-copy scaling dimensions\n");
+        // Throwaway build-survival probe: a diagnostic-only binary change.
+        std::fprintf(stderr, "Invalid GX display-copy scaling dimensions (cache proof B)\n");
         std::abort();
     }
     u32 count, realHt, iScaleD;

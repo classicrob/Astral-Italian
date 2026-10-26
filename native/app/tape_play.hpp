@@ -22,6 +22,9 @@
 #include <vector>
 
 #include "headless/replay.hpp"
+#include "tape_phase.hpp"
+#include "tape_power.hpp"
+#include "tape_neutral.hpp"
 
 namespace PetariNative::App::TapePlay {
 
@@ -34,6 +37,7 @@ struct SegmentMeta {
     bool sceneReady = false, hasSeed = true;
 };
 struct Meta {
+    unsigned schema = 1;
     std::uint64_t seams = 0;
     bool complete = false;
     std::string exeSha256;
@@ -41,6 +45,12 @@ struct Meta {
     std::vector<SegmentMeta> segments;
     std::vector<SegmentMeta> sceneStarts;  // ready_seams: includes FileSelect and the galaxy map
     std::vector<SegmentMeta> playStarts;
+    std::vector<TapePhase::Phase> inputPhases;
+    std::string launchStage;
+    int launchScenario = 1;
+    bool powerProtocol = false;
+    TapeNeutral::Policy neutralTailPolicy = TapeNeutral::Policy::SingleBootstrap;
+    std::vector<TapePower::Event> sessionEvents;
 };
 // The sidecar (<dir>/route.tape.json) text -> Meta. Throws Headless::ReplayError.
 Meta parseSidecar(const std::string& text);
@@ -66,6 +76,7 @@ struct Step {
     bool restoreSeed = true; // the schema-1 tape has no RNG checkpoint for the initial title row
     std::string stage;       // Warp: take the game to this stage and scenario (a new visit)
     int scenario = 0;
+    bool neutralTailBegin = false, powerRequest = false;
 };
 
 struct SegmentReport {
@@ -107,7 +118,8 @@ constexpr std::int64_t kIdentityOffsetLimit = 30;
 struct Observation {
     double requestedSeconds = 0, elapsedSeconds = 0, postStartSeconds = 0, stopSeconds = 0;
     std::uint64_t postStartRow = 0, endRow = 0, neutralReads = 0;
-    bool postStarted = false, completed = false;
+    bool postStarted = false, completed = false, recordedTail = false;
+    double minimumPostSeconds = 0;
     void update(double elapsed, std::uint64_t row, bool replaySucceeded);
     bool pending() const { return requestedSeconds > 0 && postStarted && !completed; }
     std::string reportJson(double startMonotonicSeconds) const;
@@ -123,6 +135,7 @@ public:
     const SegmentMeta& firstSegment() const { return mMeta.segments.at(mPlan.front().index); }
     // Once per frame seam, after the game loop ran (post-endFrame), before the next loop's reads.
     Step seam(const SeamState& state);
+    Step beforeRead(const TapePhase::State& state);
     // The KPAD read hook (game thread). A replay that cannot be followed (the game read differently than recorded) is given up
     // and reads are neutral from then on; error() says why.
     std::int32_t read(std::int32_t channel, std::uint32_t capacity, void* buffer, std::int32_t* error);
@@ -141,7 +154,21 @@ public:
     bool active() const { return mActive; }
     bool wholeSession() const { return mMode == Mode::WholeSession; }
     bool acknowledgeSeed(std::uint32_t seed); // glue reads back the just-restored play-ready RNG checkpoint
+    bool beforePowerRequest();
+    bool acknowledgePower(bool actualPowerFlag);
+    void normalExit();
+    bool neutralTailActive() const { return mNeutralTailActive; }
+    void rejectEarlyPower();
+    void rejectUnexpectedPower();
+    void flushReadMap() { if (mReadMap.is_open()) mReadMap.flush(); }
 private:
+    struct PhaseEvidence {
+        bool markerChecked = false, markerPassed = false, rngVerified = false, exitChecked = false, exitPassed = false;
+        bool lastMapWait = false, lastGalaxyMap = false;
+        TapePhase::State actualMarker;
+        std::uint64_t checkpointsChecked = 0;
+        std::uint32_t rngNatural = 0, rngReadback = 0;
+    };
     struct Planned {
         std::size_t index;
         std::uint64_t start, end, frames, offset;
@@ -160,6 +187,14 @@ private:
     std::int64_t expectedIdentity(std::size_t index) const;
     Step startPlay(const SeamState& state);
     void inputFailure(const std::string& why, const SeamState& lastObserved);
+    void initializePhases(const std::filesystem::path& dir, std::uint64_t rows);
+    Step phaseSeam(const SeamState& state);
+    void phaseFailure(const std::string& why);
+    void recordReadMap(const Headless::Read& read, bool recorded);
+    Step controlSeam(const SeamState& state);
+    void validateNeutralTail(const Headless::Read& read);
+    void compareShutdown(const SeamState& state, std::uint64_t canonicalRow);
+    std::int64_t controlOffset(std::size_t phase) const;
     Mode mMode;
     SeamState mLastObserved;
     bool mExpectedPointer = false;
@@ -179,6 +214,19 @@ private:
     bool mActive = false, mDone = false, mNeedEdge = false, mWarpSent = false;
     bool mStrict = true, mPendingSeed = false;
     std::string mError;
+    std::vector<PhaseEvidence> mPhaseEvidence;
+    std::ofstream mReadMap;
+    std::uint32_t mActualOrdinal = 0;
+    bool mPendingMarkerSeed = false, mPhaseExitPending = false;
+    std::size_t mExitPhase = 0;
+    std::uint64_t mNeutralLoops = 0;
+    Step::Kind mPhaseSignal = Step::Kind::None;
+    std::size_t mNextControl = 0;
+    bool mPowerPending = false, mPowerCalling = false, mPowerDelivered = false, mNeutralTailActive = false;
+    bool mShutdownTail = false, mNormalExitVerified = false, mEarlyPower = false;
+    TapeNeutral::NativeTail mNativeNeutralTail;
+    std::uint64_t mPowerActualRow = 0, mShutdownRows = 0, mShutdownReads = 0, mShutdownReplayOffset = 0;
+    std::vector<std::uint64_t> mControlActualRows;
 };
 
 // --- process-wide glue (app_main, frame seam) ---
@@ -189,7 +237,12 @@ const SegmentMeta* firstSegment();   // legacy stage to launch into; null for wh
 const Meta* meta();
 // Frame seam; returns what the glue must do (the caller sets the RNG seed / queues the warp). Also writes the report at the end.
 Step seam(const SeamState& state);
+Step beforeRead(const TapePhase::State& state);
 bool acknowledgeSeed(std::uint32_t seed);
+void flushReadMap();                  // normal shutdown, before _Exit; not a crash handler
+bool beforePowerRequest();
+void acknowledgePower(bool actualPowerFlag);
+void normalExit();                    // validates full strict teardown before report/normal _Exit
 bool shouldQuit();                   // the replay finished or gave up: the app may close itself
 bool observationPending();         // delay successful replay's quit until its optional wall-clock observation ends
 }  // namespace PetariNative::App::TapePlay

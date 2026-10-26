@@ -52,7 +52,7 @@ void observeProgressFrame() {
     Progress::FrameState state;
     GameSystem* pGameSystem = SingletonHolder< GameSystem >::get();
     const GameSystemSceneController* pController = pGameSystem != nullptr ? pGameSystem->mSceneController : nullptr;
-    if (pController != nullptr && pController->mScene != nullptr && pController->isSceneInitializeState(SceneInitializeState_End) &&
+    if (Smoke::canObserveScene(pController,SceneInitializeState_End) &&
         std::strcmp(pController->mCurrSceneControlInfo.mScene, "Game") == 0 && MR::isExistSceneObj(SceneObj_MarioHolder) &&
         MR::isExistSceneObj(SceneObj_DemoDirector) && pGameSystem->mSequenceDirector != nullptr &&
         pGameSystem->mSequenceDirector->mGameSequence != nullptr &&

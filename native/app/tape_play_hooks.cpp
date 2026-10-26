@@ -1,5 +1,6 @@
 // The process-wide side of tape replay: the KPAD / mod hooks, the controller-connection feeder thread and the report files.
 #include "tape_play.hpp"
+#include "tape_record.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -7,10 +8,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <mutex>
 #include <thread>
+#include <functional>
 
 #include <petari/kpad_replay.hpp>
+#include <petari/kpad_record.hpp>
 
 namespace PetariNative::App::TapePlay {
 namespace H = PetariNative::Headless;
@@ -19,36 +21,43 @@ namespace {
 std::unique_ptr<Session> gSession;
 std::filesystem::path gTapeDir;
 bool gReported = false;
+bool gCaptureReplay = false;
 Observation gObservation;
 std::chrono::steady_clock::time_point gObservationStart;
+std::atomic<std::size_t> gGameThread{0};
+std::atomic<bool> gUnexpectedPower{false};
+std::size_t threadToken() { return std::hash<std::thread::id>{}(std::this_thread::get_id()) | 1; }
 
 std::int32_t hookRead(std::int32_t channel, KPADStatus* buffer, std::uint32_t capacity, std::int32_t* error, void*) {
-    if (gObservation.pending() && gSession->finished() && !gSession->gaveUp()) ++gObservation.neutralReads;
+    if (gObservation.pending() && (gSession->finished() || gSession->neutralTailActive()) && !gSession->gaveUp())
+        ++gObservation.neutralReads;
     return gSession->read(channel, capacity, buffer, error);
 }
-bool hookPress(int mod, void*) { return gSession->press(mod); }
-bool hookHeld(int mod, void*) { return gSession->held(mod); }
+bool hookPress(int mod, void*) {
+    const bool answer=gSession->press(mod);
+    if (gCaptureReplay) Input::KpadRecord::modPress(mod,answer);
+    return answer;
+}
+bool hookHeld(int mod, void*) {
+    const bool answer=gSession->held(mod);
+    if (gCaptureReplay) Input::KpadRecord::modHeld(mod,answer);
+    return answer;
+}
 
-// The recorded controller connection (probe state and device type per channel) is applied from a host thread, as the headless
-// driver's worker does each frame (replayConnection needs a non-game thread); the same thread completes pending WPAD commands
-// every 5 ms (serviceReplayCommands). The game thread publishes the connection of the loop about to run at every seam.
+// Connection/extension changes are applied synchronously by the native KPAD
+// hook, before the corresponding sample return. This thread only completes
+// asynchronous WPAD commands; a delayed wake cannot change tape connection state.
+bool hookConnection(s32 channel, s32* error, u32* device, void*) {
+    if (const auto* record = gSession->connection(static_cast<std::uint32_t>(channel))) {
+        *error = record->probeError; *device = record->device; return true;
+    }
+    return false;
+}
 struct Feeder {
-    std::mutex mutex;
-    std::int32_t error[4] = {-2, -2, -2, -2};
-    std::uint32_t device[4] = {253, 253, 253, 253};
     std::atomic<bool> stop{false};
     std::thread thread;
-    void publish() {
-        std::lock_guard<std::mutex> lock(mutex);
-        for (std::uint32_t ch = 0; ch < 4; ++ch)
-            if (const auto* record = gSession->connection(ch)) { error[ch] = record->probeError; device[ch] = record->device; }
-    }
     void run() {
         while (!stop.load()) {
-            std::int32_t e[4];
-            std::uint32_t d[4];
-            { std::lock_guard<std::mutex> lock(mutex); for (int i = 0; i < 4; ++i) { e[i] = error[i]; d[i] = device[i]; } }
-            for (std::uint32_t ch = 0; ch < 4; ++ch) Input::replayConnection(static_cast<std::int32_t>(ch), e[ch], d[ch]);
             Input::serviceReplayCommands();
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
@@ -95,6 +104,8 @@ void writeReport(bool update = false) {
 
 bool configure(const std::string& dir, std::string* error) {
     try {
+        const char* capture=std::getenv("PETARI_TAPE_CAPTURE_REPLAY");
+        gCaptureReplay=capture && std::string(capture)=="1";
         gObservationStart = std::chrono::steady_clock::now();
         if (const char* seconds = std::getenv("PETARI_TAPE_PLAY_OBSERVE_SECONDS"); seconds && *seconds) {
             char* end = nullptr;
@@ -103,20 +114,26 @@ bool configure(const std::string& dir, std::string* error) {
                 throw H::ReplayError("PETARI_TAPE_PLAY_OBSERVE_SECONDS must be in (0, 3600]");
             gObservation.requestedSeconds = value;
         }
+        if (const char* seconds=std::getenv("PETARI_TAPE_PLAY_POST_ROLL_SECONDS");seconds && *seconds) {
+            char* end=nullptr;const double value=std::strtod(seconds,&end);
+            if (!end || *end || !std::isfinite(value) || value<0 || value>3600)
+                throw H::ReplayError("PETARI_TAPE_PLAY_POST_ROLL_SECONDS must be in [0,3600]");
+            gObservation.minimumPostSeconds=value;
+        }
         gTapeDir = std::filesystem::absolute(dir);
         const char* whole = std::getenv("PETARI_TAPE_PLAY_SESSION");
         gSession = std::make_unique<Session>(gTapeDir, whole && std::string(whole) == "1"
             ? Session::Mode::WholeSession : Session::Mode::Segments);
+        if (gCaptureReplay) TapeRecord::setNeutralTailPolicy(gSession->meta().neutralTailPolicy);
     } catch (const std::exception& e) {
         gSession.reset();
         if (error) *error = e.what();
         return false;
     }
-    Input::setKpadReplayHooks({hookRead, nullptr});
+    Input::setKpadReplayHooks({hookRead, nullptr, hookConnection});
     Input::setModReplayHooks({hookPress, hookHeld, nullptr});
     std::atexit([] { writeReport(); });  // a window closed early still leaves the report of what was replayed
     gFeeder = new Feeder;
-    gFeeder->publish();
     gFeeder->thread = std::thread([] { gFeeder->run(); });
     std::atexit(stopFeeder);
     return true;
@@ -128,17 +145,29 @@ const Meta* meta() { return gSession ? &gSession->meta() : nullptr; }
 
 Step seam(const SeamState& state) {
     if (!gSession) return {};
+    std::size_t unset=0;gGameThread.compare_exchange_strong(unset,threadToken());
+    if (gUnexpectedPower.exchange(false)) gSession->rejectUnexpectedPower();
     const auto before = gSession->currentSegment();
     const bool wasDone = gSession->finished();
-    const Step step = gSession->seam(state);
+    Step step = gSession->seam(state);
     const bool observed = gObservation.completed;
+    if (step.neutralTailBegin) gObservation.recordedTail=true;
     gObservation.update(std::chrono::duration<double>(std::chrono::steady_clock::now() - gObservationStart).count(),
-                        gSession->seams() - 1, gSession->finished() && !gSession->gaveUp());
+                        gSession->seams() - 1, (gSession->finished() || gSession->neutralTailActive()) && !gSession->gaveUp());
+    // A recorded control boundary is never postponed to satisfy a measurement.
+    if (step.powerRequest && gObservation.requestedSeconds>0 && !gObservation.completed) {
+        gSession->rejectEarlyPower();step.kind=Step::Kind::GaveUp;
+    }
     if (!wasDone && gSession->currentSegment() != before)
         std::fprintf(stderr, "PETARI TAPE PLAY: %s\n", gSession->segmentLine(before).c_str());
-    if (gFeeder) gFeeder->publish();
     if (step.kind == Step::Kind::Finished || step.kind == Step::Kind::GaveUp) writeReport();
     if (!observed && gObservation.completed) writeReport(true);
+    return step;
+}
+
+Step beforeRead(const TapePhase::State& state) {
+    if (!gSession || gSession->meta().schema!=2) return {};
+    const auto step=gSession->beforeRead(state);
     return step;
 }
 
@@ -150,5 +179,24 @@ bool acknowledgeSeed(std::uint32_t seed) {
     if (!ok) writeReport();
     return ok;
 }
+
+bool beforePowerRequest() {
+    if (!gSession || !gSession->meta().powerProtocol) return false;
+    if (gGameThread.load()!=threadToken()) { gUnexpectedPower.store(true);return false; }
+    const bool result=gSession->beforePowerRequest();
+    if (!result && gSession->gaveUp()) writeReport(true);
+    return result;
+}
+void acknowledgePower(bool actualPowerFlag) {
+    if (gSession && !gSession->acknowledgePower(actualPowerFlag)) writeReport(true);
+}
+void normalExit() {
+    if (!gSession || !gSession->meta().powerProtocol) return;
+    if (gUnexpectedPower.exchange(false)) gSession->rejectUnexpectedPower();
+    gSession->normalExit();
+    writeReport(true);
+}
+
+void flushReadMap() { if (gSession) gSession->flushReadMap(); }
 
 }  // namespace PetariNative::App::TapePlay

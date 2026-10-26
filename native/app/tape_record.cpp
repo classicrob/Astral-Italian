@@ -1,4 +1,8 @@
 #include "tape_record.hpp"
+#include "tape_power.hpp"
+#include <atomic>
+#include <chrono>
+#include <thread>
 
 #include <petari/kpad_record.hpp>
 #include <petari/mods.hpp>
@@ -35,6 +39,30 @@ struct Segment {
 std::vector<Segment> gSegments;
 bool gVisitHasSegment = false;
 std::string gSceneKey;  // scene visit identity at the last seam
+std::vector<TapePhase::Phase> gInputPhases;
+std::string gPhaseKey, gPhaseError;
+bool gMapWait = false, gGalaxyMap = false;
+std::string gLaunchStage;
+int gLaunchScenario = 1;
+std::vector<TapePower::Event> gControls;
+std::string gControlError;
+std::atomic<bool> gControlsActive{false}, gAmbiguousControl{false};
+std::thread::id gControlThread;
+bool gControlSeam = false, gNeutralStarted = false;
+TapeNeutral::Policy gNeutralTailPolicy = TapeNeutral::Policy::SingleBootstrap;
+std::chrono::steady_clock::time_point gNeutralStart;
+void appendControl(const char* kind) {
+    if (!gControlSeam || gInputPhases.empty() || !gInputPhases.back().open ||
+        gInputPhases.back().marker.inputFrame>gRow) {
+        gControlError="session event lacks an active post-seam phase anchor"; return;
+    }
+    TapePower::Event event;
+    event.id=gControls.size();event.phase=gInputPhases.back().id;
+    event.kind=kind;event.afterRow=gRow;event.beforeInputFrame=gRow+1;
+    if (gNeutralStarted) event.neutralElapsedSeconds=std::chrono::duration<double>(
+        std::chrono::steady_clock::now()-gNeutralStart).count();
+    gControls.push_back(event);
+}
 
 std::string exeSha256() {
 #ifdef __APPLE__
@@ -85,7 +113,7 @@ void writeSidecar(bool final) {
     if (!f) return;
     const auto stats = Input::KpadRecord::stats();
     static const std::string sha = exeSha256();  // computed when the tape opens (seam()), never in play
-    std::fprintf(f, "{\n  \"schema\": 1,\n  \"complete\": %s,\n  \"route_csv\": %s,\n  \"kpd\": %s,\n  \"actions\": %s,\n",
+    std::fprintf(f, "{\n  \"schema\": 2,\n  \"complete\": %s,\n  \"route_csv\": %s,\n  \"kpd\": %s,\n  \"actions\": %s,\n",
                  final ? "true" : "false", json(gRoute).c_str(), json(gBase + ".kpd").c_str(), json(gBase + ".actions").c_str());
     std::fprintf(f, "  \"seams\": %llu,\n  \"exe_sha256\": %s,\n  \"source\": %s,\n  \"mods\": %s,\n",
                  static_cast<unsigned long long>(gRow), json(sha).c_str(),
@@ -119,7 +147,54 @@ void writeSidecar(bool final) {
         std::fprintf(f, "%s\n    {\"row\": %llu, \"stage\": %s, \"scenario\": %d, \"rng_seed\": %u}", i ? "," : "",
                      static_cast<unsigned long long>(r.row), json(r.stage).c_str(), r.scenario, r.seed);
     }
-    std::fputs("\n  ]\n}\n", f);
+    std::fprintf(f, "\n  ],\n  \"launch\": {\"stage\":%s,\"scenario\":%d},\n  \"marker_protocol\": %s,\n  \"marker_error\": %s,\n  \"input_phases\": [",
+                 json(gLaunchStage).c_str(), gLaunchScenario, json(TapePhase::kProtocol).c_str(), json(gPhaseError).c_str());
+    bool firstPhase = true;
+    for (const auto& phase : gInputPhases) {
+        const auto end = phase.open ? gRow : phase.endInputFrame;
+        if (phase.marker.inputFrame >= end) continue; // never publish an unfinished input loop
+        std::fprintf(f, "%s\n    {\"id\": %llu, \"first_input_frame\": %llu, \"end_input_frame_exclusive\": %llu, \"end_kind\": %s, \"marker\": %s, \"checkpoints\": [",
+            firstPhase ? "" : ",", static_cast<unsigned long long>(phase.id),
+            static_cast<unsigned long long>(phase.marker.inputFrame), static_cast<unsigned long long>(end),
+            json(phase.open ? "recording-prefix" : "phase-transition").c_str(), TapePhase::stateJson(phase.marker).c_str());
+        firstPhase = false;
+        bool firstCheckpoint = true;
+        for (const auto& point : phase.checkpoints) {
+            if (point.state.inputFrame >= end) continue;
+            std::fprintf(f, "%s{\"kind\":%s,\"state\":%s}", firstCheckpoint ? "" : ",",
+                         json(point.kind).c_str(), TapePhase::stateJson(point.state).c_str());
+            firstCheckpoint = false;
+        }
+        std::fputs("]}", f);
+    }
+    std::fputs("\n  ],\n  \"input_gaps\": [", f);
+    std::uint64_t cursor=0;
+    bool firstGap=true;
+    const auto gap=[&](std::uint64_t first,std::uint64_t end) {
+        if (first>=end) return;
+        std::fprintf(f,"%s{\"first_input_frame\":%llu,\"end_input_frame_exclusive\":%llu,\"input\":\"neutral-no-executable-scene\"}",
+            firstGap ? "" : ",",static_cast<unsigned long long>(first),static_cast<unsigned long long>(end));
+        firstGap=false;
+    };
+    for (const auto& phase:gInputPhases) {
+        const auto end=phase.open ? gRow : phase.endInputFrame;
+        if (phase.marker.inputFrame>=end) continue;
+        gap(cursor,phase.marker.inputFrame); cursor=end;
+    }
+    gap(cursor,gRow);
+    std::fprintf(f,"],\n  \"session_control_protocol\":%s,\n  \"neutral_tail_policy\":%s,\n  \"session_control_error\":%s,\n  \"session_events\":[",
+        json(TapePower::kProtocol).c_str(),json(TapeNeutral::name(gNeutralTailPolicy)).c_str(),
+        json(gAmbiguousControl.load() ? "ambiguous cross-thread/out-of-seam power request" : gControlError).c_str());
+    bool firstControl=true;
+    for (const auto& event:gControls) {
+        if (event.afterRow>=gRow) continue; // never publish an incomplete seam
+        std::fprintf(f,"%s{\"id\":%llu,\"kind\":%s,\"boundary\":%s,\"phase_id\":%llu,\"after_route_row\":%llu,\"before_input_frame\":%llu,\"callback_observed\":%s,\"neutral_elapsed_seconds\":%.9f}",
+            firstControl ? "" : ",",static_cast<unsigned long long>(event.id),json(event.kind).c_str(),json(TapePower::kBoundary).c_str(),
+            static_cast<unsigned long long>(event.phase),static_cast<unsigned long long>(event.afterRow),
+            static_cast<unsigned long long>(event.beforeInputFrame),event.callbackObserved ? "true":"false",event.neutralElapsedSeconds);
+        firstControl=false;
+    }
+    std::fputs("]\n}\n",f);
     std::fclose(f);
     std::rename((path + ".tmp").c_str(), path.c_str());
 }
@@ -147,6 +222,9 @@ void finish() {
     if (gFinished) return;
     gFinished = true;
     if (!gOpen) return;
+    gControlsActive.store(false,std::memory_order_release);
+    if (gControls.empty() || gControls.back().kind!="power-request" || !gControls.back().callbackObserved)
+        gControlError="normal finish lacks an acknowledged power-request event";
     Input::KpadRecord::close();
     // RouteRecordWriter buffers its final partial 60-row block. _Exit does not flush it or run destructors.
     // Flush it before declaring that the sidecar covers all seams; normal shutdown already flushes stdio.
@@ -166,6 +244,66 @@ bool background() {
     return gBackground;
 }
 
+void beforeRead(const TapePhase::State& s) {
+    if (!gOpen || gFinished) return;
+    if (s.inputFrame != gRow) { gPhaseError = "pre-read input clock differs from recorder"; return; }
+    const auto key = s.kind == "none" ? std::string() : s.key();
+    const bool restarted = s.kind=="controller-normal" && s.firstNormal && !gInputPhases.empty() &&
+        gInputPhases.back().marker.inputFrame!=s.inputFrame;
+    if (key != gPhaseKey || restarted) {
+        const bool resumedOverlay = !gInputPhases.empty() && gInputPhases.back().marker.kind == "scenario-foreground";
+        if (!gInputPhases.empty() && gInputPhases.back().open) {
+            gInputPhases.back().open = false;
+            gInputPhases.back().endInputFrame = s.inputFrame;
+        }
+        if (!key.empty()) {
+            if (s.kind == "controller-normal" && !s.firstNormal && !resumedOverlay)
+                gPhaseError = "Normal phase did not begin on its first update or overlay resume";
+            TapePhase::Phase phase;
+            phase.id = gInputPhases.size(); phase.marker = s;
+            gInputPhases.push_back(std::move(phase));
+        }
+        gPhaseKey = key;
+        gMapWait = gGalaxyMap = false;
+    }
+    if (!key.empty()) {
+        if (s.mapWait && !gMapWait) gInputPhases.back().checkpoints.push_back({"map-wait",s});
+        if (s.galaxyMap && !gGalaxyMap) gInputPhases.back().checkpoints.push_back({"galaxy-map",s});
+        gMapWait = s.mapWait; gGalaxyMap = s.galaxyMap;
+    }
+}
+
+void beginControlSeam() { if (gOpen && !gFinished) gControlSeam=true; }
+void endControlSeam() { gControlSeam=false; }
+void setNeutralTailPolicy(TapeNeutral::Policy policy) {
+    if (gFinished || gNeutralStarted) { gControlError="neutral-tail policy selected after tail/finish"; return; }
+    gNeutralTailPolicy=policy;
+}
+void neutralTailBegin() {
+    if (!gControlsActive.load(std::memory_order_acquire)) return;
+    if (std::this_thread::get_id()!=gControlThread || !gControlSeam) { gAmbiguousControl.store(true); return; }
+    if (gNeutralStarted || (!gControls.empty() && gControls.back().kind=="power-request")) {
+        gControlError="duplicate or late neutral-tail event"; return;
+    }
+    appendControl("neutral-tail-begin");
+    gNeutralStarted=true;gNeutralStart=std::chrono::steady_clock::now();
+}
+bool powerRequest() {
+    if (!gControlsActive.load(std::memory_order_acquire)) return false;
+    if (std::this_thread::get_id()!=gControlThread || !gControlSeam) { gAmbiguousControl.store(true); return false; }
+    if (!gControls.empty() && gControls.back().kind=="power-request") { gControlError="duplicate power-request event"; return false; }
+    const auto before=gControls.size();appendControl("power-request");return gControls.size()==before+1;
+}
+void acknowledgePower(bool actualPowerFlag) {
+    if (gControls.empty() || gControls.back().kind!="power-request" || gControls.back().callbackObserved) {
+        gControlError="power callback acknowledgement is missing or ambiguous";return;
+    }
+    gControls.back().callbackObserved=actualPowerFlag;
+    if (!actualPowerFlag) gControlError="real game power callback did not set its request flag";
+}
+
+void setLaunch(const std::string& stage, int scenario) { gLaunchStage=stage; gLaunchScenario=scenario; }
+
 void seam(const Seam& s) {
     if (gFinished) return;
     if (!gInit) init();
@@ -178,6 +316,8 @@ void seam(const Seam& s) {
             return;
         }
         gOpen = true;
+        gControlThread=std::this_thread::get_id();
+        gControlsActive.store(true,std::memory_order_release);
         writeSidecar(false);  // hashes the executable now (a startup cost), not at the first checkpoint during play
         std::atexit(finish);
         std::fprintf(stderr, "PETARI TAPE RECORD: writing %s.kpd / .actions / .tape.json\n", gBase.c_str());

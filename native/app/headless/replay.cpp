@@ -145,6 +145,32 @@ void Replay::keepSegments(const std::vector<SegmentRange>& ranges) {
     mFrames = offset;
     setSegments(std::move(lengths));
 }
+
+void Replay::requireReadsBefore(std::uint64_t firstUnpairedFrame) const {
+    for (const auto& read : mReads)
+        if (read.frame >= firstUnpairedFrame)
+            throw ReplayError("power tape has an unpaired open-loop KPAD read at frame " + std::to_string(read.frame));
+}
+
+void Replay::requireNeutralControlsOutside(const std::vector<SegmentRange>& ranges, std::uint64_t prefix) const {
+    for (const auto& r:mReads) {
+        if (r.frame>=prefix) continue; // incomplete open loop is outside the declared route prefix
+        bool kept=false;
+        for (const auto& range:ranges) if (r.frame>range.start && r.frame<=range.end) { kept=true; break; }
+        if (kept) continue;
+        for (const auto& s:r.samples) {
+            const auto word=[&](unsigned i) { return (std::uint32_t(s[i])<<24)|(std::uint32_t(s[i+1])<<16)|
+                (std::uint32_t(s[i+2])<<8)|std::uint32_t(s[i+3]); };
+            bool controls=word(0)||word(4)||word(8)||static_cast<std::int8_t>(s[94])>0;
+            if (s[92]==1 || s[92]==6) controls|=(word(96)&0x7fffffff)||(word(100)&0x7fffffff);
+            if (s[92]==2 || s[92]==7) {
+                controls|=word(96)||word(100)||word(104);
+                for (unsigned i=108;i<=128;i+=4) controls|=(word(i)&0x7fffffff)!=0;
+            }
+            if (controls) throw ReplayError("schema2 non-neutral control outside game-defined input phase at frame "+std::to_string(r.frame));
+        }
+    }
+}
 void Replay::endFrame() {
     mSegmentJustEnded = false;
     if (mWaitingForSync) return;

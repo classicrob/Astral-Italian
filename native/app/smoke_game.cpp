@@ -2,6 +2,7 @@
 // state. SDK side: no Aurora or SDL headers here.
 
 #include <chrono>
+#include "tape_scene.hpp"
 
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
@@ -96,8 +97,9 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
     //   (GameSystemSceneController::initializeScene). A seam can fall between
     //   createScene and Scene::init, when the scene exists but its nerve does
     //   not. SceneInitializeState_End is set on this thread only after that
-    //   initialisation ended, and is reset by requestChangeScene before the
-    //   scene is destroyed, so scene objects are queried only in End.
+    //   initialisation ended. Ordinary requestChangeScene clears End before
+    //   deletion; prepareReset instead raises mIsResetProcessing on the game
+    //   thread. Both must gate observations before touching the scene slot.
     // - The scene/stage names are values in the controller: always readable.
     // - The save-data sequence is created with its nerve in
     //   GameSequenceDirector's constructor (GameSystem::init, before the first
@@ -107,7 +109,7 @@ Observation observeGame(bool wantPlayer, bool takeEvents) {
     observation.stage = pController->mCurrSceneControlInfo.mStage;
     observation.scenario = pController->mCurrSceneControlInfo.mScenarioNo;
     observation.selectedScenario = pController->mCurrSceneControlInfo.mSelectedScenarioNo;
-    observation.sceneReady = pController->mScene != nullptr && pController->isSceneInitializeState(SceneInitializeState_End);
+    observation.sceneReady = canObserveScene(pController,SceneInitializeState_End);
     observation.strap = observation.sceneReady && GameSystemFunction::isDisplayStrapRemineder();
     if (pGameSystem->mSequenceDirector != nullptr) {
         observation.saveSequence = GameSequenceFunction::isActiveSaveDataHandleSequence();
@@ -222,7 +224,7 @@ void stallContext(char* stage, std::size_t size, int* scenario, int* zone) {
     if (controller == nullptr) return;
     std::snprintf(stage, size, "%s", controller->mCurrSceneControlInfo.mStage);
     *scenario = controller->mCurrSceneControlInfo.mScenarioNo;
-    if (controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End) &&
+    if (Smoke::canObserveScene(controller,SceneInitializeState_End) &&
         std::strcmp(controller->mCurrSceneControlInfo.mScene, "Game") == 0 && MR::isExistSceneObj(SceneObj_MarioHolder)) {
         const auto* holder = MR::getSceneObj<MarioHolder>(SceneObj_MarioHolder);
         const auto* actor = holder ? holder->getMarioActor() : nullptr;
@@ -250,7 +252,7 @@ void recordRouteFrame(bool background) {
     if (controller) {
         row.stage = controller->mCurrSceneControlInfo.mStage;
         row.scenario = controller->mCurrSceneControlInfo.mScenarioNo;
-        if (controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End) &&
+        if (Smoke::canObserveScene(controller,SceneInitializeState_End) &&
             std::strcmp(controller->mCurrSceneControlInfo.mScene, "Game") == 0 &&
             MR::isExistSceneObj(SceneObj_MarioHolder) && MR::isExistSceneObj(SceneObj_CameraContext)) {
             const auto* holder = MR::getSceneObj<MarioHolder>(SceneObj_MarioHolder);
@@ -273,6 +275,7 @@ void recordRouteFrame(bool background) {
         }
     }
     row.input = PetariNative::Input::boundState();
+    TapeRecord::beginControlSeam(); // exact post-row snapshot, before the next update
     if (play) {
         TapePlay::SeamState state;
         state.stage = row.stage ? row.stage : "";
@@ -282,7 +285,7 @@ void recordRouteFrame(bool background) {
         state.dead = row.dead;
         state.x = row.x; state.y = row.y; state.z = row.z;
         state.playReady = Host::playerInPlay();  // as of the previous seam's update, like the recorder and the headless driver
-        state.initEnd = controller && controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End);
+        state.initEnd = Smoke::canObserveScene(controller,SceneInitializeState_End);
         if (system && system->mObjHolder && system->mObjHolder->mWPadHolder) {
             const auto* pad = system->mObjHolder->mWPadHolder;
             const auto* sample = pad->mReadDataInfoArray ? pad->mReadDataInfoArray[0].getKPadStatus(0) : nullptr;
@@ -298,6 +301,9 @@ void recordRouteFrame(bool background) {
             system->mObjHolder->mRandom.mSeed = step.seed;
             if (!TapePlay::acknowledgeSeed(system->mObjHolder->mRandom.mSeed)) step.kind = TapePlay::Step::Kind::GaveUp;
         }
+        if (step.neutralTailBegin || (step.kind==TapePlay::Step::Kind::Finished &&
+            (!TapePlay::meta() || !TapePlay::meta()->powerProtocol))) TapeRecord::neutralTailBegin();
+        if (step.powerRequest) Host::requestQuit();
         if (step.kind == TapePlay::Step::Kind::Warp) {
             // A jump cut to the next segment's galaxy: the game's own stage change (what the Level Select warp calls), taken from
             // wherever the game is (the world map included). The name must outlive the move: PlayerLaunch::warpStage.
@@ -314,7 +320,8 @@ void recordRouteFrame(bool background) {
         // PETARI_TAPE_PLAY_QUIT=<loops>: close the app that many loops after the replay finished or was given up (scripted runs);
         // otherwise the window stays open for the viewer, with neutral input.
         static long quitIn = -1;
-        if (step.kind == TapePlay::Step::Kind::Finished || step.kind == TapePlay::Step::Kind::GaveUp) {
+        if ((step.kind == TapePlay::Step::Kind::Finished && !TapePlay::meta()->powerProtocol) ||
+            (step.kind == TapePlay::Step::Kind::GaveUp && !step.powerRequest)) {
             const char* after = std::getenv("PETARI_TAPE_PLAY_QUIT");
             if (after && *after) quitIn = std::atol(after);
         }
@@ -348,7 +355,7 @@ void recordRouteFrame(bool background) {
             seam.scene = controller->mCurrSceneControlInfo.mScene;
             seam.stage = controller->mCurrSceneControlInfo.mStage;
             seam.scenario = controller->mCurrSceneControlInfo.mScenarioNo;
-            seam.initEnd = controller->mScene && controller->isSceneInitializeState(SceneInitializeState_End);
+            seam.initEnd = Smoke::canObserveScene(controller,SceneInitializeState_End);
         }
         if (system && system->mObjHolder) {
             seam.seedValid = true;
@@ -357,6 +364,8 @@ void recordRouteFrame(bool background) {
         seam.playReady = Host::playerInPlay();
         TapeRecord::seam(seam);
     }
+    TapeRecord::endControlSeam();
     if (capture) PlaytestCapture::frame(row);
+    TapeScene::nextFrame();
 }
 }

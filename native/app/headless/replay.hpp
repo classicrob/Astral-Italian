@@ -34,6 +34,11 @@ public:
     // replays the recorded tape directly.
     struct SegmentRange { std::uint64_t start, end; };
     void keepSegments(const std::vector<SegmentRange>& ranges);
+    // Schema2 never silently discards meaningful UI controls during a claimed
+    // non-interactive gap. Schema1 does not call this validation.
+    void requireNeutralControlsOutside(const std::vector<SegmentRange>& ranges, std::uint64_t prefix) const;
+    // A power-complete tape cannot discard an open-loop read with no route seam.
+    void requireReadsBefore(std::uint64_t firstUnpairedFrame) const;
     bool segmentEnded() const { return mSegmentJustEnded; }
     const Read& consume(std::uint32_t channel, std::uint32_t capacity);
     void endFrame();

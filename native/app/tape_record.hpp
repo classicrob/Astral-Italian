@@ -6,6 +6,8 @@
 // (scripted sessions). tools/port/replay_tape.py replays such a tape headless from a ready seam.
 #include <cstdint>
 #include <string>
+#include "tape_phase.hpp"
+#include "tape_neutral.hpp"
 
 namespace PetariNative::App::TapeRecord {
 
@@ -27,6 +29,20 @@ void seam(const Seam& s);
 // Normal app shutdown only: flush the final CSV/KPAD frames and write complete=true. Safe to call repeatedly;
 // atexit remains a backup. Crash/forced-exit paths must leave the last incomplete checkpoint untouched.
 void finish();
+// Game-defined state, before channel 0's input; never guesses from coordinates.
+void beforeRead(const TapePhase::State& state);
+// Only a power request inside this post-route snapshot scope has unambiguous
+// ordering before the next GameSystem::update. Out-of-scope/cross-thread requests
+// are recorded as errors, never guessed from a row or a host timestamp.
+void beginControlSeam();
+void endControlSeam();
+void neutralTailBegin();
+// Select before the tail begins: native producer initialization or parsed replay
+// source only. There is deliberately no environment policy override.
+void setNeutralTailPolicy(TapeNeutral::Policy policy);
+bool powerRequest();
+void acknowledgePower(bool actualPowerFlag);
+void setLaunch(const std::string& stage, int scenario);  // actual parsed launch, before game boot
 
 // For tests: the sidecar text for a state.
 struct Ready {

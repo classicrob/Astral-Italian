@@ -73,6 +73,8 @@ extern "C" int petari_present_take_readback(const void* copy, unsigned char* rgb
 #include <petari/launch_stage.hpp>
 #include "launch_stage.hpp"
 #include "tape_play.hpp"
+#include "tape_scene.hpp"
+#include "tape_record.hpp"
 #include <petari/player_launch.hpp>
 #include <petari/host_allocation.hpp>
 
@@ -207,6 +209,16 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
             return false;
         }
         const auto* first = App::TapePlay::firstSegment();
+        if (wholeSession && App::TapePlay::meta()->schema==2) {
+            const auto& recorded=*App::TapePlay::meta();
+            if ((!launchStage.empty() && launchStage!=recorded.launchStage) ||
+                (launchScenarioGiven && launchScenario!=recorded.launchScenario)) {
+                std::fputs("petari: explicit launch disagrees with schema2 tape\n",stderr);
+                return false;
+            }
+            launchStage=recorded.launchStage; launchScenario=recorded.launchScenario;
+            launchScenarioGiven=!launchStage.empty();
+        }
         if (first) {  // whole-session mode boots normally into the title, then drives FileSelect from the tape
             launchStage = first->stage;
             launchScenario = first->scenario > 0 ? first->scenario : 1;
@@ -318,6 +330,11 @@ bool resolvePaths(int argc, char** argv, App::Paths* paths, const App::AppLocati
         std::fprintf(stderr, "PETARI LAUNCH: queued SMG2 request %s scenario %d; awaiting real catalog/file load\n", launchStage.c_str(), launchScenario);
     }
     App::prepareRunArtifacts(locations);
+    // The canonical catalog is published only after game boot. A pending
+    // resolved request therefore does not exist yet here or at Seam::attach.
+    // Retain the exact accepted launch spelling/scenario, which replay passes
+    // through the same catalog resolution instead of silently booting title.
+    if (App::TapeRecord::routePath()) App::TapeRecord::setLaunch(launchStage, launchScenario);
     return true;
 }
 
@@ -1095,6 +1112,7 @@ int main(int argc, char** argv) {
     App::LatencyReport::configureLayer(info.window);
     App::DisplayLink::start(info.window);  // the VI clock (default; PETARI_VI_CLOCK=timer opts out)
     App::Seam::attach(info.window);
+    App::TapeScene::install();
     if (!App::prepareFrontend(static_cast<SDL_Window*>(info.window))) {
         App::Seam::reportFrameStats();
         aurora_shutdown();

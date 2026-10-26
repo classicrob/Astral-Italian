@@ -26,17 +26,18 @@ static Result compile(const std::filesystem::path& root,const std::string& wgsl)
     wgpu::AdapterInfo info;adapter.GetInfo(&info);C::configureAdapter(info);const auto context=C::artifactContext();need(!context.empty(),"real adapter identity");
     C::ArtifactCache cache;need(cache.open((root/(context+".db")).string(),context),"private production cache");
     Result result;std::mutex mutex;
+    struct CallbackState { C::ArtifactCache* cache; Result* result; std::mutex* mutex; } state{&cache,&result,&mutex};
     wgpu::DawnCacheDeviceDescriptor caching({.nextInChain=nullptr});
-    caching.SetDawnLoadCacheDataCallback([&](std::span<const std::byte> key,std::span<std::byte> value) noexcept -> size_t {
-        std::lock_guard lock(mutex);result.requested.emplace(reinterpret_cast<const char*>(key.data()),key.size());
-        const auto n=cache.load(key.data(),key.size(),value.data(),value.size());
+    caching.SetDawnLoadCacheDataCallback([](std::span<const std::byte> key,std::span<std::byte> value,CallbackState* state) noexcept -> size_t {
+        std::lock_guard lock(*state->mutex);state->result->requested.emplace(reinterpret_cast<const char*>(key.data()),key.size());
+        const auto n=state->cache->load(key.data(),key.size(),value.data(),value.size());
         const std::string k(reinterpret_cast<const char*>(key.data()),key.size());
-        result.firstProbeHit.try_emplace(k,n>0);
+        state->result->firstProbeHit.try_emplace(k,n>0);
         return n;
-    });
-    caching.SetDawnStoreCacheDataCallback([&](std::span<const std::byte> key,std::span<const std::byte> value) noexcept {
-        std::lock_guard lock(mutex);cache.store(key.data(),key.size(),value.data(),value.size());
-    });
+    },&state);
+    caching.SetDawnStoreCacheDataCallback([](std::span<const std::byte> key,std::span<const std::byte> value,CallbackState* state) noexcept {
+        std::lock_guard lock(*state->mutex);state->cache->store(key.data(),key.size(),value.data(),value.size());
+    },&state);
     wgpu::DeviceDescriptor dd({.nextInChain=&caching});unsigned errors=0;
     dd.SetUncapturedErrorCallback([](const wgpu::Device&,wgpu::ErrorType,wgpu::StringView message,unsigned* n){++*n;std::fprintf(stderr,"Dawn: %.*s\n",int(message.length),message.data);},&errors);
     wgpu::Device device;const auto df=adapter.RequestDevice(&dd,wgpu::CallbackMode::WaitAnyOnly,[&](wgpu::RequestDeviceStatus s,wgpu::Device d,wgpu::StringView message){

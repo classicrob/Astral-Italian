@@ -843,6 +843,11 @@ if(APPLE AND _petari_build_testing)
 endif()
 
 if(_petari_build_testing)
+    add_executable(petari_cache_sha256_tests EXCLUDE_FROM_ALL
+        "${CMAKE_SOURCE_DIR}/native/tests/cache_sha256_tests.cpp")
+    set_target_properties(petari_cache_sha256_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+    target_include_directories(petari_cache_sha256_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME native_cache_sha256 COMMAND petari_cache_sha256_tests)
     add_executable(petari_pipeline_cache_compat_tests EXCLUDE_FROM_ALL
         "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_compat_tests.cpp")
     target_compile_features(petari_pipeline_cache_compat_tests PRIVATE cxx_std_20)

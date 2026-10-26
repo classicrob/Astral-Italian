@@ -1,7 +1,8 @@
 # 5.4.3 priority 2: pipeline caches survive compatible builds
 
 Design approved by PORT/head; source implementation and server test handoff.
-No native build/run was performed on the M1 for this implementation.
+The initial implementation was source-only on the M1; requested follow-up checks
+are recorded below.
 Base: main `6702189f879a72f47df5bdf7ffce2f6b320a9aeb`.
 Branch: `port/543-cache-compatibility`.
 
@@ -254,3 +255,28 @@ is supplementary; native typed admission of the Python-stamped pack is a
 separate required server test. No native compilation or execution was performed
 on the M1. Native build/test and the two-build private-cache warm proof remain
 pending until PORT runs and binds them to the pushed commit.
+
+
+### C++17 follow-up after the first server build
+
+The first server app build of `9ffc8e7c` failed because the shared SHA256 header
+used C++20 `std::rotr` from C++17 app translation units. The follow-up uses a
+local constexpr 32-bit rotate with the SHA algorithm's fixed counts in 1..31;
+it removes unused `<bit>` / `<span>` includes and leaves app language modes and
+compatibility identities unchanged. A dedicated `native_cache_sha256` target
+is explicitly C++17 and checks standard vectors plus streaming.
+
+PORT-requested local checks under heavy -> native passed: the actual
+`pipeline_cache_dir.cpp` and `smoke_storage.cpp` at gnu++17, four cache-test TUs,
+and the compat / Dawn-key tests with zstd enabled (8 syntax checks total). The
+C++17 SHA and raw-cache CPU executables also passed (2 runs). The checks used
+private fixture identity headers / isolated HOME, never a user cache or app.
+The first local check additionally caught repeatable Dawn callbacks using
+capturing lambdas in the integration test; these now use noncapturing callbacks
+with explicit userdata, as required by the actual pinned Dawn API. This is
+test-only; production callbacks already used noncapturing lambdas.
+
+Receipts: `m1g/solb/cache-compat-543/rotate-check-r3/RESULT.json` and per-case
+logs; earlier r1 failures remain preserved. These checks do not replace the
+server candidate app build, configured native suite or real Dawn runtime test.
+No app/GX build or gameplay measurement was performed locally.

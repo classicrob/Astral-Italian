@@ -38,7 +38,9 @@ add_library(petari_game_wait_history STATIC game_wait_history.cpp)
 target_include_directories(petari_game_wait_history PUBLIC ${PETARI_REPO_ROOT}/native/include ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(petari_game_wait_history PUBLIC cxx_std_17)
 if(APPLE)
-    target_link_libraries(petari_game_wait_history PUBLIC "-framework CoreGraphics")
+    # The public WindowServer query uses both CGWindowList and CF container APIs.
+    # Propagate both dependencies to the app and standalone runtime test.
+    target_link_libraries(petari_game_wait_history PUBLIC "-framework CoreGraphics" "-framework CoreFoundation")
 endif()
 
 add_library(petari_app_locations STATIC app_locations.cpp)

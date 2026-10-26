@@ -175,6 +175,10 @@ if(BUILD_TESTING)
     target_link_libraries(petari_platform_dvd_tests PRIVATE petari_platform)
     add_test(NAME native_platform_dvd COMMAND petari_platform_dvd_tests)
 
+    add_executable(petari_dvd_host_path_tests ${PETARI_REPO_ROOT}/native/tests/dvd_host_path_tests.cpp)
+    target_link_libraries(petari_dvd_host_path_tests PRIVATE petari_platform)
+    add_test(NAME native_dvd_host_path COMMAND petari_dvd_host_path_tests)
+
     add_executable(petari_mod_folder_tests ${PETARI_REPO_ROOT}/native/tests/mod_folder_tests.cpp)
     target_link_libraries(petari_mod_folder_tests PRIVATE petari_platform)
     add_test(NAME native_mod_folder COMMAND petari_mod_folder_tests)

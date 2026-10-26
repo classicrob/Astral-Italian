@@ -612,7 +612,8 @@ MountInfo mountInfo() {
 
 fs::path hostPathForEntry(s32 entryNum) {
     const Fst* fst = drive().fst.load();
-    if (fst == nullptr || entryNum < 0 || static_cast<u32>(entryNum) >= fst->entryCount()) {
+    if (fst == nullptr || entryNum < 0 || static_cast<u32>(entryNum) >= fst->entryCount() ||
+        fst->entry(static_cast<u32>(entryNum)).isDir) {
         return {};
     }
     return fst->hostPath(static_cast<u32>(entryNum));

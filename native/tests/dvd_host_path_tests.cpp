@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <unistd.h>
 
 extern "C" void __OSThreadInit(void);
 namespace fs = std::filesystem;

@@ -845,5 +845,5 @@ foreach(_wait_spec
 endforeach()
 if(_petari_build_testing)
     add_test(NAME native_game_wait_patch COMMAND "${Python3_EXECUTABLE}" -B
-        "${CMAKE_SOURCE_DIR}/native/tests/game_wait_patch_tests.py" "${CMAKE_CURRENT_BINARY_DIR}")
+        "${CMAKE_SOURCE_DIR}/native/tests/game_wait_patch_tests.py" "${CMAKE_CURRENT_BINARY_DIR}" "${aurora_SOURCE_DIR}")
 endif()

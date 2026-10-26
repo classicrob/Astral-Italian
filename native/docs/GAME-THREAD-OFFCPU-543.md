@@ -168,3 +168,15 @@ Current main still uses the old source/build-digest renderer key: this native
 instrumentation changes that diagnostic build's key. There is no shader recipe,
 WGSL, descriptor ABI, seed pack or gameplay change. The accepted cache-survival
 line is a separate freeze input and is not silently merged into this diagnostic.
+
+### Frame generation correction
+
+The first server configure refused a double-instrumented frame TU: readback
+appended history hooks from `efb_frame.inc` before the final wait pass. The
+fragment is restored unchanged from main; the final `kind=frame` pass exclusively
+adds both packet/slot and EFB segment hooks. Its already-instrumented refusal is
+unchanged. The patch test now runs readback -> geometry -> ubershader -> wait
+from both minimal anchors and the actual pinned Aurora frame source, checks
+exactly one history include / each expected hook and preserved original call
+counts, and refuses a second pass. Python generation is source-only; a native
+configure/compile remains a separate server check.

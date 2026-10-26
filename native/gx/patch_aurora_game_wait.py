@@ -40,6 +40,17 @@ def patch(text,kind):
         old='const auto stagingSlot = acquire_mapped_staging_buffer();'
         text=replace(old,'const auto stagingSlot = '+N+'::invoke('+N+'::Kind::Staging, frameSlot, 0, [&] { return acquire_mapped_staging_buffer(); });')
         text=replace('  frame.frameId = g_nextFrameId++;', '  frame.frameId = g_nextFrameId++;\n  PETARI_GAME_WAIT_EVENT('+N+'::Kind::Worker, frame.frameId, frameSlot, 1);')
+        # Readback appends efb_frame.inc before geometry/ubershader generation.
+        # Instrument its segment hooks here too: this final pass exclusively
+        # owns frame instrumentation, and the top-level double-patch guard stays
+        # effective over the complete composed translation unit.
+        old='uint64_t ticket, PetariNative::GX::SnapshotReady ready) {'
+        text=replace(old,old+'\n  PETARI_GAME_WAIT_EVENT('+N+'::Kind::Capture,frame.frameId,ticket,0);')
+        text=replace('    return acquire_mapped_staging_buffer();', '    return '+N+'::invoke('+N+'::Kind::Staging, 0, 1, [&] { return acquire_mapped_staging_buffer(); });')
+        old='      auto mapReadback = PetariNative::GX::encodeSnapshot(frame.encoder, source, ticket, ready);'
+        text=replace(old,'      PETARI_GAME_WAIT_EVENT('+N+'::Kind::Capture,frame.frameId,ticket,1);\n'+old)
+        observed('g_queue.Submit(1, &commands);','Submit',obj='frame.frameId',value='ticket')
+        observed('completion.get();','RenderSync',obj='frame.frameId',value='ticket')
     else:raise ValueError('unknown kind '+kind)
     return '#include <petari/game_wait_history.hpp>\n'+text
 if __name__=='__main__':

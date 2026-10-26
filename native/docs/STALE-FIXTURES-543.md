@@ -237,3 +237,60 @@ count, growth, readback and offset assertions remain unchanged.
 
 These new test-only corrections await PORT's next server run. No native M1 job,
 compiler attempt, production change or old-receipt reclassification is involved.
+
+## Combined server r4: donor hold-to-skip integration is absent
+
+PORT reports local combined checkout `28e3aed4` (fixtures4d895e0c + DVD610ded6e +
+inputec0d1424), passed quiet receipt. Gated GameRead + game-buffer Manual stall
+checks PASS (45 checks); native_dvd_host_path and native_input_stick PASS. Paired
+proof is now 5/6: audio, RFL, DVD, game_read_input, startup. native_input remains
+FAIL at `90 frames: the skip latches and A disappears`. The internal-16 Manual
+characterization ran separately with no acceptance verdict; 16/20/30/40-frame
+stalls each reported one swing in that build. All raw outcomes remain preserved
+at server `port53/m1g/stale-fixtures-543-r4-combined` and
+`win54/build-records/stale-fixtures-543-r4-combined`.
+
+### Source verdict
+
+This assertion assumes the donor SMG1 skip integration exists. It is absent in
+SMG2, rather than a counter/latency error in the 90-frame machine:
+
+- native/tests/input_tests.cpp:2376 claims WPadButton::update calls
+  petari_skip_pad, but src/Game/System/WPadButton.cpp:8-32 contains no such call.
+  It copies raw hold/release, computes trigger/repeat and returns.
+- The test resets Skip state (:2380), enables the flag (:2381), and sets context
+  (:2384). None steps the machine. native/input/skip.cpp:99-105 initializes active
+  false; set_context (:110-113) only sets context; petari_skip_pad (:116-134) is
+  the function that steps the machine and publishes active/progress.
+- A source search finds NO petari_skip_pad call in the game. Holding A through
+  90 rig frames therefore leaves active false and ordinary raw A held. This is
+  not a one-frame hold-threshold offset. The independent Machine unit tests
+  directly call frame and still test the exact90 boundary, but do not prove a
+  game integration.
+- native/STUBS.md:23-24 explicitly defers this SMG1 feature in SMG2. The
+  CutsceneSkip.hpp header is absent. docs/port/HOOK_TRANSFER.md:131,173 classify
+  both donor header and implementation as deferred-feature.
+- native/app/CMakeLists.txt:93-98 guards the donor probe behind that missing
+  header; frame_seam.cpp:975 correspondingly guards its calls. There is no hidden
+  generated-source patch supplying the WPadButton hook in the input test target.
+
+Thus this is an unsupported donor-integration expectation, not evidence that a
+previously integrated SMG2 cutscene latch regressed. The ordinary Wii/SMG2 button
+update is behaving as implemented. No production/test assertion is changed here,
+and native_input has NOT been marked passed.
+
+### Separate user-facing inconsistency
+
+This does expose a product availability problem: native/input/mods.cpp:20-28
+retains the SkipCutscenes name and description; the default is off, but enabling
+it is allowed. native/home_menu/hbm_bridge.cpp:370-377 lists every registry mod,
+and :446-448 toggles it without an SMG2-support filter. native/MODS.md also claims
+the donor behavior. The UI therefore offers a feature the game does not integrate.
+
+Recommendation for PORT's scope decision: keep the pure machine tests, label the
+missing donor integration explicitly unavailable/NOT RUN rather than passing it,
+and track/hide or disable the unsupported SMG2 UI feature separately. A real
+cutscene-skip port would need scene-context producers and each game end path, not
+only a WPadButton call. Adding just that call could hide A without ending the
+cutscene and would not repair the missing feature. No new production fix, fake
+fixture hook, assertion change, M1 build or native run has been made.

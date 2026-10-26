@@ -82,6 +82,9 @@ def analyze(text):
         callback={'ticket':ticket,'thread':hex(rows[0]['thread']),'complete_entry_exit':bool(entry and exit),
                   'device':hex(entry[0]['object']) if entry else None,
                   'entry_ns':entry[0]['steady_ns'] if entry else None,'exit_ns':exit[0]['steady_ns'] if exit else None,
+                  'ring_samples':[{'steady_ns':e['steady_ns'],'level':e['value']>>32,'requested':e['value']&0xffffffff}
+                                  for e in by_kind[6]],
+                  'shortfall_frames':sum(e['value'] for e in by_kind[7]),
                   'metadata':metadata,'spans':{name:spans(a,b) for name,a,b in (
                       ('callback',17,18),('device_lock_wait',19,20),('device_lock_hold_upper_bound',20,21),
                       ('get',22,29),('stream_get_lock_wait',23,24),('fill',25,26),('conversion',27,28),

@@ -24,6 +24,13 @@ class Tests(unittest.TestCase):
     def test_partial_window_is_explicit(self):
         r=m.analyze(log(ROWS[1:-1]));self.assertTrue(r['trace_valid'])
         self.assertFalse(r['callbacks'][0]['complete_entry_exit']);self.assertIsNone(r['callbacks'][0]['entry_ns'])
+    def test_ring_level_and_shortfall_keep_actual_callback_ticket(self):
+        rows=[(1,17,1000000,7,10),(2,6,2000000,7,0),(3,7,3000000,7,0),(4,18,4000000,7,10)]
+        text=log(rows).replace('kind=6 thread=123 value=0','kind=6 thread=123 value='+str((1722<<32)|186))
+        text=text.replace('kind=7 thread=123 value=0','kind=7 thread=123 value=120')
+        c=m.analyze(text)['callbacks'][0]
+        self.assertEqual(c['ring_samples'],[{'steady_ns':2000000,'level':1722,'requested':186}])
+        self.assertEqual(c['shortfall_frames'],120)
     def test_overlapping_dump_deduplicates_only_exact_rows(self):
         original=log(ROWS)
         self.assertEqual(m.analyze(original+original)['unique_rows'],len(ROWS))

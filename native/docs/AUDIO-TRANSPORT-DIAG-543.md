@@ -49,6 +49,9 @@ there is no wall-clock or guessed frame join. Tickets are allocated at AQ entry,
 retained through nested calls, and cleared at AQ exit. Object identifies device
 or stream; they are never assumed equal. Gap history is per callback pthread
 and device; device changes do not inherit another device's previous timestamp.
+The existing kind-6 ring-level/request sample and kind-7 shortfall retain this
+same callback ticket, so an underrun joins its actual callback without a wall
+clock or nearest-row guess. Guest/DSP events on other pthreads stay unassigned.
 
 | Kind | Boundary / value |
 |---|---|

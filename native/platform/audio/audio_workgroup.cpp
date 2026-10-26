@@ -395,16 +395,21 @@ void noteResumed(Identity id, std::uint64_t stamp) {
     event(History::Kind::Resumed,gap,gap>20000);
 }
 void noteCallback(std::uint64_t level, std::uint64_t requested) {
+    if(!observing.load(std::memory_order_relaxed)) return;
     const auto now=mach_absolute_time();
     const auto previous=callbackLast.exchange(now,std::memory_order_relaxed);
     const auto gap=previous && now>=previous ? toUs(now-previous) : 0;
     maxValue(callbackWorst,gap);
     if(gap>20000) ++callbackOver20;
     // A single packed value: high 32 bits level, low 32 bits request.
-    event(History::Kind::Callback,(level<<32)|(requested&UINT32_MAX),gap>20000);
+    noteTransport(static_cast<unsigned>(History::Kind::Callback),nullptr,
+        static_cast<std::int64_t>((level<<32)|(requested&UINT32_MAX)));
+    if(gap>20000) history.trigger(mach_absolute_time());
 }
 void noteShortfall(std::uint64_t frames) {
-    event(History::Kind::Shortfall,frames,true);
+    if(!observing.load(std::memory_order_relaxed)) return;
+    noteTransport(static_cast<unsigned>(History::Kind::Shortfall),nullptr,frames);
+    history.trigger(mach_absolute_time());
 }
 void noteRegistration(Identity id, std::uint64_t generation, unsigned frames, std::uintptr_t address) {
     if (!epoch()) return; // initial pre-callback registration is setup, not an output cycle

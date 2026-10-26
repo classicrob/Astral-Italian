@@ -80,8 +80,14 @@ swing by comparing the accelerometer with its value 20 reports earlier.
 - **Nunchuk stick.** WASD produce a unit vector.
   - A diagonal is (0.707, 0.707).
   - When opposite keys are both held, the one pressed last wins.
-  - Raw values invert KPAD's cross clamp (15..71). Each axis is within 1/112 of
-    the target.
+  - Raw values invert KPAD's circular clamp (radial dead zone 15, full scale 71).
+    Nearest-integer raw-vector quantization gives a length error at most
+    `sqrt(2)/112`; direction error is at most `asin(sqrt(2)/(2*R))` for ideal raw
+    radius `R = 15 + 56*length` when the decoded stick is nonzero.
+  - Axis values and full cardinal/45-degree keyboard directions keep their old
+    raw bytes. Other analog angles now encode the intended direction accurately;
+    partial diagonal walking now matches the configured length. Existing tapes
+    replay their recorded raw SDK reads and are unaffected.
 - **Star Pointer.** The mouse position over the game image (`Viewport`) is a
   KPAD position: -1..1 across the image, y down.
   - The layer places two sensor-bar dots in the 1024x768 IR camera image. It

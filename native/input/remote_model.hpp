@@ -85,9 +85,16 @@ int pointerDots(const PointerCalibration& calibration, float posX, float posY, f
 // the viewport is empty.
 bool pointerPosition(const Viewport& viewport, float mouseX, float mouseY, float* posX, float* posY);
 
-// Raw stick value for one axis of an analog value in -1..1, inverting KPAD's
-// cross clamp.
+// Legacy single-axis encoding, also used for the preserved full keyboard
+// directions. For a two-axis vector use rawStickVector (SDK circle clamp).
 std::int8_t rawStickAxis(float value);
+struct RawStick {
+    std::int8_t x = 0;
+    std::int8_t y = 0;
+};
+// Invert the SDK's radial dead zone, then round to the nearest raw vector.
+// Preserve axis bytes and full cardinal / 45-degree keyboard direction bytes.
+RawStick rawStickVector(float x, float y);
 
 // A shake of a controller from its accelerometer (SDL3: m/s^2, gravity
 // included): held while the change from the slowly tracked gravity exceeds

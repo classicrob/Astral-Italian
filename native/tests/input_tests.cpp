@@ -767,7 +767,7 @@ void testStick() {
     lift(In::Key::D);
     rig.frame();
 
-    // Raw stick values invert KPAD's cross clamp (15..71).
+    // Preserve the legacy single-axis raw encoding (15..71).
     namespace Det = PetariNative::Input::Detail;
     for (int i = 1; i <= 100; ++i) {
         const float v = i / 100.0f;
@@ -786,7 +786,12 @@ void testStick() {
                                                                           std::to_string(stick.mStick.y) + ")");
     press(In::Key::D);
     rig.frame();
-    check(near(stick.mStick.x, stick.mStick.y, 1e-6f) && near(std::hypot(stick.mStick.x, stick.mStick.y), 0.5f, 0.01f),
+    // Rounding the ideal raw vector costs <= sqrt(2)/2 raw units. KPAD's
+    // radial range is 71-15, so the length error is <= sqrt(2)/112.
+    // In particular (30,30) decodes to .489757, not an exactly representable .5.
+    const float stickLengthQuantization = std::sqrt(2.0f) / (2.0f * (Det::kStickMax - Det::kStickMin));
+    check(near(stick.mStick.x, stick.mStick.y, 1e-6f) &&
+              near(std::hypot(stick.mStick.x, stick.mStick.y), 0.5f, stickLengthQuantization),
           "Alt+W+D: half-length diagonal (" + std::to_string(std::hypot(stick.mStick.x, stick.mStick.y)) + ")");
     lift(In::Key::LeftAlt);
     rig.frames_(2);

@@ -188,6 +188,19 @@ std::int8_t rawStickAxis(float value) {
     return static_cast<std::int8_t>(value < 0.0f ? -raw : raw);
 }
 
+RawStick rawStickVector(float x, float y) {
+    if (!std::isfinite(x) || !std::isfinite(y)) return {};
+    // These legacy encodings already have the correct SDK direction/magnitude.
+    // Keep their raw bytes, including the full diagonal's saturated radius.
+    if (x == 0.0f || y == 0.0f || (std::fabs(x) == std::fabs(y) && std::fabs(x) >= kDiagonal)) {
+        return {rawStickAxis(x), rawStickAxis(y)};
+    }
+    const double length = std::hypot(static_cast<double>(x), static_cast<double>(y));
+    const double radius = kStickMin + std::min(length, 1.0) * (kStickMax - kStickMin);
+    return {static_cast<std::int8_t>(std::lround(x / length * radius)),
+            static_cast<std::int8_t>(std::lround(y / length * radius))};
+}
+
 RemoteModel::RemoteModel(bool coStar) : mBindings(Bindings::defaults()), mCoStar(coStar) {
     mOutputAge.fill(1 << 20);
 }
@@ -721,8 +734,9 @@ Report RemoteModel::nextReport(const PointerCalibration& calibration) {
     Report report;
     report.buttons = static_cast<std::uint16_t>(mOutput & 0xFFFFu);
     if ((mOutput & kBitTiltHold) == 0 && !motionControlActive()) {
-        report.stickX = rawStickAxis(stickX);
-        report.stickY = rawStickAxis(stickY);
+        const RawStick stick = rawStickVector(stickX, stickY);
+        report.stickX = stick.x;
+        report.stickY = stick.y;
     }
 
     // Accelerometer: the world's up direction in KPAD axes (x across the

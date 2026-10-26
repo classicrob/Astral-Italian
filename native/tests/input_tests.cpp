@@ -59,11 +59,20 @@ extern "C" void __OSThreadInit(void);
 namespace In = PetariNative::Input;
 namespace PSC = PetariNative::Platform::SC;
 namespace PVI = PetariNative::Platform::VI;
+// The fixture executable includes the unchanged real KPAD SDK TU plus this
+// test-only hook; production input objects and SDK headers are unchanged.
+namespace PetariNative::Input::Detail { void resetKpadForTesting(); }
 using In::Key::Max;
 
 namespace {
 
 int checks = 0;
+void resetInputFixture() {
+    In::resetForTesting();
+    const BOOL enabled = OSDisableInterrupts();
+    In::Detail::resetKpadForTesting();
+    OSRestoreInterrupts(enabled);
+}
 void check(bool condition, const std::string& label) {
     ++checks;
     if (!condition) {
@@ -107,7 +116,7 @@ struct Rig {
     In::Clock clock;
 
     explicit Rig(bool connect = true, In::Clock selectedClock = In::Clock::Manual) : clock(selectedClock) {
-        In::resetForTesting();
+        resetInputFixture();
         PSC::reset();
         In::setClock(clock);
         gCallbacks.clear();
@@ -326,7 +335,7 @@ void testControlsSummary() {
 // --- Connection -----------------------------------------------------------
 
 void testConnection() {
-    In::resetForTesting();
+    resetInputFixture();
     check(WPADGetStatus() == WPAD_STATE_DISABLED, "WPAD disabled before WPADInit");
     check(aborts([] { In::pumpReports(1); }), "pumping before WPADInit aborts");
 
@@ -406,7 +415,7 @@ void testConnection() {
 // --- Buttons --------------------------------------------------------------
 
 void testLastDevice() {
-    In::resetForTesting();
+    resetInputFixture();
     check(In::lastDevice() == In::Binding::Device::Key, "the last device starts as the keyboard");
     In::padButtonEvent(In::PadButton::South, true);
     check(In::lastDevice() == In::Binding::Device::Pad, "a pad press makes the pad the last device");
@@ -424,7 +433,7 @@ void testLastDevice() {
     In::padAxisEvent(In::PadAxis::LeftX, 0.0f);
     In::keyEvent(In::Key::Space, false, false);
     In::mouseButtonEvent(In::MouseButton::Right, false);
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 void testButtons() {
@@ -1907,7 +1916,7 @@ void testDevice() {
         check(!In::rumbleActive(0), "disconnect stops rumble");
     }
     {
-        In::resetForTesting();
+        resetInputFixture();
         PSC::Settings settings = PSC::current();
         settings.motorMode = 0;
         settings.sensorBarPosition = 1;
@@ -1958,11 +1967,11 @@ void testGameReadClock() {
     };
     const auto fast = stream(false), slow = stream(true);
     check(fast == slow, "KPAD sample stream bit-exact across host stalls and different sensor timestamps");
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 void testAlarmClock() {
-    In::resetForTesting();
+    resetInputFixture();
     PSC::reset();
     gCallbacks.clear();
     In::setClock(In::Clock::Alarm);
@@ -1994,7 +2003,7 @@ void testAlarmClock() {
     host.join();
     check(!gCallbacks.empty() && gCallbacks[0] == "connect0:0", "alarm clock connects the remote");
     check(total > 30, "alarm clock produces reports (" + std::to_string(total) + ")");
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 // The KPAD thread changes the pointer calibration (KPADInit after WPADInit
@@ -2008,7 +2017,7 @@ void testAlarmClock() {
 // KPADRead without a lock, as the SDK did with an interrupt; that is not
 // what this checks.
 void testCalibrationThreads() {
-    In::resetForTesting();
+    resetInputFixture();
     PSC::reset();
     In::setClock(In::Clock::Alarm);
     KPADInit();
@@ -2025,7 +2034,7 @@ void testCalibrationThreads() {
         KPADRead(0, statuses, 120);
     }
     check(changes > 0, "sensor height changed while the reports run");
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 // --- Screen saver ----------------------------------------------------------
@@ -2145,7 +2154,7 @@ void testScreenSaver() {
         rig.frames_(2);
     }
     VIEnableDimming(FALSE);
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 #ifdef PETARI_INPUT_TEST_SDL3
@@ -2562,7 +2571,7 @@ void testCappyInput() {
 
 void testMods() {
     namespace Mods = PetariNative::Mods;
-    In::resetForTesting();
+    resetInputFixture();
     In::setBindings(In::Bindings::defaults());
     // Presses of the mod keys are counted for the game, never sent to the remote.
     In::keyEvent(In::Key::G, true, false);
@@ -2688,12 +2697,12 @@ void testMods() {
         Mods::resetForTesting();
     }
     Mods::resetForTesting();
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 void testCamera() {
     namespace Camera = PetariNative::CameraSettings;
-    In::resetForTesting();
+    resetInputFixture();
     Camera::resetForTesting();
     In::setBindings(In::Bindings::defaults());
     PetariCameraInput in;
@@ -2781,7 +2790,7 @@ void testCamera() {
     check(Camera::load("/nonexistent/petari-camera.txt", &error) && !Camera::enabled(), "PETARI_ODYSSEY_CAMERA=0 overrides");
     unsetenv("PETARI_ODYSSEY_CAMERA");
     Camera::resetForTesting();
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 // Photo mode (docs/dev/ODYSSEY_CAMERA.md): off by default; P asks the game,
@@ -2853,7 +2862,7 @@ void testPhotoMode() {
         check(!Camera::photoCapturing(), "a refused toggle returns input to the game");
     }
     Camera::resetForTesting();
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 // The level editor's toggle and input gate (petari/editor_settings.hpp, docs/dev/level-editor/UX.md
@@ -2948,7 +2957,7 @@ void testLevelEditor() {
     }
     Editor::resetForTesting();
     Mods::setEnabled(Mods::Mod::LevelEditor, false);
-    In::resetForTesting();
+    resetInputFixture();
 }
 
 // The level editor's picking handshake (petari/editor_pick.hpp): the UI asks, the game answers.

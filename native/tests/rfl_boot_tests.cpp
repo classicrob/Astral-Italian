@@ -111,14 +111,14 @@ void checkNoOfficialMiis(const std::string& when) {
     u16 index = 0xFFFF;
     check(!RFLSearchOfficialData(&id, &index), when + ": a saved Mii ID is not found");
     RFLAdditionalInfo info;
-    check(RFLGetAdditionalInfo(&info, RFLDataSource_Official, nullptr, 0) != RFLErrcode_Success,
+    check(RFLGetAdditionalInfo(&info, RFLDataSource_Official, nullptr, 0, TRUE) != RFLErrcode_Success,
           when + ": no official Mii names");
 }
 
 void checkDefaultMii(const std::string& when) {
     RFLAdditionalInfo info;
     std::memset(&info, 0, sizeof(info));
-    const RFLErrcode err = RFLGetAdditionalInfo(&info, RFLDataSource_Default, nullptr, 0);
+    const RFLErrcode err = RFLGetAdditionalInfo(&info, RFLDataSource_Default, nullptr, 0, TRUE);
     const char16_t expected[] = u"no name";
     check(err == RFLErrcode_Success && std::memcmp(info.name, expected, sizeof(expected)) == 0,
           when + ": built-in default Mii 0 readable (FileSelectItem's face)");

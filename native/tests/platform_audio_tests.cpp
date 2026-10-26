@@ -19,6 +19,9 @@
 
 extern "C" void __OSThreadInit(void);
 extern "C" void petari_audio_note_dsp_hold(void);
+// Native AI exports this SDK function, but the public header omits it.
+// Keep the fixture declaration here rather than changing the SDK interface.
+extern "C" u32 AIGetDSPSampleRate(void);
 
 namespace DSP = PetariNative::Platform::DSP;
 namespace PAudio = PetariNative::Platform::Audio;

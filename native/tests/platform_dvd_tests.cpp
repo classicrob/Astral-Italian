@@ -23,6 +23,14 @@
 #include "dvd_internal.hpp"
 #include "petari/platform/dvd.hpp"
 
+// Exported by the native DVD service; not declared in the public SDK header.
+// Test-local declarations preserve that production header unchanged.
+extern "C" {
+void DVDPause(void);
+void DVDResume(void);
+BOOL DVDCancelAsync(DVDCommandBlock* block, DVDCBCallback callback);
+}
+
 namespace fs = std::filesystem;
 namespace PDVD = PetariNative::Platform::DVD;
 

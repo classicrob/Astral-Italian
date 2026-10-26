@@ -134,6 +134,18 @@ if(BUILD_TESTING)
     target_compile_options(petari_input_tests PRIVATE -Wno-inconsistent-missing-override)
     target_link_options(petari_input_tests PRIVATE -Wl,-dead_strip)
     target_link_libraries(petari_input_tests PRIVATE petari_input)
+    if(NOT _petari_input_standalone)
+        # Root-build fixtures also reconstruct a complete WPAD/KPAD game more
+        # than once. Put the unchanged SDK TU + its private reset hook ONLY in
+        # this executable. The production petari_input archive stays untouched;
+        # its original KPAD object is not extracted when these symbols resolve
+        # from the fixture. Standalone tests already include this wrapper above.
+        target_sources(petari_input_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/kpad_test_support.cpp")
+        target_compile_definitions(petari_input_tests PRIVATE
+            PETARI_KPAD_TEST_SOURCE="${PETARI_LEGACY_ROOT}/src/RVL_SDK/kpad/KPAD.c")
+        set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/kpad_test_support.cpp" PROPERTIES
+            COMPILE_OPTIONS "-Wno-unknown-pragmas")
+    endif()
     if(PETARI_SDL3_INCLUDE_DIR)
         target_include_directories(petari_input_tests PRIVATE ${PETARI_SDL3_INCLUDE_DIR})
         target_compile_definitions(petari_input_tests PRIVATE PETARI_INPUT_TEST_SDL3=1)

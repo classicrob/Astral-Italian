@@ -10,6 +10,12 @@ from pathlib import Path
 
 BASE='7fdb1c38c55d3384439524e789199289d6b7bd82'
 ROOT=Path(__file__).resolve().parents[2]
+# Explicitly approved independent production repairs. These are NOT a main
+# production control; baseline fixtures use the same repaired objects as fixed.
+PRODUCTION_FIXES={
+    '0dce0d67b370d772aa1b9db43e5b8f1cedc74253':('native/platform/dvd/dvd_host.cpp',),
+    'ec0d1424ad15fedff82f683cdb6ef356270cff5a':('native/input/remote_model.cpp','native/input/remote_model.hpp'),
+}
 CASES=[
     ('native_platform_audio','petari_platform_audio_tests','native/tests/platform_audio_tests.cpp',[],['AIGetDSPSampleRate']),
     ('native_rfl_boot','petari_rfl_boot_tests','native/tests/rfl_boot_tests.cpp',[],['RFLGetAdditionalInfo']),
@@ -53,11 +59,25 @@ def link_control(row,target,control_object,exe):
     need(replaced==1,'main fixture object not uniquely replaced')
     need(removed==(1 if target=='petari_input_tests' else 0),'unexpected baseline SDK wrapper linkage')
     return out,cwd
+def production_scope(fixes):
+    allowed=set();blobs={}
+    for fix in fixes:
+        need(fix in PRODUCTION_FIXES,'unapproved production-fix commit')
+        need(git('rev-parse',fix+'^').decode().strip()==BASE,'production fix not based on pinned main')
+        allowed.update(git('diff','--name-only',BASE,fix).decode().splitlines())
+        for path in PRODUCTION_FIXES[fix]:
+            expected=git('show',fix+':'+path)
+            need(git('show','HEAD:'+path)==expected,'production fix blob differs: '+path)
+            blobs[path]=hashlib.sha256(expected).hexdigest()
+    return allowed,blobs
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build',type=Path,required=True);parser.add_argument('--out',type=Path,required=True)
     phase=parser.add_mutually_exclusive_group(required=True)
     phase.add_argument('--prepare',action='store_true');phase.add_argument('--run',action='store_true')
+    parser.add_argument('--production-fix',choices=sorted(PRODUCTION_FIXES),action='append',default=[],
+                        help='explicit approved production repair; repeat on BOTH prepare/run; main fixture source is the control, not main production')
     parser.add_argument('--quiet-json',type=Path,help='RUN only: fresh caller quiet receipt after preparation, passed=true/quiet=true')
     a=parser.parse_args();build=a.build.resolve();out=a.out.resolve()
     need(os.getpriority(os.PRIO_PROCESS,0)==0,'controls require nice0')
@@ -69,6 +89,9 @@ def main():
     need('CMAKE_HOME_DIRECTORY:INTERNAL='+str(ROOT) in cache,'ROOT test build on this checkout required; standalone is not a main control')
     allowed={p for _,_,p,_,_ in CASES}|{'native/input/CMakeLists.txt',
         'tools/port/check_stale_fixtures543.py','tools/port/test_stale_fixtures543.py','native/docs/STALE-FIXTURES-543.md'}
+    production_fixes=sorted(set(a.production_fix))
+    production_allowed,production_blobs=production_scope(production_fixes)
+    allowed.update(production_allowed)
     changed=set(git('diff','--name-only',BASE,'HEAD').decode().splitlines())
     need(changed<=allowed,'unexpected production/predicate scope: '+str(changed-allowed))
     if a.prepare:
@@ -90,7 +113,10 @@ def main():
         return dict(command=list(map(str,args)),cwd=str(cwd),exit=code,timed_out=timeout,seconds=time.monotonic()-start,
                     log=str(out/(name+'.log')),log_sha256=sha(out/(name+'.log')))
     report=dict(base=BASE,source=git('rev-parse','HEAD').decode().strip(),changed_paths=sorted(changed),
-                scope='test fixtures on identical production objects; no app/cache run',results=results,passed=False)
+                scope='pinned main fixture sources vs fixed fixtures on identical production objects; no app/cache run',
+                production_fix_commits=production_fixes,production_fix_blob_sha256=production_blobs,
+                production_control='shared repaired production objects; NOT main production' if production_fixes else 'main production unchanged',
+                results=results,passed=False)
     # Caller builds fixed targets first; do not compile during a quiet runtime
     # comparison or hide a build failure as a test result.
     rows=json.loads((build/'compile_commands.json').read_text());built={}
@@ -121,6 +147,7 @@ def main():
       return 0
     prepared=json.loads((out/'PREPARED.json').read_text())
     need(prepared['report']['source']==report['source'] and prepared['build']==str(build),'source/build changed after preparation')
+    need(prepared['report']['production_fix_commits']==production_fixes,'production-fix binding changed after preparation')
     need(a.quiet_json is not None,'--run requires --quiet-json')
     need(prepared['prepared_at']<=a.quiet_json.stat().st_mtime<=time.time() and time.time()-a.quiet_json.stat().st_mtime<=120,'quiet receipt must be fresh and after all control compiles')
     quiet=json.loads(a.quiet_json.read_text());need(quiet.get('passed') is True or quiet.get('quiet') is True,'caller quiet receipt failed')

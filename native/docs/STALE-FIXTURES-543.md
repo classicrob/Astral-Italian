@@ -138,3 +138,25 @@ The complete paired proof still FAILS; neither remaining failure is waived.
   gameplay-feel defect, assigned to port/543-input-radial. The repair, its
   derived quantization limits and SDK-decoded tests belong to that production
   branch, not this fixture-only branch. This assertion is not waived here.
+
+## Combined production-fix checkout
+
+The paired fixture proof's default still rejects any production delta. To run
+it on an integrated checkout containing the two separately approved repairs,
+repeat these explicit options on **both** --prepare and --run:
+
+```sh
+--production-fix 0dce0d67b370d772aa1b9db43e5b8f1cedc74253 --production-fix ec0d1424ad15fedff82f683cdb6ef356270cff5a
+```
+
+Only these exact pinned commits are accepted. Each must be based on the pinned
+main, and the shipping DVD/input file blobs in HEAD must equal the approved
+commit's blobs. Their changed paths are explicitly admitted into the scope;
+unknown commits or different shipping code fail closed. Production objects and
+archives are still shared and hash-checked between fixture controls.
+
+The receipt explicitly labels this as MAIN FIXTURE SOURCE versus fixed fixtures
+on the **same repaired production objects**, NOT a before/after production
+comparison. Each repair's separate production regression test is also required:
+native_dvd_host_path and native_input_stick. The original six proof outcomes and
+all actual old server receipts remain distinct.

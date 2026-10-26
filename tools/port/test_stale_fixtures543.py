@@ -3,12 +3,38 @@
 import importlib.util
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 spec=importlib.util.spec_from_file_location('proof',Path(__file__).with_name('check_stale_fixtures543.py'))
 proof=importlib.util.module_from_spec(spec);spec.loader.exec_module(proof)
 
 class BaselineControlTests(unittest.TestCase):
+    def test_production_scope_refuses_unknown_or_different_shipping_blob(self):
+        with self.assertRaisesRegex(RuntimeError,'unapproved'):
+            proof.production_scope(['unknown'])
+        fix=next(iter(proof.PRODUCTION_FIXES))
+        def git(*args):
+            if args[0]=='rev-parse':return (proof.BASE+'\n').encode()
+            if args[0]=='diff':return b'native/platform/dvd/dvd_host.cpp\n'
+            if args[0]=='show':return b'approved' if args[1].startswith(fix+':') else b'different'
+            self.fail(args)
+        with mock.patch.object(proof,'git',side_effect=git):
+            with self.assertRaisesRegex(RuntimeError,'blob differs'):
+                proof.production_scope([fix])
+
+    def test_production_scope_keeps_an_explicit_approved_hash_binding(self):
+        fix=next(iter(proof.PRODUCTION_FIXES))
+        def git(*args):
+            if args[0]=='rev-parse':return (proof.BASE+'\n').encode()
+            if args[0]=='diff':return b'native/platform/dvd/dvd_host.cpp\n'
+            if args[0]=='show':return b'exact approved source'
+            self.fail(args)
+        with mock.patch.object(proof,'git',side_effect=git):
+            allowed,blobs=proof.production_scope([fix])
+        self.assertEqual(allowed,{'native/platform/dvd/dvd_host.cpp'})
+        self.assertEqual(blobs,{'native/platform/dvd/dvd_host.cpp':proof.hashlib.sha256(b'exact approved source').hexdigest()})
+
     def test_compile_uses_exact_baseline_and_preserves_fixture_relative_includes(self):
         row={'directory':'/private/build','file':'/checkout/native/tests/input_tests.cpp',
              'arguments':['clang++','-I/production','-DKEEP=1','-MD','-MF','old.d','-o','old.o','-c','/checkout/native/tests/input_tests.cpp']}

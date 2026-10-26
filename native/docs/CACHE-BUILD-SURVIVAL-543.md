@@ -1,0 +1,108 @@
+# 5.4.3 cache build-survival runtime proof (M4 only)
+
+No measurement has been performed by this source handoff. PORT runs these in a
+quiet M4 window; SOL A retains the M1. All results, failures and caches remain.
+No rerun loop, cache clearing, host input, AX driver or TCC request is used.
+
+## Source/build bindings
+
+- A: `18ce6b65e6b269076716707b8d0686b00f262bc0`, or the existing production app
+  built at `fc3a671221eb0186169beaef75412daf01a06017` (exe `8be7040b...`).
+  The subsequent edits on this line are test-only. Both recipe keys were
+  independently confirmed on the server as `b36899bd...`.
+- B: `port/543-cache-proof-b` =
+  `35b5e378e9ebfa41a9d696d3069a3a5ff8c68003`, directly on 18ce6b65. It changes
+  only the error diagnostic string in the retained GXGetYScaleFactor path in
+  `native/gx/api_compat.cpp`. Normal rendering/shader/descriptor behavior is
+  unchanged. The runner requires a different executable SHA and the B diagnostic
+  string in B's binary, absent from A's. This branch is a throwaway instrument.
+- Negative: `port/543-cache-proof-negative` =
+  `f458b41d66accd22bc84a7550fa153fa57276d93`, directly on 18ce6b65. Its only
+  change is `descriptor_abi: 1 -> 2` in the compatibility manifest. This must
+  select a new recipe/artifact namespace. It is also a throwaway instrument.
+
+Build B and negative with the same portable release recipe/dependencies as A.
+Each build directory must contain immutable `Petari.app` and `BUILD.json` with
+`source` (or `source_commit`), `binary_sha256` and `renderer_key`. Original apps
+are read-only inputs. Run the cache unit suites as usual. Do not land either
+throwaway change in the freeze candidate.
+
+## Exact server command
+
+From the checkout containing this runner, in the existing detached **bash** /
+quiet window (the runner rejects inherited nice5):
+
+```sh
+bash tools/port/server_cache_survival543.sh \
+  /absolute/A_BUILD_DIR /absolute/B_BUILD_DIR /absolute/NEGATIVE_BUILD_DIR \
+  "$HOME/MacioGalaxy2-gamedata/port53/m1g/solb/cache-survival543-r1" \
+  "$HOME/MacioGalaxy2-gamedata/SB4E01-extracted" \
+  "$HOME/MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture"
+```
+
+The new output path must be below `port53/m1g` and must not exist. The wrapper
+uses server-heavy -> native per preparation/arm, not an outer cohort lock. Each
+arm requires nice0, load1/load5 <=8, no compiler, and MTLCompilerService CPU delta
+<0.05s over10s. It never kills foreign processes. An arm failure stops the chain;
+a timeout stops/reaps only its owned Popen PID and is a failure.
+
+The runner makes signed perf copies sharing one fresh random bundle ID. It
+aliases only that never-used Darwin Metal namespace to `OUT/cache/metal`; only
+that exact alias is unlinked on exit. All cache data remains inside OUT. The
+application gets explicit private `PETARI_CACHE_DIR`, HOME, CFFIXED_USER_HOME,
+TMPDIR and per-arm --user directories. No normal user cache is enumerated or
+opened; migration can see only this new selected private root. The unlocked
+fixture is hashed before/after and copied privately without cache data. v14 PFD
+bytes must match across all three apps. No recording occurs (`ASTRAL_TAPE=off`).
+
+## Frozen order and predicates
+
+1. A cold title; A cold stage.
+2. A warm stage; A warm title, using that exact cache/Metal namespace.
+3. B on A cache: stage then title, same root/context/namespace and fixture.
+4. Negative: stage then title, still the same private root, with a different ABI
+   namespace and old caches preserved.
+
+Title observations self-end at120..121 native seconds from the first game-loop
+observation, using the existing title-observation path. Stage is scenario1
+YosshiHomeGalaxy, 60 stable ready frames then **1800 neutral script frames**,
+with the existing script's in-app quit. All runs have a240s hard timeout. There
+is no control-bearing script input and the route must show zero move/button /
+camera controls throughout. Quiet/focus conditions and dummy audio are explicit;
+this is not an audio or frame-performance acceptance gate.
+
+B must have accepted recipe rows, zero rejected rows, full-key Dawn hits, the
+same recipe/backend/GPU-driver-OS/artifact identities and the exact same private
+root/namespace. The already warmed artifact rows must be unchanged. Because the
+current shipped counters are aggregate, the scorer requires **zero aggregate
+Dawn stores and zero misses** for B: stronger than zero new stores for just the
+warmed set. A failure is retained and diagnosed; unrelated/background requests
+are not silently subtracted. The negative must have a new namespace absent
+before its first stage arm, misses and stores >0, and preserve old artifact rows.
+
+XFB captures are decoded and compared pixel-for-pixel (no mean-error tolerance):
+A-warm vs B title at boot-frame1200, and stage input-script frames120/240. PNG
+CRC/length/format, non-degenerate pixels and dimensions are checked; missing or
+unaligned captures fail instead of being searched for a match. File and pixel
+SHA256 are retained. Rendering equality is relative to the same-code A control,
+not a new retail-visual certification.
+
+The prep result must remain ready, with no pending/failed/rejected keys. Its
+elapsed time, splash elapsed time and presented-frame count are **observations**
+for A-cold / A-warm / B, not new performance thresholds. Recreating process/device
+pipeline objects from cached artifacts still presents at least3 splash frames.
+There is no literal no-splash predicate. The release wording is “later updates
+start faster,” not “skip preparation.”
+
+`PLAN.json` binds sources, original/perf executable hashes, BUILD receipts,
+fixture inventory, v14 PFD hashes, root/namespace, constants and script hash.
+Every `launch.json` binds that plan. Each arm keeps native logs, frames/route,
+images, process/quiet data, logical recipe/artifact snapshots (including full
+binary Dawn keys), Metal inventory and RESULT. DRIVER/STOPPED and RELEASE close
+the cohort honestly. Native runtime results are not claimed by the scorer tests.
+
+Source-only scorer tests:
+
+```sh
+python3 -B native/tests/cache_build_survival543_tests.py
+```

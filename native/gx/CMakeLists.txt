@@ -852,7 +852,7 @@ if(_petari_build_testing)
         "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_compat_tests.cpp")
     target_compile_features(petari_pipeline_cache_compat_tests PRIVATE cxx_std_20)
     target_include_directories(petari_pipeline_cache_compat_tests PRIVATE "${aurora_SOURCE_DIR}/lib" "${aurora_SOURCE_DIR}/lib/gx")
-    target_link_libraries(petari_pipeline_cache_compat_tests PRIVATE petari_pipeline_cache_identity aurora::gx aurora::core)
+    target_link_libraries(petari_pipeline_cache_compat_tests PRIVATE petari_pipeline_cache_identity aurora::gx aurora::core absl::flat_hash_map)
     add_test(NAME native_pipeline_cache_compat COMMAND petari_pipeline_cache_compat_tests)
     add_test(NAME native_pipeline_cache_seed_stamp COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_seed_stamp_tests.py"

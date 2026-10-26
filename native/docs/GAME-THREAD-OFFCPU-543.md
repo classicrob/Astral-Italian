@@ -159,10 +159,14 @@ anchors and protocol negatives (dropped/capped/unknown/duplicate/tail-missing
 records, threshold/ratio/count mismatches). Old SDK fixtures remain as main;
 this diagnostic does not carry the four freeze-input fixes or repair test rot.
 
-Python/source-only checks were run on M1; native/Release build results are
-PENDING PORT SERVER. M1 OFF/ON/title experiments require PORT scheduling after
-SOL A's sink work, nice0/per-arm heavy->native/private cache controls. No
-negligible-overhead/causal/pacing acceptance claim before that cohort.
+PORT validated the server suite at 3aeb9c4a: patch, history, runtime (3.70s),
+codegen and report, 5/5 PASS. The regenerated Release IR SHA256 is identical to
+the committed Apple-clang fixture below. The diagnostic APP build is deferred.
+The non-launchable M1 capture specification is
+`game-offcpu-543/M1-CAPTURE-PLAN.md` with `M1-CAPTURE-SPEC.json`; it requires
+PORT scheduling after SOL A's output-AU work, immutable app/hash bindings,
+nice0/per-arm heavy->native/private cache controls and a final frozen PLAN.
+No negligible-overhead/causal/pacing acceptance claim before that cohort.
 
 Current main still uses the old source/build-digest renderer key: this native
 instrumentation changes that diagnostic build's key. There is no shader recipe,

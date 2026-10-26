@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "status": "NON_LAUNCHABLE_AWAITING_PORT_SLOT_AND_APP_BINDING",
+  "launchable": false,
+  "purpose": "diagnostic game-thread off-CPU boundaries and same-binary observer screening; not release acceptance",
+  "tested_source_commit": "3aeb9c4a69f4cb6266fdb4f701411cc1bb80d6eb",
+  "tested_server_suite": {
+    "passed": 5,
+    "total": 5,
+    "names": [
+      "patch",
+      "history",
+      "runtime",
+      "codegen",
+      "report"
+    ],
+    "release_ir_sha256": "da17510923da227fb12b1809b9b89073dd768f50f31c2624470708cad7d59fbf"
+  },
+  "pending_bindings": {
+    "port_go": null,
+    "sola_release": null,
+    "app_build_json": null,
+    "source_commit": null,
+    "original_exe_sha256": null,
+    "perf_exe_sha256": null,
+    "uuid": null,
+    "renderer_key": null,
+    "prep_json_sha256": null,
+    "resource_hashes": null,
+    "runner_sha256": null,
+    "scorer_sha256": null,
+    "final_plan_sha256": null
+  },
+  "root_scope": "new literal output root under ~/MacioGalaxy2-gamedata/port53/m1g/solb; exact path pending schedule",
+  "ownership": {
+    "bundle_id": "dev.petari.Petari.perfm1b",
+    "immutable_source_read_only": true,
+    "user_cache_forbidden": "never enumerate/open ~/Library/Caches/AstralItalian*",
+    "cache_pair": "private root + owned Metal namespace initialized per pair, preserved exactly prime -> second; no intervening app/cache access"
+  },
+  "sequence": "four independent prime/second pairs, history OFF ON ON OFF; same exact perf binary/resources in all eight arms",
+  "arms": [
+    {
+      "order": 1,
+      "pair": 1,
+      "role": "prime",
+      "history": "off",
+      "native_min_seconds": 315,
+      "fixed_comparison_seconds": 300,
+      "history_analysis": "OFF absence check",
+      "warm_from": null,
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    },
+    {
+      "order": 2,
+      "pair": 1,
+      "role": "second",
+      "history": "off",
+      "native_min_seconds": 870,
+      "fixed_comparison_seconds": 855,
+      "history_analysis": "OFF absence check",
+      "warm_from": "p1-prime",
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    },
+    {
+      "order": 3,
+      "pair": 2,
+      "role": "prime",
+      "history": "on",
+      "native_min_seconds": 315,
+      "fixed_comparison_seconds": 300,
+      "history_analysis": "entire native lifetime",
+      "warm_from": null,
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    },
+    {
+      "order": 4,
+      "pair": 2,
+      "role": "second",
+      "history": "on",
+      "native_min_seconds": 870,
+      "fixed_comparison_seconds": 855,
+      "history_analysis": "entire native lifetime",
+      "warm_from": "p2-prime",
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    },
+    {
+      "order": 5,
+      "pair": 3,
+      "role": "prime",
+      "history": "on",
+      "native_min_seconds": 315,
+      "fixed_comparison_seconds": 300,
+      "history_analysis": "entire native lifetime",
+      "warm_from": null,
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    },
+    {
+      "order": 6,
+      "pair": 3,
+      "role": "second",
+      "history": "on",
+      "native_min_seconds": 870,
+      "fixed_comparison_seconds": 855,
+      "history_analysis": "entire native lifetime",
+      "warm_from": "p3-prime",
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    },
+    {
+      "order": 7,
+      "pair": 4,
+      "role": "prime",
+      "history": "off",
+      "native_min_seconds": 315,
+      "fixed_comparison_seconds": 300,
+      "history_analysis": "OFF absence check",
+      "warm_from": null,
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    },
+    {
+      "order": 8,
+      "pair": 4,
+      "role": "second",
+      "history": "off",
+      "native_min_seconds": 870,
+      "fixed_comparison_seconds": 855,
+      "history_analysis": "OFF absence check",
+      "warm_from": "p4-prime",
+      "preserve_private_cache": true,
+      "external_process_cap_seconds": 945
+    }
+  ],
+  "common_environment": {
+    "SDL_AUDIO_DRIVER": "coreaudio",
+    "PETARI_SMOKE_REAL_AUDIO": "1",
+    "PETARI_AUDIO_DIAG": "1",
+    "PETARI_AUDIO_WORKGROUP": "async",
+    "PETARI_AUDIO_WORKGROUP_DIAG": "1",
+    "PETARI_PIPELINE_DIAG": "1",
+    "PETARI_TRACE_BOOT": "0",
+    "PETARI_FRAME_STATS": "1",
+    "PETARI_MODS": "none",
+    "PETARI_TITLE_OBSERVE": "1"
+  },
+  "per_arm_environment": {
+    "PETARI_TITLE_OBSERVE_MIN_SECONDS": "315 prime / 870 second",
+    "PETARI_GAME_WAIT_HISTORY": "0 OFF / 1 ON",
+    "PETARI_GAME_WAIT_HISTORY_FILE": "absent OFF / unique new absolute arm/game-wait.jsonl ON",
+    "PETARI_FRAME_CSV": "unique arm/frames.csv",
+    "PETARI_ROUTE_RECORD": "unique arm/route.csv",
+    "PETARI_CACHE_DIR": "same pair-owned private cache for prime and second"
+  },
+  "environment_policy": "allowlist experiment settings, remove inherited history/GPU trace/probe/script/replay/toggle variables; record explicit values and absences; defaults identical",
+  "process": {
+    "detached": "bash + nohup + setsid/double-fork; verify driver/app PIDs, nice 0",
+    "locks": "per individual arm lockf -k m1-heavy then native; no outer cohort lock, but exclusive scheduled cohort with no foreign build/app in gaps",
+    "quiet": "load1 and load5 <=8, no active native build/app, each Metal compiler CPU delta <0.05 s over 10s; bounded wait <=900 s/arm; retain every sample; camera retained",
+    "quit": "native TitleObservation only; no key/pointer/AX/AppleEvent quit; abnormal/timeout is failure, no replacement"
+  },
+  "trigger": {
+    "phase": "matched RETRACE_DONE -> END_FRAME, exact native steady ns and calling-thread CPU",
+    "wall_strictly_greater_ms": 100,
+    "cpu_strictly_less_percent_wall": 10,
+    "near_miss": "every matched phase >50ms which is not a trigger: exactly one summary, no window",
+    "pre_seconds": 2,
+    "post_seconds": 0.25,
+    "history_cells": 65536,
+    "binding_cells": 128,
+    "max_recorder_storage_bytes": 33554432,
+    "max_output_bytes": 67108864,
+    "max_windows": 16,
+    "long_span_filter_us": 250
+  },
+  "reports": {
+    "full_lifetime": "all summaries/windows, all CoreAudio positive lines/reports and their exposure; never trim to improve a verdict",
+    "comparison": "prime fixed300 and warm fixed855 frame windows, separate strata; explicit native clock mapping and crossing-row policy, no cumulative rounded-time causal join",
+    "metrics": [
+      "frame count/exposure, median/p95/p99/max and >50/>100/>250 counts",
+      "available whole-frame main/render CPU per frame, game_work/retrace/draw_done/token/pipeline/capture/API spans",
+      "main-loop/splash/graphics preparation completion and post100 compile-free pacing (existing tier m1 scorer)",
+      "audio total reports, positive reports, every positive line and total underrun frames, printed report-window exposure",
+      "trigger/near-miss counts and rates per minute matched phase exposure ON; OFF matched CPU phase metric unavailable",
+      "writer bytes/windows/work brackets, dropped/invalid/filtered/coverage counters, VM/run-state/window samples"
+    ],
+    "neutrality": "descriptive paired and pooled OFF/ON deltas incl tails/audio; no automatic neutral PASS or causal verdict; PORT review before further capture"
+  },
+  "stop_rules": [
+    "no launch without all pending bindings, PORT schedule/GO, app checks, A release and all eight-arm no-app preflight",
+    "stop chain on identity/cache/nice/quiet/process/timeout/observation/report-count failure; preserve actual receipt, no retries/replacement",
+    "stop chain after an ON transport/protocol refusal, missing footer, drops/invalid/clipped/capped/missing phase/binding/window failure; no eligible attribution from it",
+    "rare stalls and audio positives remain failures/observations under existing gates but do not adapt or extend this fixed diagnostic cohort; no suppressive stopping/rerun-until-clean",
+    "zero triggers is COMPLETE_NO_TRIGGER, not a diagnosed cause or evidence that stalls are fixed",
+    "after eight arms stop, reap owned children, check locks/PIDs and write RELEASE.json; hand off only on verified release; no automatic follow-on build/capture"
+  ],
+  "acceptance_claimed": false
+}

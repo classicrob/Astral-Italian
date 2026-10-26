@@ -1,0 +1,80 @@
+{
+  "kind": "rare-stall-recording-specification-v1",
+  "state": "NON_LAUNCHABLE_UNBOUND",
+  "launch_allowed": false,
+  "required_bindings": [
+    "PORT-selected full integrated freeze SHA (main + cache a7df3c38 + closed tape contract + accepted audio fix)",
+    "full recorder instrument SHA (selected freeze + recorder-only commits)",
+    "immutable instrument BUILD.json and original executable SHA256",
+    "M4 candidate admission16 + tape suite including native_tape_normal_observation PASS receipts",
+    "immutable M1 instrument path + owned perf-copy PREP/resource/exe hashes",
+    "disc and fresh-empty-user start contract",
+    "final tools/policy/source hashes",
+    "new output, private cache, never-used Metal namespace and selected M1 slot"
+  ],
+  "execution": {
+    "recording": "warm private cache; native actual SDK reads, no legacy conversion",
+    "input_delivery": "self-contained native producer only; no host/AX/TCC input",
+    "native_schema": 2,
+    "tail_policy": "native-neutral-controls-v1",
+    "tail_minimum_wall_seconds": 180,
+    "power": "real callback at existing post-row control seam",
+    "strict_shutdown": true,
+    "canonical_admission": "raw KPD/connection/phase/RNG/state/counters/power/complete footer audit; no normalization",
+    "locks": [
+      "m1-heavy",
+      "native"
+    ],
+    "nice": 0,
+    "quiet": "load1/load5<=8 and Metal CPU delta<0.05s over10s",
+    "fresh_user": true,
+    "mods": "none",
+    "production_env": {
+      "PETARI_PIPELINE_DIAG": "0",
+      "PETARI_TRACE_BOOT": "0",
+      "PETARI_SMOKE_IGNORE_PHYSICAL": "1",
+      "PETARI_SMOKE_REAL_AUDIO": "1",
+      "PETARI_AUDIO_DIAG": "1",
+      "PETARI_INPUT_SCRIPT_RECORD_TAIL_SECONDS": "180"
+    }
+  },
+  "baseline": {
+    "attempts": 1,
+    "scope": "this case only; independent of the other case plan",
+    "cache": "truly cold private recipe/Dawn + never-used owned Metal namespace",
+    "exact_replay": true,
+    "gameplay_over100ms_allowed": 0,
+    "real_audio": true,
+    "minimum_audio_reports": 50,
+    "underrun_frames_allowed": 0,
+    "observation_minimum_seconds": 90,
+    "classification": "unchanged native gameplay phase; all rows incl. tail/shutdown strict",
+    "on_failure": "stop THIS plan; retain actual failure; no retries or acceptance relabeling"
+  },
+  "lifecycle": "Specification only. Final PLAN.json and its SHA are created only after every required binding is supplied; nothing here launches an app.",
+  "case": "IslandFleetGalaxy",
+  "scenario": 1,
+  "expected_baseline": {
+    "result": "MAY_FAIL",
+    "reason": "retained111.386ms draw_done/uploads/game; no claim that missing pipelines caused it"
+  },
+  "producer": {
+    "mode": "first-visit-neutral-observation",
+    "script": null,
+    "environment": {
+      "PETARI_TAPE_RECORD_ISLAND_NORMAL_PACKETS": "14400"
+    },
+    "normal_packets": 14400,
+    "minimum_valid_packets": 13292,
+    "clock": "existing schema2 pre-read controller-Normal; first marker + consecutive input frames",
+    "tail_trigger": "pending packet14400 completion -> existing post-row control seam",
+    "forbidden": [
+      "script path",
+      "unlocked user fixture",
+      "intro/talk skip",
+      "host pointer",
+      "legacy replay conversion"
+    ]
+  },
+  "original_receipt": "m1g/runs/solb-00221126-acceptance-r1-542-spot-9-IslandFleetGalaxy-r1/RESULT.json"
+}

@@ -90,6 +90,11 @@ and no power before180s or outside the control seam. It is registered and added
 explicitly to `test_tape_anchors543.sh`, alongside the six existing tape tests.
 No native test has been compiled or executed in this source-only handoff.
 
+Subsequent PORT validation on the SERVER at **exactly b532b674** passed the
+native tape suite7/7 (including normal_observation) and8 Python suites. Record:
+`win54/build-records/rsr543-b532b674-tests`; worktree removed. No app build/run or
+recording occurred. This validates the draft, not an unselected freeze source.
+
 Python source guards check the default/replay-off hook, existing pre-read phase
 ordering, no game reads/input/power in the count hook, the unchanged post-row
 control scope, fixed count/config and native policy. They supplement the future
@@ -100,3 +105,12 @@ stop before Island. Do not claim Island coverage from an unrun arm. Any
 separately scheduled one-shot Island baseline must have its own frozen plan;
 it is not a retry of failed VsKoopa or continuation relabelled as acceptance.
 Resolve those measurement plans with PORT after source review and slot release.
+
+The separate specifications are
+`rare-stall-543/VSKOOPA-RECORDING-SPEC.json` and
+`rare-stall-543/ISLAND-RECORDING-SPEC.json`. Both explicitly say
+`NON_LAUNCHABLE_UNBOUND` / `launch_allowed=false`, name required bindings, and
+carry no guessed freeze/instrument/executable SHA. PORT confirmed that no
+integrated freeze head exists yet: it waits for the audio fix. Only after PORT
+names that source and provides the separately tested SERVER recorder build and
+immutable M1 BUILD/admission paths can either final PLAN be frozen and hashed.

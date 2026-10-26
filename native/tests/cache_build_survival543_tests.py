@@ -60,6 +60,40 @@ class ProofTests(unittest.TestCase):
         for field in ('persistence','checkpoint','close'):
             with self.assertRaises(RuntimeError):p.log_evidence(self.log().replace(field+'=0',field+'=5'))
         with self.assertRaises(RuntimeError):p.log_evidence(self.log()+'[pipeline artifacts close] persistence=0 checkpoint=0 close=0\n')
+    def title_log(self,ready=10,finished=120.017):
+        def event(name,frame,elapsed):
+            return (f'[graphics preparation] event={name} version=1 frame={frame} '
+                f'clock=frame-csv-interval source=ui-specialized-global elapsed_s={elapsed:.6f} '
+                'polled=1 valid=1 visible=0 complete=1 done=2525 total=2525\n')
+        return event('initial',1,0)+event('actual-global-100',100,ready)+event('title-observation-complete',10000,finished)
+    def test_title_minimum_and_late_completion_are_distinct_boundaries(self):
+        warm=p.title_observation(self.title_log())
+        self.assertEqual(warm['first_eligible_elapsed_s'],120)
+        self.assertAlmostEqual(warm['observed_post_global_100_seconds'],110.017)
+        # Synthetic regression fixture: a cold global-100 at 157.48 means the
+        # correct stop is ~187.5, not 120. The r3 raw report is server-retained.
+        cold=p.title_observation(self.title_log(157.48,187.496997))
+        self.assertAlmostEqual(cold['first_eligible_elapsed_s'],187.48)
+        self.assertAlmostEqual(cold['observed_post_global_100_seconds'],30.016997)
+        self.assertEqual(p.title_observation(self.title_log().replace('done=2525','done=2526'))['first_eligible_elapsed_s'],120)
+    def test_title_early_or_late_stop_rejected(self):
+        for ready,finished in [(10,119.999),(157.48,120),(157.48,187.479),(10,121.001),(157.48,188.481)]:
+            with self.subTest(ready=ready,finished=finished),self.assertRaises(RuntimeError):
+                p.title_observation(self.title_log(ready,finished))
+    def test_title_missing_duplicate_or_reordered_markers_rejected(self):
+        lines=self.title_log().splitlines(True)
+        for index in range(3):
+            with self.subTest(missing=index),self.assertRaises(RuntimeError):p.title_observation(''.join(lines[:index]+lines[index+1:]))
+            with self.subTest(duplicate=index),self.assertRaises(RuntimeError):p.title_observation(''.join(lines)+lines[index])
+        with self.assertRaises(RuntimeError):p.title_observation(lines[1]+lines[0]+lines[2])
+        with self.assertRaises(RuntimeError):p.title_observation(self.title_log()+'[graphics preparation] event=title-observation-timeout\n')
+    def test_title_invalid_completion_or_clock_rejected(self):
+        for old,new in [('polled=1','polled=0'),('valid=1','valid=0'),('complete=1','complete=0'),('done=2525','done=2524'),
+                        ('total=2525','total=0'),('version=1','version=2'),('clock=frame-csv-interval','clock=unknown'),
+                        ('source=ui-specialized-global','source=unknown'),('elapsed_s=0.000000','elapsed_s=1.000000'),
+                        ('elapsed_s=10.000000','elapsed_s=nan'),('elapsed_s=10.000000','elapsed_s=inf'),
+                        ('frame=10000','frame=100'),('version=1','version=1 version=1')]:
+            with self.subTest(field=old,value=new),self.assertRaises(RuntimeError):p.title_observation(self.title_log().replace(old,new))
     def png(self,name,change=False):
         def chunk(kind,body):return struct.pack('>I',len(body))+kind+body+struct.pack('>I',zlib.crc32(kind+body)&0xffffffff)
         rows=bytearray()

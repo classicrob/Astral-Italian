@@ -2,9 +2,12 @@
 
 PORT's first proof refused at the quiet precondition (no app launched). The
 second stopped at A-cold-title because the normal power exit bypassed Aurora's
-artifact report/close. Both original outputs remain preserved as failures. This
-handoff fixes that exit path and requires new builds and a new output directory;
-it makes no runtime survival claim. PORT chooses the quiet build/proof window;
+artifact report/close. The third verified that report and successful close on
+the real app, then stopped on an incorrect runner timing predicate: it treated
+the title observer's minimum as an exact total duration. All original outputs
+remain preserved as failures. The tools-only timing correction uses the same
+three r3 builds below and a new output directory; no rebuild is needed. It makes
+no runtime survival claim. PORT chooses the quiet build/proof window;
 SOL A retains the M1 measurement slot. All results, failures and caches remain.
 No rerun loop, cache clearing, host input, AX driver or TCC request is used.
 
@@ -38,7 +41,7 @@ quiet window (the runner rejects inherited nice5):
 ```sh
 bash tools/port/server_cache_survival543.sh \
   /absolute/A_BUILD_DIR /absolute/B_BUILD_DIR /absolute/NEGATIVE_BUILD_DIR \
-   "$HOME/MacioGalaxy2-gamedata/port53/m1g/cache-survival-543-r3" \
+  "$HOME/MacioGalaxy2-gamedata/port53/m1g/cache-survival-543-r4" \
   "$HOME/MacioGalaxy2-gamedata/SB4E01-extracted" \
   "$HOME/MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture"
 ```
@@ -75,8 +78,27 @@ A close/checkpoint failure fails the arm. The recipe writer's separate lifecycle
 is unchanged; this proof does not claim full renderer shutdown occurs at power
 exit. The older r1/r2 receipts and original throwaway branches stay preserved.
 
-Title observations self-end at120..121 native seconds from the first game-loop
-observation, using the existing title-observation path. Stage is scenario1
+Title arms explicitly set `PETARI_TITLE_OBSERVE=1` and
+`PETARI_TITLE_OBSERVE_MIN_SECONDS=120`. The latter is a **minimum**, not an exact
+duration. `frame_seam.cpp` logs `elapsed_s` from its first graphics-observation
+composition seam (the `initial` event at zero), not Popen, title-first-draw, or
+the end of frontend preparation. The unchanged native `TitleObservation` waits
+for both that minimum and 30 seconds after actual global 100%, then requests quit
+on the subsequent seam. Its own default minimum is 315 seconds if the env is
+absent; the runner supplies 120 explicitly in every title launch receipt.
+
+The scorer requires one `initial`, one valid `actual-global-100`, and one valid
+`title-observation-complete`, in order with the same version/clock/source. Both
+completion markers must report polled/valid/complete and done>=total>0, matching
+the native observer's predicate. Completion
+must be at `max(120, global_100.elapsed_s + 30)` through one second later (the
+existing final-seam allowance). Raw markers, first-eligible time, post-100
+duration and final-seam delay are retained under `evidence.title_observation`.
+Missing/duplicate/invalid events, early/late completion or native timeout fail.
+For example, global 100% at157.48s correctly completes near187.5s. This changes
+the runner's interpretation, not native behavior or cache/render predicates.
+
+Stage is scenario1
 YosshiHomeGalaxy, 60 stable ready frames then **1800 neutral script frames**,
 with the existing script's in-app quit. All runs have a240s hard timeout. There
 is no control-bearing script input and the route must show zero move/button /

@@ -7,7 +7,7 @@ This is cache/visual evidence, not an audio or frame-threshold acceptance gate.
 """
 from pathlib import Path
 import argparse, contextlib, csv, fcntl, hashlib, json, os, platform, plistlib, re
-import shutil, sqlite3, struct, subprocess, sys, time, uuid, zlib
+import math, shutil, sqlite3, struct, subprocess, sys, time, uuid, zlib
 
 BASE='a8916f091fe1ae9463e58991fbed23bc63146518'
 A_SOURCES={BASE}
@@ -15,6 +15,8 @@ B_SOURCE='b6469004a6be12befec78c1ded7e407996365390'
 NEG_SOURCE='7366f125b8549c3a57baa917b1a99774f19fddcc'
 PROTOCOL='petari-pipeline-cache-v2'
 TITLE_SECONDS=120
+TITLE_POST_COMPLETE_SECONDS=30
+TITLE_FINAL_SEAM_ALLOWANCE_SECONDS=1
 STAGE_FRAMES=1800
 FAULT=re.compile(r'FATAL|AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:|unhandled tcg')
 
@@ -92,6 +94,42 @@ def log_evidence(text):
         recipe_accepted=sum(int(x[1]) for x in recipes),recipe_rejected=sum(int(x[2]) for x in recipes),
         prep=fields,splash_duration_ms=float(one(r'\[gx boot splash frames\][^\n]* elapsed_ms=([\d.]+)',text,'splash duration')),
         observed_artifact_path=one(r'\[pipeline artifacts open\] path=(.+) namespace='+artifact+r' legacy=not-adopted',text,'artifact path'))
+
+def title_observation(text):
+    """Match native TitleObservation: minimum total AND 30s after global 100%.
+
+    All event elapsed_s values use the first graphics-observation seam as zero,
+    not Popen, first title draw, or the end of pre-present frontend preparation.
+    """
+    need('event=title-observation-timeout' not in text,'native title observation timed out')
+    events={}
+    positions={}
+    for event in ('initial','actual-global-100','title-observation-complete'):
+        matches=list(re.finditer(r'\[graphics preparation\] event='+re.escape(event)+r' ([^\n]+)',text))
+        need(len(matches)==1,f'title {event}: expected one observation, got {len(matches)}')
+        pairs=re.findall(r'(\w+)=([^\s]+)',matches[0].group(1));fields=dict(pairs)
+        need(len(fields)==len(pairs),'duplicate title event field')
+        need(fields.get('version')=='1' and fields.get('clock')=='frame-csv-interval' and
+             fields.get('source')=='ui-specialized-global','unknown title event clock/schema')
+        elapsed=float(fields['elapsed_s']);frame=int(fields['frame'])
+        need(math.isfinite(elapsed) and elapsed>=0 and frame>0,'invalid title event timestamp/frame')
+        events[event]=dict(elapsed_s=elapsed,frame=frame,fields=fields)
+        positions[event]=matches[0].start()
+    initial,ready,finished=(events[name] for name in ('initial','actual-global-100','title-observation-complete'))
+    need(positions['initial']<positions['actual-global-100']<positions['title-observation-complete'],'title event order')
+    need(initial['elapsed_s']==0 and initial['frame']<=ready['frame']<finished['frame'],'title observation origin/frame order')
+    for event in (ready,finished):
+        fields=event['fields']
+        need(fields.get('polled')==fields.get('valid')==fields.get('complete')=='1' and
+             int(fields['total'])>0 and int(fields['done'])>=int(fields['total']),'title completion is not actual global 100%')
+    earliest=max(TITLE_SECONDS,ready['elapsed_s']+TITLE_POST_COMPLETE_SECONDS)
+    need(earliest<=finished['elapsed_s']<=earliest+TITLE_FINAL_SEAM_ALLOWANCE_SECONDS,
+         'title did not finish at minimum-total/post-global-100 boundary')
+    return dict(policy='native-title-minimum-and-post-global-100-v1',events=events,
+        minimum_total_seconds=TITLE_SECONDS,post_global_100_seconds=TITLE_POST_COMPLETE_SECONDS,
+        first_eligible_elapsed_s=earliest,final_seam_delay_s=finished['elapsed_s']-earliest,
+        final_seam_allowance_seconds=TITLE_FINAL_SEAM_ALLOWANCE_SECONDS,
+        observed_post_global_100_seconds=finished['elapsed_s']-ready['elapsed_s'])
 
 def image(path):
     """Strict RGB8 PNG decoder; compare pixels exactly, not compression metadata."""
@@ -264,8 +302,7 @@ def run_arm(args,root,label,build,kind,mode,reference):
     need(Path(evidence['observed_artifact_path']).resolve().parent==cache,'cache path escaped private root')
     need(evidence['recipe']==build['recipe'],'launched recipe key differs from BUILD')
     if kind=='title':
-        elapsed=float(one(r'\[graphics preparation\] event=title-observation-complete[^\n]*elapsed_s=([\d.]+)',text,'fixed title completion'))
-        need(TITLE_SECONDS<=elapsed<=TITLE_SECONDS+1,'title did not finish in fixed native observation window')
+        evidence['title_observation']=title_observation(text)
         names=['xfb-boot-1200.png'];need('event=title_first_draw' in text,'no title draw')
     else:
         need(f'[input-script] done after {STAGE_FRAMES} frames' in text,'neutral script did not complete')
@@ -318,10 +355,12 @@ def main():
         need(a['pfd'] and inventory(args.fixture)==fixture_inventory,'fixture changed during prep')
         plan=dict(protocol='cache-build-survival543-v1',base=BASE,builds=dict(A=a,B=b,negative=neg),root=str(root),metal_namespace=str(namespace),bundle_id=own_id,
             fixture=str(args.fixture.resolve()),fixture_inventory=fixture_inventory,disc=str(args.disc.resolve()),machine=brand,nice=0,
-            title_native_seconds=TITLE_SECONDS,stage=args.stage,stage_frames=STAGE_FRAMES,script_sha256=sha(root/'neutral.script'),script_source_sha256=sha(__file__),
+            title_minimum_native_seconds=TITLE_SECONDS,title_post_global_100_seconds=TITLE_POST_COMPLETE_SECONDS,
+            title_final_seam_allowance_seconds=TITLE_FINAL_SEAM_ALLOWANCE_SECONDS,
+            stage=args.stage,stage_frames=STAGE_FRAMES,script_sha256=sha(root/'neutral.script'),script_source_sha256=sha(__file__),
             order=['A-cold-title','A-cold-stage','A-warm-stage','A-warm-title','B-stage','B-title','negative-stage','negative-title'],
             gates='exact pixels; accepted recipes; full-key hits; zero aggregate new stores/misses on B (stronger than only warmed-set check); negative misses/stores',
-            duration_policy='title120..121 native seconds after first game loop, stage1800 neutral gameplay frames; exact image pixels,240s hard timeout',
+            duration_policy='title ends at max(120s since first graphics-observation seam, actual-global-100 elapsed_s + 30s), plus <=1s final-seam allowance; stage1800 neutral gameplay frames; exact image pixels,240s hard timeout',
             prep_policy='record only; expected >=3 cached pipeline-object recreation splash frames; no literal no-splash predicate')
         write(root/'PLAN.json',plan)
         reference={}

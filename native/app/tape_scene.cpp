@@ -3,6 +3,7 @@
 #include "tape_play.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "smoke_observe_safety.hpp"
+#include "smoke.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemResetAndPowerProcess.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"
@@ -26,6 +27,7 @@ namespace PetariNative::App::TapeScene {
 namespace {
 std::uint64_t gFrame = 0, gLastRead = UINT64_MAX;
 bool gInstalled = false, gCaptureReplay = false;
+bool gRecordObservation = false;
 TapePhase::State observe() {
     TapePhase::State s; s.inputFrame = gFrame;
     const auto* system = SingletonHolder<GameSystem>::get();
@@ -76,6 +78,7 @@ void before(std::int32_t channel, std::uint32_t, void*) {
         }
     }
     TapeRecord::beforeRead(s);
+    if (gRecordObservation) Smoke::inputScriptRecordBeforeRead(s);
 }
 void after(std::int32_t channel, std::uint32_t capacity, std::int32_t returned, std::int32_t error,
            std::int32_t probe, std::uint32_t device, const void* buffer, void*) {
@@ -91,6 +94,8 @@ void install() {
     gCaptureReplay = capture && std::strcmp(capture,"1") == 0;
     const bool recording = TapeRecord::routePath() != nullptr;
     const bool phasedReplay = TapePlay::meta() && TapePlay::meta()->schema == 2;
+    const char* observation=std::getenv("PETARI_TAPE_RECORD_ISLAND_NORMAL_PACKETS");
+    gRecordObservation=observation && *observation && recording && !TapePlay::meta() && !gCaptureReplay;
     if (!recording && !phasedReplay) return;
     gInstalled = true;
     Input::TapeObserver::install({before,after,nullptr});

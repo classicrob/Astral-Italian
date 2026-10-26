@@ -32,6 +32,7 @@
 #include "smoke.hpp"
 #include "tape_record.hpp"
 #include "tape_script_record.hpp"
+#include "record_normal_observation.hpp"
 
 namespace PetariNative::App::Smoke {
 namespace {
@@ -58,20 +59,40 @@ struct InputScript {
     std::vector<PointerAtValid> pointers;
     unsigned mapValidRows=0;
     std::size_t nextPointer=0;
+    bool observeNative=false, observationCompletePending=false;
+    const char* observationError=nullptr;
+    TapeScriptRecord::IslandNormalObservation normalObservation;
 };
 
 InputScript& script() {
     static InputScript s = [] {
         InputScript s;
         const char* path = std::getenv("PETARI_INPUT_SCRIPT");
-        if (path == nullptr || path[0] == '\0') return s;
+        const char* observe=std::getenv("PETARI_TAPE_RECORD_ISLAND_NORMAL_PACKETS");
+        const bool wantObservation=observe && *observe;
+        if ((path == nullptr || path[0] == '\0') && !wantObservation) return s;
         if (const char* v = std::getenv("PETARI_INPUT_SCRIPT_STEADY")) s.steadyNeeded = std::atoi(v);
         if (const char* tail=std::getenv("PETARI_INPUT_SCRIPT_RECORD_TAIL_SECONDS")) {
             char* end=nullptr;const auto seconds=std::strtoull(tail,&end,10);
             if (!*tail || *end || seconds<180 || seconds>1200 || !TapeRecord::routePath() || std::getenv("PETARI_TAPE_PLAY")) {
-                std::fprintf(stderr,"[input-script] invalid native recorder tail mode; ignored\n");return InputScript{};
+                std::fprintf(stderr,"[input-script] invalid native recorder tail mode; ignored\n");
+                if (wantObservation) std::abort();
+                return InputScript{};
             }
             s.recordNative=true;s.tail=TapeScriptRecord::Tail(seconds);
+        }
+        if (wantObservation) {
+            // There is deliberately one approved case, not a start/ready override
+            // for normal scripts. Bad producer configuration exits nonzero.
+            if (std::strcmp(observe,"14400")!=0 || (path && *path) || !s.recordNative ||
+                !std::getenv("PETARI_TAPE_RECORD") || std::getenv("PETARI_TAPE_PLAY")) {
+                std::fputs("[tape native observation] invalid recorder-only configuration\n",stderr);
+                std::abort();
+            }
+            s.observeNative=true;s.phase=Phase::Wait;
+            TapeRecord::setNeutralTailPolicy(TapeNeutral::Policy::NativeControls);
+            std::fputs("[tape native observation] armed stage=IslandFleetGalaxy scenario=1 packets=14400\n",stderr);
+            return s; // no script, readiness override, pointer or player access
         }
         std::ifstream in(path);
         std::string text;
@@ -177,6 +198,7 @@ void finish(InputScript& s, const char* why) {
 
 bool inputScriptFrame() {
     InputScript& s = script();
+    if (s.observeNative) return true; // suppress other smoke/point inputs; never type a key
     if (s.phase == Phase::Off) return false;
     if (s.phase == Phase::Done) return s.recordNative;
     if (!sceneReadable()) {
@@ -231,9 +253,42 @@ bool inputScriptFrame() {
 }  // namespace PetariNative::App::Smoke
 
 namespace PetariNative::App::Smoke {
+namespace {
+bool nativeControlsNeutral() {
+    const auto input=Input::boundState();
+    return input.moveX==0 && input.moveY==0 && !input.jump && !input.spin && !input.crouch &&
+        !input.cameraLeft && !input.cameraRight && !input.cameraCenter && !input.cameraUp && !input.cameraDown && !input.shoot && !input.pointerValid;
+}
+}
+void inputScriptRecordBeforeRead(const TapePhase::State& state) {
+    auto& s=script();
+    if (!s.observeNative || s.observationError || s.tailRejected) return;
+    const auto action=s.normalObservation.step(state,nativeControlsNeutral());
+    if (action==TapeScriptRecord::IslandNormalObservation::Reject) {
+        s.observationError=s.normalObservation.error();return; // rejection/power ONLY at the control seam
+    }
+    if (action==TapeScriptRecord::IslandNormalObservation::Began || action==TapeScriptRecord::IslandNormalObservation::Complete) {
+        std::fprintf(stderr,"[tape native observation] event=%s input_frame=%llu packets=%llu valid_packets=%llu first_input_frame=%llu\n",
+            action==TapeScriptRecord::IslandNormalObservation::Began?"begin":"complete",
+            (unsigned long long)state.inputFrame,(unsigned long long)s.normalObservation.count(),
+            (unsigned long long)s.normalObservation.valid(),(unsigned long long)s.normalObservation.first());
+    }
+    if (action==TapeScriptRecord::IslandNormalObservation::Complete) s.observationCompletePending=true;
+}
 void inputScriptRecordSeam(const char* stage,bool valid) {
     auto& s=script();
     if (!s.recordNative || s.tailRejected) return;
+    if (s.observationError) {
+        TapeRecord::rejectSessionControl(s.observationError);s.tailRejected=true;
+        std::fprintf(stderr,"[tape native observation] rejected: %s\n",s.observationError);
+        Host::requestQuit();return;
+    }
+    if (s.observationCompletePending) {
+        s.observationCompletePending=false;s.phase=Phase::Done;
+        hold(s,{});Input::mouseLeft();
+        if (!s.tail.queue()) {TapeRecord::rejectSessionControl("duplicate observation tail queue");s.tailRejected=true;Host::requestQuit();return;}
+        std::fputs("[tape native observation] event=tail-queued at=post-row-control-seam\n",stderr);
+    }
     if (valid && std::strcmp(stage,"WorldMap01Galaxy")==0) {
         ++s.mapValidRows;
         if (s.nextPointer<s.pointers.size() && s.mapValidRows==s.pointers[s.nextPointer].row) {
@@ -243,9 +298,7 @@ void inputScriptRecordSeam(const char* stage,bool valid) {
             std::fprintf(stderr,"[input-script pointer] map_valid_rows=%u x=%g y=%g off=%d\n",s.mapValidRows,p.x,p.y,p.kind==TapeScriptRecord::Pointer::Off);
         }
     }
-    const auto input=Input::boundState();
-    const bool neutral=input.moveX==0 && input.moveY==0 && !input.jump && !input.spin && !input.crouch &&
-        !input.cameraLeft && !input.cameraRight && !input.cameraCenter && !input.cameraUp && !input.cameraDown && !input.shoot && !input.pointerValid;
+    const bool neutral=nativeControlsNeutral();
     const auto now=[] {return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());};
     const auto action=s.tail.step(now(),true,neutral);
     if (action==TapeScriptRecord::Tail::Begin) {

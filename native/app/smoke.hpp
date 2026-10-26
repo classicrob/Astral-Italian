@@ -127,6 +127,7 @@
 #include <string>
 #include <vector>
 
+namespace PetariNative::App::TapePhase { struct State; }
 namespace PetariNative::App::Smoke {
 
 // Physical (hardware) input since launch, counted by the app's event handler
@@ -484,6 +485,7 @@ bool figureProbeFrame();
 // input layer once normal play is steady; stepped by pointProbeFrame (true while it types).
 bool inputScriptFrame();
 void inputScriptRecordSeam(const char* stage,bool valid);
+void inputScriptRecordBeforeRead(const TapePhase::State& state);
 // collision_probe.cpp (SDK side): PETARI_COLLISION_PROBE, a read-only map
 // collision survey for offline route planning; stepped by observeGame.
 bool collisionProbeActive();

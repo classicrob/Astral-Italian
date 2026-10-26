@@ -1,5 +1,10 @@
 # Priority 3 design note: native rare-stall regression tapes
 
+**Expected baseline: FAIL for VsKoopa's258ms missing first-use pipeline until
+item(c) seeds the three deferred keys.** Island's111ms draw_done/uploads/game
+stall may fail for a different reason. Preserve those failures; they are the
+regression baseline, not grounds for reclassification or retries.
+
 Cache compatibility's runtime mechanism passed M4 r5 (8/8). This is the design
 handoff for the next priority, for PORT review before implementation/recording.
 No recording/build/run is queued. SOL A retains the M1 audio slot. The VsKoopa

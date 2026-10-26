@@ -55,7 +55,7 @@ def evaluate(lines, observation=True):
                 gen = int(f["generation"])
                 raw = int(f["raw_shortfall_device_frames"])
                 require(raw == 0, "raw device-frame shortfall")
-                for key in ("faults", "timeline_faults", "invalid_timestamps", "overloads"):
+                for key in ("faults", "timeline_faults", "host_timeline_faults", "invalid_timestamps", "overloads"):
                     require(int(f[key]) == 0, f"nonzero {key}")
                 require(f["healthy"] == "1", "native audio unhealthy")
                 require(f["underrun_unit"] == "guest-equivalent-cumulative-ceil", "unidentified counter units")
@@ -135,7 +135,9 @@ def evaluate(lines, observation=True):
                 dumps += 1; dump = None
                 # Bounded overlap cache, not the entire multi-GB history.
                 seen = {seq: value for seq, value in seen.items() if seq > latest_seq - 65536}
-                callback = {key: value for key, value in callback.items() if key[1] > 0 and len(callback) <= 24576}
+                if len(callback) > 24576:
+                    errors.add("callback analysis retention bound exceeded")
+                    callback.clear()
     except (ValueError, KeyError, TypeError, OverflowError):
         errors.add("malformed or missing required evidence field")
     require(backend, "real DefaultOutput provenance missing")

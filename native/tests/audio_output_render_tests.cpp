@@ -1,4 +1,5 @@
 #include "../audio/output_au_render.hpp"
+#include "../audio/output_au_observer.hpp"
 #include "../platform/audio/workgroup_history.hpp"
 #include "../platform/audio/workgroup_history_store.hpp"
 #include <petari/platform/audio_workgroup.hpp>
@@ -8,6 +9,7 @@
 #include <cstdio>
 #include <pthread.h>
 #include <thread>
+#include <mach/mach_time.h>
 using namespace PetariNative::AudioOutputAU::Detail;
 namespace WG=PetariNative::Platform::AudioWorkgroup;
 extern "C" void petari_au_guard_enter();
@@ -17,16 +19,17 @@ static unsigned eventCount=0;
 static std::uint64_t ticks=100;
 static std::uint64_t clockRead() noexcept { return ticks+=100; }
 static void observe(const RenderEvent& e) noexcept { assert(eventCount<events.size()); events[eventCount++]=e; }
-static void actualPublisher(const RenderEvent& e) noexcept { WG::noteOutputRender(e.kind,e.mach,e.mach,e.ticket,e.generation,e.value); }
 static void* volatile escape=nullptr;
 struct Buffers { UInt32 count=2; AudioBuffer buffers[2]{}; };
 static void configure(RenderOwner& owner,RenderData& d,bool on) {
     assert(d.ring.configure(1024,0,2));
     d.maxFrames=256; d.generation=7; d.scratch.reset(new float[512]{});
     d.observing=on; d.clock=clockRead; d.publish=observe; d.gapTriggerTicks=100000;
+    d.hostTicksPerFrame=1;
     owner.published.store(&d);
 }
 static OSStatus guarded(RenderOwner& owner,Buffers& buffers,AudioTimeStamp& timestamp,UInt32 frames,AudioUnitRenderActionFlags& flags) {
+    if(timestamp.mFlags&kAudioTimeStampHostTimeValid) timestamp.mHostTime=1000+static_cast<std::uint64_t>(timestamp.mSampleTime);
     petari_au_guard_enter();
     const auto result=render(&owner,&flags,&timestamp,0,frames,reinterpret_cast<AudioBufferList*>(&buffers));
     const auto violations=petari_au_guard_leave();
@@ -79,6 +82,8 @@ int main() {
         assert(guarded(owner,b,timestamp,32,flags)==kAudioUnitErr_CannotDoInCurrentContext);
         owner.consumer.clear(); assert(owner.faults.load()&Reentrant);
         owner.published.store(nullptr);
+        assert(guarded(owner,b,timestamp,32,flags)!=noErr); // undersized closed-owner buffer cannot claim filled
+        b.buffers[1].mDataByteSize=1024;
         assert(guarded(owner,b,timestamp,32,flags)==noErr && owner.readers.load()==0);
         if(!on) assert(eventCount==0 && ticks==100);
         else assert(eventCount>0 && ticks>100);
@@ -86,13 +91,23 @@ int main() {
     // The actual workgroup publisher, not only a fixture publisher, is inside
     // the guard on the observer/shortfall/trigger paths. No report occurs here.
     WG::History::audioHistory.prepare();
-    RenderOwner owner; RenderData d; configure(owner,d,true); d.publish=actualPublisher;
+    mach_timebase_info_data_t timebase{}; assert(mach_timebase_info(&timebase)==KERN_SUCCESS);
+    configureObserverClock(timebase.numer,timebase.denom,0);
+    RenderOwner owner; RenderData d; configure(owner,d,true);
+    d.publish=publishRenderEvent; d.clock=observerClock; d.gapTriggerTicks=0;
     std::array<float,256> l{},r{};
     Buffers b; b.buffers[0]={1,1024,l.data()}; b.buffers[1]={1,1024,r.data()};
-    AudioTimeStamp time{}; time.mFlags=kAudioTimeStampSampleTimeValid; AudioUnitRenderActionFlags flags=0;
+    AudioTimeStamp time{}; time.mFlags=kAudioTimeStampSampleTimeValid|kAudioTimeStampHostTimeValid; AudioUnitRenderActionFlags flags=0;
     assert(guarded(owner,b,time,256,flags)==noErr);
+    assert(!d.faults.load());
     time.mSampleTime=256; ticks+=200000;
     assert(guarded(owner,b,time,256,flags)==noErr);
+    // A host-time hole with CONTIGUOUS sample numbers is its own failure,
+    // independently of ring misses and without an observer clock syscall.
+    time.mSampleTime=512; time.mHostTime=999999;
+    petari_au_guard_enter();
+    assert(render(&owner,&flags,&time,0,256,reinterpret_cast<AudioBufferList*>(&b))==noErr);
+    assert(petari_au_guard_leave()==0 && d.hostTimelineFaults.load()==1 && (d.faults.load()&BadHostTimeline));
     // Repeated concurrent retire/publication uses the same callback. Its
     // retired owner remains alive until the reader has demonstrably returned.
     owner.published.store(nullptr);

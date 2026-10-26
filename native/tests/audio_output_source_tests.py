@@ -35,7 +35,7 @@ class Tests(unittest.TestCase):
     def test_actual_production_render_is_guarded_including_first_and_error_paths(self):
         test = (ROOT / "tests/audio_output_render_tests.cpp").read_text()
         self.assertIn("const auto result=render(", test)
-        for required in ("petari_au_guard_enter", "violations==0", "actualPublisher", "first", "OverLimit", "Reentrant", "BadTimeline"):
+        for required in ("petari_au_guard_enter", "violations==0", "publishRenderEvent", "observerClock", "first", "OverLimit", "Reentrant", "BadTimeline"):
             self.assertIn(required.lower(), test.lower())
 
 

@@ -13,15 +13,21 @@ bool validBuffers(AudioBufferList* buffers, unsigned channels, UInt32 frames) no
 }
 // Error paths may only zero caller-provided, bounded storage. Never substitute
 // generation scratch on a concurrent/reentrant invocation.
-void silence(AudioBufferList* buffers, UInt32 frames, AudioUnitRenderActionFlags* flags) noexcept {
+bool silence(AudioBufferList* buffers, UInt32 frames, AudioUnitRenderActionFlags* flags) noexcept {
+    bool complete=frames==0;
     if (buffers && buffers->mNumberBuffers <= 2 && frames <= 16384) {
+        complete=buffers->mNumberBuffers>0;
         for (unsigned c=0;c<buffers->mNumberBuffers;++c) {
             auto& b=buffers->mBuffers[c];
-            const auto count=std::min<std::uint64_t>(b.mDataByteSize/sizeof(float),std::uint64_t(frames)*b.mNumberChannels);
+            const auto channels=std::min<UInt32>(b.mNumberChannels,2);
+            const auto needed=std::uint64_t(frames)*channels;
+            const auto count=std::min<std::uint64_t>(b.mDataByteSize/sizeof(float),needed);
+            complete=complete && b.mNumberChannels>0 && b.mNumberChannels<=2 && (!frames || (b.mData && count==needed));
             if (b.mData) { auto* out=static_cast<float*>(b.mData); for(std::size_t n=0;n<count;++n) out[n]=0.f; }
         }
     }
     if (flags) *flags |= kAudioUnitRenderAction_OutputIsSilence;
+    return complete;
 }
 void observe(RenderData& d, unsigned kind, std::uint64_t value, std::uint64_t now) noexcept {
     d.publish({now,d.callbackTicket,d.generation,value,kind});
@@ -34,8 +40,9 @@ __attribute__((noinline)) OSStatus render(void* ref, AudioUnitRenderActionFlags*
     owner.readers.fetch_add(1,std::memory_order_seq_cst);
     auto* d=owner.published.load(std::memory_order_seq_cst);
     if (!d || !frames) {
-        silence(buffers,frames,flags);
-        owner.readers.fetch_sub(1,std::memory_order_seq_cst); return noErr;
+        const auto filled=silence(buffers,frames,flags);
+        owner.readers.fetch_sub(1,std::memory_order_seq_cst);
+        return filled ? noErr : kAudioUnitErr_CannotDoInCurrentContext;
     }
     if (owner.consumer.test_and_set(std::memory_order_acquire)) {
         owner.faults.fetch_or(Reentrant,std::memory_order_relaxed);
@@ -75,8 +82,33 @@ __attribute__((noinline)) OSStatus render(void* ref, AudioUnitRenderActionFlags*
             d->faults.fetch_or(MissingTimestamp,std::memory_order_relaxed);
         }
         if (time && (time->mFlags & kAudioTimeStampHostTimeValid)) {
+            // AudioTimeStamp describes the SAME sample/host point. RateScalar
+            // is actual / nominal host ticks per frame (SDK contract), not the
+            // inverse. No clock or kernel query is needed to check this axis.
+            const double scalar=(time->mFlags & kAudioTimeStampRateScalarValid) ? time->mRateScalar : 1.0;
+            if(!std::isfinite(scalar) || scalar<=0 || d->hostTicksPerFrame<=0) {
+                d->invalidTimestamps.fetch_add(1,std::memory_order_relaxed);
+                d->faults.fetch_or(MissingTimestamp,std::memory_order_relaxed); d->hostStarted=false;
+            } else {
+                if(d->hostStarted) {
+                    const double expected=d->previousFrames*d->hostTicksPerFrame*d->lastRateScalar;
+                    const double tolerance=(2.0+.001*d->previousFrames)*d->hostTicksPerFrame*d->lastRateScalar;
+                    const auto delta=time->mHostTime>=d->previousHost ? time->mHostTime-d->previousHost : 0;
+                    if(time->mHostTime<d->previousHost || std::fabs(double(delta)-expected)>tolerance) {
+                        d->hostTimelineFaults.fetch_add(1,std::memory_order_relaxed);
+                        d->faults.fetch_or(BadHostTimeline,std::memory_order_relaxed);
+                        d->badHostDelta.store(delta,std::memory_order_relaxed);
+                        d->expectedHostDelta.store(static_cast<std::uint64_t>(expected),std::memory_order_relaxed);
+                        if(on) observe(*d,51,BadHostTimeline,entry);
+                    }
+                }
+                d->hostStarted=true; d->previousHost=time->mHostTime; d->previousFrames=frames; d->lastRateScalar=scalar;
+            }
             d->hostTime.store(time->mHostTime,std::memory_order_relaxed);
             if (on) observe(*d,49,time->mHostTime,entry);
+        } else {
+            d->invalidTimestamps.fetch_add(1,std::memory_order_relaxed);
+            d->faults.fetch_or(MissingTimestamp,std::memory_order_relaxed); d->hostStarted=false;
         }
         if(flags) *flags &= ~kAudioUnitRenderAction_OutputIsSilence;
         for (unsigned c=0;c<d->ring.channels();++c) {
@@ -91,6 +123,7 @@ __attribute__((noinline)) OSStatus render(void* ref, AudioUnitRenderActionFlags*
         d->requested.fetch_add(frames,std::memory_order_relaxed);
         d->copied.fetch_add(got,std::memory_order_relaxed);
         d->shortfalls.fetch_add(frames-got,std::memory_order_relaxed);
+        d->lastFrames.store(frames,std::memory_order_relaxed);
         d->callbacks.fetch_add(1,std::memory_order_release);
         if (d->mute || !got) { if(flags) *flags|=kAudioUnitRenderAction_OutputIsSilence; }
         if (on) {

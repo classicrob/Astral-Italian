@@ -26,6 +26,9 @@ aq543-c1276e5b. No root src/include/libs or game/tape sources change.
 * `audio_workgroup_rt.cpp`: the real shared flight-history publisher, isolated
   so the prohibited-call fixture tests it as well as the production callback.
   All OS policy/adoption/report code remains outside this TU.
+* `output_au_observer.*`: the actual outlined observer clock and publisher,
+  exercised by the same prohibited-call guard. Clock calibration is configured
+  on the control path after the preceding generation is quiescent.
 
 The SDL facade preserves start/stop/active/mute/submitted operations and the
 existing SDL background-mute hint. Unrecognized selectors refuse explicitly;
@@ -50,6 +53,16 @@ insufficient for AU. No threshold is reduced and no old receipt is relabeled.
 Before promotion the common functional collector must require these AU health
 checks on its AU arms too; this source handoff does not claim that integration
 or acceptance has already happened.
+
+The supplied host timestamp is checked independently against the preceding
+slice's frame count, negotiated rate and timestamp rate scalar. Its tolerance
+is two frames plus 0.1% of that slice; this is a diagnostic tolerance, not a
+pacer or cushion change. Contiguous sample numbers cannot hide a host-timeline
+hole. The independent control-path progress watchdog runs in both observer
+modes: two seconds for initial startup, then the larger of 50 ms or two actual
+requested slices plus the 25 ms control poll. It does not treat the unit's
+allocation maximum as its callback cadence. Exact production codegen and
+hardware validation of these health checks remain pending.
 
 The per-generation and final reports retain the ring minimum, with its basis
 explicitly `consumer-snapshot`, in frames and milliseconds. All generations
@@ -131,6 +144,14 @@ the initially inert in-executable interposer. The fixes address their mechanism;
 assertions and zero-underrun predicates are unchanged. Final source/executable
 hashes and commands are in the newest completed receipt. This is source/fixture
 validation, not hardware recovery, latency or pacing acceptance.
+
+Final local receipt: `port53/m1g/build-reports/sola-output-au-source-r11/RESULT.json`:
+PASS, seven changed-TU syntax checks and all four compiled CPU fixture groups;
+source hashes unchanged during the checks, no foreign native process observed.
+The production callback fixture includes the actual observer clock/publisher
+and shared history writer. All 38 Python checks also pass (output source/report,
+GPU trace patch, workgroup source/report and transport report). Earlier receipts
+remain preserved. No app target or real output device was run locally.
 
 PORT server build/test request: normal build542 app/weak-import, the six new
 ctests, then existing audio/DSP/pacing/boot/present, workgroup/history, GPU trace

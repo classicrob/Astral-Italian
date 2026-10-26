@@ -499,6 +499,7 @@ endif()
 add_library(petari_audio_sdl STATIC "${CMAKE_SOURCE_DIR}/native/audio/sdl_sink.cpp"
     "${CMAKE_SOURCE_DIR}/native/audio/output_au_control.cpp"
     "${CMAKE_SOURCE_DIR}/native/audio/output_au_render.cpp"
+    "${CMAKE_SOURCE_DIR}/native/audio/output_au_observer.cpp"
     "${CMAKE_SOURCE_DIR}/native/audio/output_au_converter.cpp")
 target_link_libraries(petari_audio_sdl PUBLIC petari_platform_audio PRIVATE SDL3::SDL3 petari_host_runtime)
 petari_link_audio_frameworks(petari_audio_sdl)
@@ -524,6 +525,7 @@ if(_petari_build_testing)
     set_target_properties(petari_audio_output_rt_guard PROPERTIES MACOSX_RPATH ON INSTALL_NAME_DIR "@rpath" BUILD_WITH_INSTALL_NAME_DIR ON)
     add_executable(petari_audio_output_render_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_render_tests.cpp"
         "${CMAKE_SOURCE_DIR}/native/audio/output_au_render.cpp"
+        "${CMAKE_SOURCE_DIR}/native/audio/output_au_observer.cpp"
         "${CMAKE_SOURCE_DIR}/native/platform/audio/audio_workgroup_rt.cpp")
     target_include_directories(petari_audio_output_render_tests PRIVATE "${CMAKE_SOURCE_DIR}/native/platform/include")
     target_compile_features(petari_audio_output_render_tests PRIVATE cxx_std_17)
@@ -533,6 +535,7 @@ if(_petari_build_testing)
     add_test(NAME native_audio_output_render COMMAND petari_audio_output_render_tests)
     add_executable(petari_audio_output_control_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_control_tests.cpp"
         "${CMAKE_SOURCE_DIR}/native/audio/output_au_control.cpp" "${CMAKE_SOURCE_DIR}/native/audio/output_au_render.cpp"
+        "${CMAKE_SOURCE_DIR}/native/audio/output_au_observer.cpp"
         "${CMAKE_SOURCE_DIR}/native/audio/output_au_converter.cpp")
     target_include_directories(petari_audio_output_control_tests PRIVATE "${CMAKE_SOURCE_DIR}/native/include" "${CMAKE_SOURCE_DIR}/native/platform/include")
     target_compile_definitions(petari_audio_output_control_tests PRIVATE PETARI_OUTPUT_AU_TESTING=1)

@@ -74,6 +74,10 @@ APPROVED_MONITOR_REVISION = '0970356053d0d1f3a52bba72711151f6b339a365'
 APPROVED_WORKGROUP_REVISION = '472665264e094e3b31c9483089a190a46175c27b'
 AUDIO_PATH = 'native/audio/sdl_sink.cpp'
 APPROVED_AUDIO_TRANSPORT_REVISION = 'c1276e5b8e29b00efcae8bc7d13fc44c8007b69f'
+# PORT-approved 3fc03a50 design: explicit opt-in facade, SDL default. Pin this
+# functional delta exactly, while proving the ENTIRE old SDL worker prefix
+# unchanged below. Never erase AU code by pattern as though it were tracing.
+APPROVED_AUDIO_OUTPUT_REVISION = '24872c59a24296466921685441dfc9e1012a5383'
 WORKGROUP_PATHS = {'native/platform/os/os_thread.cpp', 'native/platform/os/os_internal.hpp',
                    'native/platform/os/os_interrupts.cpp', 'native/audio/sdl_sink.cpp'}
 
@@ -152,7 +156,7 @@ class TracePatchTests(unittest.TestCase):
                 # The separately approved AQ/SDL diagnostic has its own cached
                 # flag. Pin its exact source; never erase those hooks as GPU
                 # tracing. The original GPU erasure proof remains below.
-                original = committed_source(APPROVED_AUDIO_TRANSPORT_REVISION, path)
+                original = committed_source(APPROVED_AUDIO_OUTPUT_REVISION, path)
             self.assertEqual(operation_tokens(original), operation_tokens(changed), path)
 
     def test_workgroup_baseline_retains_original_trace_erasure(self):
@@ -199,7 +203,7 @@ class TracePatchTests(unittest.TestCase):
     def test_audio_trace_preserves_ring_arguments_and_off_fallback(self):
         path = AUDIO_PATH
         changed = (ROOT / path).read_text()
-        original = committed_source(APPROVED_AUDIO_TRANSPORT_REVISION, path)
+        original = committed_source(APPROVED_AUDIO_OUTPUT_REVISION, path)
         self.assertEqual(operation_tokens(original), operation_tokens(changed))
         wrong = changed.replace('Audio::read(ring, buffer, static_cast<std::size_t>(count))',
                                 'Audio::read(ring, buffer, static_cast<std::size_t>(count + 1))')
@@ -237,6 +241,23 @@ class TracePatchTests(unittest.TestCase):
             self.assertNotEqual(expected, operation_tokens(approved.replace(before, after)), before)
         self.assertNotEqual(expected, operation_tokens(approved+'\nPetariNative::GpuTrace::nextId();\n'))
         self.assertEqual(expected, operation_tokens(approved+'\nPETARI_GPU_TRACE(PetariNative::GpuTrace::nextId());\n'))
+
+    def test_output_facade_keeps_entire_previous_sdl_worker_unchanged(self):
+        old = committed_source(APPROVED_AUDIO_TRANSPORT_REVISION, AUDIO_PATH)
+        approved = committed_source(APPROVED_AUDIO_OUTPUT_REVISION, AUDIO_PATH)
+        end = 'namespace PetariNative::AudioSDL {'
+        before = old[:old.index(end)]
+        after = approved[:approved.index(end)]
+        for added in ('#include <petari/audio_output_au.hpp>\n',
+                      'bool outputAUSelected=false; // chosen only by install(), before AI start\n'):
+            self.assertEqual(after.count(added), 1)
+            after = after.replace(added, '', 1)
+        self.assertEqual(before, after, 'all original SDL producer/fill/start/stop/report tokens remain identical')
+        current = (ROOT / AUDIO_PATH).read_text()
+        self.assertEqual(operation_tokens(approved), operation_tokens(current))
+        poisoned = current.replace('else Platform::Audio::setSink({start, stop, nullptr});',
+                                   'else Platform::Audio::setSink({nullptr, stop, nullptr});')
+        self.assertNotEqual(operation_tokens(approved), operation_tokens(poisoned))
 
     def test_observer_is_guarded(self):
         source = (ROOT / 'native/gx/efb_frame.inc').read_text()

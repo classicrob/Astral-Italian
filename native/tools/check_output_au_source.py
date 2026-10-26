@@ -65,7 +65,7 @@ try:
             return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in pinned if p.is_file()}
         receipt["source_hashes"] = hashes()
         for source in ("native/audio/output_au_control.cpp", "native/audio/output_au_render.cpp",
-                       "native/audio/output_au_converter.cpp", "native/platform/audio/audio_workgroup_rt.cpp",
+                       "native/audio/output_au_converter.cpp", "native/audio/output_au_observer.cpp", "native/platform/audio/audio_workgroup_rt.cpp",
                        "native/platform/audio/audio_workgroup.cpp"):
             run(flags + ["-fsyntax-only", source], "syntax-" + Path(source).stem)
         sdl = Path.home() / "MacioGalaxy2-team/scratch-port/gate53/deps/sdl-src-patched/include"
@@ -81,9 +81,9 @@ try:
             "core": ["native/tests/audio_output_core_tests.cpp"],
             "converter": ["native/tests/audio_output_converter_tests.cpp", "native/audio/output_au_converter.cpp"],
             "render": ["native/tests/audio_output_render_tests.cpp",
-                       "native/audio/output_au_render.cpp", "native/platform/audio/audio_workgroup_rt.cpp"],
+                       "native/audio/output_au_render.cpp", "native/audio/output_au_observer.cpp", "native/platform/audio/audio_workgroup_rt.cpp"],
             "control": ["native/tests/audio_output_control_tests.cpp", "native/audio/output_au_control.cpp",
-                        "native/audio/output_au_render.cpp", "native/audio/output_au_converter.cpp"],
+                        "native/audio/output_au_render.cpp", "native/audio/output_au_observer.cpp", "native/audio/output_au_converter.cpp"],
         }
         for name, sources in cases.items():
             executable = out / ("petari_audio_output_" + name + "_tests")

@@ -116,7 +116,7 @@ private:
 
 enum Fault : std::uint64_t {
     BadBuffers=1, OverLimit=2, Reentrant=4, BadTimeline=8, MissingTimestamp=16,
-    RingCorrupt=32, NoCallbacks=64, ConverterError=128, DeviceError=256
+    RingCorrupt=32, NoCallbacks=64, ConverterError=128, DeviceError=256, BadHostTimeline=512
 };
 struct RenderEvent {
     std::uint64_t mach=0, ticket=0, generation=0, value=0;
@@ -137,8 +137,12 @@ struct RenderData {
     Publish publish=nullptr;
     bool timelineStarted=false;
     double nextSample=0;
+    bool hostStarted=false;
+    double hostTicksPerFrame=0,lastRateScalar=1;
+    std::uint64_t previousHost=0,previousFrames=0;
     std::atomic<std::uint64_t> callbacks{0}, requested{0}, copied{0}, shortfalls{0};
     std::atomic<std::uint64_t> timelineFaults{0}, invalidTimestamps{0}, faults{0};
+    std::atomic<std::uint64_t> lastFrames{0},hostTimelineFaults{0},badHostDelta{0},expectedHostDelta{0};
     std::atomic<std::uint64_t> sampleBits{0}, hostTime{0}, maxGapTicks{0};
 };
 // Owner outlives the AudioUnit AND every in-flight callback. Seq-cst entry /

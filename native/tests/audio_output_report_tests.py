@@ -12,7 +12,7 @@ def good():
             + "[audio-workgroup] errors=0 over175ms=0 history_invalid=0 observing=0 adopted=1 qualifying=1\n"
             + "[audio-au] generation=1 final=1 device_rate=44100 guest_rate=32000 "
               "underrun_unit=guest-equivalent-cumulative-ceil raw_shortfall_device_frames=0 faults=0 timeline_faults=0 "
-              "invalid_timestamps=0 overloads=0 healthy=1 ring_min_ms=42 callbacks=100 requested_device_frames=100 "
+              "host_timeline_faults=0 invalid_timestamps=0 overloads=0 healthy=1 ring_min_ms=42 callbacks=100 requested_device_frames=100 "
               "copied_device_frames=100 consumed_device_frames=100 source_pulled=100 source_accepted=100 device_produced=100\n"
             + "[audio-au-final] complete=1 raw_shortfall_device_frames=0 guest_equivalent_frames=0 health_errors=0 "
               "healthy=1 transitions=0 default_device_setter_calls=0\n")
@@ -27,7 +27,7 @@ class Tests(unittest.TestCase):
 
     def test_full_ring_cannot_hide_timeline_or_native_faults(self):
         for a, b in (("timeline_faults=0", "timeline_faults=1"), ("raw_shortfall_device_frames=0", "raw_shortfall_device_frames=1"),
-                     ("healthy=1", "healthy=0"), ("invalid_timestamps=0", "invalid_timestamps=1"),
+                     ("healthy=1", "healthy=0"), ("host_timeline_faults=0", "host_timeline_faults=1"), ("invalid_timestamps=0", "invalid_timestamps=1"),
                      ("copied_device_frames=100", "copied_device_frames=99"), ("health_errors=0", "health_errors=1"),
                      ("underrun 0", "underrun 1"), ("source_accepted=100", "source_accepted=101")):
             self.assertFalse(M.evaluate(good().replace(a, b, 1), False)["evidence_valid"], b)

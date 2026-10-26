@@ -10,6 +10,7 @@
 #include "output_au_converter.hpp"
 #include "output_au_lifecycle.hpp"
 #include "output_au_backend.hpp"
+#include "output_au_observer.hpp"
 #include "paced_ring.hpp"
 #include <AudioToolbox/AudioToolbox.h>
 #include <CoreAudio/CoreAudio.h>
@@ -41,15 +42,6 @@ std::atomic<std::uint64_t> publicSubmitted{0};
 std::uint64_t nextGeneration=0;
 std::uint32_t timeNumer=0,timeDenom=0;
 std::int64_t steadyOffset=0;
-// Initialized before any callback can run. An exact-library fast-path codegen
-// check remains mandatory on the measurement machine (not an API-name proof).
-__attribute__((noinline)) std::uint64_t renderClock() noexcept { return mach_absolute_time(); }
-void publish(const RenderEvent& e) noexcept {
-    // Integer quotient/remainder avoids overflow and runtime 128-bit division
-    // in the render call graph. No identity query or TLS is performed here.
-    const auto ns=(e.mach/timeDenom)*timeNumer+(e.mach%timeDenom)*timeNumer/timeDenom+steadyOffset;
-    WG::noteOutputRender(e.kind,e.mach,ns,e.ticket,e.generation,e.value);
-}
 double processSeconds() {
     kinfo_proc info{}; std::size_t bytes=sizeof(info); int mib[]={CTL_KERN,KERN_PROC,KERN_PROC_PID,getpid()};
     timeval now{};
@@ -58,10 +50,11 @@ double processSeconds() {
 }
 std::uint64_t steadyNs() { return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count(); }
 void calibrateClock(std::uint64_t generation) {
-    const auto before=renderClock(),ns=steadyNs(),after=renderClock();
+    const auto before=observerClock(),ns=steadyNs(),after=observerClock();
     const auto middle=before+(after-before)/2;
     const auto scaled=(middle/timeDenom)*timeNumer+(middle%timeDenom)*timeNumer/timeDenom;
     steadyOffset=static_cast<std::int64_t>(ns)-static_cast<std::int64_t>(scaled);
+    configureObserverClock(timeNumer,timeDenom,steadyOffset);
     std::fprintf(stderr,"[audio-au-clock-calibration] generation=%llu mach_before=%llu mach_after=%llu steady_ns=%llu offset_ns=%lld "
         "bound_ticks=%llu mapping=per-device-generation-after-quiescence\n",(unsigned long long)generation,
         (unsigned long long)before,(unsigned long long)after,(unsigned long long)ns,(long long)steadyOffset,(unsigned long long)(after-before));
@@ -297,7 +290,8 @@ bool open(Runtime& r,Generation& g) {
     if(!g.render.ring.configure(capacity,base,channels)) return false;
     g.render.maxFrames=maximum; g.render.scratch.reset(new float[std::size_t(maximum)*channels]{});
     g.render.mute=r.mute; g.render.observing=r.observe;
-    g.render.gapTriggerTicks=ticksForUs(20000); g.render.clock=renderClock; g.render.publish=publish;
+    g.render.hostTicksPerFrame=1e9*double(timeDenom)/timeNumer/g.rate;
+    g.render.gapTriggerTicks=ticksForUs(20000); g.render.clock=observerClock; g.render.publish=publishRenderEvent;
     g.openSite="producer-converter";
     if(!g.converter.open(r.guestRate,g.rate,channels,4096) || !g.converter.prewarm()) { g.openError=g.converter.error(); return false; }
     g.ledger.guestRate=r.guestRate; g.ledger.deviceRate=g.rate;
@@ -403,7 +397,7 @@ void report(Runtime& r,Generation& g,bool final) {
         "raw_shortfall_device_frames=%llu raw_shortfall_delta=%llu guest_fraction=%.12Lf callbacks=%llu requested_device_frames=%llu "
         "copied_device_frames=%llu consumed_device_frames=%llu source_pulled=%llu source_accepted=%llu device_produced=%llu "
         "ring_device_frames=%llu ring_min_device_frames=%llu ring_min_ms=%.6f ring_min_basis=consumer-snapshot target_device_frames=%llu faults=%llu "
-        "timeline_faults=%llu invalid_timestamps=%llu overloads=%llu healthy=%d "
+        "timeline_faults=%llu host_timeline_faults=%llu host_delta_ticks=%llu host_expected_ticks=%llu invalid_timestamps=%llu overloads=%llu healthy=%d "
         "sample_time_bits=%llu presentation_host_time=%llu callback_gap_ticks=%llu producer_gap_us=%llu producer_pull_us=%llu "
         "dma_timeout=%llu dsp_holds=%llu ai_deliver_us=%lld registration_us=%lld oldest_registration_us=%lld "
         "dsp_subframe_us=%lld dsp_frame_us=%lld\n",
@@ -413,7 +407,8 @@ void report(Runtime& r,Generation& g,bool final) {
         (unsigned long long)g.deviceProduced.load(),(unsigned long long)g.render.ring.level(),
         (unsigned long long)g.render.ring.minimumLevel(),g.render.ring.minimumLevel()*1000/g.rate,
         (unsigned long long)g.render.ring.target(),(unsigned long long)faults,
-        (unsigned long long)g.render.timelineFaults.load(),(unsigned long long)g.render.invalidTimestamps.load(),
+        (unsigned long long)g.render.timelineFaults.load(),(unsigned long long)g.render.hostTimelineFaults.load(),
+        (unsigned long long)g.render.badHostDelta.load(),(unsigned long long)g.render.expectedHostDelta.load(),(unsigned long long)g.render.invalidTimestamps.load(),
         (unsigned long long)mailbox.overloads.load(),int(publicHealthy.load()),
         (unsigned long long)g.render.sampleBits.load(),(unsigned long long)g.render.hostTime.load(),
         (unsigned long long)g.render.maxGapTicks.load(),(unsigned long long)g.producerGapUs.load(),
@@ -523,7 +518,11 @@ void controller(Runtime& r) {
             const auto count=g->render.callbacks.load(std::memory_order_acquire);
             const auto now=Clock::now();
             if(count!=g->lastCallbacks) { g->lastCallbacks=count; g->lastProgress=now; }
-            if(now-g->lastProgress>std::chrono::seconds(2)) {
+            // Coarse independent arrival watchdog in BOTH observer modes.
+            // Allow initial startup, then two actual slices + one poll, at
+            // least 50ms. Large native allocations are NOT the I/O cadence.
+            const auto grace=count ? std::max(.050,2*g->render.lastFrames.load()/g->rate+.025) : 2.0;
+            if(std::chrono::duration<double>(now-g->lastProgress).count()>grace) {
                 g->render.faults.fetch_or(NoCallbacks); failure(r,"render-callback-stopped",kAudioUnitErr_NoConnection);
                 mailbox.notify(g->render.generation);
             }
@@ -572,7 +571,7 @@ void start(std::uint32_t rate,bool backgroundMuted) {
     mach_timebase_info_data_t time{};
     if(mach_timebase_info(&time) || !time.numer || !time.denom) std::abort();
     timeNumer=time.numer; timeDenom=time.denom;
-    (void)renderClock();
+    (void)observerClock();
     publicRunning.store(false); publicHealthy.store(true); publicMuted.store(r->mute);
     mailbox.overloads.store(0); mailbox.services.store(0); mailbox.live.store(0); mailbox.enabled.store(true);
     Platform::Audio::setTimingDiagnostics(true);

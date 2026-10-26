@@ -18,6 +18,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <mach/mach_time.h>
 namespace AU=PetariNative::AudioOutputAU;
 using namespace AU::Detail;
 using namespace std::chrono_literals;
@@ -95,16 +96,20 @@ OSStatus start(AudioUnit ref) {
         std::array<float,256> l{},r{};
         buffers.b[0]={1,1024,l.data()}; buffers.b[1]={1,1024,r.data()};
         AudioTimeStamp time{}; time.mFlags=kAudioTimeStampSampleTimeValid|kAudioTimeStampHostTimeValid;
+        mach_timebase_info_data_t base{}; assert(mach_timebase_info(&base)==KERN_SUCCESS);
+        const double ticksPerSecond=1e9*base.denom/base.numer;
         while(!unit->quit.load()) {
+            time.mHostTime=1000000+static_cast<std::uint64_t>(time.mSampleTime*ticksPerSecond/unit->format.mSampleRate);
             AudioUnitRenderActionFlags flags=0;
             assert(unit->callback.inputProc(unit->callback.inputProcRefCon,&flags,&time,0,256,
                 reinterpret_cast<AudioBufferList*>(&buffers))==noErr);
-            time.mSampleTime+=256; time.mHostTime+=100;
+            time.mSampleTime+=256;
             std::this_thread::sleep_for(5800us);
         }
         // Deliberately one late callback after control has unpublished the
         // generation. It must use no retired ring/scratch/converter memory.
         AudioUnitRenderActionFlags flags=0;
+        time.mHostTime=1000000+static_cast<std::uint64_t>(time.mSampleTime*ticksPerSecond/unit->format.mSampleRate);
         assert(unit->callback.inputProc(unit->callback.inputProcRefCon,&flags,&time,0,256,
             reinterpret_cast<AudioBufferList*>(&buffers))==noErr);
     });

@@ -7,6 +7,7 @@
 #include <mach/mach.h>
 #include <pthread.h>
 #include <petari/host_allocation.hpp>
+#include <petari/gpu_trace_host.hpp>
 #include <algorithm>
 #include <cerrno>
 #include <cstdlib>
@@ -14,6 +15,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <chrono>
 
 namespace PetariNative::Platform::AudioWorkgroup {
 std::atomic<bool> enabled{false};
@@ -108,14 +110,26 @@ std::atomic<std::uint64_t> errors{0}, cycles{0}, finished{0}, cancelled{0}, late
     publishedCallback{0}, guestMach{0}, rendererMach{0},
     batonAssigned{0}, batonWorst{0}, batonOver20{0}, batonOver175{0};
 std::atomic<int> lastError{0};
-History::Recorder<16384,8192> history;
+using FlightHistory = History::Recorder<32768,24576>;
+static_assert(static_cast<unsigned>(History::Kind::AQEntry)==17 && static_cast<unsigned>(History::Kind::AQFormat)==35 &&
+    static_cast<unsigned>(History::Kind::AQMachPolicy)==42,"SDL/history numeric ABI");
+FlightHistory history;
 std::atomic<std::uint64_t> callbackLast{0}, callbackWorst{0}, callbackOver20{0}, historyInvalid{0};
+std::atomic<std::uint64_t> transportTickets{0}, aqEntries{0}, aqWorst{0}, aqFormat{0};
+// Only touched inside outlined trace-on helpers. A callback ticket joins all
+// nested device/stream/fill/put boundaries, without assuming a device==stream.
+struct TransportContext { std::uint64_t ticket=0, lastAQ=0, device=0; };
+thread_local TransportContext transport;
 std::uint64_t observerStartedMach = 0;
 std::once_flag historyPrepared;
+std::uint64_t steadyNs() {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 void event(History::Kind kind, std::uint64_t value, bool trigger=false) {
     if (!observing.load(std::memory_order_relaxed)) return;
     const auto now=mach_absolute_time();
-    history.push(now,static_cast<unsigned>(kind),reinterpret_cast<std::uintptr_t>(pthread_self()),value);
+    history.push(now,static_cast<unsigned>(kind),reinterpret_cast<std::uintptr_t>(pthread_self()),value,steadyNs());
     if(trigger) history.trigger(now);
 }
 std::atomic<const char*> lastSite{"none"};
@@ -402,18 +416,64 @@ void noteRegistration(Identity id, std::uint64_t generation, unsigned frames, st
     // Deliberately no interval finish: this can register an earlier DMA buffer
     // while current DSP work is pending in the triple-buffered guest pipeline.
 }
+__attribute__((noinline)) void noteTransport(unsigned boundary, const void* object, std::int64_t value) {
+    // The caller's enabled check precedes entry here (and therefore trace TLS).
+    const auto now=mach_absolute_time();
+    const auto ns=steadyNs();
+    const auto self=reinterpret_cast<std::uintptr_t>(pthread_self());
+    const auto address=reinterpret_cast<std::uintptr_t>(object);
+    const auto kind=static_cast<History::Kind>(boundary);
+    std::uint64_t gap=0;
+    if(kind==History::Kind::AQEntry) {
+        transport.ticket=transportTickets.fetch_add(1,std::memory_order_relaxed)+1;
+        gap=transport.device==address && transport.lastAQ && now>=transport.lastAQ ? toUs(now-transport.lastAQ) : 0;
+        transport.device=address;
+        transport.lastAQ=now;
+        ++aqEntries; maxValue(aqWorst,gap);
+    }
+    history.push(now,boundary,self,static_cast<std::uint64_t>(value),ns,transport.ticket,address);
+    if(kind==History::Kind::AQFormat) aqFormat.store(value,std::memory_order_relaxed);
+    if(kind==History::Kind::AQEntry) {
+        // These are callback ENTRY readbacks, before Petari fill's one-time RT
+        // promotion; every query is trace-on. Sampling itself is bounded by the
+        // entry boundary and the following metadata timestamps, not subtracted.
+        const auto sample=GpuTrace::sampleHost();
+        thread_extended_info_data_t info{};
+        mach_msg_type_number_t count=THREAD_EXTENDED_INFO_COUNT;
+        const auto error=thread_info(pthread_mach_thread_np(pthread_self()),THREAD_EXTENDED_INFO,
+            reinterpret_cast<thread_info_t>(&info),&count);
+        const auto pair=[](int high,int low) { return (std::uint64_t(std::uint32_t(high))<<32)|std::uint32_t(low); };
+        const auto attribute=[&](History::Kind k,std::uint64_t v) {
+            history.push(mach_absolute_time(),static_cast<unsigned>(k),self,v,steadyNs(),transport.ticket,address);
+        };
+        attribute(History::Kind::AQQos,pair(sample.selfQos,sample.requestedQos));
+        attribute(History::Kind::AQQosDetail,pair(sample.qosError,sample.relativePriority));
+        attribute(History::Kind::AQSchedule,pair(sample.policy,sample.priority));
+        attribute(History::Kind::AQMachPriority,pair(error==KERN_SUCCESS ? info.pth_curpri : -1,
+            error==KERN_SUCCESS ? info.pth_priority : -1));
+        attribute(History::Kind::AQCpu,pair(sample.cpuError,sample.cpu));
+        attribute(History::Kind::AQSampleErrors,pair(sample.schedError,error));
+        attribute(History::Kind::AQMachPolicy,pair(error==KERN_SUCCESS ? info.pth_policy : -1,
+            error==KERN_SUCCESS ? info.pth_run_state : -1));
+        // Freeze after metadata publication so the triggering callback's
+        // identity/readback belongs to the retained window too.
+        if(gap>20000) history.trigger(mach_absolute_time());
+    }
+    if(kind==History::Kind::AQExit) transport.ticket=0;
+}
 void report(std::FILE* out) {
     if (!enabled.load(std::memory_order_relaxed)) return;
     // Cumulative status; reporter only. No per-mutex or per-cycle streaming.
     static std::mutex writerLock;
     std::lock_guard<std::mutex> lock(writerLock);
-    using Dump = History::Recorder<16384,8192>::Dump;
+    using Dump = FlightHistory::Dump;
     static Dump* dump = nullptr; // reporter-owned scratch, not an RT-thread stack
     if (observing.load(std::memory_order_relaxed) && !dump) {
         PetariNative::HostAllocationScope host; dump = new Dump;
     }
-    const bool hasDump = observing.load(std::memory_order_relaxed) && history.take(ticksPerSecond()*2,*dump);
-    if (hasDump && (dump->drops || dump->unstable || dump->clipped)) ++historyInvalid;
+    const bool hasDump = observing.load(std::memory_order_relaxed) &&
+        history.take(ticksPerSecond()*2,*dump,mach_absolute_time(),ticksPerSecond()/2);
+    if (hasDump && (dump->drops || dump->unstable || dump->retentionUnknown || dump->clipped)) ++historyInvalid;
     const auto e = errors.load();
     const auto count = sessions.load();
     const bool adopted = count && guestJoins.load() == count && rendererJoins.load() == count &&
@@ -421,13 +481,22 @@ void report(std::FILE* out) {
     static bool wroteConfig = false;
     if (!wroteConfig) {
         wroteConfig = true;
-        std::fprintf(out,"[audio-workgroup-config] schema=1 clock=mach_absolute_time tick_hz=%llu "
-            "history_capacity=16384 dump_limit=8192 observer_started_mach=%llu pre_ticks=%llu history_kind=1:cycle,2:subframe,3:finish,"
+        std::fprintf(out,"[audio-workgroup-config] schema=2 clock=mach_absolute_time boundary_clock=steady_clock_ns tick_hz=%llu "
+            "history_capacity=32768 dump_limit=24576 retention=two-generations reject_limit=128 observer_started_mach=%llu "
+            "pre_ticks=%llu max_post_ticks=%llu history_kind=1:cycle,2:subframe,3:finish,"
             "4:assigned,5:resumed,6:callback,7:shortfall,8:trigger,9:shape,10:left,11:right,12:queued,"
-            "13:deadline,14:registration,15:registration_frames,16:registration_address\n",
+            "13:deadline,14:registration,15:registration_frames,16:registration_address,17:aq_entry,18:aq_exit,"
+            "19:device_lock_request,20:device_lock_acquired,21:device_lock_released,22:get_begin,23:get_lock_request,24:get_lock_acquired,"
+            "25:fill_entry,26:fill_exit,27:convert_begin,28:convert_end,29:get_end,30:put_begin,31:put_lock_request,32:put_lock_acquired,"
+            "33:put_lock_released,34:put_end,35:aq_format,36:aq_qos,37:aq_qos_detail,38:aq_schedule,39:aq_mach_priority,"
+            "40:aq_cpu,41:aq_sample_errors,42:aq_mach_policy\n",
             (unsigned long long)ticksPerSecond(),(unsigned long long)observerStartedMach,
-            (unsigned long long)(ticksPerSecond()*2));
+            (unsigned long long)(ticksPerSecond()*2),(unsigned long long)(ticksPerSecond()/2));
     }
+    if(observing.load(std::memory_order_relaxed))
+        std::fprintf(out,"[audio-transport] schema=1 clock=steady_clock_ns observer=patched-SDL-3.4.10 "
+            "aq_entries=%llu aq_gap_max_us=%llu format_packed=%llu producer=SPSC-no-SDL-put put_thread=fill-callback\n",
+            (unsigned long long)aqEntries.load(),(unsigned long long)aqWorst.load(),(unsigned long long)aqFormat.load());
     std::fprintf(out, "[audio-workgroup] mode=async epoch=%llu guest=%llx host_generation=%llu callback=%llx "
         "guest_mach=%llu renderer_mach=%llu "
         "guest_host=%llx renderer_host=%llx requested_policy=RT-0-500us-2000us policy_readback=on-adoption-only "
@@ -453,16 +522,28 @@ void report(std::FILE* out) {
         (unsigned long long)callbackOver20.load(), (unsigned long long)historyInvalid.load(),
         paused.load(), adopted, adopted && !batonOver175.load() && !historyInvalid.load());
     if (hasDump) {
-        // Reporter-owned scratch, maximum 8192 records per report (at most once
+        // Reporter-owned scratch, maximum 24576 records per report (at most once
         // per second in the live reporter). Nothing is streamed per mutex.
-            std::fprintf(out,"[audio-workgroup-history] begin trigger_mach=%llu clock=mach_absolute_time rows=%u "
-                "triggers_since_previous=%llu drops=%llu unstable=%llu clipped=%llu\n",
-                (unsigned long long)dump->trigger,dump->count,(unsigned long long)dump->triggersSincePrevious,
-                (unsigned long long)dump->drops,(unsigned long long)dump->unstable,(unsigned long long)dump->clipped);
+            std::fprintf(out,"[audio-workgroup-history] begin trigger_mach=%llu end_mach=%llu clock=mach_absolute_time rows=%u "
+                "triggers_since_previous=%llu drops=%llu unstable=%llu clipped=%llu retention_unknown=%llu "
+                "recovered=%llu outside_window=%llu rejected=%u rejected_omitted=%llu\n",
+                (unsigned long long)dump->trigger,(unsigned long long)dump->endMach,dump->count,(unsigned long long)dump->triggersSincePrevious,
+                (unsigned long long)dump->drops,(unsigned long long)dump->unstable,(unsigned long long)dump->clipped,
+                (unsigned long long)dump->retentionUnknown,(unsigned long long)dump->recovered,(unsigned long long)dump->outsideWindow,
+                dump->rejectedCount,(unsigned long long)dump->rejectedOmitted);
             for(unsigned n=0;n<dump->count;++n) { const auto& r=dump->events[n];
-                std::fprintf(out,"[audio-workgroup-history] event seq=%llu mach=%llu kind=%u thread=%llx value=%llu\n",
+                std::fprintf(out,"[audio-workgroup-history] event seq=%llu mach=%llu kind=%u thread=%llx value=%llu "
+                    "steady_ns=%llu ticket=%llu object=%llx\n",
                     (unsigned long long)r.sequence,(unsigned long long)r.mach,r.kind,
-                    (unsigned long long)r.thread,(unsigned long long)r.value);
+                    (unsigned long long)r.thread,(unsigned long long)r.value,(unsigned long long)r.steadyNs,
+                    (unsigned long long)r.ticket,(unsigned long long)r.object);
+            }
+            for(unsigned n=0;n<dump->rejectedCount;++n) { const auto& r=dump->rejected[n];
+                std::fprintf(out,"[audio-workgroup-history] reject expected=%llu current=%llu previous=%llu "
+                    "current_version=%llu previous_version=%llu current_stable=%d previous_stable=%d "
+                    "membership=unknown kind=unknown thread=unknown\n",
+                    (unsigned long long)r.expected,(unsigned long long)r.currentSequence,(unsigned long long)r.previousSequence,
+                    (unsigned long long)r.currentVersion,(unsigned long long)r.previousVersion,r.currentStable,r.previousStable);
             }
             std::fprintf(out,"[audio-workgroup-history] end rows=%u\n",dump->count);
     }

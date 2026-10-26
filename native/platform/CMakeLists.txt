@@ -177,6 +177,8 @@ if(BUILD_TESTING)
     target_link_libraries(petari_audio_workgroup_backend_tests PRIVATE petari_platform_os "-framework AudioToolbox" Threads::Threads)
     add_test(NAME native_audio_workgroup_backend COMMAND petari_audio_workgroup_backend_tests)
     set_tests_properties(native_audio_workgroup_backend PROPERTIES TIMEOUT 20)
+    add_test(NAME native_audio_transport_report COMMAND "${Python3_EXECUTABLE}" -I
+        "${PETARI_REPO_ROOT}/native/tests/audio_transport_report_tests.py")
     add_test(NAME native_audio_workgroup_report COMMAND "${Python3_EXECUTABLE}" -I
         "${PETARI_REPO_ROOT}/native/tests/audio_workgroup_report_tests.py")
     add_test(NAME native_audio_workgroup_source COMMAND "${Python3_EXECUTABLE}" -I

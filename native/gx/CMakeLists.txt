@@ -500,6 +500,13 @@ add_library(petari_audio_sdl STATIC "${CMAKE_SOURCE_DIR}/native/audio/sdl_sink.c
 target_link_libraries(petari_audio_sdl PUBLIC petari_platform_audio PRIVATE SDL3::SDL3 petari_host_runtime)
 petari_link_audio_frameworks(petari_audio_sdl)
 if(_petari_build_testing)
+    FetchContent_GetProperties(SDL SOURCE_DIR _petari_audio_sdl_source)
+    add_executable(petari_audio_transport_sdl_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_transport_sdl_tests.cpp")
+    target_link_libraries(petari_audio_transport_sdl_tests PRIVATE SDL3::SDL3)
+    target_compile_options(petari_audio_transport_sdl_tests PRIVATE -UNDEBUG)
+    add_test(NAME native_audio_transport_sdl COMMAND petari_audio_transport_sdl_tests)
+    add_test(NAME native_audio_transport_patch COMMAND "${Python3_EXECUTABLE}" -I
+        "${CMAKE_SOURCE_DIR}/native/tests/audio_transport_patch_tests.py" "${_petari_audio_sdl_source}")
     add_executable(petari_audio_sdl_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_sdl_tests.cpp")
     target_link_libraries(petari_audio_sdl_tests PRIVATE petari_audio_sdl)
     add_test(NAME native_audio_sdl COMMAND petari_audio_sdl_tests)

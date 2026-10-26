@@ -56,7 +56,11 @@ def evaluate(text, mode="async", observation=True):
     for line in text.splitlines():
         if line.startswith("[audio-workgroup-config]"):
             config = fields(line)
-            require(config.get("schema") == "1" and config.get("clock") == "mach_absolute_time", "unknown history schema/clock")
+            require(config.get("schema") in ("1", "2") and config.get("clock") == "mach_absolute_time", "unknown history schema/clock")
+            if config.get("schema") == "2":
+                require(config.get("boundary_clock") == "steady_clock_ns" and config.get("retention") == "two-generations",
+                        "unknown boundary clock/retention")
+                require(config.get("dump_limit") == "24576" and config.get("reject_limit") == "128", "unknown history bounds")
         elif line.startswith("[audio-workgroup-history] begin"):
             require(pending is None, "nested history dump")
             pending = fields(line)
@@ -65,6 +69,14 @@ def evaluate(text, mode="async", observation=True):
             require(config is not None, "history missing clock config")
             for key in ("drops", "unstable", "clipped"):
                 require(pending.get(key) == "0", f"history {key}")
+            if config and config.get("schema") == "2":
+                for key in ("retention_unknown", "rejected", "rejected_omitted"):
+                    require(pending.get(key) == "0", f"history {key}")
+                try:
+                    require(int(pending["trigger_mach"]) <= int(pending["end_mach"]) <=
+                            int(pending["trigger_mach"]) + int(config["max_post_ticks"]), "invalid post-trigger bound")
+                except (KeyError, ValueError):
+                    errors.append("invalid post-trigger window")
         elif line.startswith("[audio-workgroup-history] event"):
             require(pending is not None, "history row outside dump")
             record = fields(line)
@@ -72,19 +84,26 @@ def evaluate(text, mode="async", observation=True):
                 seq = int(record["seq"])
                 require(seq > previous_sequence, "history sequence not increasing")
                 previous_sequence = seq
-                require(1 <= int(record["kind"]) <= 16, "unknown event kind")
+                v2 = config and config.get("schema") == "2"
+                require(1 <= int(record["kind"]) <= (42 if v2 else 16), "unknown event kind")
+                if v2:
+                    require(int(record["steady_ns"]) > 0, "missing steady boundary timestamp")
+                    require(int(record["ticket"]) >= 0 and int(record["object"], 16) >= 0, "invalid transport identity")
                 if pending and config:
                     trigger = int(pending["trigger_mach"])
-                    require(max(0, trigger - int(config["pre_ticks"])) <= int(record["mach"]) <= trigger,
+                    end = int(pending["end_mach"]) if v2 else trigger
+                    require(max(0, trigger - int(config["pre_ticks"])) <= int(record["mach"]) <= end,
                             "event outside declared trigger window")
             except (KeyError, ValueError):
                 errors.append("invalid history row")
             rows += 1
+        elif line.startswith("[audio-workgroup-history] reject"):
+            errors.append("history rejected cell (not outside-window evidence)")
         elif line.startswith("[audio-workgroup-history] end"):
             try:
                 declared = int(fields(line)["rows"])
                 require(pending is not None and rows == declared == int(pending["rows"]), "history row count mismatch")
-                require(rows <= 8192, "history dump exceeds bound")
+                require(rows <= (24576 if config and config.get("schema") == "2" else 8192), "history dump exceeds bound")
             except (KeyError, ValueError, TypeError):
                 errors.append("invalid history footer")
             pending = None

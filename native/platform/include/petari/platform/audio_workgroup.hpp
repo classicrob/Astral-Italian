@@ -45,4 +45,7 @@ void noteResumed(Identity, std::uint64_t mach);
 void noteCallback(std::uint64_t level, std::uint64_t requested);
 void noteShortfall(std::uint64_t frames);
 void noteRegistration(Identity, std::uint64_t generation, unsigned frames, std::uintptr_t address);
+// Patched SDL's C callback; called only after its cached observer-pointer check.
+// Native fill hooks check observing before calling. No TLS or queries off-path.
+void noteTransport(unsigned boundary, const void* object, std::int64_t value);
 }

@@ -1,8 +1,12 @@
 # Device-side audio investigation: design for PORT review
 
-Status: design only. No device-buffer change, SDL patch, HAL sink, audio app run,
-or replacement cohort is implemented or authorized by this note. The separately
-approved history repair may proceed. The stopped 2293cdfe cohort stays failed.
+Status: PORT approved the history repair, default-off SDL boundary localization,
+and a default-off count-only diagnostic switch after reviewing 88b587af.
+Those source changes are now implemented; full server build/review, Release
+codegen and this instrument's own overhead qualification remain pending.
+No new app/audio run has occurred. The stopped 2293cdfe cohort stays failed.
+The count-only long cohort still waits for build/overhead review; AUHAL is deferred.
+Implementation contract: [AUDIO-TRANSPORT-DIAG-543.md](AUDIO-TRANSPORT-DIAG-543.md).
 
 ## What the pinned code actually does
 
@@ -53,12 +57,20 @@ Its QoS, sched priority and CPU are **unknown**. The earlier monitor's QoS33,
 priority31 and P-core placement must not be reassigned to this audio thread.
 The old de3 trace was invalidated by drops and is not qualification evidence.
 
-A future diagnostic needs distinct AQ entry/exit, SDL device-lock wait,
-stream-lock wait, fill entry/exit and requeue boundaries on one clock, plus
-callback identity/effective policy/QoS/CPU at adoption and a bounded trigger
-sample. This would require an explicitly reviewed SDL diagnostic hook patch;
-it is not part of the approved history repair or implemented here. No mutex
-firehose, per-call formatting or RT allocation.
+The approved diagnostic adds AQ entry/exit, SDL device-lock wait, stream-lock
+wait, get/conversion, fill entry/exit and actual put boundaries on steady_ns,
+with callback pthread/Mach/QoS/priority/CPU readbacks at each AQ entry. AQ exit
+bounds requeue work; it is not a separately timed HAL hardware consumption.
+The exact local SDL patch and bounded-history contract are documented in the
+implementation note. No mutex firehose, per-call formatting or RT allocation.
+
+Further source correction: our producer **already uses a lock-free SPSC ring**.
+`produce()` calls AI::pull and writes that ring. It does not call SDL. The
+actual `SDL_PutAudioStreamData` is inside `fill()`, on the AQ callback thread.
+SDL invokes fill with the stream mutex held, and the put acquires the same
+recursive SDL mutex. The trace therefore labels it callback-side put, not a
+producer-held SDL lock. A producer-to-SDL SPSC change would duplicate an
+existing handoff; another thread's stream contention remains a measured question.
 
 ## Retained underruns and daemon CPU correlation
 

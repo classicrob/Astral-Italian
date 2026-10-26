@@ -36,6 +36,16 @@ class Tests(unittest.TestCase):
         self.assertFalse(report.evaluate(BASE+CONFIG+STATUS+DUMP.split("[audio-workgroup-history] end")[0])["evidence_valid"])
     def test_real_driver_required(self):
         self.assertFalse(report.evaluate(BASE.replace("driver=coreaudio","driver=dummy")+CONFIG+STATUS)["evidence_valid"])
+    def test_v2_retention_and_available_post_trigger_boundaries(self):
+        cfg="[audio-workgroup-config] schema=2 clock=mach_absolute_time boundary_clock=steady_clock_ns retention=two-generations dump_limit=24576 reject_limit=128 pre_ticks=2000 max_post_ticks=500\n"
+        dump=DUMP.replace("trigger_mach=3000", "trigger_mach=3000 end_mach=3400").replace("clipped=0", "clipped=0 retention_unknown=0 rejected=0 rejected_omitted=0 recovered=252")
+        dump=dump.replace("mach=2000 kind=4", "mach=3300 kind=25").replace("value=20", "value=20 steady_ns=1000000 ticket=7 object=1234")
+        self.assertTrue(report.evaluate(BASE+cfg+STATUS+dump)["evidence_valid"])
+        for before,after in (("retention_unknown=0","retention_unknown=1"),("rejected=0","rejected=1"),
+                             ("rejected_omitted=0","rejected_omitted=1"),("end_mach=3400","end_mach=3600"),
+                             ("steady_ns=1000000","steady_ns=0"),("kind=25","kind=43")):
+            self.assertFalse(report.evaluate(BASE+cfg+STATUS+dump.replace(before,after))["evidence_valid"],after)
+        self.assertFalse(report.evaluate(BASE+cfg+STATUS+dump+"[audio-workgroup-history] reject expected=1\n")["evidence_valid"])
     def test_observation_is_not_assumed(self):
         self.assertFalse(report.evaluate(BASE+CONFIG+STATUS.replace("observing=1","observing=0"))["evidence_valid"])
         self.assertTrue(report.evaluate(BASE+STATUS.replace("observing=1","observing=0"),"async",False)["evidence_valid"])

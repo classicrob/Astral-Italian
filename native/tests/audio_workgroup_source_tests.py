@@ -15,7 +15,7 @@ class Tests(unittest.TestCase):
         self.assertNotIn("kAudioOutputUnitProperty_OSWorkgroup", cpp)
         self.assertIn("identity == callbackCaller", cpp)
         self.assertIn("identity == startCaller", cpp)
-        self.assertNotIn("priority", cpp)
+        self.assertNotIn("priority ==", cpp)  # readback metadata is not a membership predicate
     def test_tls_helpers_are_outlined_and_public_header_clean(self):
         header = read("platform/include/petari/platform/audio_workgroup.hpp")
         for forbidden in ("thread_local", "CoreFoundation", "CoreAudio/", "mach/", "IOKit"):

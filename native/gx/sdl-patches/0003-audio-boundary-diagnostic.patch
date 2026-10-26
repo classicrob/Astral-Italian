@@ -1,0 +1,240 @@
+--- a/src/audio/SDL_audio.c
++++ b/src/audio/SDL_audio.c
+@@ -21,6 +21,20 @@
+ #include "SDL_internal.h"
+ 
+ #include "SDL_audio_c.h"
++#include "SDL_petari_audio_diag.h"
++
++/* Local diagnostic extension; deliberately outside SDL dynapi (static build). */
++SDL_PetariAudioObserver SDL_petari_audio_observer = NULL;
++int SDL_petari_aq_buffers = 0;
++bool SDL_PetariConfigureAudioDiagnostic(SDL_PetariAudioObserver observer, int buffers)
++{
++    if ((buffers != 0 && buffers != 6 && buffers != 18) || (buffers && !observer)) {
++        return SDL_SetError("Invalid Petari AudioQueue diagnostic configuration");
++    }
++    __atomic_store_n(&SDL_petari_aq_buffers, buffers, __ATOMIC_RELEASE);
++    __atomic_store_n(&SDL_petari_audio_observer, observer, __ATOMIC_RELEASE);
++    return true;
++}
+ #include "SDL_sysaudio.h"
+ #include "../thread/SDL_systhread.h"
+ 
+@@ -1173,10 +1187,13 @@
+ {
+     SDL_assert(!device->recording);
+ 
++    SDL_PetariAudioBoundary(SDL_PETARI_DEVICE_LOCK_REQUEST, device, 0);
+     SDL_LockMutex(device->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_DEVICE_LOCK_ACQUIRED, device, 0);
+ 
+     if (SDL_GetAtomicInt(&device->shutdown)) {
+         SDL_UnlockMutex(device->lock);
++        SDL_PetariAudioBoundary(SDL_PETARI_DEVICE_LOCK_RELEASED, device, 0);
+         return false;  // we're done, shut it down.
+     }
+ 
+@@ -1284,6 +1301,7 @@
+     }
+ 
+     SDL_UnlockMutex(device->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_DEVICE_LOCK_RELEASED, device, 0);
+ 
+     if (failed) {
+         SDL_AudioDeviceDisconnected(device);  // doh.
+--- a/src/audio/SDL_audiocvt.c
++++ b/src/audio/SDL_audiocvt.c
+@@ -21,6 +21,7 @@
+ #include "SDL_internal.h"
+ 
+ #include "SDL_sysaudio.h"
++#include "SDL_petari_audio_diag.h"
+ 
+ #include "SDL_audioqueue.h"
+ #include "SDL_audioresample.h"
+@@ -831,21 +832,26 @@
+     SDL_Log("AUDIOSTREAM: wants to put %d bytes", len);
+ #endif
+ 
+-    SDL_LockMutex(stream->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_PUT_LOCK_REQUEST, stream, len);
++    SDL_LockMutex(stream->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_PUT_LOCK_ACQUIRED, stream, len);
+ 
+     if (!CheckAudioStreamIsFullySetup(stream)) {
+         SDL_UnlockMutex(stream->lock);
++        SDL_PetariAudioBoundary(SDL_PETARI_PUT_LOCK_RELEASED, stream, 0);
+         return false;
+     }
+ 
+     if ((len % SDL_AUDIO_FRAMESIZE(stream->src_spec)) != 0) {
+         SDL_UnlockMutex(stream->lock);
++        SDL_PetariAudioBoundary(SDL_PETARI_PUT_LOCK_RELEASED, stream, 0);
+         return SDL_SetError("Can't add partial sample frames");
+     }
+ 
+     const bool retval = PutAudioStreamBufferInternal(stream, &stream->src_spec, stream->src_chmap, buf, len, callback, userdata);
+ 
+     SDL_UnlockMutex(stream->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_PUT_LOCK_RELEASED, stream, 0);
+ 
+     return retval;
+ }
+@@ -870,6 +876,8 @@
+     if (len == 0) {
+         return true; // nothing to do.
+     }
++
++    SDL_PetariAudioBoundary(SDL_PETARI_PUT_BEGIN, stream, len);
+ 
+     // When copying in large amounts of data, try and do as much work as possible
+     // outside of the stream lock, otherwise the output device is likely to be starved.
+@@ -879,6 +887,7 @@
+         void *data = SDL_malloc(len);
+ 
+         if (!data) {
++            SDL_PetariAudioBoundary(SDL_PETARI_PUT_END, stream, 0);
+             return false;
+         }
+ 
+@@ -888,10 +897,13 @@
+         if (!ret) {
+             SDL_free(data);
+         }
++        SDL_PetariAudioBoundary(SDL_PETARI_PUT_END, stream, ret);
+         return ret;
+     }
+ 
+-    return PutAudioStreamBuffer(stream, buf, len, NULL, NULL);
++    const bool ret = PutAudioStreamBuffer(stream, buf, len, NULL, NULL);
++    SDL_PetariAudioBoundary(SDL_PETARI_PUT_END, stream, ret);
++    return ret;
+ }
+ 
+ 
+@@ -1359,10 +1371,14 @@
+         return 0; // nothing to do.
+     }
+ 
+-    SDL_LockMutex(stream->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_GET_BEGIN, stream, len);
++    SDL_PetariAudioBoundary(SDL_PETARI_GET_LOCK_REQUEST, stream, len);
++    SDL_LockMutex(stream->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_GET_LOCK_ACQUIRED, stream, len);
+ 
+     if (!CheckAudioStreamIsFullySetup(stream)) {
+         SDL_UnlockMutex(stream->lock);
++        SDL_PetariAudioBoundary(SDL_PETARI_GET_END, stream, -1);
+         return -1;
+     }
+ 
+@@ -1392,6 +1408,8 @@
+         additional_request *= SDL_AUDIO_FRAMESIZE(stream->src_spec);  // convert sample frames to bytes.
+         stream->get_callback(stream->get_callback_userdata, stream, (int) SDL_min(additional_request, SDL_INT_MAX), (int) SDL_min(total_request, SDL_INT_MAX));
+     }
++
++    SDL_PetariAudioBoundary(SDL_PETARI_CONVERT_BEGIN, stream, len);
+ 
+     // Process the data in chunks to avoid allocating too much memory (and potential integer overflows)
+     const int chunk_size = 4096;
+@@ -1436,7 +1454,9 @@
+         total += output_frames * dst_frame_size;
+     }
+ 
+-    SDL_UnlockMutex(stream->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_CONVERT_END, stream, total);
++    SDL_UnlockMutex(stream->lock);
++    SDL_PetariAudioBoundary(SDL_PETARI_GET_END, stream, total);
+ 
+ #if DEBUG_AUDIOSTREAM
+     SDL_Log("AUDIOSTREAM: Final result was %d", total);
+--- a/src/audio/coreaudio/SDL_coreaudio.m
++++ b/src/audio/coreaudio/SDL_coreaudio.m
+@@ -23,6 +23,7 @@
+ #ifdef SDL_AUDIO_DRIVER_COREAUDIO
+ 
+ #include "../SDL_sysaudio.h"
++#include "../SDL_petari_audio_diag.h"
+ #include "SDL_coreaudio.h"
+ #include "../../thread/SDL_systhread.h"
+ 
+@@ -565,6 +566,7 @@
+ static void PlaybackBufferReadyCallback(void *inUserData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer)
+ {
+     SDL_AudioDevice *device = (SDL_AudioDevice *)inUserData;
++    SDL_PetariAudioBoundary(SDL_PETARI_AQ_ENTRY, device, (Sint64)(uintptr_t)inBuffer);
+     SDL_assert(inBuffer != NULL);  // ...right?
+     SDL_assert(device->hidden->current_buffer == NULL);  // shouldn't have anything pending
+     device->hidden->current_buffer = inBuffer;
+@@ -578,6 +580,7 @@
+         SDL_memset(current_buffer->mAudioData, device->silence_value, (size_t) current_buffer->mAudioDataBytesCapacity);
+         AudioQueueEnqueueBuffer(device->hidden->audioQueue, current_buffer, 0, NULL);
+     }
++    SDL_PetariAudioBoundary(SDL_PETARI_AQ_EXIT, device, okay);
+ }
+ 
+ static int COREAUDIO_RecordDevice(SDL_AudioDevice *device, void *buffer, int buflen)
+@@ -828,6 +831,18 @@
+         numAudioBuffers = ((int)SDL_ceil(MINIMUM_AUDIO_BUFFER_TIME_MS / msecs) * 2);
+     }
+ 
++    // Diagnostic only: default calculation above remains unchanged.
++    const int diagnosticBuffers = __atomic_load_n(&SDL_petari_aq_buffers, __ATOMIC_ACQUIRE);
++    if (!device->recording && diagnosticBuffers) {
++        if (device->sample_frames != 256 || device->spec.freq != 44100) {
++            return SDL_SetError("Petari AQ-count arm requires 256 frames at 44100 Hz");
++        }
++        numAudioBuffers = diagnosticBuffers;
++    }
++    if (!device->recording) {
++        SDL_PetariAudioBoundary(SDL_PETARI_AQ_FORMAT, device,
++            ((Sint64)numAudioBuffers << 48) | ((Sint64)device->sample_frames << 32) | (Uint32)device->spec.freq);
++    }
+     device->hidden->numAudioBuffers = numAudioBuffers;
+     device->hidden->audioBuffer = SDL_calloc(numAudioBuffers, sizeof(AudioQueueBufferRef));
+     if (device->hidden->audioBuffer == NULL) {
+--- /dev/null
++++ b/include/SDL3/SDL_petari_audio_diag.h
+@@ -0,0 +1,27 @@
++/* Petari-only diagnostic extension to pinned SDL release-3.4.10.
++ * Not an upstream SDL API. Configure before opening any audio device.
++ * No observer, TLS, clocks, or argument work on the disabled hot path.
++ */
++#ifndef SDL_petari_audio_diag_h_
++#define SDL_petari_audio_diag_h_
++#include <SDL3/SDL_stdinc.h>
++#ifdef __cplusplus
++extern "C" {
++#endif
++typedef void (SDLCALL *SDL_PetariAudioObserver)(unsigned boundary, const void *object, Sint64 value);
++enum {
++    SDL_PETARI_AQ_ENTRY=17, SDL_PETARI_AQ_EXIT,
++    SDL_PETARI_DEVICE_LOCK_REQUEST, SDL_PETARI_DEVICE_LOCK_ACQUIRED, SDL_PETARI_DEVICE_LOCK_RELEASED,
++    SDL_PETARI_GET_BEGIN, SDL_PETARI_GET_LOCK_REQUEST, SDL_PETARI_GET_LOCK_ACQUIRED,
++    SDL_PETARI_FILL_ENTRY, SDL_PETARI_FILL_EXIT,
++    SDL_PETARI_CONVERT_BEGIN, SDL_PETARI_CONVERT_END, SDL_PETARI_GET_END,
++    SDL_PETARI_PUT_BEGIN, SDL_PETARI_PUT_LOCK_REQUEST, SDL_PETARI_PUT_LOCK_ACQUIRED,
++    SDL_PETARI_PUT_LOCK_RELEASED, SDL_PETARI_PUT_END, SDL_PETARI_AQ_FORMAT
++};
++/* buffers=0 preserves SDL's calculation; 6/18 is output-only, 256/44100 only.
++ * An override requires a non-null observer. No fallback on invalid requests. */
++extern bool SDL_PetariConfigureAudioDiagnostic(SDL_PetariAudioObserver observer, int buffers);
++#ifdef __cplusplus
++}
++#endif
++#endif
+--- /dev/null
++++ b/src/audio/SDL_petari_audio_diag.h
+@@ -0,0 +1,11 @@
++/* Petari-only default-off diagnostic; no dependency on Petari C++ or clocks. */
++#include <SDL3/SDL_petari_audio_diag.h>
++extern SDL_PetariAudioObserver SDL_petari_audio_observer;
++extern int SDL_petari_aq_buffers;
++static SDL_INLINE void SDL_PetariAudioBoundary(unsigned boundary, const void *object, Sint64 value)
++{
++    SDL_PetariAudioObserver observer = __atomic_load_n(&SDL_petari_audio_observer, __ATOMIC_ACQUIRE);
++    if (observer) {
++        observer(boundary, object, value);
++    }
++}

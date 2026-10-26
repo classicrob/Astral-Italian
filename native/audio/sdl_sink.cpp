@@ -8,6 +8,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_petari_audio_diag.h>
 #include <CoreAudio/CoreAudio.h>
 #include <cmath>
 #include <string>
@@ -232,6 +233,13 @@ void produce(std::uint32_t rate) {
 
 void SDLCALL fill(void*, SDL_AudioStream* stream, int additionalBytes, int) {
     namespace WG = PetariNative::Platform::AudioWorkgroup;
+    // One cached flag; the outlined observer owns all trace TLS/clock work.
+    struct FillBoundary {
+        bool active;
+        SDL_AudioStream* stream;
+        ~FillBoundary() { if(active) WG::noteTransport(SDL_PETARI_FILL_EXIT,stream,0); }
+    } boundary{WG::observing.load(std::memory_order_relaxed),stream};
+    if(boundary.active) WG::noteTransport(SDL_PETARI_FILL_ENTRY,stream,additionalBytes);
     if (WG::observing.load(std::memory_order_relaxed))
         WG::noteCallback(ring.level(), additionalBytes > 0 ? (static_cast<std::uint64_t>(additionalBytes)+3)/4 : 0);
     PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackBeginEnabled(ring, additionalBytes, deviceThreadRealtime.load(std::memory_order_relaxed)));
@@ -401,6 +409,29 @@ void start(std::uint32_t rate, void*) {
     stopProducer.store(false);
     const char* diagValue = std::getenv("PETARI_AUDIO_DIAG");  // unset, empty, or leading '0' = off
     diagnostics = diagValue != nullptr && diagValue[0] != '\0' && diagValue[0] != '0';
+    // Configure once on the control/start path, before SDL creates its AQ
+    // callback thread. The count arm is explicit, diagnostic-only, and cannot
+    // silently run without the boundary observer or on a different format.
+    namespace WG = PetariNative::Platform::AudioWorkgroup;
+    int aqBuffers=0;
+    if(const char* count=std::getenv("PETARI_AUDIO_AQ_BUFFERS_DIAG"); count && *count) {
+        if(!std::strcmp(count,"6")) aqBuffers=6;
+        else if(!std::strcmp(count,"18")) aqBuffers=18;
+        else { std::fputs("[audio-transport] refused invalid AQ buffer count\n",stderr); std::abort(); }
+        if(!diagnostics || !WG::observing.load(std::memory_order_relaxed) || latency.deviceFrames!=256 || latency.bufferMs!=48.0 || rate!=32000) {
+            std::fputs("[audio-transport] refused: count arm requires DIAG/history and unchanged 256/48ms/32000Hz\n",stderr);
+            std::abort();
+        }
+    }
+    static_assert(SDL_PETARI_AQ_ENTRY==17 && SDL_PETARI_AQ_FORMAT==35,"SDL/history boundary ABI changed");
+    const auto observer=WG::observing.load(std::memory_order_relaxed) ?
+        +[](unsigned kind,const void* object,Sint64 value) { WG::noteTransport(kind,object,value); } : nullptr;
+    if(!SDL_PetariConfigureAudioDiagnostic(observer,aqBuffers)) {
+        std::fprintf(stderr,"[audio-transport] configuration refused: %s\n",SDL_GetError()); std::abort();
+    }
+    if(observer) std::fprintf(stderr,"[audio-transport-config] boundary_observer=1 aq_buffers_requested=%d "
+        "clock=steady_clock_ns ring_ms=%.3f device_frames=%d put_thread=fill-callback producer=SPSC-no-SDL-put\n",
+        aqBuffers,latency.bufferMs,latency.deviceFrames);
     PetariNative::Platform::Audio::setTimingDiagnostics(diagnostics);
     lastCallbackUs = 0;
     if (const char* capture = std::getenv("PETARI_AUDIO_CAPTURE"); captureFile == nullptr && capture != nullptr && capture[0] != '\0') {
@@ -426,6 +457,8 @@ void start(std::uint32_t rate, void*) {
         SDL_AudioSpec deviceSpec{};
         int sampleFrames = 0;
         SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(device), &deviceSpec, &sampleFrames);
+        if(observer) std::fprintf(stderr,"[audio-transport-device] rate=%d channels=%d format=%u frames=%d\n",
+            deviceSpec.freq,deviceSpec.channels,static_cast<unsigned>(deviceSpec.format),sampleFrames);
         const double requestMs = deviceSpec.freq > 0 ? sampleFrames * 1000.0 / deviceSpec.freq : 25.0;
         const double waitMs = std::clamp(latency.bufferMs - requestMs - 3.0, 0.0, 40.0);
         PetariNative::Platform::Audio::setRegistrationWaitLimit(static_cast<std::uint32_t>(waitMs * 1000.0));

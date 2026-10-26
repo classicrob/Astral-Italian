@@ -49,6 +49,21 @@ class PowerSource(unittest.TestCase):
                'TapeRecord::acknowledgePower(observed)','TapePlay::acknowledgePower(observed)']
         self.assertEqual([source.index(n) for n in names],sorted(source.index(n) for n in names))
 
+    def test_native_producer_binds_policy_during_script_initialization(self):
+        source=(ROOT/'native/app/input_script_probe.cpp').read_text()
+        self.assertIn('if (s.recordNative) TapeRecord::setNeutralTailPolicy(TapeNeutral::Policy::NativeControls)',source)
+
+    def test_native_script_tail_and_real_power_are_inside_recorder_seam(self):
+        source=body((ROOT/'native/app/smoke_game.cpp').read_text(),'void recordRouteFrame(')
+        self.assertLess(source.index('TapeRecord::beginControlSeam()'),source.index('Smoke::inputScriptRecordSeam('))
+        self.assertLess(source.index('Smoke::inputScriptRecordSeam('),source.index('TapeRecord::endControlSeam()'))
+        source=body((ROOT/'native/app/input_script_probe.cpp').read_text(),'void inputScriptRecordSeam(')
+        self.assertIn('Input::mouseMoved(p.x,p.y)',source)
+        self.assertIn('Input::mouseLeft()',source)
+        self.assertLess(source.index('TapeRecord::neutralTailBegin()'),source.index('s.tail.began(now(),true)'))
+        self.assertIn('s.tail.powerAllowed(now(),true)',source)
+        self.assertIn('Host::requestQuit()',source)
+
     def test_finish_never_observes_actor_writes_row_or_increments_seam(self):
         source=body((ROOT/'native/app/tape_record.cpp').read_text(),'void finish()')
         for forbidden in ['observe(', 'getMario', 'writer.write', '++gRow', 'gRow++', 'beforeRead(']:

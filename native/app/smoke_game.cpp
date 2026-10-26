@@ -276,6 +276,7 @@ void recordRouteFrame(bool background) {
     }
     row.input = PetariNative::Input::boundState();
     TapeRecord::beginControlSeam(); // exact post-row snapshot, before the next update
+    if (write) Smoke::inputScriptRecordSeam(row.stage ? row.stage : "",row.valid);
     if (play) {
         TapePlay::SeamState state;
         state.stage = row.stage ? row.stage : "";

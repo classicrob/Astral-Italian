@@ -37,6 +37,7 @@ void beforeRead(const TapePhase::State& state);
 void beginControlSeam();
 void endControlSeam();
 void neutralTailBegin();
+void rejectSessionControl(const char* reason);
 // Select before the tail begins: native producer initialization or parsed replay
 // source only. There is deliberately no environment policy override.
 void setNeutralTailPolicy(TapeNeutral::Policy policy);

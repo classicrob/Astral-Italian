@@ -55,6 +55,12 @@ sqlite3* open_pipeline_cache_seed_db(const std::string&) {
                  "INSERT INTO pipeline_cache VALUES(1,42,13,1,x'00',7);", nullptr, nullptr, nullptr);
  return db;
 }
+// Scheduling-only miniature rows. Production row validation is exercised by
+// native_pipeline_cache_compat with real Aurora structs and hashes.
+namespace PetariPipelineCache {
+struct RecipeRows { explicit RecipeRows(sqlite3*) {} };
+bool admitRecipe(RecipeRows&,sqlite3_stmt*) { return true; }
+}
 ''' + function + r'''
 int main() {
  seed_pipeline_cache_path("fixture", true);

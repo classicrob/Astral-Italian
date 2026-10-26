@@ -15,21 +15,21 @@ int main() {
     const auto root = fs::current_path() / ("smoke-storage-test-" + std::to_string(getpid()));
     fs::create_directories(root / "first");
     sqlite3* db = nullptr;
-    sqlite3_open((root / "first" / PetariPipelineCache::filename("dawn_cache")).c_str(), &db);
+    sqlite3_open((root / "first" / PetariPipelineCache::filename("pipeline_cache")).c_str(), &db);
     if (!PetariPipelineCache::identity(db, true)) return 10;
     sqlite3_exec(db, "CREATE TABLE evidence(value); INSERT INTO evidence VALUES(42)", nullptr, nullptr, nullptr);
     sqlite3_close(db);
-    sqlite3_open((root / "first" / PetariPipelineCache::filename("pipeline_cache")).c_str(), &db);
+    sqlite3_open((root / "first" / PetariPipelineCache::filename("foreign_cache")).c_str(), &db);
     if (!PetariPipelineCache::identity(db, true)) return 14;
-    sqlite3_exec(db, "UPDATE petari_cache_build SET build_key='foreign-build'", nullptr, nullptr, nullptr);
+    sqlite3_exec(db, "UPDATE petari_cache_compatibility SET identity='foreign-recipe'", nullptr, nullptr, nullptr);
     sqlite3_close(db);
     PetariNative::App::SmokeStorage first;
     std::string error;
     if (!first.prepare(root / "first", nullptr, &error)) {
         std::fprintf(stderr, "%s\n", error.c_str()); return 1;
     }
-    if (!fs::is_regular_file(first.cache / PetariPipelineCache::filename("dawn_cache"))) return 2;
-    if (fs::exists(first.cache / PetariPipelineCache::filename("pipeline_cache"))) return 15;
+    if (!fs::is_regular_file(first.cache / PetariPipelineCache::filename("pipeline_cache"))) return 2;
+    if (fs::exists(first.cache / PetariPipelineCache::filename("foreign_cache"))) return 15;
     const pid_t child = fork();
     if (child == 0) {
         PetariNative::App::SmokeStorage conflict;
@@ -49,10 +49,10 @@ int main() {
     int status = 0;
     if (child < 0 || waitpid(child, &status, 0) != child || !WIFEXITED(status) || WEXITSTATUS(status)) return 5;
     if (fs::exists(first.cache / "sentinel") || !fs::exists(root / "second/cache/sentinel")) return 6;
-    sqlite3_open((first.cache / PetariPipelineCache::filename("dawn_cache")).c_str(), &db);
+    sqlite3_open((first.cache / PetariPipelineCache::filename("pipeline_cache")).c_str(), &db);
     sqlite3_exec(db, "UPDATE evidence SET value=99", nullptr, nullptr, nullptr);
     sqlite3_close(db);
-    sqlite3_open_v2((root / "first" / PetariPipelineCache::filename("dawn_cache")).c_str(), &db, SQLITE_OPEN_READONLY, nullptr);
+    sqlite3_open_v2((root / "first" / PetariPipelineCache::filename("pipeline_cache")).c_str(), &db, SQLITE_OPEN_READONLY, nullptr);
     sqlite3_stmt* statement = nullptr;
     sqlite3_prepare_v2(db, "SELECT value FROM evidence", -1, &statement, nullptr);
     const bool untouched = sqlite3_step(statement) == SQLITE_ROW && sqlite3_column_int(statement, 0) == 42;

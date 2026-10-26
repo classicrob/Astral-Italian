@@ -90,12 +90,11 @@ void cache_policy_tests() {
     sqlite3_finalize(query);
     expect(accepted == 1 && dropped == 1, "poisoned-row DB loads without abort and drops exactly the invalid row");
     expect(std::memcmp(&poison, &unchangedPoison, sizeof(poison)) == 0, "cache admission never repairs poisoned bytes");
-    sqlite3_exec(db, "UPDATE petari_cache_build SET build_key='foreign-build'", nullptr, nullptr, nullptr);
+    sqlite3_exec(db, "UPDATE petari_cache_compatibility SET identity='foreign-recipe'", nullptr, nullptr, nullptr);
     expect(!PetariPipelineCache::identity(db) && !PetariPipelineCache::identity(db, true),
            "foreign-build DB ignored without relabelling");
-    expect(PetariPipelineCache::filename("pipeline_cache").find(PETARI_PIPELINE_BUILD_KEY) != std::string::npos &&
-           PetariPipelineCache::filename("dawn_cache").find(PETARI_PIPELINE_BUILD_KEY) != std::string::npos,
-           "SQLite pipeline and Dawn filenames share the deterministic build identity");
+    expect(PetariPipelineCache::filename("pipeline_cache").find(PETARI_PIPELINE_BUILD_KEY) != std::string::npos,
+           "recipe filenames use the stable ABI (Dawn gets its selected-adapter namespace at runtime)");
     sqlite3_close(db);
     auto defaultNormal = good.shaderConfig;
     defaultNormal.numIndStages = 0;

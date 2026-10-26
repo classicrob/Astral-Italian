@@ -107,20 +107,22 @@ static sqlite3* open_pipeline_cache_seed_db(const std::string&) {
         sqlite3_create_function(db, "fail_manifest", 0, SQLITE_UTF8, nullptr,
             [](sqlite3_context* context, int, sqlite3_value**) { sqlite3_result_error(context, "injected read failure", -1); },
             nullptr, nullptr);
-        sql("CREATE VIEW pipeline_cache AS SELECT 1 AS type,13 AS config_version,fail_manifest() AS config,0 AS first_frame_used");
+        sql("CREATE VIEW pipeline_cache AS SELECT 1 AS type,0 AS hash,13 AS config_version,12 AS config_size,fail_manifest() AS config,0 AS first_frame_used");
         return db;
     }
-    sql("CREATE TABLE pipeline_cache(type INTEGER,config_version INTEGER,config BLOB,first_frame_used INTEGER)");
+    sql("CREATE TABLE pipeline_cache(type INTEGER,hash INTEGER,config_version INTEGER,config_size INTEGER,config BLOB,first_frame_used INTEGER)");
     if (manifestFixture == ManifestFixture::InvalidRow)
-        sql("INSERT INTO pipeline_cache VALUES(1,13,x'00',0)");
+        sql("INSERT INTO pipeline_cache VALUES(1,0,13,1,x'00',0)");
     const auto insertRow = [&](unsigned id, sqlite3_int64 firstUse) {
         sqlite3_stmt* insert = nullptr;
-        if (sqlite3_prepare_v2(db, "INSERT INTO pipeline_cache VALUES(1,13,?,?)", -1, &insert, nullptr) != SQLITE_OK)
+        if (sqlite3_prepare_v2(db, "INSERT INTO pipeline_cache VALUES(1,?,13,?,?,?)", -1, &insert, nullptr) != SQLITE_OK)
             throw std::runtime_error("fixture insert prepare failed");
         gx::PipelineConfig config{13, id};
         if (manifestFixture == ManifestFixture::InvalidShader) config.shaderConfig.valid = false;
-        sqlite3_bind_blob(insert, 1, &config, sizeof(config), SQLITE_TRANSIENT);
-        sqlite3_bind_int64(insert, 2, firstUse);
+        sqlite3_bind_int64(insert, 1, xxh3_hash(config,1));
+        sqlite3_bind_int(insert, 2, sizeof(config));
+        sqlite3_bind_blob(insert, 3, &config, sizeof(config), SQLITE_TRANSIENT);
+        sqlite3_bind_int64(insert, 4, firstUse);
         const auto result = sqlite3_step(insert);
         sqlite3_finalize(insert);
         if (result != SQLITE_DONE) throw std::runtime_error("fixture insert failed");
@@ -134,6 +136,16 @@ static sqlite3* open_pipeline_cache_seed_db(const std::string&) {
         insertRow(64, 1);
     }
     return db;
+}
+}
+// Scheduling fixture uses miniature configs. Real shape/hash/checksum validation
+// is exercised by native_pipeline_cache_compat against the production layouts.
+namespace PetariPipelineCache {
+struct RecipeRows { explicit RecipeRows(sqlite3*) {} };
+static bool admitRecipe(RecipeRows&,sqlite3_stmt* s) {
+    return sqlite3_column_type(s,4)==SQLITE_BLOB && sqlite3_column_int(s,2)==13 &&
+        sqlite3_column_bytes(s,4)==sizeof(aurora::gfx::gx::PipelineConfig) &&
+        sqlite3_column_int(s,3)==sizeof(aurora::gfx::gx::PipelineConfig);
 }
 }
 #include "../gx/pipeline_stage.inc"

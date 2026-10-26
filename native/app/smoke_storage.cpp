@@ -163,7 +163,7 @@ bool SmokeStorage::prepare(const fs::path& user, const char* cacheOverride, std:
         if (!relative.empty() && *relative.begin() != "..")
             throw std::runtime_error("background cache cannot use the shared Darwin cache directory");
         cacheLock = lockDirectory(cache);
-        for (const char* stem : {"pipeline_cache", "dawn_cache"}) {
+        for (const char* stem : {"pipeline_cache"}) {
             const auto name = PetariPipelineCache::filename(stem);
             seedDatabase(realUser / name, cache / name);
         }

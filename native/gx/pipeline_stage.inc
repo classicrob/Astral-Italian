@@ -141,17 +141,19 @@ extern "C" void petari_gx_pipeline_stage_begin(const char* name, const char* see
     std::string failure;
     if (sqlite3* db = open_pipeline_cache_seed_db(path)) {
       sqlite3_stmt* query = nullptr;
-      if (sqlite3_prepare_v2(db, "SELECT type,config_version,config,first_frame_used FROM pipeline_cache ORDER BY first_frame_used", -1,
+      if (sqlite3_prepare_v2(db, "SELECT type,hash,config_version,config_size,config,first_frame_used FROM pipeline_cache ORDER BY first_frame_used", -1,
                              &query, nullptr) == SQLITE_OK) {
         int status;
         unsigned rejected = 0;
+        PetariPipelineCache::RecipeRows validation(db);
         while ((status = sqlite3_step(query)) == SQLITE_ROW) {
+          if (!PetariPipelineCache::admitRecipe(validation, query)) { ++rejected; continue; }
           const auto type = sqlite3_column_int(query, 0);
-          const auto version = sqlite3_column_int(query, 1);
-          const auto size = sqlite3_column_bytes(query, 2);
-          const auto* data = sqlite3_column_blob(query, 2);
+          const auto version = sqlite3_column_int(query, 2);
+          const auto size = sqlite3_column_bytes(query, 4);
+          const auto* data = sqlite3_column_blob(query, 4);
           const auto firstUse = static_cast<uint32_t>(std::min<sqlite3_int64>(
-              std::max<sqlite3_int64>(sqlite3_column_int64(query, 3), 0), UINT32_MAX));
+              std::max<sqlite3_int64>(sqlite3_column_int64(query, 5), 0), UINT32_MAX));
           if (type == static_cast<int>(ShaderType::GX) && version == gx::GXPipelineConfigVersion &&
               size == sizeof(gx::PipelineConfig) && data) {
             gx::PipelineConfig config;

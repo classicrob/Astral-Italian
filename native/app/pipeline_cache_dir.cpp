@@ -77,9 +77,10 @@ void PipelineCacheDir::prepare(const fs::path& user, bool testRun, const char* c
     }
     lock = fd;
     path = machine;
-    // One-time adoption of an existing per-save cache keeps an old install warm.
+    // Adopt only compatible recipe DBs. Legacy Dawn blobs lack full-key/context
+    // provenance and are deliberately never adopted or relabelled.
     unsigned copied = 0;
-    for (const char* stem : {"pipeline_cache", "dawn_cache"}) {
+    for (const char* stem : {"pipeline_cache"}) {
         const auto name = PetariPipelineCache::filename(stem);
         copied += snapshot(user / name, machine / name);
     }

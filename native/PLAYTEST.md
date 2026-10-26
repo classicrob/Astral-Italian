@@ -902,3 +902,14 @@ These native changes alter the renderer/cache identity. PFD1, the v14 pack and
 its 64 databases/57 sidecars, generated membership and gameplay queue ordering
 are unchanged. Only a new server-built candidate can establish the cold-launch
 range, responsiveness and acceptance result.
+
+
+### 5.4.3 persistent pipeline compatibility
+
+The first 5.4.3 launch prepares graphics once more because legacy Dawn blobs
+lack a full-key/context envelope. Later compatible source/CMake/build updates
+retain validated recipes and compiler entries. The renderer receipt now records
+a recipe ABI and a separate effective-backend identity; app build/seed digests
+are provenance, not cache keys. The v14 pack and 57 PFD fingerprints are unchanged.
+See `native/docs/PIPELINE-CACHE-COMPAT-543.md` for the compatibility boundary,
+private-cache tests, migration limits and server runner.

@@ -18,17 +18,36 @@ include("${CMAKE_SOURCE_DIR}/native/cmake/PadDependencies.cmake")
 FetchContent_MakeAvailable(aurora)
 petari_record_graphics_dependencies("${CMAKE_CURRENT_BINARY_DIR}/dependency-paths.tsv")
 
-# Cache identity is content-based: no checkout path, timestamp or dirty-git state.
-file(GLOB_RECURSE _petari_cache_identity_inputs CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.mm" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.inc" "${CMAKE_CURRENT_SOURCE_DIR}/*.cmake"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.wgsl")
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_petari_cache_identity_inputs}
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt" "${CMAKE_SOURCE_DIR}/native/app/CMakeLists.txt")
+# Compatibility is an explicit ABI plus the EFFECTIVE backend artifact, never
+# a hash of application/CMake/scheduler sources or bundled seed content.
+get_target_property(_petari_dawn_library dawn::webgpu_dawn IMPORTED_LOCATION)
+if(NOT _petari_dawn_library OR NOT EXISTS "${_petari_dawn_library}")
+    foreach(_config RELEASE RELWITHDEBINFO MINSIZEREL NOCONFIG DEBUG)
+        get_target_property(_candidate dawn::webgpu_dawn IMPORTED_LOCATION_${_config})
+        if(_candidate AND EXISTS "${_candidate}")
+            set(_petari_dawn_library "${_candidate}")
+            break()
+        endif()
+    endforeach()
+endif()
+if(NOT _petari_dawn_library OR NOT EXISTS "${_petari_dawn_library}")
+    message(FATAL_ERROR "Cannot verify the effective Dawn library for cache compatibility")
+endif()
+file(SHA256 "${_petari_dawn_library}" _petari_dawn_sha256)
+set(_petari_cache_arch "${CMAKE_OSX_ARCHITECTURES}")
+if(NOT _petari_cache_arch)
+    set(_petari_cache_arch "${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+set(_petari_backend_receipt "${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache_backend.json")
+file(WRITE "${_petari_backend_receipt}"
+    "{\"aurora_revision\":\"${PETARI_AURORA_REVISION}\",\"dawn_ref\":\"${AURORA_DAWN_REF}\",\"dawn_package\":\"${AURORA_DAWN_VERSION}\",\"dawn_library_sha256\":\"${_petari_dawn_sha256}\",\"architecture\":\"${_petari_cache_arch}\",\"provider\":\"${AURORA_DAWN_PROVIDER}\"}\n")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache_compatibility.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache_identity.py" "${_petari_dawn_library}")
 execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_cache_identity.py"
     identity "${CMAKE_SOURCE_DIR}" "${aurora_SOURCE_DIR}"
-    "${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache_build_identity.hpp" COMMAND_ERROR_IS_FATAL ANY)
+    "${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache_build_identity.hpp" "${_petari_backend_receipt}"
+    COMMAND_ERROR_IS_FATAL ANY)
 add_library(petari_pipeline_cache_identity INTERFACE)
 target_link_libraries(petari_pipeline_cache_identity INTERFACE SQLite::SQLite3)
 target_include_directories(petari_pipeline_cache_identity INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
@@ -276,7 +295,7 @@ set_property(TARGET aurora_core PROPERTY SOURCES "${_sources}")
 set_source_files_properties("${_dawn_cache_output}" TARGET_DIRECTORY aurora_core PROPERTIES
     COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/lib/webgpu;-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR}/present")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_cache_policy.py" "${_dawn_cache_source}")
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_cache_policy.py" "${CMAKE_CURRENT_SOURCE_DIR}/aurora_dawn_cache.inc" "${_dawn_cache_source}")
 
 set(_pipeline_source "${aurora_SOURCE_DIR}/lib/gfx/pipeline_cache.cpp")
 set(_pipeline_output "${CMAKE_CURRENT_BINARY_DIR}/aurora-pipeline-cache.cpp")
@@ -623,7 +642,7 @@ if(_petari_build_testing)
     add_executable(petari_pipeline_cache_dir_tests "${CMAKE_SOURCE_DIR}/native/tools/pipeline_cache_dir_tests.cpp"
         "${CMAKE_SOURCE_DIR}/native/app/pipeline_cache_dir.cpp")
     target_compile_features(petari_pipeline_cache_dir_tests PRIVATE cxx_std_20)
-    target_link_libraries(petari_pipeline_cache_dir_tests PRIVATE SQLite::SQLite3)
+    target_link_libraries(petari_pipeline_cache_dir_tests PRIVATE petari_pipeline_cache_identity)
     add_test(NAME native_pipeline_cache_dir COMMAND petari_pipeline_cache_dir_tests)
     set_tests_properties(native_pipeline_cache_dir PROPERTIES TIMEOUT 15)
     add_executable(petari_pipeline_overlay_tests "${CMAKE_SOURCE_DIR}/native/tools/pipeline_overlay_tests.cpp")
@@ -750,7 +769,7 @@ if(_petari_build_testing)
         "${CMAKE_SOURCE_DIR}/native/tests/aurora_texture_prewarm_patch_tests.py" "${aurora_SOURCE_DIR}")
 endif()
 
-if(BUILD_TESTING)
+if(_petari_build_testing)
     add_test(NAME native_pipeline_cache_identity COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_identity_tests.py")
     add_test(NAME native_pipeline_first_use COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_first_use_tests.py" "${CMAKE_CXX_COMPILER}")
     add_test(NAME native_pipeline_deadline_capture COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/pipeline_deadline_capture_tests.py")
@@ -801,6 +820,10 @@ foreach(_kind gpu gpu_prof)
     set(_output "${CMAKE_CURRENT_BINARY_DIR}/gpu-timing/${_kind}.cpp")
     execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_gpu_timing.py"
         "${_input}" "${_output}" COMMAND_ERROR_IS_FATAL ANY)
+    if(_kind STREQUAL "gpu")
+        execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_cache_policy.py"
+            device "${_output}" "${_output}" COMMAND_ERROR_IS_FATAL ANY)
+    endif()
     get_target_property(_sources aurora_core SOURCES)
     list(REMOVE_ITEM _sources "${_input}" "lib/webgpu/${_kind}.cpp")
     list(APPEND _sources "${_output}")
@@ -817,4 +840,39 @@ if(APPLE AND _petari_build_testing)
     target_link_libraries(petari_boot_splash_tests PRIVATE SDL3::SDL3 "-framework AppKit" "-framework Carbon" "-framework CoreGraphics")
     add_test(NAME native_boot_splash COMMAND petari_boot_splash_tests)
     add_test(NAME native_boot_splash_hidden COMMAND petari_boot_splash_tests hidden)
+endif()
+
+if(_petari_build_testing)
+    add_executable(petari_pipeline_cache_compat_tests EXCLUDE_FROM_ALL
+        "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_compat_tests.cpp")
+    target_compile_features(petari_pipeline_cache_compat_tests PRIVATE cxx_std_20)
+    target_include_directories(petari_pipeline_cache_compat_tests PRIVATE "${aurora_SOURCE_DIR}/lib" "${aurora_SOURCE_DIR}/lib/gx")
+    target_link_libraries(petari_pipeline_cache_compat_tests PRIVATE petari_pipeline_cache_identity aurora::gx aurora::core)
+    add_test(NAME native_pipeline_cache_compat COMMAND petari_pipeline_cache_compat_tests)
+    add_test(NAME native_pipeline_cache_seed_stamp COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_seed_stamp_tests.py"
+        $<TARGET_FILE:petari_pipeline_cache_compat_tests> "${CMAKE_CURRENT_BINARY_DIR}/pipeline_cache_build_identity.key")
+    if(APPLE)
+        add_executable(petari_pipeline_cache_dawn_keys_tests EXCLUDE_FROM_ALL
+            "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_dawn_keys_tests.cpp")
+        target_compile_features(petari_pipeline_cache_dawn_keys_tests PRIVATE cxx_std_20)
+        target_link_libraries(petari_pipeline_cache_dawn_keys_tests PRIVATE petari_pipeline_cache_identity dawn::webgpu_dawn)
+        add_test(NAME native_pipeline_cache_dawn_keys COMMAND petari_pipeline_cache_dawn_keys_tests)
+        set_tests_properties(native_pipeline_cache_dawn_keys PROPERTIES TIMEOUT 90)
+    endif()
+    if(AURORA_CACHE_USE_ZSTD)
+        target_compile_definitions(petari_pipeline_cache_compat_tests PRIVATE AURORA_CACHE_USE_ZSTD)
+        target_link_libraries(petari_pipeline_cache_compat_tests PRIVATE zstd::libzstd)
+        if(TARGET petari_pipeline_cache_dawn_keys_tests)
+            target_compile_definitions(petari_pipeline_cache_dawn_keys_tests PRIVATE AURORA_CACHE_USE_ZSTD)
+            target_link_libraries(petari_pipeline_cache_dawn_keys_tests PRIVATE zstd::libzstd)
+        endif()
+    endif()
+    add_executable(petari_pipeline_artifact_raw_tests EXCLUDE_FROM_ALL
+        "${CMAKE_SOURCE_DIR}/native/tests/pipeline_artifact_raw_tests.cpp")
+    target_compile_features(petari_pipeline_artifact_raw_tests PRIVATE cxx_std_20)
+    target_link_libraries(petari_pipeline_artifact_raw_tests PRIVATE petari_pipeline_cache_identity)
+    add_test(NAME native_pipeline_artifact_raw COMMAND petari_pipeline_artifact_raw_tests)
+    add_test(NAME native_pipeline_cache_patch COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_SOURCE_DIR}/native/tests/pipeline_cache_patch_tests.py" "${aurora_SOURCE_DIR}")
 endif()

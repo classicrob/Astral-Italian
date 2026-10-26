@@ -1,5 +1,6 @@
 // Machine-wide pipeline cache selection, adoption of a per-save cache, busy and test-run fallbacks.
 #include "../app/pipeline_cache_dir.hpp"
+#include "pipeline_cache_identity.hpp"
 #include <sqlite3.h>
 #include <chrono>
 #include <cstdio>
@@ -14,6 +15,7 @@ static void require(bool value, const char* reason) { if (!value) throw std::run
 static void makeDb(const fs::path& path, int rows) {
     sqlite3* db = nullptr;
     require(sqlite3_open(path.c_str(), &db) == SQLITE_OK, "fixture open failed");
+    require(PetariPipelineCache::identity(db, true), "fixture compatibility failed");
     std::string sql = "CREATE TABLE pipeline_cache(hash INTEGER);";
     for (int i = 0; i < rows; ++i) sql += "INSERT INTO pipeline_cache VALUES(" + std::to_string(i) + ");";
     require(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK, "fixture write failed");
@@ -39,26 +41,26 @@ int main() try {
     const auto home = root / "home", save = root / "save", copy = root / "copied-save";
     fs::create_directories(save);
     fs::create_directories(copy);
-    makeDb(save / "pipeline_cache.db", 3);
+    makeDb(save / PetariPipelineCache::filename("pipeline_cache"), 3);
     makeDb(save / "dawn_cache.db", 2);
     setenv("HOME", home.c_str(), 1);
-    const auto machine = home / "Library/Caches/Petari";
+    const auto machine = home / "Library/Caches/AstralItalian";
     {
         PipelineCacheDir first;
         first.prepare(save, false, nullptr);
         require(first.path == machine, "normal launch did not use the machine cache");
-        require(rows(machine / "pipeline_cache.db") == 3 && rows(machine / "dawn_cache.db") == 2,
-                "existing per-save caches were not adopted");
+        require(rows(machine / PetariPipelineCache::filename("pipeline_cache")) == 3 && !fs::exists(machine / "dawn_cache.db"),
+                "compatible recipe adoption / legacy Dawn exclusion failed");
         PipelineCacheDir second;
         second.prepare(copy, false, nullptr);
         require(second.path == copy, "a second concurrent launch shared the machine cache writer");
     }
-    makeDb(copy / "pipeline_cache.db", 7);
+    makeDb(copy / PetariPipelineCache::filename("pipeline_cache"), 7);
     {
         PipelineCacheDir again;
         again.prepare(copy, false, nullptr);
         require(again.path == machine, "machine cache lock not released at exit");
-        require(rows(machine / "pipeline_cache.db") == 3, "a copied save's cache replaced the warm machine cache");
+        require(rows(machine / PetariPipelineCache::filename("pipeline_cache")) == 3, "a copied save's cache replaced the warm machine cache");
     }
     {
         PipelineCacheDir test;
@@ -68,7 +70,7 @@ int main() try {
         overridden.prepare(copy, true, (root / "override").c_str());
         require(overridden.path == root / "override" && fs::is_directory(root / "override"), "PETARI_CACHE_DIR ignored");
     }
-    require(!fs::exists(machine / "pipeline_cache.db.partial"), "partial adoption file left behind");
+    require(!fs::exists(machine / (PetariPipelineCache::filename("pipeline_cache") + ".partial")), "partial adoption file left behind");
     fs::remove_all(root);
     std::puts("Pipeline cache dir: machine cache, one-time adoption, busy fallback, test-run isolation and override pass");
 } catch (const std::exception& error) {

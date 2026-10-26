@@ -402,6 +402,17 @@ class Async(unittest.TestCase):
         source = PREFIX + "\nnamespace aurora::gx {\n" + "\n".join(function(runtime, sig) for sig in (
             "bool petari_uber_ready(", "void petari_uber_prepare(const PipelineConfig& c,const gfx::RenderTargetLayout& l,PetariUberTier tier)", "void petari_uber_scheduled(",
             "void petari_uber_not_ready(")) + "\n}\nnamespace aurora::gfx {\n" + queue + "\n}\n"
+        # Miniature scheduling fixtures cannot use the real 2772-byte decoder.
+        # Production crypto/typed validation has its own native tests.
+        source += r"""
+namespace PetariPipelineCache {
+struct RecipeRows { explicit RecipeRows(sqlite3*) {} };
+static bool admitRecipe(RecipeRows&,sqlite3_stmt* s) {
+ return sqlite3_column_type(s,4)==SQLITE_BLOB && sqlite3_column_bytes(s,4)==sizeof(aurora::gx::PipelineConfig) &&
+  sqlite3_column_int(s,3)==sizeof(aurora::gx::PipelineConfig) && sqlite3_column_int(s,2)==13;
+}
+}
+"""
         source += '#include "ubershader_boot.inc"\n' + TESTS
         cpp = Path(cls.tmp.name) / "test.cpp"
         cpp.write_text(source)

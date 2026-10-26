@@ -2,6 +2,8 @@
 """PFD1 validation, PSD1/PSD2 compatibility and deterministic round trips."""
 from pathlib import Path
 import importlib.util
+import json
+import shutil
 import lzma
 import os
 import sqlite3
@@ -118,8 +120,10 @@ class Sidecars(unittest.TestCase):
             for name in ['lib/gx/pipeline.hpp', 'lib/gfx/clear.hpp', 'lib/gfx/pipeline_cache.cpp', 'lib/webgpu/gpu_cache.cpp']:
                 p = aurora / name; p.parent.mkdir(parents=True, exist_ok=True); p.write_bytes(b'schema')
             pack = root / 'native/data/pipeline-seeds.v14.xz'; pack.parent.mkdir(); pack.write_bytes(b'one')
-            first = identity.identity(root, aurora); pack.write_bytes(b'two')
-            self.assertNotEqual(first, identity.identity(root, aurora))
+            shutil.copyfile(ROOT/'native/gx/pipeline_cache_compatibility.json', root/'native/gx/pipeline_cache_compatibility.json')
+            backend=tmp/'backend.json';backend.write_text(json.dumps(dict(aurora_revision='a'*40,dawn_ref='b'*40,dawn_package='test',dawn_library_sha256='c'*64,architecture='arm64',provider='package')))
+            first = identity.identity(root, aurora, backend); pack.write_bytes(b'two')
+            self.assertEqual(first, identity.identity(root, aurora, backend), 'seed content is not pipeline compatibility')
 
 
 def cpp(cxx):

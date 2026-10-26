@@ -1,0 +1,14 @@
+{
+  "protocol": "petari-pipeline-cache-v2",
+  "recipe_schema": 2,
+  "generator_abi": 1,
+  "descriptor_abi": 1,
+  "vertex_layout_abi": 1,
+  "uniform_abi": 1,
+  "byte_order": "little",
+  "gx_config_version": 13,
+  "gx_config_size": 2772,
+  "clear_config_version": 5,
+  "clear_config_size": 8,
+  "field_layout": "gx13:version@0,msaa@4,shader@8/2720,attrs@4/26x8,swaps@212/4x16,tev@276/16x132,tevCount@2388,channels@2392/4x20,tcg@2472/8x20,alpha@2632/20,indirect@2652/4x16,indCount@2716;depth@2728,cull@2732,blend@2736,src@2740,dst@2744,logic@2748,dstAlpha@2752,offset@2756/3x4,flags@2768/4;clear5:version@0,flags@4/3,pad@7;bool=u8:0|1,enum=u32le,float=ieee754;aurora::gx::AttrConfig:attrType@0,cnt@1,compType@2,offset@3,stride@4,frac@5,le@6,nbt3@7;aurora::gx::TevOp:op@0,bias@4,scale@8,outReg@12,clamp@16,_p1@17,_p2@18,_p3@19;aurora::gx::TevStage:colorPass@0,alphaPass@16,colorOp@32,alphaOp@52,kcSel@72,kaSel@76,texCoordId@80,texMapId@84,channelId@88,tevSwapRas@92,tevSwapTex@96,indTexStage@100,indTexFormat@104,indTexBiasSel@108,indTexAlphaSel@112,indTexMtxId@116,indTexWrapS@120,indTexWrapT@124,indTexUseOrigLOD@128,indTexAddPrev@129,_p1@130,_p2@131;aurora::gx::TcgConfig:type@0,src@4,mtx@8,postMtx@12,normalize@16,embossSrc@17,_p2@18,_p3@19;aurora::gx::ColorChannelConfig:matSrc@0,ambSrc@4,diffFn@8,attnFn@12,lightingEnabled@16,_p1@17,_p2@18,_p3@19;aurora::gx::AlphaCompare:comp0@0,ref0@4,op@8,comp1@12,ref1@16;aurora::gx::IndStage:texCoordId@0,texMapId@4,scaleS@8,scaleT@12;ClearRecipe:version@0,clearColor@4,clearAlpha@5,clearDepth@6,_pad@7;GXRecipe:version@0,msaaSamples@4,depthUpdate@2769,alphaUpdate@2770"
+}

@@ -1,6 +1,7 @@
 # 5.4.3 priority 2: pipeline caches survive compatible builds
 
-Design for PORT/head review; no implementation or native build/run yet.
+Design approved by PORT/head; source implementation and server test handoff.
+No native build/run was performed on the M1 for this implementation.
 Base: main `6702189f879a72f47df5bdf7ffce2f6b320a9aeb`.
 Branch: `port/543-cache-compatibility`.
 
@@ -171,3 +172,85 @@ synthetic/retained **private** legacy fixtures, never the user's DBs.
 Implementation remains native-only plus tests/docs and Aurora patch scripts;
 no root src/include/libs edits. It is a cache-format/validation change, not a
 pipeline-worker scheduling or shader visual change.
+
+## Implementation and the correctness boundary
+
+The implementation uses `pipeline_cache_compatibility.json` as the explicit ABI
+ledger; `pipeline_cache_identity.py` also emits the effective backend receipt.
+CMake hashes the actual configured Dawn library, not its CMake file or path.
+The historical `.key`/`PETARI_PIPELINE_BUILD_KEY` spelling is retained for build
+receipt tools, but now holds `recipe_abi`, not a build digest. The adjacent JSON
+records both recipe and backend identities. Adapter selection initializes the
+runtime artifact identity before installing any Dawn callback.
+
+`pipeline_recipe_validation.hpp` asserts the real GX13/Clear5 sizes and field
+offsets against that ledger. Each recipe load checks the SQL envelope, raw bool /
+reserved bytes, version and bounds, SHA256, recomputed config hash and existing
+shader semantic validation before typed use. The same adapter is used by initial
+seeding, learned recipes, stage manifests and the frontend preparation source.
+Only a successful upsert transaction publishes its matching integrity row.
+
+`pipeline_artifact_cache.hpp` implements the production callback storage. Its
+entry checksum binds version, namespace, full binary key, logical length and
+original decoded value. Its SHA256 key index is only an accelerator: a hit also
+requires full-key equality. Both size probe and copy validate raw byte length or
+bounded zstd decoding, then the complete checksum. The raw callback size/length
+bug cannot survive the size probe. Unknown schemas/encodings, foreign metadata,
+invalid/corrupt/truncated data and context changes miss without exposing bytes.
+Old Dawn files are not opened for migration, renamed, stamped or deleted.
+Session-based pruning is removed: a key unused during one session remains useful
+for a later stage and is not evidence of incompatibility.
+
+A stale recipe is **not** a persisted shader/pipeline. Today's generator runs on
+it again. If a generator/template edit changes the emitted WGSL or compilation
+options without an ABI bump, pinned Dawn derives a different shader-module /
+compilation-request key. That request cannot match the previous full key. The
+old recipe can waste a prewarm; it cannot make the callback substitute an old
+shader for the current output. ABI versions still invalidate incompatible recipe
+interpretation, binding and vertex-layout contracts, and static assertions catch
+layout drift. `native_pipeline_cache_dawn_keys` exercises this boundary with the
+real pinned Metal backend, two identical generated outputs and a changed output,
+while keeping the recipe ABI unchanged; it requires actual disk callbacks, warm
+hits, and misses for the newly generated full keys.
+
+`native_pipeline_cache_compat` tests the real typed decoder, SQLite storage and
+read-only legacy migration. `native_pipeline_artifact_raw` separately exercises
+the production raw callback implementation without zstd. The private seed-stamp
+test sends the v14 pack through Python stamping and the native typed/checksum
+loader, leaving the original pack unchanged. The scheduling-only miniature GX
+fixtures have explicit admission adapters; they are not used as decoder proof.
+
+Server runner after configuring the GX test build:
+
+```
+bash tools/port/test_pipeline_cache543.sh /absolute/private/GX_TEST_BUILD
+```
+
+This builds the EXCLUDE_FROM_ALL targets explicitly, then runs the cache tests
+and existing shader/storage checks. Each native cache test creates a fresh
+private root and isolated HOME; the Dawn test selects Metal without launching a
+normal user app. Source-only tests cover canonical identity, field rejection,
+backend changes, unrelated source/CMake/seed edits, source-pack preservation and
+the pinned patch chain. The source-only tests do not certify a native test or
+app build; retain those server results separately. After unit admission, two
+exact app builds with one irrelevant source/CMake edit must reuse the same
+private cache in the runtime warm proof, with the compatibility/artifact log
+lines bound to both binaries. Do not use normal user cache directories for that
+proof.
+
+Release note for 5.4.3: **The first launch after updating prepares graphics once
+more; later compatible updates keep them.** The unchanged Preparing graphics
+path covers this one-time legacy-blob transition. Seeds and `.pfd` fingerprints
+remain byte-identical; their digest is no longer a cache-compatibility input.
+
+### Source validation before the server build
+
+Source-only checks passed: identity 6/6, pinned cache-patch chain 4/4, and PFD /
+seed-pack tests 10/10; shell syntax and `git diff --check` passed. Inspection of
+all 2,525 unique v14 recipes found no noncanonical bool/padding bytes or bounds
+violations in the newly decoded fields. It also confirmed `dstAlpha=UINT32_MAX`
+is the legitimate disabled sentinel, which the decoder retains. This inspection
+is supplementary; native typed admission of the Python-stamped pack is a
+separate required server test. No native compilation or execution was performed
+on the M1. Native build/test and the two-build private-cache warm proof remain
+pending until PORT runs and binds them to the pushed commit.

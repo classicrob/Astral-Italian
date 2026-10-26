@@ -234,11 +234,12 @@ static std::vector<gx::PipelineConfig> petari_uber_read_seed(
   }
   std::vector<gx::PipelineConfig> configs;
   sqlite3_stmt* stmt = nullptr;
-  const auto sql = "SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13 ORDER BY first_frame_used";
+  const auto sql = "SELECT type,hash,config_version,config_size,config,first_frame_used FROM pipeline_cache WHERE type=1 AND config_version=13 ORDER BY first_frame_used";
   if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
     int status;
+    PetariPipelineCache::RecipeRows validation(db);
     while ((status = sqlite3_step(stmt)) == SQLITE_ROW && !g_pipelineThreadEnd) {
-      if (sqlite3_column_bytes(stmt, 0) != sizeof(gx::PipelineConfig)) {
+      if (!PetariPipelineCache::admitRecipe(validation, stmt)) {
         std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; continue;
       }
       if (pump && (configs.size() % 16 == 0)) pump->poll();
@@ -246,7 +247,7 @@ static std::vector<gx::PipelineConfig> petari_uber_read_seed(
         std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; break;
       }
       gx::PipelineConfig config;
-      std::memcpy(&config, sqlite3_column_blob(stmt, 0), sizeof(config));
+      std::memcpy(&config, sqlite3_column_blob(stmt, 4), sizeof(config));
       if (gx::petari_cached_shader_valid(config.shaderConfig, 0))
         configs.push_back(config);
       else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.rejectedConfigs; }
@@ -275,16 +276,17 @@ static void petari_uber_scan_frontend(const std::filesystem::path& dir, RenderTa
   size_t bootstrapAdded = 0;
   auto* bootstrap = open_pipeline_cache_seed_db((dir / "__global__.db").string());
   sqlite3_stmt* query = nullptr;
-  if (bootstrap && sqlite3_prepare_v2(bootstrap, "SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13 AND hash=?", -1, &query, nullptr) == SQLITE_OK) {
+  if (bootstrap && sqlite3_prepare_v2(bootstrap, "SELECT type,hash,config_version,config_size,config,first_frame_used FROM pipeline_cache WHERE type=1 AND config_version=13 AND hash=?", -1, &query, nullptr) == SQLITE_OK) {
+    PetariPipelineCache::RecipeRows validation(bootstrap);
     for (const auto hash : observed) {
       if (pump) pump->poll();
       if (pump && PetariPipeline::Clock::now() >= deadline) { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; break; }
       sqlite3_bind_int64(query, 1, static_cast<sqlite3_int64>(hash));
       gx::PipelineConfig config{};
       const auto status = sqlite3_step(query);
-      bool valid = status == SQLITE_ROW && sqlite3_column_bytes(query, 0) == sizeof(config) && sqlite3_column_blob(query, 0);
+      bool valid = status == SQLITE_ROW && PetariPipelineCache::admitRecipe(validation, query);
       if (valid) {
-        std::memcpy(&config, sqlite3_column_blob(query, 0), sizeof(config));
+        std::memcpy(&config, sqlite3_column_blob(query, 4), sizeof(config));
         valid = xxh3_hash(config, static_cast<uint64_t>(ShaderType::GX)) == hash && gx::petari_cached_shader_valid(config.shaderConfig, hash);
       }
       if (!valid) { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; }
@@ -305,7 +307,8 @@ static void petari_uber_scan_frontend(const std::filesystem::path& dir, RenderTa
   size_t matched = 0, missing = 0;
   auto* db = open_pipeline_cache_seed_db((dir / "__global__.db").string());
   sqlite3_stmt* stmt = nullptr;
-  if (db && sqlite3_prepare_v2(db, "SELECT config FROM pipeline_cache WHERE type=1 AND config_version=13 AND hash=?", -1, &stmt, nullptr) == SQLITE_OK) {
+  if (db && sqlite3_prepare_v2(db, "SELECT type,hash,config_version,config_size,config,first_frame_used FROM pipeline_cache WHERE type=1 AND config_version=13 AND hash=?", -1, &stmt, nullptr) == SQLITE_OK) {
+    PetariPipelineCache::RecipeRows validation(db);
     for (const auto& [hash, config] : frontend) {
       if (pump) pump->poll();
       if (pump && PetariPipeline::Clock::now() >= deadline) {
@@ -313,8 +316,8 @@ static void petari_uber_scan_frontend(const std::filesystem::path& dir, RenderTa
       }
       sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(hash));
       const auto status = sqlite3_step(stmt);
-      if (status == SQLITE_ROW && sqlite3_column_bytes(stmt, 0) == sizeof(config) &&
-          std::memcmp(sqlite3_column_blob(stmt, 0), &config, sizeof(config)) == 0) ++matched;
+      if (status == SQLITE_ROW && PetariPipelineCache::admitRecipe(validation, stmt) &&
+          std::memcmp(sqlite3_column_blob(stmt, 4), &config, sizeof(config)) == 0) ++matched;
       else if (status == SQLITE_DONE) ++missing;
       else { std::lock_guard lock{g_pipelineMutex}; ++petariUberBoot.manifestErrors; }
       sqlite3_reset(stmt); sqlite3_clear_bindings(stmt);

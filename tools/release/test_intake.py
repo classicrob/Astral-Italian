@@ -232,6 +232,50 @@ class EndToEnd(Fixture):
         self.assertIn('Switch appeared late', md[:1000])
         self.assertEqual(data['captures'][0]['notes'], ['Switch appeared late'])
 
+    def test_audio_underruns_parsed(self):
+        p = self.base / 'log'
+        p.write_text('[audio] level 100/200 frames, largest request 512, underrun 0 frames, AI replayed 0 blocks (since previous report, 1.00 s; at 1.000 s process time)\n'
+                     '[audio] level 0/200 frames, largest request 512, underrun 480 frames, AI replayed 1 blocks (since previous report, 1.00 s; at 2.000 s process time)\n'
+                     '[audio] level 0/200 frames, largest request 512, underrun 96 frames, AI replayed 0 blocks (since previous report, 1.00 s; at 3.000 s process time)\n'
+                     'audio underrun: 576 silent frames\n')
+        parsed = it.parse_log(p)
+        self.assertEqual(parsed['audio_reports'], 4)
+        self.assertEqual(parsed['audio_underrun_reports'], 3)
+        self.assertEqual(parsed['audio_underrun_frames'], 480 + 96 + 576)
+        self.assertEqual(parsed['audio_worst_underrun_frames'], 576)
+        self.assertEqual(len(parsed['audio_lines']), 3)
+
+    def test_summary_block_machine_captures_audio(self):
+        self.build.update(model='MacBookAir10,1', chip='Apple M1', memory_gb=16, macos='15.1 (24B83)')
+        self.write_build()
+        (self.report / 'logs').mkdir()
+        (self.report / 'logs/astral-1.log').write_text('[audio] level 0/200 frames, largest request 512, underrun 480 frames, AI replayed 0 blocks (since previous report, 1.00 s; at 2.000 s process time)\n'
+                                                       '[stall] frame 9 80 ms phase=gameplay cause=other\n')
+        for stamp in ('2026-10-24 11-02-03', '2026-10-24 11-05-09'):
+            (self.report / 'captures' / stamp).mkdir(parents=True)
+            (self.report / 'captures' / stamp / 'state.txt').write_text('stage: RedBlueExGalaxy\n')
+        rc, data, md = self.run_intake()
+        self.assertEqual(rc, 0)
+        head = md[:1500]
+        self.assertIn('MacBookAir10,1, Apple M1, 16 GB, macOS 15.1 (24B83)', head)
+        self.assertIn('2026-10-24 11-02-03, 2026-10-24 11-05-09', head)
+        self.assertIn('**Log stalls:** 1', head)
+        self.assertIn('1 of 1 audio reports show underruns, 480 silent frames', head)
+        self.assertIn('not replayable headless', head)
+
+    def test_petari_test_crash_bundle(self):
+        """A bundle from a PETARI_TEST_CRASH run: v2 crash report with identity header + a tape that replays."""
+        crashes = self.report / 'crashes'
+        crashes.mkdir()
+        (crashes / 'petari-crash-1-1.txt').write_text((Path(__file__).resolve().parents[2] / 'native/tests/crash_fixtures/v2.txt').read_text())
+        rc, data, md = self.run_intake()
+        self.assertEqual(rc, 0)
+        self.assertEqual(data['primary'], 'NATIVE_CRASH')
+        self.assertIn('REPLAY_MATCHED', data['verdicts'])
+        self.assertEqual(len(data['native_crashes']), 1)
+        self.assertIn('report version: 2', data['native_crashes'][0]['header'])
+        self.assertIn('Crash: ', md)
+
     def test_recorded_return_hook(self):
         self.meta['replay_env'] = {'PETARI_TEST_RETURN_TO_SHIP': '600:2'}
         self.write_meta()

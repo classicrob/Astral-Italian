@@ -449,7 +449,8 @@ def parse_timing(out):
 
 
 def parse_log(path):
-    result = dict(file=str(path), lines=0, stalls=0, stall_lines=[], stall_phases={}, stall_causes={}, errors=[], shader_compile_lines=0)
+    result = dict(file=str(path), lines=0, stalls=0, stall_lines=[], stall_phases={}, stall_causes={}, errors=[], shader_compile_lines=0,
+                  audio_reports=0, audio_underrun_reports=0, audio_underrun_frames=0, audio_worst_underrun_frames=0, audio_lines=[])
     with path.open(errors='replace') as f:
         for line in f:
             line = line.rstrip()[:2000]
@@ -467,6 +468,17 @@ def parse_log(path):
                 result['errors'].append(line)
             if re.search(r'shader.*compil|compil.*shader', line, re.I):
                 result['shader_compile_lines'] += 1
+            # the sink's periodic "[audio] level ..., underrun N frames, ..." report and its end-of-run "audio underrun: N silent frames"
+            m = re.search(r'\[audio\] level .*?underrun (\d+) frames', line) or re.search(r'audio underrun: (\d+) silent frames', line)
+            if m:
+                frames = int(m[1])
+                result['audio_reports'] += 1
+                if frames:
+                    result['audio_underrun_reports'] += 1
+                    result['audio_underrun_frames'] += frames
+                    result['audio_worst_underrun_frames'] = max(result['audio_worst_underrun_frames'], frames)
+                    if len(result['audio_lines']) < 8:
+                        result['audio_lines'].append(line)
     return result
 
 
@@ -513,6 +525,24 @@ def verdicts(build, tape_issue, replay, crashes):
     return next((v for v in priority if v in codes), None), codes
 
 
+def evidence_summary(data):
+    """The at-a-glance block: machine, M captures, stalls, audio. Audio cannot be replayed headless (no device), so it is read
+    from the tester's own log only."""
+    system = data.get('system') or {}
+    lines = ['**Mac:** ' + ', '.join(x for x in (system.get('model'), system.get('chip'), f"{system['memory_gb']} GB" if system.get('memory_gb') else '', 'macOS ' + system['macos'] if system.get('macos') else '') if x) or '(not recorded)']
+    captures = data.get('captures') or []
+    lines.append('**M/F9 captures:** ' + (', '.join(c.get('time', '?') for c in captures) if captures else 'none'))
+    logs = data.get('logs') or []
+    stalls = sum(l['stalls'] for l in logs)
+    lines.append(f'**Log stalls:** {stalls}' + (f' in {len(logs)} log(s)' if logs else ' (no log included)'))
+    reports = sum(l['audio_reports'] for l in logs)
+    under = sum(l['audio_underrun_reports'] for l in logs)
+    frames = sum(l['audio_underrun_frames'] for l in logs)
+    worst = max([l['audio_worst_underrun_frames'] for l in logs] or [0])
+    lines.append(f'**Audio (tester log; not replayable headless):** {under} of {reports} audio reports show underruns, {frames} silent frames in total, worst single report {worst} frames' if reports else '**Audio (tester log):** no audio reports in the included log(s)')
+    return lines + ['']
+
+
 def markdown(data):
     build, replay = data['build'], data.get('replay')
     summary = (replay or {}).get('summary') or {}
@@ -529,7 +559,8 @@ def markdown(data):
     lines = ['# Triage: ' + (data['primary'] or 'could not finish'), '', '**Verdicts:** ' + ', '.join(data['verdicts']), '', descriptions.get(data['primary'], 'Intake could not finish. Resolve the tool errors below and run again.'), '',
              '**Tester note:**', '', *['> ' + s for s in note.splitlines()], '',
              '**Build:** ' + (build.get('commit') or 'unknown') + '; UUID ' + (', '.join(build['executable_uuids']) or 'missing') +
-             '; released in registry: ' + str(build['released']), '', '**Look next:**', '']
+             '; released in registry: ' + str(build['released']), '',
+             *evidence_summary(data), '**Look next:**', '']
     if data['primary'] in ('NATIVE_CRASH', 'HEADLESS_CRASH'):
         kind = 'native_crashes' if data['primary'] == 'NATIVE_CRASH' else 'headless_crashes'
         for crash in data[kind][:3]:
@@ -570,10 +601,10 @@ def markdown(data):
     lines += ['', '## Report evidence', '', '**System:** ' + json.dumps(data['system'], ensure_ascii=False), '',
               '```text', data['system_text'], '```', '']
     for capture in data['captures']:
-        lines += ['Capture: ' + capture['file'], '', '```text', capture['state'], '```', '']
+        lines += ['Capture ' + capture.get('time', '') + ': ' + capture['file'], '', '```text', capture['state'], '```', '']
     for log in data['logs']:
-        lines += [f'Log {log["file"]}: {log["stalls"]} stalls; {log["shader_compile_lines"]} shader compile log lines.', '',
-                  '```text', *log['stall_lines'], *log['errors'], '```', '']
+        lines += [f'Log {log["file"]}: {log["stalls"]} stalls; {log["shader_compile_lines"]} shader compile log lines; {log["audio_underrun_reports"]}/{log["audio_reports"]} audio reports with underruns ({log["audio_underrun_frames"]} silent frames).', '',
+                  '```text', *log['stall_lines'], *log['audio_lines'], *log['errors'], '```', '']
     for kind in ('native_crashes', 'headless_crashes'):
         for crash in data[kind]:
             lines += ['Crash: ' + crash['file'], '', '```json', json.dumps(crash['frames'] or crash['symbolication'], indent=2), '```', '']
@@ -632,7 +663,7 @@ def main(argv=None):
                 note=read_text(root / 'note.txt'), warnings=warnings, tool_errors=[], replay=None,
                 system={k: raw_build.get(k, '') for k in ('chip', 'memory_gb', 'macos', 'model')},
                 system_text=read_text(root / 'system.txt'), native_crashes=crashes, headless_crashes=[],
-                captures=[dict(file=str(p), state=read_text(p), notes=re.findall(r'^note:\s*(.*)$', read_text(p), re.M | re.I)) for p in sorted((root / 'captures').glob('*/state.txt'))],
+                captures=[dict(file=str(p), time=p.parent.name, state=read_text(p), notes=re.findall(r'^note:\s*(.*)$', read_text(p), re.M | re.I)) for p in sorted((root / 'captures').glob('*/state.txt'))],
                 logs=[parse_log(p) for p in sorted((root / 'logs').glob('*')) if p.is_file()],
                 tape=dict(complete=meta.get('complete'), seams=meta.get('seams'), mods=meta.get('mods'), error=reason))
     try:

@@ -121,7 +121,8 @@ that you can reach on the Wii) and anything you only notice when you compare sid
    crash reports, your latest exact session tape and the build identity into a zip on your Desktop (see
    README-PRIVACY.txt inside it). Nothing is uploaded.
 3. [Open an issue](https://github.com/classicrob/Astral-Italian/issues/new/choose), say what you expected and what happened,
-   and attach the zip. If a zip is too big for GitHub, say so and describe it; we will find another way.
+   and attach the zip. Tell us your **Mac model and macOS version** (Apple menu > About This Mac) in the issue: the zip records
+   them automatically (in `build.json` and `system.txt`), but a person reading the issue first needs them too. If a zip is too big for GitHub, say so and describe it; we will find another way.
 
 Where things are, if you want to look yourself (`~/Library/Application Support/Astral Italian/`):
 

@@ -43,6 +43,17 @@ Output in `~/MacioGalaxy2-team/scratch-release/out/` (override with `--out`): `A
   non-code files, directories like `files/` or `sys/`, load paths outside the bundle and a too-high `minos` all fail the build.
   The scan is a screen, not a proof: the real guarantee is that only frozen build products go in.
 
+## Tester report intake
+
+`python3 -I tools/release/intake.py <Collect Bug Report zip>` turns a tester's report into a triage summary (`triage.md`/`.json`):
+the first screen shows the verdict, the tester's note, the build (UUID/commit checked against `tools/release/builds.tsv`), the Mac
+model/chip/macOS, the M/F9 capture timestamps and notes, log stall counts, audio-underrun counts read from the tester's log (audio
+cannot be replayed headless, so it is evidence from the log only), any crash symbolicated against the release dSYM, and the result of
+replaying the included tape headlessly on the matching source (reproduces / first divergence row / headless crash). Usage, cache layout
+and the verdict table are in `tools/release/INTAKE.md`; tests: `python3 -I tools/release/test_intake.py` (synthetic bundles, including
+a `PETARI_TEST_CRASH` crash report, an audio-underrun log and a diverging replay; no disc needed). Keep each release's dSYM zip so crash
+reports can be symbolicated later, and make sure its line is in `builds.tsv`.
+
 ## Check before uploading
 
 - On the **oldest macOS you support** (the M1, macOS 15.1): `python3 -I tools/release/check_weak_imports.py <Astral Italian.app>` lists

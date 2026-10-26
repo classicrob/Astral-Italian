@@ -3,6 +3,7 @@
 #include "petari/mods.hpp"
 
 #include <atomic>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -76,6 +77,26 @@ const char* description(Mod mod) {
     return i >= 0 && i < kCount ? kDescriptions[i] : "?";
 }
 
+bool supported(Mod mod) {
+    const int i = static_cast<int>(mod);
+    return i >= 0 && i < kCount && mod != Mod::SkipCutscenes;
+}
+
+int supportedCount() {
+    int count = 0;
+    for (int i = 0; i < kCount; ++i) if (supported(static_cast<Mod>(i))) ++count;
+    return count;
+}
+
+Mod supportedAt(int row) {
+    if (row < 0) return Mod::Count;
+    for (int i = 0; i < kCount; ++i) {
+        const auto mod = static_cast<Mod>(i);
+        if (supported(mod) && row-- == 0) return mod;
+    }
+    return Mod::Count;
+}
+
 bool enabled(Mod mod) {
     const int i = static_cast<int>(mod);
     return i >= 0 && i < kCount && gEnabled[i].load(std::memory_order_relaxed);
@@ -83,7 +104,12 @@ bool enabled(Mod mod) {
 
 void setEnabled(Mod mod, bool on) {
     const int i = static_cast<int>(mod);
-    if (i >= 0 && i < kCount) gEnabled[i].store(on, std::memory_order_relaxed);
+    if (i < 0 || i >= kCount) return;
+    if (on && !supported(mod)) {
+        std::fprintf(stderr, "petari: mods: %s enable refused: unavailable in SMG2 (donor game hooks not ported)\n", name(mod));
+        on = false;
+    }
+    gEnabled[i].store(on, std::memory_order_relaxed);
 }
 
 std::string serialize() {
@@ -99,7 +125,7 @@ bool parse(const std::string& text, std::string* error) {
     bool values[kCount];
     for (int i = 0; i < kCount; ++i) values[i] = gEnabled[i].load(std::memory_order_relaxed);
     if (!parseInto(text, values, error)) return false;
-    for (int i = 0; i < kCount; ++i) gEnabled[i].store(values[i], std::memory_order_relaxed);
+    for (int i = 0; i < kCount; ++i) setEnabled(static_cast<Mod>(i), values[i]);
     return true;
 }
 
@@ -141,7 +167,7 @@ bool load(const std::filesystem::path& file, std::string* error) {
     if (const char* env = std::getenv("PETARI_ODYSSEY_MOVEMENT"); env != nullptr && std::strcmp(env, "1") == 0) {
         values[static_cast<int>(Mod::OdysseyMovement)] = true;
     }
-    for (int i = 0; i < kCount; ++i) gEnabled[i].store(values[i], std::memory_order_relaxed);
+    for (int i = 0; i < kCount; ++i) setEnabled(static_cast<Mod>(i), values[i]);
     std::lock_guard<std::mutex> lock(gFileMutex);
     gFile = file;
     return true;

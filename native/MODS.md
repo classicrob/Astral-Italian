@@ -10,7 +10,6 @@ unmodified game and every test run behave exactly as before.
 | Odyssey movement (`OdysseyMovement`) | none (a mode; it uses the normal Jump, Crouch and Spin buttons) | Mario moves with Super Mario Odyssey's physics and moveset: see "Odyssey movement" below. |
 | Cappy (`Cappy`) | R, controller RB | Super Mario Odyssey's cap throw and cap bounce; needs Odyssey movement: see "Cappy" below. |
 | Point to move (`PointToMove`) | hold the left mouse button | Mario runs toward the point under the cursor while you hold it; keys still jump, spin and crouch: see "Point to move" below. |
-| Hold Space to skip cutscenes and dialogue (`SkipCutscenes`) | none (hold Jump/A: Space, controller bottom button) | Holding A for 1.5 s skips the cutscene or dialogue on screen, and everything after it until you have control again: see "Skip cutscenes and dialogue" below. |
 | Generic character (`GenericCharacter`) | none (a look) | The player is drawn as a plain figure with Mario's proportions and animations instead of Mario: see "Generic character" below. |
 | Generic world (`GenericWorld`) | none (a look) | Terrain, sky and objects lose the game's look: plain textures, colours without hue, and plain shapes for common enemies and items: see "Generic world" below. |
 | Hide the HUD (`HideHud`) | none (a look) | No counters, meters, lives icon, pointer cursor or stage banners on screen: see "Hide the HUD" below. |
@@ -324,55 +323,19 @@ the pointer cursor and its guidance, the 1-UP popup, and the stage and galaxy
 title banners. Menus, the pause menu, dialogue and cutscenes still show. The
 game behaves as before; only those layouts are not drawn.
 
-## Skip cutscenes and dialogue
+## Cutscene-skip port: unavailable in SMG2
 
-Turn on "Hold Space to skip cutscenes and dialogue" (`SkipCutscenes=on`). Then,
-while a cutscene, a movie or a conversation is on screen, hold Space (anything
-bound to A: Space, the controller's bottom button, the right mouse button,
-Return) for 1.5 seconds (90 game frames). Taps still work as before (A shows
-the text and turns the page); only a long hold skips.
+The donor SMG1 cutscene-skip feature has not been ported to SMG2. It is absent
+from the Home-menu mod list. `SkipCutscenes` retains its settings name and raw
+tape ID for compatibility, but requests to enable it (including an old
+`mods.txt` line or `PETARI_MODS=SkipCutscenes`) are logged and kept off. Other
+valid settings still load and the game starts normally.
 
-Once a hold skips, the skip goes on until you have control of Mario again:
-every remaining page of the conversation, any cutscene that follows it, and any
-conversation inside a cutscene. It stops early:
-
-- **At a choice.** A yes/no question (a talk's choice, the save prompt) is never
-  answered for you. The game has no default answer for these (you point at one),
-  so the skip ends there. Answer it, then hold again to skip what follows.
-- When a menu opens that waits for you: the galaxy map (Rosalina's "Would you
-  like to see the map?") or the pause menu.
-- At a stage change (a movie that leads to a new galaxy, a star that takes you
-  back to the observatory). Hold again on the new stage.
-- After 60 seconds without reaching gameplay (logged; a safety net).
-
-The hold that skipped never reaches the game: the A button stays released for
-the game until you let go of Space, so it doesn't become a jump, a talk or a
-menu choice afterwards. Let go and press again to jump.
-
-How each kind ends. It always goes through the game's own end path, so every
-flag, camera reset, music change and scene change still happens:
-
-| What is on screen | What the skip does |
-| --- | --- |
-| A movie (the prologue's two, the final battle, epilogue, ending) | The game's own movie skip (on the Wii only the final battle had one, after a visit): stop the movie, close the wipe, then its normal end (music, the next stage). |
-| The camera fly-around entering a galaxy | The game's own skip of it, also on a first visit. |
-| The launch star flight into a galaxy | The game's own skip of it, also on a first visit. |
-| A conversation page | The page is shown whole and turned, as an A press would (no A is sent). The last page before a choice goes to the choice. |
-| The prologue's storybook and Peach's letter, Peach's and Luigi's letters in the observatory, Rosalina's storybook pages | Turned and closed as an A press would. The storybook's chapter list waits for you (it ends the skip). |
-| After a star: the result screen (star count, best score, Star Bits), new-galaxy notices and map, first-time power-up notices | Continued as an A press would; the save prompt that follows is a choice, so the skip stops there. |
-| Any other cutscene (story scenes, boss introductions, a star appearing, the star-get celebration, Rosalina and the Lumas, ...) | Fast-forward: the game runs its own update several times per drawn frame (up to 15, about 10 ms of extra work a frame) until the cutscene ends. Nothing is jumped over, so each step of the cutscene runs in order, with its sound effects muted. |
-
-The log shows `[skip] ...` lines: when a skip latches and ends (and why), each
-movie, camera, launch and page it ends, and how many extra updates the
-fast-forward ran.
-
-Tests: `native_input` checks the hold count, the latch, the end conditions and
-that the hold never reaches the game (through the game's own `WPadButton`).
-`PETARI_SKIP_PROBE=1` (with `PETARI_MODS=SkipCutscenes`) is the in-game proof:
-next to any smoke script, it holds Space through each cutscene and dialogue and
-logs `[skip-probe]` lines (what was on screen, the latch, the end, whether the
-game saw A, Mario afterwards). `PETARI_SKIP_PROBE_SHOTS=<dir>` adds
-screenshots. See native/app/skip_probe.cpp.
+The pure skip-machine tests exercise the donor state machine only. The donor
+game integration is **UNAVAILABLE IN SMG2 / NOT RUN**: see
+[native/STUBS.md](STUBS.md) and
+[docs/port/HOOK_TRANSFER.md](../docs/port/HOOK_TRANSFER.md). Porting the actual
+SMG2 cutscene hooks is a feature backlog item, outside 5.4.3.
 
 ## Shoot nearest enemy (SMG2)
 

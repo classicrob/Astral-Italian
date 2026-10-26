@@ -18,6 +18,7 @@
 #include "petari/input.hpp"
 #include "petari/input_remap.hpp"
 #include "petari/mods.hpp"
+#include "petari/mods_menu.hpp"
 #include "petari/platform/mod_folder.hpp"
 #include "petari/camera_settings.hpp"
 #endif
@@ -361,20 +362,9 @@ private:
 
 InputControls gInputControls;
 
-// The Mods page has one toggle per mod; raise kMaxMods (home_menu.hpp) when adding past it.
-static_assert(static_cast<int>(Mods::Mod::Count) <= kMaxMods, "more Mods::Mod entries than the Mods page can list");
-
-// The Mods page toggles, from the mod settings in effect now.
+// The supported registry owns both the visible rows and their stable mod IDs.
 void refreshMods() {
-    ModsEntry entries[kMaxMods];
-    const int count = std::min(static_cast<int>(Mods::Mod::Count), kMaxMods);
-    for (int i = 0; i < count; i++) {
-        const auto mod = static_cast<Mods::Mod>(i);
-        std::strncpy(entries[i].label, Mods::description(mod), sizeof(entries[i].label) - 1);
-        entries[i].on = Mods::enabled(mod);
-        if (mod == Mods::Mod::Cappy || mod == Mods::Mod::OdysseyJumpDive) entries[i].needs = static_cast<int>(Mods::Mod::OdysseyMovement);
-    }
-    instance().setMods(entries, count);
+    refreshSupportedMods(instance());
 }
 
 // The Odyssey camera page, from the camera settings in effect now.
@@ -439,15 +429,7 @@ void applyFolderToggles() {
 
 // Applies and saves toggles made on the Mods page this frame.
 void applyModToggles() {
-    const std::uint32_t toggles = instance().takeModToggles();
-    if (toggles == 0) {
-        return;
-    }
-    for (int i = 0; i < static_cast<int>(Mods::Mod::Count) && i < kMaxMods; i++) {
-        if (toggles & (1u << i)) {
-            Mods::setEnabled(static_cast<Mods::Mod>(i), instance().mods()[i].on);
-        }
-    }
+    if (!applySupportedModToggles(instance())) return;
     std::string error;
     if (!Mods::save(&error)) {
         std::fprintf(stderr, "petari: mods: %s\n", error.c_str());

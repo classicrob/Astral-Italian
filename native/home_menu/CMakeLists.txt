@@ -70,6 +70,7 @@ target_link_libraries(petari_home_menu PUBLIC petari_host_runtime)  # progress.c
 # The Controls page lists the live bindings when the input layer is in the
 # build (the root adds native/input first). Standalone builds show no lines.
 if(TARGET petari_input)
+    target_sources(petari_home_menu PRIVATE mods_menu.cpp)
     target_link_libraries(petari_home_menu PUBLIC petari_input petari_platform_dvd)  # Mod folder page: mod_folder.hpp
     target_compile_definitions(petari_home_menu PRIVATE PETARI_HOME_MENU_INPUT=1)
 endif()
@@ -100,6 +101,14 @@ else()
 endif()
 
 if(BUILD_TESTING)
+    if(TARGET petari_input)
+        add_executable(petari_supported_mods_tests ${PETARI_REPO_ROOT}/native/tests/supported_mods_tests.cpp)
+        target_link_libraries(petari_supported_mods_tests PRIVATE petari_home_menu)
+        if(APPLE)
+            target_link_options(petari_supported_mods_tests PRIVATE -Wl,-dead_strip)
+        endif()
+        add_test(NAME native_supported_mods COMMAND petari_supported_mods_tests)
+    endif()
     add_executable(petari_display_menu_tests ${PETARI_REPO_ROOT}/native/tests/display_menu_tests.cpp)
     target_link_libraries(petari_display_menu_tests PRIVATE petari_home_menu)
     if(TARGET petari_home_menu_imgui)

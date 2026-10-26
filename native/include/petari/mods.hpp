@@ -19,7 +19,7 @@ enum class Mod : int {
     OdysseyMovement,  // Mario moves with Super Mario Odyssey's physics (docs/dev/ODYSSEY_MOVEMENT.md); no button
     Cappy,            // Odyssey's cap throw and cap bounce (docs/dev/CAPPY.md); needs OdysseyMovement
     OdysseyJumpDive,  // with OdysseyMovement: pressing Jump in the air dives; ON unless turned off
-    SkipCutscenes,    // hold A (Space) 1.5 s to skip cutscenes and dialogue (petari/skip.hpp); no button of its own
+    SkipCutscenes,    // reserved donor ID; unavailable in SMG2 (enable requests are refused)
     PointToMove,      // hold left click: Mario runs toward the pointer (petari/point_move.hpp); no button of its own
     GenericCharacter, // the player is drawn as a plain figure, not Mario (Game/Player/GenericFigure.hpp); no button
     GenericWorld,     // plain terrain, sky and object stand-ins (Game/System/GenericWorld.hpp); no button
@@ -31,11 +31,18 @@ enum class Mod : int {
 const char* name(Mod mod);          // "CollectStarBits", the mods.txt key
 const char* description(Mod mod);   // "Collect scene Star Bits", for the menu
 
+// Stable IDs include unavailable donor entries for settings/raw-tape compatibility.
+// Menu rows enumerate supported entries only; Count denotes an invalid row.
+bool supported(Mod mod);
+int supportedCount();
+Mod supportedAt(int row);
+
 bool enabled(Mod mod);  // any thread
 void setEnabled(Mod mod, bool on);
 
 // Reads mods.txt (a missing file leaves every mod off), then PETARI_MODS.
-// Unknown names or values are an error; nothing changes on error.
+// Unknown names or values are an error; nothing changes on error. A recognized
+// unavailable enable is logged and kept off; other valid settings still load.
 bool load(const std::filesystem::path& file, std::string* error);
 // Writes every mod's state to the file load() read (no-op before load).
 bool save(std::string* error);

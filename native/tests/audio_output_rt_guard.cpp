@@ -1,5 +1,7 @@
-// Test-only dyld interposition. Production has none of this code. enter/leave
-// and all TLS are prepared before calling the SAME production render symbol.
+// Test-only dyld interposition. Production has none of this code. libSystem
+// can call an interposed clock during malloc initialization, BEFORE dyld TLV
+// bootstrap. The unarmed path must therefore use only constant-initialized,
+// lock-free globals: no TLS, allocation or even a pthread identity query.
 #include <atomic>
 #include <cstdlib>
 #include <cstdio>
@@ -13,12 +15,31 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <CoreAudio/CoreAudio.h>
 namespace {
-thread_local bool guarded=false;
+std::atomic<pthread_t> armedThread{nullptr};
 std::atomic<unsigned> violations{0};
-void mark() { if(guarded) violations.fetch_add(1,std::memory_order_relaxed); }
+static_assert(std::atomic<pthread_t>::is_always_lock_free);
+static_assert(std::atomic<unsigned>::is_always_lock_free);
+// Keep the identity query behind an out-of-line boundary so the compiler
+// cannot hoist it above the unarmed check. Other threads remain unguarded,
+// exactly as with the former thread-local scope.
+__attribute__((noinline)) void markArmed(pthread_t target) {
+    if(pthread_self()==target) violations.fetch_add(1,std::memory_order_relaxed);
 }
-extern "C" void petari_au_guard_enter() { guarded=true; }
-extern "C" unsigned petari_au_guard_leave() { guarded=false; return violations.exchange(0); }
+void mark() {
+    const auto target=armedThread.load(std::memory_order_acquire);
+    if(target) markArmed(target);
+}
+}
+extern "C" bool petari_au_guard_is_armed() { return armedThread.load(std::memory_order_acquire)!=nullptr; }
+extern "C" void petari_au_guard_enter() {
+    pthread_t empty=nullptr;
+    if(!armedThread.compare_exchange_strong(empty,pthread_self(),std::memory_order_release)) std::abort();
+}
+extern "C" unsigned petari_au_guard_leave() {
+    if(armedThread.load(std::memory_order_acquire)!=pthread_self()) std::abort();
+    armedThread.store(nullptr,std::memory_order_release);
+    return violations.exchange(0);
+}
 #define INTERPOSE(replacement,original) \
     __attribute__((used)) static const struct { const void* to; const void* from; } pair_##original \
     __attribute__((section("__DATA,__interpose"))) = {reinterpret_cast<const void*>(&replacement),reinterpret_cast<const void*>(&original)}

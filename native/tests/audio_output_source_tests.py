@@ -38,6 +38,17 @@ class Tests(unittest.TestCase):
         for required in ("petari_au_guard_enter", "violations==0", "publishRenderEvent", "observerClock", "first", "OverLimit", "Reentrant", "BadTimeline"):
             self.assertIn(required.lower(), test.lower())
 
+    def test_interposer_startup_uses_no_tls_and_explicit_armed_boundary(self):
+        guard = (ROOT / "tests/audio_output_rt_guard.cpp").read_text()
+        self.assertNotIn("thread_local", guard)
+        self.assertNotIn("pthread_getspecific", guard)
+        self.assertIn("std::atomic<pthread_t> armedThread{nullptr}", guard)
+        self.assertIn("if(target) markArmed(target)", guard)
+        self.assertIn("__attribute__((noinline)) void markArmed", guard)
+        startup = (ROOT / "tests/audio_output_guard_startup_tests.cpp").read_text()
+        for required in ("constructor", "mach_timebase_info", "startupPassed", "petari_au_guard_leave()>=3"):
+            self.assertIn(required, startup)
+
 
 if __name__ == "__main__":
     unittest.main()

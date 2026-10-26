@@ -121,6 +121,7 @@ New native targets / ctest names:
 | --- | --- | --- |
 | petari_audio_output_core_tests | native_audio_output_core | SPSC/conservation, fractional feedback, hidden staging, retirement/token protocol |
 | petari_audio_output_converter_tests | native_audio_output_converter | real CPU-only 32/48k ->8/16/32/44.1/48/96k, mono/stereo, finite EOF vs temporary input, chunk invariance |
+| petari_audio_output_guard_startup_tests | native_audio_output_guard_startup | real guard dylib loaded through dyld startup, unarmed pre-main clock/allocation/mutex pass-through, then armed positive detection |
 | petari_audio_output_render_tests | native_audio_output_render | SAME production callback + actual history publisher, first/error/observer paths, guard self-test, timeline/full-ring, mute/null buffers/retire |
 | petari_audio_output_control_tests | native_audio_output_control | SAME control/producer/render, injected fake device, device/sleep recovery, duplicate notification, partial-open/start failure and safe failed retirement |
 | (Python) | native_audio_output_source | renderer/publisher service boundary, default selector/no setter, guarded real callback |
@@ -136,6 +137,16 @@ missed by symbol interposition remain covered by the separately mandatory
 production Release reachable-callee disassembly. Do not call the dynamic guard
 alone a proof of the linked app's callback/clock behavior.
 
+The guard contains no TLS. Darwin 27's malloc initialization calls the
+interposed `mach_timebase_info` before TLV bootstrap; the original TLS guard
+aborted before `main` there. Each interposer now reads only a constant-initialized
+lock-free atomic while unarmed. The thread-identity query is behind a separate
+noinline armed helper; other threads still pass through. The fixture serializes
+one guarded thread and refuses nested/concurrent arming. Prohibited calls on
+that thread remain counted identically. The separate startup executable and
+the render fixture both link the actual guard dylib, so startup pass-through
+cannot replace the armed positive self-test.
+
 Local CPU-only source receipts (external nonblocking heavy -> native;
 no app, device output, default switch, GPU build or cache activity) live under
 `port53/m1g/build-reports/sola-output-au-source-r*/`. Earlier syntax/test stops
@@ -145,7 +156,7 @@ assertions and zero-underrun predicates are unchanged. Final source/executable
 hashes and commands are in the newest completed receipt. This is source/fixture
 validation, not hardware recovery, latency or pacing acceptance.
 
-Final local receipt: `port53/m1g/build-reports/sola-output-au-source-r11/RESULT.json`:
+Implementation local receipt: `port53/m1g/build-reports/sola-output-au-source-r11/RESULT.json`:
 PASS, seven changed-TU syntax checks and all four compiled CPU fixture groups;
 source hashes unchanged during the checks, no foreign native process observed.
 The production callback fixture includes the actual observer clock/publisher
@@ -153,10 +164,21 @@ and shared history writer. All 38 Python checks also pass (output source/report,
 GPU trace patch, workgroup source/report and transport report). Earlier receipts
 remain preserved. No app target or real output device was run locally.
 
-PORT server build/test request: normal build542 app/weak-import, the six new
+Guard repair receipt: `port53/m1g/build-reports/sola-output-au-source-r12/RESULT.json`:
+PASS, seven syntax checks and all five CPU fixture groups, including the new
+startup executable and unchanged production-render fixture. Source hashes
+unchanged during checks. Output source/report and GPU patch checks pass
+(5 + 4 + 10). The retained guard symbol/disassembly reports show no TLV/key
+resolver imports: `watch_base` checks the atomic at 0x3b0c, skips the armed
+helper at 0x3b10 when unarmed, then calls the original timebase function.
+This is the local M1 guard binary; Darwin 27 server startup confirmation is
+pending PORT's retest. No production callback, sink or acceptance predicate
+changes in this test-only repair.
+
+PORT server build/test request: normal build542 app/weak-import, the seven new
 ctests, then existing audio/DSP/pacing/boot/present, workgroup/history, GPU trace
 set/patch, pipeline/title/frontend and tape fixtures. Retain app+dSYM plus the
-new four test exes **and guard dylib**. Report unrelated baseline fixture rot
+new five test exes **and guard dylib**. Report unrelated baseline fixture rot
 separately. No SDL tree change.
 
 After that build is reviewed: exact app Release callback/helper/clock codegen,

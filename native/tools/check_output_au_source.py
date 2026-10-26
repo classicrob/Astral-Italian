@@ -80,6 +80,7 @@ try:
         cases = {
             "core": ["native/tests/audio_output_core_tests.cpp"],
             "converter": ["native/tests/audio_output_converter_tests.cpp", "native/audio/output_au_converter.cpp"],
+            "guard_startup": ["native/tests/audio_output_guard_startup_tests.cpp"],
             "render": ["native/tests/audio_output_render_tests.cpp",
                        "native/audio/output_au_render.cpp", "native/audio/output_au_observer.cpp", "native/platform/audio/audio_workgroup_rt.cpp"],
             "control": ["native/tests/audio_output_control_tests.cpp", "native/audio/output_au_control.cpp",
@@ -89,11 +90,13 @@ try:
             executable = out / ("petari_audio_output_" + name + "_tests")
             define = ["-DPETARI_OUTPUT_AU_TESTING=1"] if name == "control" else []
             libraries = []
-            if name == "render":
+            if name == "guard_startup":
                 guard = out / "libpetari_audio_output_rt_guard.dylib"
                 run(flags + ["-dynamiclib", "native/tests/audio_output_rt_guard.cpp"] + frameworks + ["-Wl,-install_name," + str(guard),
                              "-o", str(guard)], "build-guard")
                 libraries = [str(guard)]
+            elif name == "render":
+                libraries = [str(out / "libpetari_audio_output_rt_guard.dylib")]
             run(flags + define + sources + libraries + frameworks + ["-o", str(executable)], "build-" + name)
             run([str(executable)], "test-" + name)
             receipt[name + "_sha256"] = hashlib.sha256(executable.read_bytes()).hexdigest()

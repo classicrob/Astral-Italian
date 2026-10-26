@@ -523,6 +523,12 @@ if(_petari_build_testing)
     target_compile_features(petari_audio_output_rt_guard PRIVATE cxx_std_17)
     target_link_libraries(petari_audio_output_rt_guard PRIVATE "-framework AudioToolbox" "-framework CoreAudio")
     set_target_properties(petari_audio_output_rt_guard PROPERTIES MACOSX_RPATH ON INSTALL_NAME_DIR "@rpath" BUILD_WITH_INSTALL_NAME_DIR ON)
+    add_executable(petari_audio_output_guard_startup_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_guard_startup_tests.cpp")
+    target_compile_features(petari_audio_output_guard_startup_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_audio_output_guard_startup_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_audio_output_guard_startup_tests PRIVATE petari_audio_output_rt_guard Threads::Threads)
+    set_target_properties(petari_audio_output_guard_startup_tests PROPERTIES BUILD_WITH_INSTALL_RPATH ON INSTALL_RPATH "@loader_path")
+    add_test(NAME native_audio_output_guard_startup COMMAND petari_audio_output_guard_startup_tests)
     add_executable(petari_audio_output_render_tests "${CMAKE_SOURCE_DIR}/native/tests/audio_output_render_tests.cpp"
         "${CMAKE_SOURCE_DIR}/native/audio/output_au_render.cpp"
         "${CMAKE_SOURCE_DIR}/native/audio/output_au_observer.cpp"

@@ -9,10 +9,10 @@ from pathlib import Path
 import argparse, contextlib, csv, fcntl, hashlib, json, os, platform, plistlib, re
 import shutil, sqlite3, struct, subprocess, sys, time, uuid, zlib
 
-BASE='18ce6b65e6b269076716707b8d0686b00f262bc0'
-A_SOURCES={BASE,'fc3a671221eb0186169beaef75412daf01a06017'}
-B_SOURCE='35b5e378e9ebfa41a9d696d3069a3a5ff8c68003'
-NEG_SOURCE='f458b41d66accd22bc84a7550fa153fa57276d93'
+BASE='a8916f091fe1ae9463e58991fbed23bc63146518'
+A_SOURCES={BASE}
+B_SOURCE='b6469004a6be12befec78c1ded7e407996365390'
+NEG_SOURCE='7366f125b8549c3a57baa917b1a99774f19fddcc'
 PROTOCOL='petari-pipeline-cache-v2'
 TITLE_SECONDS=120
 STAGE_FRAMES=1800

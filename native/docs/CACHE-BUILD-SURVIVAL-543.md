@@ -1,23 +1,26 @@
 # 5.4.3 cache build-survival runtime proof (M4 only)
 
-No measurement has been performed by this source handoff. PORT runs these in a
-quiet M4 window; SOL A retains the M1. All results, failures and caches remain.
+PORT's first proof refused at the quiet precondition (no app launched). The
+second stopped at A-cold-title because the normal power exit bypassed Aurora's
+artifact report/close. Both original outputs remain preserved as failures. This
+handoff fixes that exit path and requires new builds and a new output directory;
+it makes no runtime survival claim. PORT chooses the quiet build/proof window;
+SOL A retains the M1 measurement slot. All results, failures and caches remain.
 No rerun loop, cache clearing, host input, AX driver or TCC request is used.
 
 ## Source/build bindings
 
-- A: `18ce6b65e6b269076716707b8d0686b00f262bc0`, or the existing production app
-  built at `fc3a671221eb0186169beaef75412daf01a06017` (exe `8be7040b...`).
-  The subsequent edits on this line are test-only. Both recipe keys were
-  independently confirmed on the server as `b36899bd...`.
-- B: `port/543-cache-proof-b` =
-  `35b5e378e9ebfa41a9d696d3069a3a5ff8c68003`, directly on 18ce6b65. It changes
+- A: `a8916f091fe1ae9463e58991fbed23bc63146518`, on 7d6a71d6's line, includes
+  the real-exit artifact finish. Older apps without it are refused. There are
+  no compatibility input changes; the expected recipe key remains `b36899bd...`.
+- B: `port/543-cache-proof-b-exit` =
+  `b6469004a6be12befec78c1ded7e407996365390`, directly on a8916f09. It changes
   only the error diagnostic string in the retained GXGetYScaleFactor path in
   `native/gx/api_compat.cpp`. Normal rendering/shader/descriptor behavior is
   unchanged. The runner requires a different executable SHA and the B diagnostic
   string in B's binary, absent from A's. This branch is a throwaway instrument.
-- Negative: `port/543-cache-proof-negative` =
-  `f458b41d66accd22bc84a7550fa153fa57276d93`, directly on 18ce6b65. Its only
+- Negative: `port/543-cache-proof-negative-exit` =
+  `7366f125b8549c3a57baa917b1a99774f19fddcc`, directly on a8916f09. Its only
   change is `descriptor_abi: 1 -> 2` in the compatibility manifest. This must
   select a new recipe/artifact namespace. It is also a throwaway instrument.
 
@@ -35,7 +38,7 @@ quiet window (the runner rejects inherited nice5):
 ```sh
 bash tools/port/server_cache_survival543.sh \
   /absolute/A_BUILD_DIR /absolute/B_BUILD_DIR /absolute/NEGATIVE_BUILD_DIR \
-  "$HOME/MacioGalaxy2-gamedata/port53/m1g/solb/cache-survival543-r1" \
+   "$HOME/MacioGalaxy2-gamedata/port53/m1g/cache-survival-543-r3" \
   "$HOME/MacioGalaxy2-gamedata/SB4E01-extracted" \
   "$HOME/MacioGalaxy2-gamedata/fixtures/unlocked-242/fixture"
 ```
@@ -62,6 +65,15 @@ bytes must match across all three apps. No recording occurs (`ASTRAL_TAPE=off`).
 3. B on A cache: stage then title, same root/context/namespace and fixture.
 4. Negative: stage then title, still the same private root, with a different ABI
    namespace and old caches preserved.
+
+Every arm requires exactly one flushed final artifact counter report and one
+successful artifact close report (`persistence=0 checkpoint=0 close=0`). These
+come from the real power/quit exit before `_Exit`, or full Aurora teardown,
+through the same mutex-serialized terminal operation. Duplicate finalization is
+inert, and late Dawn callbacks cannot reopen the artifact DB or change counters.
+A close/checkpoint failure fails the arm. The recipe writer's separate lifecycle
+is unchanged; this proof does not claim full renderer shutdown occurs at power
+exit. The older r1/r2 receipts and original throwaway branches stay preserved.
 
 Title observations self-end at120..121 native seconds from the first game-loop
 observation, using the existing title-observation path. Stage is scenario1

@@ -9,22 +9,32 @@
 struct Boundary { unsigned kind; const void* object; Sint64 value; };
 static std::array<Boundary,256> seen;
 static unsigned used=0;
+// Exactly 10 ms in either sample-rate domain. This fixture is a finite track,
+// unlike the production callback's continuous stream: flushing its end makes
+// the resampler's right-hand history padding available as silence.
+static constexpr unsigned sourceFrames=320, destinationFrames=441;
+static_assert(sourceFrames*44100==destinationFrames*32000,"finite track durations match");
+static constexpr unsigned sourceBytes=sourceFrames*2*sizeof(std::int16_t);
+static constexpr unsigned destinationBytes=destinationFrames*2*sizeof(float);
 static void SDLCALL observe(unsigned kind,const void* object,Sint64 value) {
     assert(used<seen.size()); seen[used++]={kind,object,value};
 }
 static void SDLCALL fill(void*,SDL_AudioStream* stream,int additional,int) {
-    assert(additional>=0 && additional<=16384);
-    std::array<std::int16_t,8192> data;
+    assert(additional==int(sourceBytes));
+    std::array<std::int16_t,sourceFrames*2> data;
     for(unsigned n=0;n<data.size();++n) data[n]=static_cast<std::int16_t>(n*31);
     assert(SDL_PutAudioStreamData(stream,data.data(),additional));
+    assert(SDL_FlushAudioStream(stream));
+    assert(SDL_GetAudioStreamAvailable(stream)==int(destinationBytes));
 }
 static std::vector<unsigned char> converted(bool on) {
     assert(SDL_PetariConfigureAudioDiagnostic(on ? observe : nullptr,0));
     SDL_AudioSpec from{SDL_AUDIO_S16,2,32000}, to{SDL_AUDIO_F32,2,44100};
     auto* stream=SDL_CreateAudioStream(&from,&to); assert(stream);
     assert(SDL_SetAudioStreamGetCallback(stream,fill,nullptr));
-    std::vector<unsigned char> result(2048);
+    std::vector<unsigned char> result(destinationBytes);
     assert(SDL_GetAudioStreamData(stream,result.data(),result.size())==int(result.size()));
+    assert(SDL_GetAudioStreamAvailable(stream)==0); // all 441 frames consumed
     SDL_DestroyAudioStream(stream);
     return result;
 }

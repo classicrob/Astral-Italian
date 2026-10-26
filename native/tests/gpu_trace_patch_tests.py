@@ -43,7 +43,8 @@ def strip_gates(changed):
 
 def operation_tokens(changed):
     # This erasure is deliberately limited to the existing trace gates, includes
-    # and startup configuration. No MonitorWait code is removed here.
+    # and startup configuration. No MonitorWait, workgroup or SDL diagnostic
+    # operation is removed here; approved non-GPU deltas have exact baselines.
     changed = changed.replace('#include <petari/gpu_trace.hpp>\n', '').replace('#include "gpu_trace_dawn.hpp"\n', '')
     changed = changed.replace('namespace GpuTrace = PetariNative::GpuTrace;\n', '')
     changed = changed.replace('#include "interrupt_trace.hpp"\n', '')
@@ -71,6 +72,8 @@ MONITOR_PATH = 'native/platform/os/os_thread.cpp'
 TRACE_ONLY_REVISION = 'e2f71c485c794bd9283f58f962a1baff08045379'
 APPROVED_MONITOR_REVISION = '0970356053d0d1f3a52bba72711151f6b339a365'
 APPROVED_WORKGROUP_REVISION = '472665264e094e3b31c9483089a190a46175c27b'
+AUDIO_PATH = 'native/audio/sdl_sink.cpp'
+APPROVED_AUDIO_TRANSPORT_REVISION = 'c1276e5b8e29b00efcae8bc7d13fc44c8007b69f'
 WORKGROUP_PATHS = {'native/platform/os/os_thread.cpp', 'native/platform/os/os_internal.hpp',
                    'native/platform/os/os_interrupts.cpp', 'native/audio/sdl_sink.cpp'}
 
@@ -145,6 +148,11 @@ class TracePatchTests(unittest.TestCase):
                 # code. Pin it exactly; do not erase it by a name/pattern.
                 # Keep the old trace-only erasure proof independently below.
                 original = committed_source(APPROVED_WORKGROUP_REVISION, path)
+            if path == AUDIO_PATH:
+                # The separately approved AQ/SDL diagnostic has its own cached
+                # flag. Pin its exact source; never erase those hooks as GPU
+                # tracing. The original GPU erasure proof remains below.
+                original = committed_source(APPROVED_AUDIO_TRANSPORT_REVISION, path)
             self.assertEqual(operation_tokens(original), operation_tokens(changed), path)
 
     def test_workgroup_baseline_retains_original_trace_erasure(self):
@@ -189,9 +197,9 @@ class TracePatchTests(unittest.TestCase):
         self.assertLess(guarded.index('enabled.load'), guarded.index('invokeEnabled'))
 
     def test_audio_trace_preserves_ring_arguments_and_off_fallback(self):
-        path = 'native/audio/sdl_sink.cpp'
+        path = AUDIO_PATH
         changed = (ROOT / path).read_text()
-        original = committed_source(APPROVED_WORKGROUP_REVISION, path)
+        original = committed_source(APPROVED_AUDIO_TRANSPORT_REVISION, path)
         self.assertEqual(operation_tokens(original), operation_tokens(changed))
         wrong = changed.replace('Audio::read(ring, buffer, static_cast<std::size_t>(count))',
                                 'Audio::read(ring, buffer, static_cast<std::size_t>(count + 1))')
@@ -213,6 +221,22 @@ class TracePatchTests(unittest.TestCase):
         self.assertEqual(changed.count('PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackEndEnabled'), 2)
         fill = changed[changed.index('void SDLCALL fill('):changed.index('void stop(')]
         self.assertLess(fill.index('callbackBeginEnabled'), fill.index('HostAllocationScope'))
+
+    def test_audio_transport_baseline_rejects_ungated_changes(self):
+        approved = committed_source(APPROVED_AUDIO_TRANSPORT_REVISION, AUDIO_PATH)
+        expected = operation_tokens(approved)
+        # These are not PETARI_GPU_TRACE operations and must remain protected.
+        for before, after in [
+                ('#include <SDL3/SDL_petari_audio_diag.h>', '#include <SDL3/SDL_audio.h>'),
+                ('if(boundary.active)', 'if(true)'),
+                ('WG::noteTransport(SDL_PETARI_FILL_ENTRY', 'WG::noteTransport(SDL_PETARI_FILL_EXIT'),
+                ('SDL_PetariConfigureAudioDiagnostic(observer,aqBuffers)', 'SDL_PetariConfigureAudioDiagnostic(nullptr,aqBuffers)'),
+                ('latency.deviceFrames!=256', 'latency.deviceFrames!=1024'),
+                ('SDL_PutAudioStreamData(stream, buffer, count * 4)', 'SDL_PutAudioStreamData(stream, buffer, count * 8)')]:
+            self.assertEqual(approved.count(before), 1, before)
+            self.assertNotEqual(expected, operation_tokens(approved.replace(before, after)), before)
+        self.assertNotEqual(expected, operation_tokens(approved+'\nPetariNative::GpuTrace::nextId();\n'))
+        self.assertEqual(expected, operation_tokens(approved+'\nPETARI_GPU_TRACE(PetariNative::GpuTrace::nextId());\n'))
 
     def test_observer_is_guarded(self):
         source = (ROOT / 'native/gx/efb_frame.inc').read_text()

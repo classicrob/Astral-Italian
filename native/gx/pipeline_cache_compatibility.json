@@ -2,7 +2,7 @@
   "protocol": "petari-pipeline-cache-v2",
   "recipe_schema": 2,
   "generator_abi": 1,
-  "descriptor_abi": 1,
+  "descriptor_abi": 2,
   "vertex_layout_abi": 1,
   "uniform_abi": 1,
   "byte_order": "little",

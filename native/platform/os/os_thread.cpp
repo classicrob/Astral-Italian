@@ -31,6 +31,7 @@
 #include <mach-o/getsect.h>
 #include <mach/mach.h>
 #include <mach/thread_act.h>
+#include <mach/mach_time.h>
 #include <pthread.h>
 #include <pthread/qos.h>
 
@@ -66,8 +67,11 @@ constexpr u16 kStateWaiting = OS_THREAD_STATE_WAITING;
 constexpr u16 kStateMoribund = OS_THREAD_STATE_MORIBUND;
 constexpr u16 kAttrDetach = 1;
 constexpr std::size_t kMinHostStack = 2 * 1024 * 1024;
+std::atomic<std::uint64_t> gNextHostGeneration{1};
 
 struct HostThread {
+    const std::uint64_t generation = gNextHostGeneration.fetch_add(1, std::memory_order_relaxed);
+    std::atomic<bool> audioRole{false}, audioControl{false};
     OSThread* thread = nullptr;
     mach_port_t machThread = MACH_PORT_NULL;  // for the preemption diagnostic's PC sample
     pthread_t pthread{};                        // target of the host QoS override while it holds the baton
@@ -497,6 +501,10 @@ void giveCpu(OSThread* next) {
     // Giving the baton to itself, or to a thread stopped mid-game-code: it is
     // already executing.
     gCurrentRunning = next == tBound || forceParked;
+    if (AudioWorkgroup::observing.load(std::memory_order_relaxed) && found != hosts().end() &&
+        found->second->audioRole.load(std::memory_order_acquire))
+        AudioWorkgroup::noteAssigned({reinterpret_cast<std::uintptr_t>(next), found->second->generation},
+                                     gCurrentRunning ? 0 : mach_absolute_time());
     gCurrent.store(next, std::memory_order_release);
     PETARI_GPU_TRACE(PetariNative::GpuTrace::emit("thread_baton_assigned",
         PetariNative::GpuTrace::withSubject({}, next), (forceParked ? 2 : 0) | (next == tBound ? 1 : 0)));
@@ -526,6 +534,15 @@ OSThread* popHighestReady() {
 [[noreturn]] void terminateHostThread() {
     // Interrupt lock held. The OS thread is finished; its host thread goes away
     // without unwinding game frames, as a cleared Wii context is never resumed.
+    if (AudioWorkgroup::enabled.load(std::memory_order_relaxed) && tHost && tHost->audioRole.load()) {
+        // Workgroup leave must run on the owning thread, outside the interrupt
+        // lock. No guest instruction executes in this native control section.
+        setInterruptOwner(false);
+        interruptMutex().unlock();
+        AudioWorkgroup::guestExit({reinterpret_cast<std::uintptr_t>(tBound), tHost->generation});
+        interruptMutex().lock();
+        setInterruptOwner(true);
+    }
     {
         PetariNative::HostAllocationScope hostAllocations;
         auto found = hosts().find(tBound);
@@ -545,11 +562,31 @@ OSThread* popHighestReady() {
 // Parks the calling OS thread until the scheduler gives it the CPU.
 void waitForCpu(OSThread* self) {
     std::shared_ptr<HostThread> host = tHost;
-    hostWait(host->cv, [&] { return gCurrent.load(std::memory_order_acquire) == self || host->terminated; });
+    if (!AudioWorkgroup::enabled.load(std::memory_order_relaxed)) {
+        hostWait(host->cv, [&] { return gCurrent.load(std::memory_order_acquire) == self || host->terminated; });
+    } else {
+        while (true) {
+            hostWait(host->cv, [&] { return gCurrent.load(std::memory_order_acquire) == self ||
+                host->terminated || host->audioControl.load(std::memory_order_acquire); });
+            if (host->terminated) break;
+            if (host->audioControl.exchange(false, std::memory_order_acq_rel)) {
+                setInterruptOwner(false);
+                interruptMutex().unlock();
+                AudioWorkgroup::guestSafePoint({reinterpret_cast<std::uintptr_t>(self), host->generation});
+                interruptMutex().lock();
+                setInterruptOwner(true);
+            }
+            // A host-only membership wake does not give permission to run
+            // guest code. The original baton predicate remains authoritative.
+            if (gCurrent.load(std::memory_order_acquire) == self) break;
+        }
+    }
     if (host->terminated) {
         terminateHostThread();
     }
     gCurrentRunning = true;  // interrupt lock held (hostWait returns with it)
+    if (AudioWorkgroup::observing.load(std::memory_order_relaxed) && host->audioRole.load())
+        AudioWorkgroup::noteResumed({reinterpret_cast<std::uintptr_t>(self), host->generation}, mach_absolute_time());
     PETARI_GPU_TRACE(PetariNative::GpuTrace::emitScheduling("thread_cpu_resumed",
         PetariNative::GpuTrace::withSubject(PetariNative::GpuTrace::waitContext, self)));
     publishHolder();
@@ -1982,6 +2019,27 @@ OSThread* boundThread() {
     return tHostBlocking ? nullptr : tBound;
 }
 
+AudioWorkgroup::Identity audioIdentity() {
+    return tHost && tBound ? AudioWorkgroup::Identity{reinterpret_cast<std::uintptr_t>(tBound), tHost->generation} :
+                            AudioWorkgroup::Identity{};
+}
+void markAudioGuest() {
+    if (tHost && tBound) tHost->audioRole.store(true, std::memory_order_release);
+}
+void wakeAudioGuestControl() {
+    InterruptGuard guard;
+    for (const auto& item : hosts()) {
+        const auto& host = item.second;
+        if (!host->audioRole.load(std::memory_order_acquire)) continue;
+        host->audioControl.store(true, std::memory_order_release);
+        host->cv.notify_all();
+    }
+}
+void serviceAudioWorkgroup() {
+    if (tHost && tHost->audioControl.exchange(false, std::memory_order_acq_rel))
+        AudioWorkgroup::guestSafePoint(audioIdentity());
+}
+
 void noteInterruptDisable(bool nested) {
     if (!gBatonDiag.load(std::memory_order_relaxed) || !tHost) {
         return;
@@ -2011,6 +2069,10 @@ void onInterruptsEnabling() {
 }
 
 }  // namespace PetariNative::Platform::OS
+
+void PetariNative::Platform::AudioWorkgroup::startCurrentSink(bool coreAudio, unsigned rate) {
+    startSink(PetariNative::Platform::OS::audioIdentity(), coreAudio, rate);
+}
 
 void PetariNative::Platform::Diagnostics::dumpOS(std::FILE* out) {
     PetariNative::Platform::OS::dumpThreads(out);

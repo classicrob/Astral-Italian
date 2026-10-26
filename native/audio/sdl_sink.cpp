@@ -3,6 +3,7 @@
 #include <petari/host_allocation.hpp>
 #include <petari/platform/audio.hpp>
 #include <petari/platform/os_host.hpp>
+#include <petari/platform/audio_workgroup.hpp>
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_error.h>
@@ -10,6 +11,7 @@
 #include <CoreAudio/CoreAudio.h>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -141,6 +143,10 @@ void report() {
         const auto now = std::chrono::steady_clock::now();
         const double interval = std::chrono::duration<double>(now - previous).count();
         previous = now;
+        if (PetariNative::Platform::AudioWorkgroup::enabled.load(std::memory_order_relaxed)) {
+            PetariNative::Platform::AudioWorkgroup::report(stderr);
+            PetariNative::Platform::AudioWorkgroup::collect();
+        }
         // Ring starvation (underrun) versus late game audio production (AI
         // replaying a block), the ring level, and the largest device request.
         const std::uint64_t replays = PetariNative::Platform::Audio::replayedBlocks();
@@ -225,6 +231,9 @@ void produce(std::uint32_t rate) {
 }
 
 void SDLCALL fill(void*, SDL_AudioStream* stream, int additionalBytes, int) {
+    namespace WG = PetariNative::Platform::AudioWorkgroup;
+    if (WG::observing.load(std::memory_order_relaxed))
+        WG::noteCallback(ring.level(), additionalBytes > 0 ? (static_cast<std::uint64_t>(additionalBytes)+3)/4 : 0);
     PETARI_GPU_TRACE(PetariNative::GpuTrace::Audio::callbackBeginEnabled(ring, additionalBytes, deviceThreadRealtime.load(std::memory_order_relaxed)));
     PetariNative::HostAllocationScope host;
     static thread_local bool promoted = false;
@@ -246,7 +255,9 @@ void SDLCALL fill(void*, SDL_AudioStream* stream, int additionalBytes, int) {
     ring.noteRequest(static_cast<std::size_t>(frames));  // the whole burst, before splitting
     while (frames > 0) {
         const int count = std::min(frames, 1024);
-        PetariNative::GpuTrace::Audio::read(ring, buffer, static_cast<std::size_t>(count));
+        const auto copied = PetariNative::GpuTrace::Audio::read(ring, buffer, static_cast<std::size_t>(count));
+        if (WG::observing.load(std::memory_order_relaxed) && copied < static_cast<unsigned>(count))
+            WG::noteShortfall(count-copied);
         if (captureFile != nullptr) {
             std::fwrite(buffer, 4, static_cast<std::size_t>(count), captureFile);
         }
@@ -266,6 +277,8 @@ void stop(void*) {
     deviceThreadRealtime.store(0, std::memory_order_relaxed);
     stopProducer.store(true, std::memory_order_release);
     if (producer.joinable()) producer.join();
+    if (PetariNative::Platform::AudioWorkgroup::enabled.load(std::memory_order_relaxed))
+        PetariNative::Platform::AudioWorkgroup::stopSink();
     if (captureFile != nullptr) {
         std::fflush(captureFile);  // not closed: the device callback may still be writing (test-only, the process exits soon)
     }
@@ -294,6 +307,10 @@ void stop(void*) {
     if (const auto missing = PetariNative::GpuTrace::Audio::takeUnderruns(ring, "shutdown"))
         std::fprintf(stderr, "SDL audio underrun: %llu silent frames\n", static_cast<unsigned long long>(missing));
     if (initialized) SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    if (PetariNative::Platform::AudioWorkgroup::enabled.load(std::memory_order_relaxed)) {
+        PetariNative::Platform::AudioWorkgroup::report(stderr);
+        PetariNative::Platform::AudioWorkgroup::collect();
+    }
     initialized = false;
     if (failed.exchange(false)) std::fprintf(stderr, "SDL audio failed to queue samples\n");
 }
@@ -401,6 +418,10 @@ void start(std::uint32_t rate, void*) {
         std::fputs("PETARI SMOKE AUDIO: output gain 0; realtime DSP/DMA and device callback retained\n", stderr);
     }
     if (device) {
+        if (PetariNative::Platform::AudioWorkgroup::enabled.load(std::memory_order_relaxed)) {
+            const char* driver = SDL_GetCurrentAudioDriver();
+            PetariNative::Platform::AudioWorkgroup::startCurrentSink(driver && std::strcmp(driver, "coreaudio") == 0, rate);
+        }
         // The elastic wait limit from the device's actual request size.
         SDL_AudioSpec deviceSpec{};
         int sampleFrames = 0;
@@ -422,6 +443,8 @@ void start(std::uint32_t rate, void*) {
     }
     running.store(true);
     if (diagnostics) {
+        const char* backend = SDL_GetCurrentAudioDriver();
+        std::fprintf(stderr, "[audio-backend] driver=%s\n", backend ? backend : "unknown");
         reportLatency(rate, latency);
     }
 }

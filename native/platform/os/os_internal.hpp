@@ -10,6 +10,7 @@
 // the running thread to reschedule.
 
 #include <petari/gpu_trace.hpp>
+#include <petari/platform/audio_workgroup.hpp>
 #include "interrupt_trace.hpp"
 #include <condition_variable>
 #include <cstdint>
@@ -49,6 +50,10 @@ InterruptReleaseTiming lastInterruptReleaseTiming();
 // The OS thread bound to the calling host thread, or null for host threads
 // (interrupt context).
 OSThread* boundThread();
+AudioWorkgroup::Identity audioIdentity();
+void markAudioGuest();
+void wakeAudioGuestControl();
+void serviceAudioWorkgroup(); // outside interruptMutex
 
 // For host threads (not OS threads) that hold the interrupt lock: waits on cv,
 // releasing the interrupt lock while blocked. OS threads must block with

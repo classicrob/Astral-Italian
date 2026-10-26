@@ -32,6 +32,7 @@
 #include "audio_timing.hpp"
 
 namespace Timing = PetariNative::Platform::Audio::Timing;
+namespace WG = PetariNative::Platform::AudioWorkgroup;
 
 // Defined by JAudio2 (osdsp_task.cpp), replacing the SDK's handler as on the Wii.
 extern "C" void __DSPHandler(__OSInterrupt interrupt, OSContext* context);
@@ -64,11 +65,16 @@ constexpr int kMaxHandles = 64;
 constexpr int kVoiceGroups = 4;  // 64 voices, synced in groups of 16
 
 enum class MailState { Waiting, Rendering, WritingCommand, Halted };
+struct QueuedMail {
+    std::uint32_t value;
+    WG::Origin origin{};
+};
 
 struct Device {
     std::mutex lock;  // mail queues, handles
     std::condition_variable toDspChanged;
     std::deque<std::uint32_t> toDsp;
+    std::deque<WG::Origin> toDspOrigins; // enabled experiment only; original queue unchanged
     std::deque<std::uint32_t> fromDsp;
     std::array<std::uintptr_t, kMaxHandles> handles{};
     int handleCount = 0;
@@ -86,6 +92,8 @@ struct Device {
     MailState state = MailState::Waiting;
     std::uint32_t expectedCommandMails = 0;
     std::deque<std::uint32_t> commandBuffer;
+    std::deque<WG::Origin> commandOrigins;
+    WG::Origin lastReadOrigin{};
     std::uint32_t pendingCommands = 0;
     bool canExecute = true;
     std::uint16_t voicesPerFrame = 0;
@@ -160,9 +168,13 @@ std::uint32_t readCommand(Device& d) {
     if (d.commandBuffer.empty()) {
         OSPanic(__FILE__, __LINE__, "DSP: command read past the queued command mails");
     }
-    const std::uint32_t v = d.commandBuffer.front();
+    const auto value = d.commandBuffer.front();
     d.commandBuffer.pop_front();
-    return v;
+    if (WG::enabled.load(std::memory_order_relaxed)) {
+        d.lastReadOrigin = d.commandOrigins.front();
+        d.commandOrigins.pop_front();
+    }
+    return value;
 }
 
 void renderAudio(Device& d) {
@@ -187,6 +199,7 @@ void renderAudio(Device& d) {
         // answered with MAIL_CONTINUE) before the audio thread runs again and
         // releases the next frame's voices.
         d.renderer.finalizeFrame(d.outLeft, d.outRight, d.outputVolume);
+        if (WG::enabled.load(std::memory_order_relaxed)) WG::subframeComplete();
         if (Timing::enabled.load(std::memory_order_relaxed) && d.voicesReleasedAt != 0) {
             Timing::raiseMax(Timing::worstSubframeRender, Timing::now() - d.voicesReleasedAt);
         }
@@ -214,6 +227,7 @@ void runPendingCommands(Device& d) {
     }
     while (d.pendingCommands) {
         const std::uint32_t mail = readCommand(d);
+        const auto commandOrigin = d.lastReadOrigin;
         if ((mail & 0x80000000) == 0) {
             continue;
         }
@@ -247,9 +261,17 @@ void runPendingCommands(Device& d) {
             d.frameRequestedAt = Timing::enabled.load(std::memory_order_relaxed) ? Timing::now() : 0;
             d.outputVolume = extra;
             d.outLeft = static_cast<std::int16_t*>(resolve(d, readCommand(d)));
+            if (WG::enabled.load(std::memory_order_relaxed)) WG::checkArgument(commandOrigin, d.lastReadOrigin);
             d.outRight = static_cast<std::int16_t*>(resolve(d, readCommand(d)));
+            if (WG::enabled.load(std::memory_order_relaxed)) WG::checkArgument(commandOrigin, d.lastReadOrigin);
             readCommand(d);  // COMBINED_CMD_0D: two command-0D arguments, unused
+            if (WG::enabled.load(std::memory_order_relaxed)) WG::checkArgument(commandOrigin, d.lastReadOrigin);
             readCommand(d);
+            if (WG::enabled.load(std::memory_order_relaxed)) {
+                WG::checkArgument(commandOrigin, d.lastReadOrigin);
+                WG::beginCycle(commandOrigin, d.requestedFrames, PetariNative::Platform::Audio::outputRate(),
+                    reinterpret_cast<std::uintptr_t>(d.outLeft), reinterpret_cast<std::uintptr_t>(d.outRight));
+            }
             d.currentFrame = 0;
             d.currentVoice = 0;
             renderAudio(d);
@@ -271,7 +293,8 @@ void runPendingCommands(Device& d) {
     }
 }
 
-void handleMail(Device& d, std::uint32_t mail) {
+void handleMail(Device& d, QueuedMail packet) {
+    const auto mail = packet.value;
     switch (d.state) {
     case MailState::Waiting:
         if (mail & 0x80000000) {
@@ -313,6 +336,7 @@ void handleMail(Device& d, std::uint32_t mail) {
     }
     case MailState::WritingCommand:
         d.commandBuffer.push_back(mail);
+        if (WG::enabled.load(std::memory_order_relaxed)) d.commandOrigins.push_back(packet.origin);
         if (--d.expectedCommandMails == 0) {
             ++d.pendingCommands;
             d.state = MailState::Waiting;
@@ -330,15 +354,33 @@ void* workerMain(void*) {
     PetariNative::HostAllocationScope hostAllocations;
     Device& d = device();
     std::unique_lock<std::mutex> lock(d.lock);
+    std::uint64_t workgroupEpoch = 0;
     while (true) {
-        d.toDspChanged.wait(lock, [&] { return d.stop || !d.toDsp.empty(); });
+        d.toDspChanged.wait(lock, [&] { return d.stop || !d.toDsp.empty() ||
+            (WG::enabled.load(std::memory_order_relaxed) && WG::controlVersion() != workgroupEpoch); });
         if (d.stop) {
+            lock.unlock();
+            if (WG::enabled.load(std::memory_order_relaxed)) WG::rendererExit();
             return nullptr;
         }
-        const std::uint32_t mail = d.toDsp.front();
+        if (WG::enabled.load(std::memory_order_relaxed) && WG::controlVersion() != workgroupEpoch) {
+            const auto requestedEpoch = WG::controlVersion();
+            lock.unlock();
+            WG::rendererSafePoint();
+            lock.lock();
+            workgroupEpoch = requestedEpoch; // a racing newer epoch forces another safe point
+            continue;
+        }
+        if (d.toDsp.empty()) continue;
+        const auto value = d.toDsp.front();
+        WG::Origin origin{};
+        if (WG::enabled.load(std::memory_order_relaxed)) {
+            origin = d.toDspOrigins.front();
+            d.toDspOrigins.pop_front();
+        }
         d.toDsp.pop_front();
         lock.unlock();
-        handleMail(d, mail);
+        handleMail(d, {value, origin});
         lock.lock();
     }
 }
@@ -426,6 +468,7 @@ void shutdown() {
     PetariNative::HostAllocationScope hostAllocations;
     std::lock_guard<std::mutex> guard(d.lock);
     d.toDsp.clear();
+    d.toDspOrigins.clear();
     d.fromDsp.clear();
     d.handleCount = 0;
     d.initialized = false;
@@ -438,6 +481,7 @@ void shutdown() {
     d.state = MailState::Waiting;
     d.expectedCommandMails = 0;
     d.commandBuffer.clear();
+    d.commandOrigins.clear();
     d.pendingCommands = 0;
     d.canExecute = true;
     d.requestedFrames = d.currentFrame = d.currentVoice = d.syncMaxVoice = 0;
@@ -458,6 +502,7 @@ u32 PetariNativeDspAddressHandle(uintptr_t address) {
 }
 
 void DSPInit(void) {
+    WG::configure();
     Device& d = device();
     std::lock_guard<std::mutex> guard(d.lock);
     if (d.initialized) {
@@ -468,6 +513,9 @@ void DSPInit(void) {
         d.interruptSignal = dispatch_semaphore_create(0);
     }
     d.initialized = true;
+    if (WG::enabled.load(std::memory_order_relaxed))
+        WG::setRendererWake([] { auto& target = device();
+            std::lock_guard<std::mutex> guard(target.lock); target.toDspChanged.notify_all(); });
     if (pthread_create(&d.worker, nullptr, workerMain, nullptr) != 0 ||
         pthread_create(&d.interruptThread, nullptr, interruptMain, nullptr) != 0) {
         OS::fatal("cannot start the DSP threads");
@@ -482,11 +530,13 @@ u32 DSPCheckMailToDSP(void) {
 
 void DSPSendMailToDSP(u32 mail) {
     Device& d = device();
+    const auto origin = WG::enabled.load(std::memory_order_relaxed) ? WG::origin(OS::audioIdentity()) : WG::Origin{};
     {
         // Game thread; the DSP worker frees the deque's blocks.
         PetariNative::HostAllocationScope hostAllocations;
         std::lock_guard<std::mutex> guard(d.lock);
         d.toDsp.push_back(mail);
+        if (WG::enabled.load(std::memory_order_relaxed)) d.toDspOrigins.push_back(origin);
     }
     d.toDspChanged.notify_one();
 }

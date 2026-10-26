@@ -14,6 +14,9 @@ namespace GT = PetariNative::GpuTrace;
 extern "C" void petari_audio_trace_read_off_probe(Ring* ring, std::int16_t* out, std::size_t count) {
     AT::read(*ring, out, count);
 }
+extern "C" std::size_t petari_audio_workgroup_read_off_probe(Ring* ring, std::int16_t* out, std::size_t count) {
+    return AT::read(*ring, out, count);
+}
 extern "C" std::uint64_t petari_audio_trace_report_off_probe(Ring* ring) {
     return AT::takeUnderruns(*ring);
 }
@@ -30,7 +33,7 @@ int main() {
     petari_audio_callback_off_probe(&observed,24,0);
     assert(AT::activeCallbacks.load()==0 && AT::lastEntryNs.load()==0 && AT::lastExitNs.load()==0);
     assert(native.read(a.data(),6)==4);
-    petari_audio_trace_read_off_probe(&observed,b.data(),6);
+    assert(petari_audio_workgroup_read_off_probe(&observed,b.data(),6)==4);
     assert(a==b && native.level()==observed.level() && native.target()==observed.target());
     assert(native.largestRequest()==observed.largestRequest());
     assert(native.takeUnderrunFrames()==2 && petari_audio_trace_report_off_probe(&observed)==2);

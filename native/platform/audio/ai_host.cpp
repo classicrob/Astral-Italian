@@ -405,6 +405,9 @@ void AIInit(u8*) {
     if (gInitialized.exchange(true)) {
         return;
     }
+    PetariNative::Platform::AudioWorkgroup::configure();
+    if (PetariNative::Platform::AudioWorkgroup::enabled.load(std::memory_order_relaxed))
+        PetariNative::Platform::AudioWorkgroup::setGuestWake(OS::wakeAudioGuestControl);
     PetariNative::HostAllocationScope hostAllocations;
     if (gInterruptSignal == nullptr) {
         gInterruptSignal = dispatch_semaphore_create(0);
@@ -415,6 +418,11 @@ void AIInit(u8*) {
 }
 
 AIDCallback AIRegisterDMACallback(AIDCallback cb) {
+    namespace WG = PetariNative::Platform::AudioWorkgroup;
+    if (WG::enabled.load(std::memory_order_relaxed)) {
+        OS::markAudioGuest();
+        WG::bindCallback(OS::audioIdentity(), reinterpret_cast<std::uintptr_t>(cb), !OS::interruptsDisabled());
+    }
     return gCallback.exchange(cb, std::memory_order_acq_rel);
 }
 
@@ -428,8 +436,11 @@ void AIInitDMA(uintptr_t start, u32 length) {
     gRegistered.samples = reinterpret_cast<const std::int16_t*>(start);
     gRegistered.frames = length / 4;
     gRegistered.generation = ++gGeneration;
+    const auto registrationGeneration = gGeneration;
     gRegistered.answer = answer;
     gRegisterLock.unlock();
+    if (PetariNative::Platform::AudioWorkgroup::enabled.load(std::memory_order_relaxed))
+        PetariNative::Platform::AudioWorkgroup::noteRegistration(OS::audioIdentity(), registrationGeneration, length/4, start);
     if (Timing::enabled.load(std::memory_order_relaxed)) {
         // See audio_timing.hpp for how a registration maps to interrupts.
         const std::uint64_t latest = Timing::dmaGeneration.load(std::memory_order_acquire);
@@ -481,6 +492,10 @@ void AIStartDMA(void) {
     if (!gInitialized.load()) {
         OSPanic(__FILE__, __LINE__, "AIStartDMA() before AIInit()");
     }
+    namespace WG = PetariNative::Platform::AudioWorkgroup;
+    if (WG::enabled.load(std::memory_order_relaxed))
+        WG::confirmStart(OS::audioIdentity(), reinterpret_cast<std::uintptr_t>(gCallback.load(std::memory_order_acquire)),
+                         !OS::interruptsDisabled());
     PAudio::Sink sink;
     bool start = false;
     {
@@ -492,6 +507,7 @@ void AIStartDMA(void) {
         }
     }
     gRunning.store(true, std::memory_order_release);
+    if (WG::enabled.load(std::memory_order_relaxed)) WG::pauseProduction(false);
     if (start) {
         sink.start(PAudio::outputRate(), sink.user);
     }
@@ -499,6 +515,8 @@ void AIStartDMA(void) {
 
 void AIStopDMA(void) {
     gRunning.store(false, std::memory_order_release);
+    if (PetariNative::Platform::AudioWorkgroup::enabled.load(std::memory_order_relaxed))
+        PetariNative::Platform::AudioWorkgroup::pauseProduction(true);
 }
 
 }  // extern "C"

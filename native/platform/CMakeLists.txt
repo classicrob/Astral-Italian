@@ -81,6 +81,7 @@ add_library(petari_platform_os STATIC
     os/os_thread.cpp
     os/monitor_wait.cpp
     os/interrupt_trace.cpp
+    audio/audio_workgroup.cpp
     os/os_alarm.cpp
     os/os_time.cpp
     os/os_report.cpp
@@ -96,7 +97,7 @@ target_include_directories(petari_platform_os PUBLIC include PRIVATE os)
 target_link_libraries(petari_platform_os PUBLIC petari_native_config petari_host_runtime Threads::Threads)
 target_compile_features(petari_platform_os PUBLIC cxx_std_17)
 include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/GpuTrace.cmake")
-target_link_libraries(petari_platform_os PUBLIC "-framework CoreFoundation" petari_gpu_trace_host)
+target_link_libraries(petari_platform_os PUBLIC "-framework CoreFoundation" "-framework AudioToolbox" petari_gpu_trace_host)
 
 # NAND save storage (host IOS file system + port of the synchronous SDK NAND
 # library) and ES title identity. Replaces src/RVL_SDK/nand/*.c and the ES
@@ -157,6 +158,27 @@ target_link_libraries(petari_dvd_smoke PRIVATE petari_platform)
 
 if(BUILD_TESTING)
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    add_executable(petari_audio_workgroup_protocol_tests ${PETARI_REPO_ROOT}/native/tests/audio_workgroup_protocol_tests.cpp)
+    target_include_directories(petari_audio_workgroup_protocol_tests PRIVATE audio include)
+    target_compile_features(petari_audio_workgroup_protocol_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_audio_workgroup_protocol_tests PRIVATE -UNDEBUG)
+    add_test(NAME native_audio_workgroup_protocol COMMAND petari_audio_workgroup_protocol_tests)
+    add_executable(petari_audio_workgroup_history_tests ${PETARI_REPO_ROOT}/native/tests/audio_workgroup_history_tests.cpp)
+    target_include_directories(petari_audio_workgroup_history_tests PRIVATE audio)
+    target_compile_features(petari_audio_workgroup_history_tests PRIVATE cxx_std_17)
+    target_compile_options(petari_audio_workgroup_history_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_audio_workgroup_history_tests PRIVATE Threads::Threads)
+    add_test(NAME native_audio_workgroup_history COMMAND petari_audio_workgroup_history_tests)
+    add_executable(petari_audio_workgroup_backend_tests ${PETARI_REPO_ROOT}/native/tests/audio_workgroup_backend_tests.cpp audio/audio_workgroup.cpp)
+    target_include_directories(petari_audio_workgroup_backend_tests PRIVATE audio include os)
+    target_compile_features(petari_audio_workgroup_backend_tests PRIVATE cxx_std_17)
+    target_compile_definitions(petari_audio_workgroup_backend_tests PRIVATE PETARI_AUDIO_WORKGROUP_TESTING=1)
+    target_compile_options(petari_audio_workgroup_backend_tests PRIVATE -UNDEBUG)
+    target_link_libraries(petari_audio_workgroup_backend_tests PRIVATE petari_platform_os "-framework AudioToolbox" Threads::Threads)
+    add_test(NAME native_audio_workgroup_backend COMMAND petari_audio_workgroup_backend_tests)
+    set_tests_properties(native_audio_workgroup_backend PROPERTIES TIMEOUT 20)
+    add_test(NAME native_audio_workgroup_report COMMAND "${Python3_EXECUTABLE}" -I
+        "${PETARI_REPO_ROOT}/native/tests/audio_workgroup_report_tests.py")
     add_executable(petari_crash_demo ${PETARI_REPO_ROOT}/native/tests/petari_crash_demo.cpp
         ${PETARI_REPO_ROOT}/native/app/test_crash.cpp)
     target_include_directories(petari_crash_demo PRIVATE ${PETARI_REPO_ROOT}/native/app)

@@ -43,11 +43,12 @@ template<class Ring>
     emitSchedulingAt(exit, "audio_device_callback_exit", c, a);
 }
 template<class Ring>
-inline void read(Ring& ring, std::int16_t* output, std::size_t count) {
+inline std::size_t read(Ring& ring, std::int16_t* output, std::size_t count) {
+    std::size_t copied = 0;
     if (enabled.load(std::memory_order_relaxed)) {
         detail::invokeEnabled([&] {
             const auto begin = nowNs();
-            const auto copied = ring.read(output, count);
+            copied = ring.read(output, count);
             const auto end = nowNs();
             if (copied < count) {
                 Context c{}; c.span = nextId(); c.subject = reinterpret_cast<std::uintptr_t>(&ring);
@@ -58,8 +59,9 @@ inline void read(Ring& ring, std::int16_t* output, std::size_t count) {
             }
         });
     } else {
-        ring.read(output, count);
+        copied = ring.read(output, count);
     }
+    return copied; // exact native read result; no counter sampling or extra read
 }
 template<class Ring>
 [[gnu::noinline]] inline std::uint64_t reportEnabled(Ring& ring, const char* source) {

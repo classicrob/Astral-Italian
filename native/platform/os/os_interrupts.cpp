@@ -41,6 +41,7 @@ void enable() {
     if (!overrides.empty()) {
         endOverrides(overrides);
     }
+    if (AudioWorkgroup::enabled.load(std::memory_order_relaxed)) serviceAudioWorkgroup();
 }
 
 }  // namespace

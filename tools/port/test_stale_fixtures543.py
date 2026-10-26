@@ -21,6 +21,33 @@ class BaselineControlTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'malformed'):
             proof.unavailable_checks('NOT RUN missing-reason')
 
+    def test_separate_donor_row_requires_77_and_explicit_unavailable_citations(self):
+        line='NOT RUN native_skip_donor_integration: UNAVAILABLE IN SMG2; native/STUBS.md; docs/port/HOOK_TRANSFER.md'
+        record={'exit':77,'timed_out':False}
+        row=proof.donor_unavailable(record,line)
+        self.assertEqual(row['ctest_status'],'SKIPPED');self.assertFalse(row['passed']);self.assertFalse(row['executed'])
+        for wrong in ({'exit':0,'timed_out':False},{'exit':77,'timed_out':True}):
+            with self.assertRaisesRegex(RuntimeError,'SKIPPED'):
+                proof.donor_unavailable(wrong,line)
+        for wrong in ('',line.replace('native_skip_donor_integration','different'),line.replace('native/STUBS.md','missing')):
+            with self.assertRaises(RuntimeError):proof.donor_unavailable(record,wrong)
+
+    def test_supported_mod_fix_binds_every_shipping_row_mapping_blob(self):
+        fix='fd3d120e8057695948a831d036159f2b402751a8'
+        paths=proof.PRODUCTION_FIXES[fix]
+        self.assertIn('native/input/mods.cpp',paths)
+        self.assertIn('native/home_menu/hbm_bridge.cpp',paths)
+        self.assertIn('native/home_menu/mods_menu.cpp',paths)
+        self.assertIn('native/home_menu/include/petari/mods_menu.hpp',paths)
+        def git(*args):
+            if args[0]=='merge-base':return (proof.BASE+'\n').encode()
+            if args[0]=='diff':return ('\n'.join(paths)+'\n').encode()
+            if args[0]=='show':return args[1].split(':',1)[1].encode()
+            self.fail(args)
+        with mock.patch.object(proof,'git',side_effect=git):
+            allowed,blobs=proof.production_scope([fix])
+        self.assertEqual(allowed,set(paths));self.assertEqual(set(blobs),set(paths))
+
     def test_production_scope_refuses_unknown_or_different_shipping_blob(self):
         with self.assertRaisesRegex(RuntimeError,'unapproved'):
             proof.production_scope(['unknown'])

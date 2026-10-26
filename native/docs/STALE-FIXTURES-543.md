@@ -304,3 +304,30 @@ with SKIP_RETURN_CODE=77, so it is reported SKIPPED rather than Passed. Paired
 proof records this component as status NOT_RUN, executed=false, passed=false;
 it credits only the checks actually executed. This is an explicit deferred
 feature/backlog item, not an accepted SMG2 integration or a lowered hold threshold.
+
+## Approved unsupported-mod repair in the combined checkout
+
+The separate product branch `port/543-skip-unavailable` is pinned at
+`fd3d120e8057695948a831d036159f2b402751a8`, off the same main. It hides the
+unsupported donor toggle and refuses only its enable request, preserving stable
+IDs, valid settings and startup. To include it in the combined paired proof,
+append this third exact option on BOTH --prepare and --run:
+
+```sh
+--production-fix fd3d120e8057695948a831d036159f2b402751a8
+```
+
+Its registry/header, HBM bridge, shared row adapter/header and Home-menu CMake
+blobs must all match that exact approved commit. The new production test is
+`petari_supported_mods_tests` / `native_supported_mods`; build and run it in
+addition to the DVD and circle-clamp regressions. This is still a MAIN FIXTURE
+comparison on shared repaired production, never a main-production control.
+
+The proof also invokes the separate donor CLI and requires exit77 plus exactly
+one unavailable row with the source citations. Its receipt is SKIPPED / NOT_RUN,
+executed=false / passed=false. Missing text, exit0, a timeout or missing citations
+fails the reporting check; no feature execution is credited. Successful full
+input execution must retain its own unavailable record as well.
+
+The fixture validators are Python/source-only on the M1; native combined results
+remain pending PORT's SERVER run. All r1-r4 receipts remain unchanged.

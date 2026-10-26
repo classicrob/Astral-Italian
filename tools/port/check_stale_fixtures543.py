@@ -15,6 +15,10 @@ ROOT=Path(__file__).resolve().parents[2]
 PRODUCTION_FIXES={
     '610ded6eb47f5ef4ab5cc35f3bc01f00a17c5c86':('native/platform/dvd/dvd_host.cpp',),
     'ec0d1424ad15fedff82f683cdb6ef356270cff5a':('native/input/remote_model.cpp','native/input/remote_model.hpp'),
+    'fd3d120e8057695948a831d036159f2b402751a8':(
+        'native/input/mods.cpp','native/include/petari/mods.hpp',
+        'native/home_menu/hbm_bridge.cpp','native/home_menu/mods_menu.cpp',
+        'native/home_menu/include/petari/mods_menu.hpp','native/home_menu/CMakeLists.txt'),
 }
 CASES=[
     ('native_platform_audio','petari_platform_audio_tests','native/tests/platform_audio_tests.cpp',[],['AIGetDSPSampleRate']),
@@ -68,6 +72,15 @@ def unavailable_checks(log):
             need(all(row['name']!=name for row in result),'duplicate NOT RUN record')
             result.append(dict(name=name,status='NOT_RUN',executed=False,passed=False,reason=reason,raw_line=line))
     return result
+
+def donor_unavailable(record,log):
+    need(record['exit']==77 and not record['timed_out'],'donor row must be SKIPPED (77), never passed or timed out')
+    rows=unavailable_checks(log)
+    need(len(rows)==1 and rows[0]['name']=='native_skip_donor_integration','missing/ambiguous donor NOT RUN')
+    reason=rows[0]['reason']
+    need(all(token in reason for token in ('UNAVAILABLE IN SMG2','native/STUBS.md','docs/port/HOOK_TRANSFER.md')),
+         'donor NOT RUN must retain its reason and citations')
+    return dict(rows[0],process=record,ctest_status='SKIPPED')
 
 def production_scope(fixes):
     allowed=set();blobs={}
@@ -181,6 +194,15 @@ def main():
         pair['passed']=pair['main_failure_matches'] and pair['after_passed'];results.append(pair)
         write(out/'REPORT.json',report);print(test,'PASS' if pair['passed'] else 'FAIL',flush=True)
     for path,digest in artifacts.items():need(sha(path)==digest,'linked object/archive/fixed executable changed during run: '+path)
+    # Separate unavailable row: verify it is reported as 77 / NOT RUN even if a
+    # later executed input check fails. This component is never credited PASS.
+    fixed_input=prepared['targets']['petari_input_tests'][3]
+    donor=run('native_skip_donor_integration-unavailable',[str(fixed_input),'--donor-skip-integration'],out)
+    report['unavailable_components']=[donor_unavailable(donor,Path(donor['log']).read_text(errors='replace'))]
+    full_input=next(row for row in results if row['test']=='native_input')
+    if full_input['after_passed']:
+        need(any(row['name']=='native_skip_donor_integration' for row in full_input['unavailable_checks']),
+             'successful executed input suite silently omitted donor NOT RUN')
     report['passed']=len(results)==6 and all(row['passed'] for row in results)
     write(out/'REPORT.json',report);return 0 if report['passed'] else 1
 if __name__=='__main__':raise SystemExit(main())

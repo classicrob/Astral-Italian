@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 // Platform start-up and exit for the native application. SDK side: no Aurora
 // or SDL headers here.
 
@@ -43,6 +44,7 @@ namespace {
 // the window, so no platform shutdowns (which join their threads) run here.
 void leave(const Platform::Power::Exit& exit, void*) {
     TapeRecord::finish(); // the normal power/quit path reaches _Exit, which bypasses atexit
+    PetariNative::GameWaitHistory::finish();
     Seam::reportFrameStats();
     petari_gx_pipeline_first_use_finish();
     petari_platform_report_diagnostics();
@@ -147,6 +149,7 @@ void requestQuit() {
 }
 
 void forceQuit() {
+    PetariNative::GameWaitHistory::finish();
     Seam::reportFrameStats();
     petari_platform_report_diagnostics();
     std::fputs("Petari: quitting immediately\n", stderr);

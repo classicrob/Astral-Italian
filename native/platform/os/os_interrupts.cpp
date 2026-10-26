@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 // OSDisableInterrupts / OSEnableInterrupts / OSRestoreInterrupts on the host.
 // See os_internal.hpp for the model.
 
@@ -18,7 +19,7 @@ std::atomic<std::uintptr_t> gOwner{0};
 InterruptReleaseTiming gHeldTiming, gLastReleaseTiming; // interruptMutex
 
 void disable() {
-    interruptMutex().lock();
+    PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::InterruptMutex, 0, 0, [&] { interruptMutex().lock(); });
     setInterruptOwner(true);
     tDisabled = true;
     onInterruptsDisabled();
@@ -76,6 +77,7 @@ void setInterruptOwner(bool held) {
         gLastReleaseTiming = gHeldTiming;
         gLastReleaseTiming.releasedNs = ns;
     }
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::InterruptOwner, held ? gHeldTiming.hostThread : 0, gHeldTiming.acquiredNs, gHeldTiming.osThread);
     gOwner.store(held ? reinterpret_cast<std::uintptr_t>(pthread_self()) : 0, std::memory_order_relaxed);
 }
 

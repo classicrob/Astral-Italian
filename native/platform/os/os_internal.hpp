@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 #pragma once
 // Shared internals of the native OS layer. Not for game code.
 //
@@ -55,7 +56,7 @@ template <class Predicate>
 void hostWait(std::condition_variable& cv, Predicate predicate) {
     std::unique_lock<std::mutex> lock(interruptMutex(), std::adopt_lock);
     setInterruptOwner(false);  // released while waiting
-    cv.wait(lock, predicate);
+    PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::CpuWait, reinterpret_cast<std::uintptr_t>(&cv), 0, [&] { cv.wait(lock, predicate); });
     setInterruptOwner(true);
     lock.release();
 }

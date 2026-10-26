@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 #include <petari/floating_point.hpp>
 // Native OS thread scheduler.
 //
@@ -419,6 +420,7 @@ OSPriority highestReadyPriority() {
 }
 
 void setRun(OSThread* thread) {
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Ready, reinterpret_cast<std::uintptr_t>(thread), reinterpret_cast<std::uintptr_t>(&RunQueue[thread->priority]), thread->priority);
     thread->queue = &RunQueue[thread->priority];
     enqueueTail(thread->queue, thread);
     RunQueueBits |= 1u << (31 - thread->priority);
@@ -484,6 +486,7 @@ void giveCpu(OSThread* next) {
     // Giving the baton to itself, or to a thread stopped mid-game-code: it is
     // already executing.
     gCurrentRunning = next == tBound || forceParked;
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::BatonGrant, reinterpret_cast<std::uintptr_t>(next), next->priority, found==hosts().end()?0:reinterpret_cast<std::uintptr_t>(found->second->pthread));
     gCurrent.store(next, std::memory_order_release);
     publishHolder();
     if (forceParked) {
@@ -528,6 +531,7 @@ void waitForCpu(OSThread* self) {
     if (host->terminated) {
         terminateHostThread();
     }
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::CpuResumed, reinterpret_cast<std::uintptr_t>(self), self->priority);
     gCurrentRunning = true;  // interrupt lock held (hostWait returns with it)
     publishHolder();
 }
@@ -600,6 +604,7 @@ void selectThread(BOOL yield) {
         if (gBatonDiag) {
             closeEpisode();
         }
+        PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::BatonGrant, 0, 0);
         gCurrent.store(nullptr, std::memory_order_release);
         publishHolder();
     } else {
@@ -638,6 +643,7 @@ void* hostEntry(void* arg) {
     tBound = tHost->thread;
     tHost->machThread = pthread_mach_thread_np(pthread_self());
     tHost->pthread = pthread_self();
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::ThreadBind, reinterpret_cast<std::uintptr_t>(tBound), tHost->machThread, tBound->priority);
     tHost->stackHigh = reinterpret_cast<std::uintptr_t>(pthread_get_stackaddr_np(pthread_self()));
     tHost->stackLow = tHost->stackHigh - pthread_get_stacksize_np(pthread_self());
     // An OS thread runs game code: plain new/delete follow the current JKR heap
@@ -1909,6 +1915,7 @@ void __OSThreadInit(void) {
         tHost = host;
     }
     tBound = thread;
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::ThreadBind, reinterpret_cast<std::uintptr_t>(thread), tHost->machThread, thread->priority);
     PetariNative::setGameAllocationThread(true);  // the default thread runs game code
     if (envEnabled("PETARI_BATON_DIAG") && !gBatonDiag) {
         const char* sample = std::getenv("PETARI_BATON_SAMPLE");
@@ -2236,6 +2243,7 @@ void OSSleepThread(OSThreadQueue* queue) {
     BOOL enabled = OSDisableInterrupts();
     requireRunningOsThread("OSSleepThread");
     OSThread* currentThread = tBound;
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Sleep, reinterpret_cast<std::uintptr_t>(currentThread), reinterpret_cast<std::uintptr_t>(queue), currentThread->priority);
 
     currentThread->state = kStateWaiting;
     currentThread->queue = queue;
@@ -2250,6 +2258,7 @@ void OSWakeupThread(OSThreadQueue* queue) {
     while (queue->head) {
         OSThread* thread = dequeueHead(queue);
         thread->state = kStateReady;
+        PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Ready, reinterpret_cast<std::uintptr_t>(thread), reinterpret_cast<std::uintptr_t>(queue), thread->priority);
         if (!isSuspended(thread->suspend)) {
             setRun(thread);
         }
@@ -2281,6 +2290,7 @@ OSPriority OSGetThreadPriority(OSThread* thread) {
 // work only) instead of parking.
 static void beginHostBlockingLocked() {
     OSThread* self = tBound;
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::HostWork, reinterpret_cast<std::uintptr_t>(self), 1);
     self->state = kStateWaiting;
     self->queue = &tHostBlockingQueue;
     enqueuePrio(&tHostBlockingQueue, self);
@@ -2295,6 +2305,7 @@ static void beginHostBlockingLocked() {
         if (gBatonDiag) {
             closeEpisode();
         }
+        PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::BatonGrant, 0, 0);
         gCurrent.store(nullptr, std::memory_order_release);
         publishHolder();
     } else {
@@ -2357,6 +2368,7 @@ void petari_os_end_host_blocking(void) {
     // (unless another thread suspended it meanwhile); an idle CPU is taken at
     // once, otherwise the running thread is preempted at its next
     // interrupt-state change if this one has higher priority.
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::HostWork, reinterpret_cast<std::uintptr_t>(self), 0);
     dequeueItem(&tHostBlockingQueue, self);
     self->state = kStateReady;
     if (!isSuspended(self->suspend)) {

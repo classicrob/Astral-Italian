@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 #include <petari/frame_telemetry.hpp>
 
 namespace aurora::gfx {
@@ -24,9 +25,10 @@ bool petari_sync_segments() {
 // recorder switches its own slot at once and does not wait for the worker.
 void petari_submit_segment(detail::FramePacket& frame, const PetariNative::GX::SnapshotSource& source,
                            uint64_t ticket, PetariNative::GX::SnapshotReady ready) {
+  PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Capture,frame.frameId,ticket,0);
   const auto nextSlot = [] {
     PetariNative::FrameTelemetry::Scope timing{PetariNative::FrameTelemetry::EfbStagingWait};
-    return acquire_mapped_staging_buffer();
+    return PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Staging, 0, 1, [&] { return acquire_mapped_staging_buffer(); });
   }();
   AURORA_ASSERT(nextSlot.has_value(), "Cannot acquire staging memory for an EFB segment");
   const size_t packetIndex = static_cast<size_t>(&frame - g_framePackets.data());
@@ -50,11 +52,12 @@ void petari_submit_segment(detail::FramePacket& frame, const PetariNative::GX::S
   {
     PetariNative::FrameTelemetry::Scope timing{PetariNative::FrameTelemetry::EfbSubmitWait};
     render_worker::enqueue_work([&frame, source, ticket, ready, oldSlot, newSlot = *nextSlot, complete] {
+      PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Capture,frame.frameId,ticket,1);
       auto mapReadback = PetariNative::GX::encodeSnapshot(frame.encoder, source, ticket, ready);
       g_stagingBuffers[oldSlot].Unmap();
       g_mappingStates[oldSlot].store(BufferMapState::Unmapped, std::memory_order_release);
       const auto commands = frame.encoder.Finish();
-      g_queue.Submit(1, &commands);
+      PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Submit, frame.frameId, ticket, [&] { g_queue.Submit(1, &commands); });
       for (auto& callback : frame.afterSubmitCallbacks) callback();
       frame.afterSubmitCallbacks.clear();
       mapReadback();
@@ -66,7 +69,7 @@ void petari_submit_segment(detail::FramePacket& frame, const PetariNative::GX::S
       process_events();
       if (complete) complete->set_value();
     });
-    if (sync) completion.get();
+    if (sync) PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::RenderSync, frame.frameId, ticket, [&] { completion.get(); });
   }
   petariRecordingSlots[packetIndex] = *nextSlot;
   for (size_t i = 0; i < next.size(); ++i) *previous[i] = std::move(next[i]);

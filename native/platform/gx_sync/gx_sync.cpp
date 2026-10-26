@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 #include <petari/floating_point.hpp>
 // GP interrupts and GX synchronisation. See petari/platform/gx_sync.hpp and
 // docs/dev/GX_SYNC_PLAN.md.
@@ -128,6 +129,7 @@ void notifyHostWaiters(State& s) {
 }
 
 void deliver(State& s, const Event& e) {
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Capture,e.position,e.ticket,static_cast<unsigned>(e.kind));
     BOOL enabled = OSDisableInterrupts();
     if (!OS::waitVirtualAsync(e.virtualTicket)) {
         OSRestoreInterrupts(enabled);
@@ -540,6 +542,7 @@ bool drawDoneWaitPending() {
 }
 
 void waitDrawDone(std::uint64_t count) {
+    return PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::DrawDone, count, 0, [&] {
     State& s = state();
     const auto done = [&] { return s.drawDoneDelivered.load(std::memory_order_acquire) >= count; };
     {
@@ -561,15 +564,18 @@ void waitDrawDone(std::uint64_t count) {
     }
     std::lock_guard<std::mutex> guard(s.lock);
     --s.drawDoneWaiters;
+    });
 }
 
 void waitTokensDelivered() {
+    return PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Token, 0, 0, [&] {
     namespace Telemetry = PetariNative::FrameTelemetry;
     State& s = state();
     std::uint64_t target;
     {
         std::lock_guard<std::mutex> guard(s.lock);
         target = s.tokensReported;
+        PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Token,target,1);
     }
     const auto delivered = [&] { return s.tokensDelivered.load(std::memory_order_acquire) >= target; };
     if (delivered()) {
@@ -604,9 +610,11 @@ void waitTokensDelivered() {
         petari_os_end_host_blocking();
     }
     Telemetry::add(Telemetry::TokenBarrierWait, Telemetry::nowNs() - start);
+    });
 }
 
 void waitProcessed(std::uint64_t position) {
+    return PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Fifo, position, 0, [&] {
     State& s = state();
     if (OS::boundThread() != nullptr) {
         BOOL enabled = OSDisableInterrupts();
@@ -631,6 +639,7 @@ void waitProcessed(std::uint64_t position) {
     s.hostWait.wait(lock, [&] {
         std::lock_guard<std::mutex> guard(s.lock);
         return s.processed >= position;
+    });
     });
 }
 

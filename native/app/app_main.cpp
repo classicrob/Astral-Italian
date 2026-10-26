@@ -1,3 +1,4 @@
+#include "game_wait_history_runtime.hpp"
 #include "editor_m4_smoke.hpp"
 #include "display_settings.hpp"
 #include "display_window.hpp"
@@ -1019,6 +1020,14 @@ int main(int argc, char** argv) {
         aurora_shutdown();
         return 1;
     }
+    std::uint64_t historyWindow=0;
+    if (const auto* flag=std::getenv("PETARI_GAME_WAIT_HISTORY"); flag && std::strcmp(flag,"1")==0) {
+        // Public NSWindow.windowNumber, main thread; no permission prompt or capture.
+        auto* cocoa=SDL_GetPointerProperty(SDL_GetWindowProperties(static_cast<SDL_Window*>(info.window)),
+                                           SDL_PROP_WINDOW_COCOA_WINDOW_POINTER,nullptr);
+        if (cocoa) historyWindow=reinterpret_cast<long (*)(id,SEL)>(objc_msgSend)(reinterpret_cast<id>(cocoa),sel_registerName("windowNumber"));
+    }
+    if (!PetariNative::GameWaitHistory::initializeFromEnvironment(historyWindow)) { aurora_shutdown(); return 2; }
     // Aurora has just given this thread (the main game thread) an explicit SDL policy; see petari/thread_priority.hpp.
     PetariNative::ThreadPriority::raiseToSchedOtherMax("main thread");
     PetariBootSplash::startupEvent("app_menu_setup_enter");

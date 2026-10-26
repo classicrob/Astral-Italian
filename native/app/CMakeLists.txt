@@ -34,6 +34,13 @@ add_compile_options("$<$<CONFIG:Release>:-g>" -fno-omit-frame-pointer)
 
 get_filename_component(PETARI_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
 
+add_library(petari_game_wait_history STATIC game_wait_history.cpp)
+target_include_directories(petari_game_wait_history PUBLIC ${PETARI_REPO_ROOT}/native/include ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(petari_game_wait_history PUBLIC cxx_std_17)
+if(APPLE)
+    target_link_libraries(petari_game_wait_history PUBLIC "-framework CoreGraphics")
+endif()
+
 add_library(petari_app_locations STATIC app_locations.cpp)
 target_include_directories(petari_app_locations PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_features(petari_app_locations PUBLIC cxx_std_17)
@@ -99,7 +106,7 @@ if(NOT _petari_app_standalone)
     target_include_directories(petari_app_host PUBLIC ${PETARI_REPO_ROOT}/native/include)
     # Deliberately not petari_native_config: no SDK include paths next to Aurora's.
     target_link_libraries(petari_app_host PUBLIC aurora::core petari_input_sdl3 petari_home_menu_imgui
-        petari_host_runtime petari_app_smoke petari_display_settings)
+        petari_host_runtime petari_app_smoke petari_display_settings petari_game_wait_history)
 
     add_executable(petari MACOSX_BUNDLE app_main.cpp smoke_storage.cpp pipeline_cache_dir.cpp latency_report.cpp display_link.cpp)
     petari_bundle_libusb(petari)
@@ -178,6 +185,26 @@ else()
 endif()
 
 if(BUILD_TESTING)
+    add_executable(petari_game_wait_history_tests ${PETARI_REPO_ROOT}/native/tests/game_wait_history_tests.cpp)
+    target_include_directories(petari_game_wait_history_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
+    target_compile_features(petari_game_wait_history_tests PRIVATE cxx_std_17)
+    add_test(NAME native_game_wait_history COMMAND petari_game_wait_history_tests)
+    add_executable(petari_game_wait_runtime_tests ${PETARI_REPO_ROOT}/native/tests/game_wait_runtime_tests.cpp)
+    target_link_libraries(petari_game_wait_runtime_tests PRIVATE petari_game_wait_history)
+    add_test(NAME native_game_wait_runtime COMMAND petari_game_wait_runtime_tests)
+    find_package(Python3 COMPONENTS Interpreter REQUIRED)
+    set(_wait_ir "${CMAKE_CURRENT_BINARY_DIR}/game-wait-codegen.ll")
+    add_custom_command(OUTPUT "${_wait_ir}"
+        COMMAND "${CMAKE_CXX_COMPILER}" -std=c++17 -O2 -S -emit-llvm
+            -I "${PETARI_REPO_ROOT}/native/include"
+            "${PETARI_REPO_ROOT}/native/tests/game_wait_codegen.cpp" -o "${_wait_ir}"
+        DEPENDS "${PETARI_REPO_ROOT}/native/tests/game_wait_codegen.cpp"
+            "${PETARI_REPO_ROOT}/native/include/petari/game_wait_history.hpp" VERBATIM)
+    add_custom_target(petari_game_wait_codegen_probe DEPENDS "${_wait_ir}")
+    add_test(NAME native_game_wait_codegen COMMAND "${Python3_EXECUTABLE}" -B
+        "${PETARI_REPO_ROOT}/native/tests/game_wait_codegen_tests.py" "${_wait_ir}")
+    add_test(NAME native_game_wait_report COMMAND "${Python3_EXECUTABLE}" -B
+        "${PETARI_REPO_ROOT}/native/tests/game_wait_report_tests.py")
     add_executable(petari_title_observation_tests ${PETARI_REPO_ROOT}/native/tests/title_observation_tests.cpp)
     target_compile_features(petari_title_observation_tests PRIVATE cxx_std_17)
     add_test(NAME native_title_observation COMMAND petari_title_observation_tests)

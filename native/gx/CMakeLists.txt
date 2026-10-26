@@ -818,3 +818,32 @@ if(APPLE AND _petari_build_testing)
     add_test(NAME native_boot_splash COMMAND petari_boot_splash_tests)
     add_test(NAME native_boot_splash_hidden COMMAND petari_boot_splash_tests hidden)
 endif()
+
+# Independent game-thread wait diagnostic composes LAST over generated sources.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_game_wait.py")
+foreach(_wait_spec
+    "aurora_core|present/lib/aurora.cpp|aurora|lib"
+    "aurora_gx|sync/lib/gx/fifo.cpp|fifo|lib/gx"
+    "aurora_gx|allocation-safe/lib/gfx/render_worker.cpp|worker|lib/gfx"
+    "aurora_gx|ubershader/frame.cpp|frame|lib/gfx")
+    string(REPLACE "|" ";" _wait_parts "${_wait_spec}")
+    list(GET _wait_parts 0 _wait_target)
+    list(GET _wait_parts 1 _wait_relative)
+    list(GET _wait_parts 2 _wait_kind)
+    list(GET _wait_parts 3 _wait_quotes)
+    set(_wait_input "${CMAKE_CURRENT_BINARY_DIR}/${_wait_relative}")
+    set(_wait_output "${CMAKE_CURRENT_BINARY_DIR}/game-wait/${_wait_kind}.cpp")
+    execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/patch_aurora_game_wait.py"
+        "${_wait_input}" "${_wait_output}" "${_wait_kind}" COMMAND_ERROR_IS_FATAL ANY)
+    get_target_property(_wait_sources ${_wait_target} SOURCES)
+    list(REMOVE_ITEM _wait_sources "${_wait_input}")
+    list(APPEND _wait_sources "${_wait_output}")
+    set_property(TARGET ${_wait_target} PROPERTY SOURCES "${_wait_sources}")
+    set_source_files_properties("${_wait_output}" TARGET_DIRECTORY ${_wait_target} PROPERTIES
+        COMPILE_OPTIONS "-iquote${aurora_SOURCE_DIR}/${_wait_quotes};-iquote${aurora_SOURCE_DIR}/lib;-iquote${CMAKE_CURRENT_SOURCE_DIR};-iquote${CMAKE_CURRENT_SOURCE_DIR}/present")
+endforeach()
+if(_petari_build_testing)
+    add_test(NAME native_game_wait_patch COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_SOURCE_DIR}/native/tests/game_wait_patch_tests.py" "${CMAKE_CURRENT_BINARY_DIR}")
+endif()

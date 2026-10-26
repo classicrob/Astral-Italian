@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 #include "test_crash.hpp"
 // The per-frame host seam (petari/app.hpp). Aurora and SDL side.
 
@@ -258,6 +259,7 @@ void recordFrame(std::uint64_t entry, FrameStats::Phase phase) {
     }
     FrameStats::Frame frame;
     frame.index = ++t.frames;
+    PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::Csv, frame.index, t.lastEntry, entry);
     frame.entryNs = entry;
     frame.intervalMs = static_cast<double>(entry - t.lastEntry) / 1e6;
     frame.phase = phase;
@@ -721,10 +723,10 @@ void testFullscreen() {
 }
 
 void openFrame() {
-    while (!aurora_begin_frame()) {
+    while (!PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::BeginFrame, 0, 0, [&] { return aurora_begin_frame(); })) {
         ++gTrace.unpresentableWaits;
         gTiming.unfocusedInFrame = true;
-        handleEvents(aurora_update());
+        PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::HandleEvents, 0, 0, [&] { handleEvents(PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::EventPump, 0, 0, [&] { return aurora_update(); })); });
     }
 }
 
@@ -808,7 +810,7 @@ void openFirstFrame() {
     if (release) {
         gRelease.begin();
     }
-    handleEvents(aurora_update());
+    PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::HandleEvents, 0, 0, [&] { handleEvents(PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::EventPump, 0, 0, [&] { return aurora_update(); })); });
     openFrame();
     updateImage();
     if (release) {
@@ -924,6 +926,7 @@ using namespace PetariNative::App;
 
 extern "C" void petari_host_frame_mark(int mark) {
     const std::uint64_t now = Telemetry::nowNs();
+    PetariNative::GameWaitHistory::mark(mark, gTiming.frames+1, now);
     if (mark == PETARI_FRAME_MARK_RETRACE_DONE) {
         gTiming.retraceDone = now;
         // The retrace that ended the wait, if one came after the seam.
@@ -1017,7 +1020,7 @@ extern "C" void petari_host_frame_seam(void) {
 
     const std::uint64_t composeStart = Telemetry::nowNs();
     if (gPresent.composeFrame != nullptr) {
-        gPresent.composeFrame(gPresent.user);
+        PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Compose, 0, 0, [&] { gPresent.composeFrame(gPresent.user); });
     }
     const Rect image = updateImage();
     traceFrame(image);
@@ -1073,12 +1076,12 @@ extern "C" void petari_host_frame_seam(void) {
         }
     }
     const std::uint64_t endStart = Telemetry::nowNs();
-    aurora_end_frame();
+    PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::EndFrame, 0, 0, [&] { aurora_end_frame(); });
 
     const std::uint64_t beginStart = Telemetry::nowNs();
-    DisplayWindow::update();
+    PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::DisplayUpdate, 0, 0, [&] { DisplayWindow::update(); });
     testFullscreen();  // PETARI_TEST_FULLSCREEN
-    handleEvents(aurora_update());
+    PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::HandleEvents, 0, 0, [&] { handleEvents(PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::EventPump, 0, 0, [&] { return aurora_update(); })); });
     openFrame();
 
     const std::uint64_t reacquireStart = Telemetry::nowNs();

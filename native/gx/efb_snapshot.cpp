@@ -1,3 +1,4 @@
+#include <petari/game_wait_history.hpp>
 #include "efb_snapshot.hpp"
 #include "sync_backend.h"
 #include "gx/gx.hpp"
@@ -277,13 +278,14 @@ aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& enco
         readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,
             [readback, bytes, generation, ticket, ready, width, height, requested](wgpu::MapAsyncStatus status,
                                                                                    wgpu::StringView) {
+                PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::MapCallback,ticket,0);
                 HostAllocationScope host;
                 if (status != wgpu::MapAsyncStatus::Success) fail("GPU readback mapping failed");
                 const auto* data = static_cast<const Pixel*>(readback.GetConstMappedRange(0, bytes));
                 if (!data) fail("GPU readback returned no data");
                 Snapshot result{width, height, {}};
                 {
-                    std::lock_guard lock(snapshotMutex);
+                    auto lock = PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Snapshot, 0, 2, [&] { return std::unique_lock<std::mutex>(snapshotMutex); });
                     if (!sparePixels.empty()) {
                         result.pixels = std::move(sparePixels.back());
                         sparePixels.pop_back();
@@ -294,12 +296,13 @@ aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& enco
                 readback.Unmap();
                 returnReadback(readback, generation);
                 {
-                    std::lock_guard lock(snapshotMutex);
+                    auto lock = PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Snapshot, 0, 2, [&] { return std::unique_lock<std::mutex>(snapshotMutex); });
                     if (!snapshots.emplace(ticket, std::move(result)).second) fail("duplicate snapshot ticket");
                 }
                 if (requested != 0) {
                     FrameTelemetry::add(FrameTelemetry::EfbCaptureLatency, FrameTelemetry::nowNs() - requested);
                 }
+                PETARI_GAME_WAIT_EVENT(PetariNative::GameWaitHistory::Kind::MapCallback, ticket, 1);
                 ready(ticket);
             });
     };
@@ -307,18 +310,20 @@ aurora::gfx::AfterSubmitCallback encodeSnapshot(const wgpu::CommandEncoder& enco
 
 bool readSnapshot(std::uint64_t ticket, std::uint16_t x, std::uint16_t y,
                   std::uint32_t& depth, std::uint32_t& argb) {
-    std::lock_guard lock(snapshotMutex);
+    return PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Snapshot, ticket, 0, [&] {
+    auto lock = PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Snapshot, 0, 2, [&] { return std::unique_lock<std::mutex>(snapshotMutex); });
     const auto it = snapshots.find(ticket);
     if (it == snapshots.end() || x >= it->second.width || y >= it->second.height) return false;
     const auto pixel = it->second.pixels[std::size_t(y) * it->second.width + x];
     depth = pixel.depth;
     argb = pixel.argb;
     return true;
+    });
 }
 
 void retireSnapshots(std::uint64_t throughTicket) {
     HostAllocationScope host;
-    std::lock_guard lock(snapshotMutex);
+    auto lock = PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Snapshot, 0, 2, [&] { return std::unique_lock<std::mutex>(snapshotMutex); });
     const auto end = snapshots.upper_bound(throughTicket);
     for (auto it = snapshots.begin(); it != end && sparePixels.size() < kMaxSparePixels; ++it) {
         sparePixels.push_back(std::move(it->second.pixels));
@@ -326,7 +331,7 @@ void retireSnapshots(std::uint64_t throughTicket) {
     snapshots.erase(snapshots.begin(), end);
 }
 bool snapshotStats(std::uint64_t ticket, SnapshotStats& result) {
-    std::lock_guard lock(snapshotMutex);
+    auto lock = PetariNative::GameWaitHistory::invoke(PetariNative::GameWaitHistory::Kind::Snapshot, 0, 2, [&] { return std::unique_lock<std::mutex>(snapshotMutex); });
     const auto it = snapshots.find(ticket);
     if (it == snapshots.end() || it->second.pixels.empty()) return false;
     result = {};

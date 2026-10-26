@@ -26,6 +26,14 @@ publishes anything: a person reviews the draft on GitHub and presses Publish.
 
 ## Build the package
 
+For the 5.4.3 graphics-cache transition, the tester-facing note is:
+“the first launch after updating prepares graphics once more; later updates start faster”.
+Old opaque Dawn blobs are not relabelled. Compatible later builds retain validated
+recipes and full-key shader artifacts; a brief Preparing graphics splash can
+still recreate device objects from them. Runtime mechanism proof and build pins:
+`native/docs/CACHE-BUILD-SURVIVAL-543.md` (M4 r5,8/8). The integrated freeze still
+needs its own functional/audio acceptance.
+
 ```sh
 tools/release/make_release.sh --app ~/MacioGalaxy2-play/build5.x/Petari.app \
     --dsym <path to Petari.app.dSYM> --version 0.2.0 --commit <40-hex source commit> --min-macos 15.0

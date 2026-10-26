@@ -1,18 +1,45 @@
 # 5.4.3 cache build-survival runtime proof (M4 only)
 
+**Mechanism PASS:** PORT verified r5 on the M4, quiet, nice0, all8 arms and every
+check true. Authoritative outputs: server `port53/m1g/cache-survival-543-r5/`
+(PLAN prefix `13587dc6`), summary record
+`win54/build-records/cache-survival-543-r5-PASS`. This summary records PORT's
+review; raw r5 outputs were not copied to the M1 or reclassified locally.
+
+Reported Dawn callback counts (hits / misses / stored):
+
+| Arm | Hits | Misses | Stored |
+| --- | ---: | ---: | ---: |
+| A-cold-title | 1382 | 6588 | 6588 |
+| A-warm-title | 7995 | 0 | 0 |
+| B-stage | 7987 | 0 | 0 |
+| B-title | 7985 | 0 | 0 |
+| NEG-stage | 968 | 2119 | 2118 |
+| NEG-title | 3471 | 4494 | 4494 |
+
+A-cold-stage and A-warm-stage also passed; their detailed counters remain in the
+raw receipts, not supplied in this summary. The difference between negative
+misses/stores is not normalized away. Both B arms required zero aggregate misses
+and stores, accepted recipes, unchanged warmed entries and exact capture pixels.
+A/B executable prefixes were `061d2758` / `dd97aecb`, negative `152eda7c`.
+Different binaries shared `b36899bd...`; the ABI negative used `2b8fecc8...`.
+This is compatibility mechanism evidence, not a final release/performance gate.
+
+## Preserved failure history
+
 PORT's first proof refused at the quiet precondition (no app launched). The
 second stopped at A-cold-title because the normal power exit bypassed Aurora's
 artifact report/close. The third verified that report and successful close on
 the real app, then stopped on an incorrect runner timing predicate: it treated
 the title observer's minimum as an exact total duration. All original outputs
 remain preserved as failures. The tools-only timing correction uses the same
-three r3 builds below and a new output directory; no rebuild is needed. It makes
-no runtime survival claim. Round4 passed A-cold-title and stopped before the next
+three r3 builds below and a new output directory; no rebuild was needed. Round4
+passed A-cold-title and stopped before the next
 launch on its one-shot quiet check: the preceding cold compile work had raised
 load averages. The runner now waits boundedly for the same quiet predicate;
 neither a failed arm nor an old receipt is retried or overwritten.
-PORT chooses the quiet build/proof window;
-SOL A retains the M1 measurement slot. All results, failures and caches remain.
+The bounded-wait runner then completed r5. PORT ran the M4 proof;
+SOL A retained the M1 measurement slot. Earlier failures remain failures.
 No rerun loop, cache clearing, host input, AX driver or TCC request is used.
 
 ## Source/build bindings
@@ -146,6 +173,31 @@ Every `launch.json` binds that plan. Each arm keeps native logs, frames/route,
 images, process/quiet data, logical recipe/artifact snapshots (including full
 binary Dawn keys), Metal inventory and RESULT. DRIVER/STOPPED and RELEASE close
 the cohort honestly. Native runtime results are not claimed by the scorer tests.
+
+## Proposed server retention (no deletion performed by this handoff)
+
+Keep **r5 complete**, its PASS build record, exact runner source and original
+build/test provenance. Keep one compact exemplar of each distinct failure:
+
+| Round | Failure exemplar to retain |
+| --- | --- |
+| r1 | PLAN / PREPs / STOPPED / RELEASE and failed quiet.json; no app launched |
+| r2 | Above bindings plus A-cold-title launch/process/app.log and any native CSV / cache snapshot already written: missing terminal artifact report |
+| r3 | Above bindings plus complete A-cold-title app.log, native CSVs and process receipt: real initial/100/complete times and successful artifact close, wrong runner timing predicate |
+| r4 | Above bindings plus successful A-cold-title RESULT/log/launch/process and A-cold-stage quiet.json; retain PORT's load sampler evidence separately |
+
+After inventorying/hashing those exemplars and verifying build/provenance copies
+survive, the **r1–r4 private `apps/`, `cache/` (including Metal), `home/`, `tmp/`
+and per-arm copied `user/` trees** can be dropped. Failed-round captures are not
+needed for these nonvisual failure mechanisms; keep any referenced digest in
+the inventory. CSVs/logs may instead be losslessly compressed with their original
+SHA256 retained. No whole failure kind is discarded. The saved byte count needs
+server-side measurement; the M1 has no copy of these output trees.
+
+PORT performs or authorizes deletion through a literal-path, root-checked
+cleanup tool. This proposal does not touch normal user caches, archived branch
+refs, build records or the complete r5 proof, and does not silently break a
+receipt: a deletion manifest must name every pruned artifact and retained hash.
 
 Source-only scorer tests:
 

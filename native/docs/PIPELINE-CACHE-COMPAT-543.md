@@ -260,7 +260,7 @@ lines bound to both binaries. Do not use normal user cache directories for that
 proof.
 
 Release note for 5.4.3: **The first launch after updating prepares graphics once
-more; later compatible updates keep them.** The unchanged Preparing graphics
+more; later updates start faster.** The unchanged Preparing graphics
 path covers this one-time legacy-blob transition. Seeds and `.pfd` fingerprints
 remain byte-identical; their digest is no longer a cache-compatibility input.
 
@@ -300,3 +300,27 @@ Receipts: `m1g/solb/cache-compat-543/rotate-check-r3/RESULT.json` and per-case
 logs; earlier r1 failures remain preserved. These checks do not replace the
 server candidate app build, configured native suite or real Dawn runtime test.
 No app/GX build or gameplay measurement was performed locally.
+
+## Freeze handoff: runtime mechanism proved
+
+PORT verified the M4 private-cache runtime proof r5: **8/8 arms passed**, quiet,
+nice0, PLAN prefix `13587dc6`. The irrelevant production edit changed the binary
+from A `061d2758...` to B `dd97aecb...`, while recipe key `b36899bd...` and the
+effective backend/device context stayed compatible. Both B arms loaded recipes
+and full-key Dawn artifacts with **zero misses and zero stores**, and exact
+output captures. The descriptor-ABI negative selected `2b8fecc8...`, missed and
+stored new artifacts. All arms reported successful terminal cache close.
+
+Authoritative receipts: server `port53/m1g/cache-survival-543-r5/` and
+`win54/build-records/cache-survival-543-r5-PASS`. See
+[runtime proof](CACHE-BUILD-SURVIVAL-543.md) for build pins, reported counts and
+the preserved failure history. This establishes cache build-survival, not an
+M1 stall/audio or final integrated-freeze acceptance claim.
+
+Land only `port/543-cache-compatibility`. Keep the B/negative branches as archived
+test instruments; neither is merged. Production keeps descriptor ABI1 and the
+original GX diagnostic. There is no `src/`, `include/` or `libs/` change relative
+to the approved main base. Current-main release-intake updates at `7fdb1c38`
+are merged for the freeze handoff; they do not change native/cache inputs.
+The v14 pack and 57 PFD files remain unchanged. The eventual integrated freeze
+still requires its exact-source candidate suite and functional/audio gates.

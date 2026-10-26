@@ -26,7 +26,24 @@ int main() {
     assert(!c.begin(a, 3, 256, 32000, 1000000000, 0x2000, 0x3000));
     assert(!c.begin(a, 3, 7, 44100, 1000000000, 0x2000, 0x3000));
     assert(!c.begin(a, 3, 7, 32000, 0, 0x2000, 0x3000));
-    assert(!c.begin(a, 3, 7, 32000, UINT64_MAX, 0x2000, 0x3000));
+    // UINT64_MAX ticks/second does not itself overflow the deadline: seven
+    // 32 kHz subframes have a budget of floor(ticks * 7 / 500). Compute an
+    // independent expected result by quotient/remainder, without the wide
+    // intermediate used by Cycle::begin. The old rejection assertion mistook
+    // an overflowing 64-bit intermediate for an overflowing final deadline.
+    constexpr auto maxClockBudget = (UINT64_MAX / 500) * 7 +
+                                    ((UINT64_MAX % 500) * 7) / 500;
+    assert(c.begin(a, 3, 7, 32000, UINT64_MAX, 0x2000, 0x3000));
+    assert(c.deadline == a.queuedMach + maxClockBudget);
+    assert(c.cancel());
+    auto lastRepresentable = a;
+    lastRepresentable.queuedMach = UINT64_MAX - maxClockBudget;
+    assert(c.begin(lastRepresentable, 3, 7, 32000, UINT64_MAX, 0x2000, 0x3000));
+    assert(c.deadline == UINT64_MAX && c.cancel());
+    ++lastRepresentable.queuedMach;
+    assert(!c.begin(lastRepresentable, 3, 7, 32000, UINT64_MAX, 0x2000, 0x3000));
+    assert(!c.active); // A true deadline overflow must not activate a cycle.
+    assert(!c.begin(a, 3, 7, 32000, 1, 0x2000, 0x3000)); // budget rounds to zero
     auto overflow = a; overflow.queuedMach = UINT64_MAX - 10;
     assert(!c.begin(overflow, 3, 7, 32000, 1000000000, 0x2000, 0x3000));
     assert(!c.begin(a, 3, 7, 32000, 1000000000, 0x2000, 0x2000));

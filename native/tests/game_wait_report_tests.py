@@ -91,6 +91,29 @@ done:
         self.assertTrue(c.verify(ir))
         with self.assertRaises(ValueError):c.verify(ir.replace('  %result = tail call','  call void @observer()\n  %result = tail call'))
 
+    def test_release_actual_apple_clang21_shared_return(self):
+        ir=(ROOT/'native/tests/fixtures/game_wait_apple_clang21.ll').read_text()
+        self.assertTrue(c.verify(ir))
+        # The disabled successor is %5, whose original-call result %6 is
+        # selected in shared return block %26 via the [%6, %5] PHI operand.
+        negatives=[
+            ('  %6 = tail call', '  call void @observer()\n  %6 = tail call'),
+            ('  %6 = tail call', '  %bad = load ptr, ptr @hooks\n  %6 = tail call'),
+            ('[ %6, %5 ]', '[ 0, %5 ]'),
+            ('[ %6, %5 ]', '[ %11, %5 ]'),
+            ('  ret i32 %27', '  ret i32 %11'),
+            ('  %6 = tail call', '  %extra = call i32 @gw_work(ptr %0)\n  %6 = tail call'),
+            ('  br label %26\n\n7:', '  br label %5\n\n7:'),
+            ('  br i1 %4, label %7, label %5', '  br i1 %4, label %5, label %7'),
+            ('16:                                               ; preds = %12, %9, %4, %1\n  ret void',
+             '16:                                               ; preds = %12, %9, %4, %1\n  call i32 @gw_work(ptr %0)\n  ret void'),
+            ('  %3 = load atomic i8', '  call void @observer()\n  %3 = load atomic i8'),
+        ]
+        for old,new in negatives:
+            with self.subTest(mutation=new):
+                self.assertEqual(ir.count(old),1)
+                with self.assertRaises(ValueError):c.verify(ir.replace(old,new))
+
     def test_release_checker_refuses_work_before_guard(self):
         with self.assertRaises(ValueError):c.verify('define i32 @gw_probe_guarded(ptr %p) {\n call i32 @gw_work(ptr %p)\n ret i32 0\n}\n')
 if __name__=='__main__':unittest.main()

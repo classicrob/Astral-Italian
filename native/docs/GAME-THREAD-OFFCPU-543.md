@@ -180,3 +180,31 @@ from both minimal anchors and the actual pinned Aurora frame source, checks
 exactly one history include / each expected hook and preserved original call
 counts, and refuses a second pass. Python generation is source-only; a native
 configure/compile remains a separate server check.
+
+### Release IR matcher correction (Apple clang 21)
+
+The server's exact `game-wait-codegen.ll` is retained byte-for-byte as
+`native/tests/fixtures/game_wait_apple_clang21.ll` (SHA256
+`da17510923da227fb12b1809b9b89073dd768f50f31c2624470708cad7d59fbf`).
+This is Apple clang 21.0.0, not a locally regenerated approximation.
+
+In `gw_probe_guarded`, entry loads the enabled byte into `%3`, truncates to
+`%4`, then branches true to `%7` / false to `%5`. Disabled block `%5` calls
+`gw_work` exactly once into `%6`, then branches to shared block `%26`.
+That block selects `[ %6, %5 ]` into PHI `%27` and returns it. No hook load,
+clock, callback, token initialization/lifetime or destructor is on this edge.
+Entry contains a static uninitialized `%struct.Exit` stack-slot reservation;
+the lifetime start, token writes and callbacks are only on the enabled branch.
+This IR check does not claim a measured cycle/stack cost or runtime neutrality.
+
+The old checker reset its call count across the unconditional branch, so it
+rejected the shared PHI return. The corrected checker evaluates the flag with
+`enabled=0`, follows ONLY that successor, accumulates the original call across
+blocks and resolves each PHI using the predecessor actually traversed. It
+requires the returned value to be that original result, rejects all other OFF
+instructions/calls/loads/stores and cycles, and checks the metadata OFF edge
+returns without evaluating any argument. Unsupported LLVM shapes fail closed.
+It no longer accepts an arbitrary clean successor when the actual disabled
+successor contains observer work. Ten mutations of the real IR reject added
+calls/hook loads, wrong PHI/return, duplicate original calls, cycles, inverted
+OFF/ON edges, metadata evaluation and entry work. Production code is unchanged.
